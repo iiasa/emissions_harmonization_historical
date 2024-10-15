@@ -1,17 +1,56 @@
-[tool.poetry]
-package-mode = false
-name = "prototype"
+[project]
+authors = [
+    { name = "Jarmo S. Kikstra", email = "kikstra@iiasa.ac.at"},
+    { name = "Jonas Hörsch" },
+    { name = "Zebedee Nicholls", email = "zebedee.nicholls@climate-energy-college.org"},
+]
+requires-python = "==3.11"
+dependencies = [
+    "pre-commit==3.3.1",
+]
+name = "emissions-harmonization-historical"
 version = "0.1.0"
 description = "Scripts that combine historical emissions data records from several datasets like CEDS and GFED to create complete historical emissions files that are input to the IAM emissions harmonization algorithms in `IAMconsortium/concordia` (regional harmonization and spatial gridding for ESMs) and `iiasa/climate-assessment` (global climate emulator workflow)."
-authors = ["Jarmo S. Kikstra <kikstra@iiasa.ac.at>", "Jonas Hörsch"]
 readme = "README.md"
 
-[tool.poetry.dependencies]
-python = "^3.9"
-pre-commit = "3.3.1"
-notebook = "7.0.6"
-jupytext = "1.15.2"
+[tool.pixi.project]
+channels = [
+    "conda-forge",
+]
+platforms = [
+    "osx-64",
+    "osx-arm64",
+    "linux-64",
+    "linux-aarch64",
+    "win-64",
+]
 
+[tool.pixi.tasks]
+
+[tool.pixi.dependencies]
+jupyterlab = ">=4.2.5,<5"
+jupytext = ">=1.16.4,<2"
+pandas = ">=2.2.3,<3"
+pandas-indexing = ">=0.5.2,<0.6"
+openscm-units = ">=0.6.1,<0.7"
+openpyxl = ">=3.1.5,<4"
+pyarrow = ">=17.0.0,<18"
+pip = ">=24.2,<25"
+dask = ">=2024.9.1,<2025"
+geopandas = ">=1.0.1,<2"
+xarray = ">=2024.9.0,<2025"
+affine = ">=2.4.0,<3"
+flox = ">=0.9.12,<0.10"
+cf_xarray = ">=0.9.5,<0.10"
+rasterio = ">=1.4.1,<2"
+cftime = ">=1.6.4,<2"
+h5py = ">=3.11.0,<4"
+netcdf4 = ">=1.7.1,<2"
+h5netcdf = ">=1.4.0,<2"
+
+# Next MR
+# [tool.pixi.pypi-dependencies]
+# emissions_harmonization_historical = { path = ".", editable = true }
 
 [tool.jupytext]
 formats = "ipynb,py:percent"

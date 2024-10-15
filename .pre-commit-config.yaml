@@ -4,6 +4,7 @@ repos:
     rev: 'v4.4.0'
     hooks:
       - id: check-added-large-files
+        exclude: pixi.lock
       - id: check-ast
       - id: check-case-conflict
       - id: check-json
@@ -24,15 +25,25 @@ repos:
         entry: found Copier update rejection files; review them and remove them
         language: fail
         files: "\\.rej$"
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: 'v0.4.10'
+  # Turn back on in last MR
+  # - repo: https://github.com/charliermarsh/ruff-pre-commit
+  #   rev: 'v0.4.10'
+  #   hooks:
+  #     - id: ruff
+  #       args: [ --fix, --exit-non-zero-on-fix ]
+  #     - id: ruff-format
+  - repo: local
     hooks:
-      - id: ruff
-        args: [ --fix, --exit-non-zero-on-fix ]
-        exclude: 'notebooks/.*.py' # do not run ruff on .py files created from notebooks with jupytext
-      - id: ruff-format
-        exclude: 'notebooks/.*.py' # do not run ruff on .py files created from notebooks with jupytext
-  - repo: https://github.com/python-poetry/poetry
-    rev: '1.8.1'
-    hooks:
-      - id: poetry-check
+      # pixi doesn't have a lock/check command yet,
+      # so we just have to run install each time.
+      # Ok for now
+      - id: pixi-install
+        name: pixi-install
+        entry: pixi install
+        # Don't use this, we want pixi to run
+        # and update pixi.lock automatically if it is not up to date,
+        # rather than just failing and exiting.
+        # args: ["--locked"]
+        language: system
+        require_serial: true
+        pass_filenames: false

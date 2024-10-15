@@ -17,8 +17,10 @@ on your repository where you're up to. Some suggested options:
 
 -->
 
-Scripts that combine historical emissions data records from several datasets like CEDS and GFED to create complete historical emissions files that are input to the IAM emissions harmonization algorithms in `IAMconsortium/concordia` (regional harmonization and spatial gridding for ESMs) and `iiasa/climate-assessment` (global climate emulator workflow).
-
+Scripts that combine historical emissions data records from several datasets like CEDS and GFED
+to create complete historical emissions files
+that are input to the IAM emissions harmonization algorithms in `IAMconsortium/concordia` (regional harmonization and spatial gridding for ESMs)
+and `iiasa/climate-assessment` (global climate emulator workflow).
 
 ## Status
 
@@ -26,21 +28,19 @@ Scripts that combine historical emissions data records from several datasets lik
 
 ## Installation
 
-We do all our environment management using
-[poetry](https://python-poetry.org/). To get started, you will need to make
-sure that poetry is installed
-([instructions here](https://python-poetry.org/docs/#installing-with-the-official-installer),
-we found that pipx and pip worked better to install on a Mac).
-
-You may need to upgrade `poetry` if errors occur, as was the case e.g., [here](https://github.com/iiasa/emissions_harmonization_historical/issues/2).
+We do all our environment management using [pixi](https://pixi.sh/latest).
+To get started, you will need to make sure that pixi is installed
+([instructions here](https://pixi.sh/latest),
+we found that using the pixi provided script was best on a Mac).
 
 To create the virtual environment, run
 
 ```sh
-# Tell poetry to put virtual environments in the project
-poetry config virtualenvs.in-project true
-poetry install --all-extras
-poetry run pre-commit install
+pixi install
+pixi run pre-commit install
+# Install some specific dependencies which seem unhappy in the rest of the workflow
+pixi run pip install "git+https://github.com/gidden/ptolemy.git#egg=ptolemy-iamc" --no-deps
+pixi run pip install "git+https://github.com/iiasa/aneris.git@workflow#egg=aneris-iamc" --no-deps
 ```
 
 These steps are also captured in the `Makefile` so if you want a single
@@ -50,19 +50,19 @@ Having installed your virtual environment, you can now run commands in your
 virtual environment using
 
 ```sh
-poetry run <command>
+pixi run <command>
 ```
 
 For example, to run Python within the virtual environment, run
 
 ```sh
-poetry run python
+pixi run python
 ```
 
 As another example, to run a notebook server, run
 
 ```sh
-poetry run jupyter lab
+pixi run jupyter lab
 ```
 
 <!--- Other documentation and instructions can then be added here as you go,
@@ -91,20 +91,38 @@ it all in the README is fine. -->
 Install and run instructions are the same as the above (this is a simple
 repository, without tests etc. so there are no development-only dependencies).
 
-
-
 ### Repository structure
 
-General functions in `emissions_harmonization_historical`.
+#### Notebooks
 
-Data: big files, locally, in `data`, especially under the `data_raw` subfolders.
-  Structured in `national` (e.g., CEDS, GFED) and `global` (e.g., GCB) folders.
+These are the main processing scripts.
+They are saved as plain `.py` files using [jupytext](https://jupytext.readthedocs.io/en/latest/).
+Jupytext will let you open the plain `.py` files as Jupyter notebooks.
 
+In general, you should run the notebooks in numerical order.
+We do not have a comprehensive way of capturing the dependencies between notebooks implemented at this stage.
+We try and make it so that notebooks in each `YY**` series are independent
+(i.e. you can run `02**` without running `01**`),
+but we do not guarantee this.
+Hence, if in doubt, run the notebooks in numerical order.
 
-Notebooks: these are the main processing scripts.
-  `01**`: preparing input data for `IAMconsortium/concordia`.
-  `02**`: preparing input data for `iiasa/climate-assessment`.
+Overview of notebooks:
 
+- `01**`: preparing input data for `IAMconsortium/concordia`.
+- `02**`: preparing input data for `iiasa/climate-assessment`.
+
+#### Local package
+
+We have a local package, `emissions_harmonization_historical`,
+which we use to share general functions across the notebooks.
+
+#### Data
+
+All data files should be saved in `data`.
+We divide data sources into `national` i.e. those that are used for country-level data (e.g. CEDS, GFED)
+and `global` i.e. those that are used for global-level data (e.g. GCB).
+Within each data source's folder, we use `data_raw` for raw data.
+Where raw data is not included, we include a `README.txt` file which explains how to generate the data.
 
 ### Tools
 
@@ -115,14 +133,16 @@ In this repository, we use the following tools:
     - for these purposes, git is a great version-control system so we don't
       complicate things any further. For an introduction to Git, see
       [this introduction from Software Carpentry](http://swcarpentry.github.io/git-novice/).
-- [Poetry](https://python-poetry.org/docs/) for environment management
-  (for more on environment management, see
-  [general principles: environment management](https://gitlab.com/znicholls/mullet-rse/-/blob/main/book/theory/environment-management.md))
-    - there are lots of environment management systems. Poetry works and for
-      simple projects like this there is no need to overcomplicate things
-    - we track the `poetry.lock` file so that the environment is completely
-      reproducible on other machines or by other people (e.g. if you want a
-      colleague to take a look at what you've done)
+- [Pixi](https://pixi.sh/latest/) for environment management
+   (for more on environment management, see
+   [general principles: environment management](https://gitlab.com/znicholls/mullet-rse/-/blob/main/book/theory/environment-management.md))
+    - there are lots of environment management systems.
+      Pixi works well in our experience and,
+      for projects that need conda,
+      it is the only solution we have tried that worked really well.
+    - we track the `pixi.lock` file so that the environment
+      is completely reproducible on other machines or by other people
+      (e.g. if you want a colleague to take a look at what you've done)
 - [pre-commit](https://pre-commit.com/) with some very basic settings to get some
   easy wins in terms of maintenance, specifically:
     - code formatting with [ruff](https://docs.astral.sh/ruff/formatter/)
