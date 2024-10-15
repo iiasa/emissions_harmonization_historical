@@ -19,18 +19,17 @@ from pathlib import Path
 import pandas as pd
 import ptolemy
 import xarray as xr
-import pandas_indexing as pix
-from pandas_indexing import isin, set_openscm_registry_as_default
+from pandas_indexing import set_openscm_registry_as_default
 
 from emissions_harmonization_historical.gfed import (
+    add_global,
+    read_cell_area,
     # read_var,
     # read_coords,
     # concat_group,
     # read_monthly,
     # month_to_cftime,
     read_year,
-    read_cell_area,
-    add_global,
 )
 
 # set unit registry
@@ -105,10 +104,10 @@ emissions
 # Get emissions factor for different species
 
 # +
-_, marker, *sectors = pd.read_csv(gfed_emission_factors, sep="\s+", skiprows=15, nrows=1, header=None).iloc[0]
+_, marker, *sectors = pd.read_csv(gfed_emission_factors, sep=r"\s+", skiprows=15, nrows=1, header=None).iloc[0]
 assert marker == "SPECIE", f"header in {gfed_emission_factors} is not in line 16 anymore or looks different"
 
-ef = pd.read_csv(gfed_emission_factors, sep="\s+", header=None, names=sectors, comment="#").rename_axis(
+ef = pd.read_csv(gfed_emission_factors, sep=r"\s+", header=None, names=sectors, comment="#").rename_axis(
     index="em", columns="sector"
 )
 
@@ -159,7 +158,9 @@ with xr.open_dataset(gfed_grid_template) as template:
 # The resulting cell areas are stored in an xarray DataArray, with units of square meters ("m2").
 cell_area = xr.DataArray(ptolemy.cell_area(lats=dm_regrid.lat, lons=dm_regrid.lon), attrs=dict(unit="m2"))
 
-# calculate emissions by country by: taking the country cell IDs (idxr), multiplying it by the area (cell_area), and by the regridded lat/lon grid resummed to per year (dm_regrid.groupby("time.year").sum())
+# calculate emissions by country by:
+# taking the country cell IDs (idxr), multiplying it by the area (cell_area),
+# and by the regridded lat/lon grid resummed to per year (dm_regrid.groupby("time.year").sum())
 # Step 4: Calculate emissions by country.
 # This is done by multiplying the regridded Dry Matter (DM) emissions data by the grid cell areas (cell_area)
 # and by the ISO country cell IDs (idxr).
@@ -235,7 +236,8 @@ unit = pd.MultiIndex.from_tuples(
 )
 
 # +
-# TODO: update unit conversions as necessary, e.g. by following IAMC units. Could also be done in a IAMC-preprocessing script.
+# TODO: update unit conversions as necessary, e.g. by following IAMC units.
+# Could also be done in a IAMC-preprocessing script.
 
 # +
 # reformat

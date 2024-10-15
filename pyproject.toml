@@ -55,6 +55,7 @@ emissions_harmonization_historical = { path = ".", editable = true }
 formats = "ipynb,py:percent"
 
 [tool.ruff]
+src = ["src"]
 line-length = 120
 
 [tool.ruff.lint]
@@ -73,10 +74,15 @@ select = [
 ]
 unfixable = [ ]
 ignore = [
+    "S101",
+    "D100",
     "D200",
     "D400",
     "UP007",
 ]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
