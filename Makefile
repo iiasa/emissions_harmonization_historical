@@ -28,6 +28,7 @@ pre-commit:  ## run pre-commit on all files in the repository
 
 .PHONY: virtual-environment
 virtual-environment:  ## update virtual environment, create a new one if it doesn't already exist
+	git lfs install
 	pixi install
 	pixi run pre-commit install
 	pixi run pip install "git+https://github.com/gidden/ptolemy.git#egg=ptolemy-iamc" --no-deps

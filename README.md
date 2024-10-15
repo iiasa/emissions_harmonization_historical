@@ -71,10 +71,37 @@ perhaps replacing the other instructions above as they may become redundant.
 
 ## Data
 
+Some of our data is managed using [git lfs](https://git-lfs.com/).
+To install it, please follow [the instructions here](https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage).
+
+Then, before doing anything else, run
+
+```sh
+git lfs install
+```
+
+Once you have `git lfs` installed, you can grab all the files we track with
+
+```sh
+git lfs fetch --all
+```
+
+To grab a specific file, use
+
+```sh
+git lfs pull --include="path/to/file"
+# e.g.
+git lfs pull --include="data/national/gfed/data_aux/iso_mask.nc"
+```
+
+For more info, see, for example, [here](https://graphite.dev/guides/how-to-use-git-lfs-pull).
+
 ### Input data
 Note that this repository focuses on processing data, and does not currently also (re)host input data files.
 
-Files that need to be downloaded to make sure you can run the notebooks are specified in the relevant `data` subfolders, in README files, such as in `\data\national\ceds\data_raw\README.txt` for the CEDS data download, and in `\data\national\gfed\data_raw\README.txt` for the GFED data download.
+Files that need to be downloaded to make sure you can run the notebooks are specified in the relevant `data` subfolders,
+in README files, such as in `\data\national\ceds\data_raw\README.txt` for the CEDS data download,
+and in `\data\national\gfed\data_raw\README.txt` for the GFED data download.
 
 ### Processed data
 Data is processed by the jupyter notebooks (saved as .py scripts using jupytext, under the `notebooks` folder).

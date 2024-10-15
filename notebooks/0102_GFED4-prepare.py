@@ -3,16 +3,16 @@
 #   jupytext:
 #     text_representation:
 #       extension: .py
-#       format_name: light
-#       format_version: '1.5'
-#       jupytext_version: 1.15.2
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.16.4
 #   kernelspec:
-#     display_name: .venv
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
 
-# +
+# %%
 # import external packages and functions
 from pathlib import Path
 
@@ -21,6 +21,7 @@ import ptolemy
 import xarray as xr
 from pandas_indexing import set_openscm_registry_as_default
 
+from emissions_harmonization_historical.constants import DATA_ROOT
 from emissions_harmonization_historical.gfed import (
     add_global,
     read_cell_area,
@@ -35,16 +36,16 @@ from emissions_harmonization_historical.gfed import (
 # set unit registry
 ur = set_openscm_registry_as_default()
 
-# -
 
+# %% [markdown]
 # Set paths
 
-# +
+# %%
 gfed_release = "GFED4.1s"
 
-gfed_data_folder = Path("..", "data", "national", "gfed", "data_raw")
+gfed_data_folder = DATA_ROOT / Path("national", "gfed", "data_raw")
 
-gfed_data_aux_folder = Path("..", "data", "national", "gfed", "data_aux")
+gfed_data_aux_folder = DATA_ROOT / Path("national", "gfed", "data_aux")
 gfed_emission_factors = Path(
     gfed_data_aux_folder, "GFED4_Emission_Factors.txt"
 )  # emission factors of burning of different biomes
@@ -57,12 +58,13 @@ gfed_grid_template = Path(
     gfed_data_aux_folder, "BC-em-openburning_input4MIPs_emissions_CMIP_REMIND-MAGPIE-SSP5-34-OS-V1_gn_201501-210012.nc"
 )  # for country-level grid emissions reporting template
 
-gfed_processed_output_file = Path("..", "data", "national", "gfed", "processed", "gfed_cmip7_national_alpha.csv")
-gfed_temp_file = Path("..", "data", "national", "gfed", "processed", "gfed_temporaryfile.csv")
-# -
+gfed_processed_output_file = DATA_ROOT / Path("national", "gfed", "processed", "gfed_cmip7_national_alpha.csv")
+gfed_temp_file = DATA_ROOT / Path("national", "gfed", "processed", "gfed_temporaryfile.csv")
 
+# %% [markdown]
 # Specify gases to processes
 
+# %%
 # use all gases covered in CEDS
 gases = [
     "BC",
@@ -86,8 +88,10 @@ sector_mapping = {
     "TEMF": "Forest Burning",
 }
 
+# %% [markdown]
 # Load raw emissions data
 
+# %%
 # load raw emissions data
 emissions = xr.concat(
     [read_year(filename) for filename in sorted(gfed_data_folder.glob("*.hdf5"), key=lambda p: p.stem)],
@@ -101,9 +105,10 @@ emissions["C"].attrs.update(dict(unit="g C m-2 / month"))
 # show xarray
 emissions
 
+# %% [markdown]
 # Get emissions factor for different species
 
-# +
+# %%
 _, marker, *sectors = pd.read_csv(gfed_emission_factors, sep=r"\s+", skiprows=15, nrows=1, header=None).iloc[0]
 assert marker == "SPECIE", f"header in {gfed_emission_factors} is not in line 16 anymore or looks different"
 
@@ -136,11 +141,11 @@ ef.loc["NMVOC"] = ef.multiply(nmvoc_factors, axis=0).sum()
 ef_per_DM = ef.loc[gases] / ef.loc["DM"]
 # in kg {species} / kg DM
 ef_per_DM
-# -
 
+# %% [markdown]
 # Aggregate to countries
 
-# +
+# %%
 # Step 1: Load the country (ISO) NetCDF mask with 0.5-degree resolution.
 # This mask assigns each grid cell an ISO country code, allowing emissions to be aggregated by country.
 # 'chunks={"iso": 1}' uses Dask to enable chunking for memory efficiency, loading one ISO code at a time.
@@ -171,10 +176,11 @@ country_emissions = (
     * xr.DataArray(ef_per_DM)
 ).compute()
 country_emissions
-# -
 
+# %% [markdown]
 # Convert units from Dry Matter to emissions
 
+# %%
 units = pd.MultiIndex.from_tuples(
     [
         ("BC", "kg C"),
@@ -198,14 +204,17 @@ emissions_df = (
     .pix.convert_unit(lambda u: u.replace("kg", "kt"))
 )
 
+# %% [markdown]
 # Intermediary save before reformatting
 
+# %%
 # intermediary save
 (emissions_df.to_csv(gfed_temp_file))
 
+# %% [markdown]
 # Reformat, including updated variable naming
 
-# +
+# %%
 burningCMIP7 = (
     pd.read_csv(
         gfed_temp_file,
@@ -216,8 +225,8 @@ burningCMIP7 = (
 )
 
 # burningCMIP7.pix
-# -
 
+# %%
 # set units
 unit = pd.MultiIndex.from_tuples(
     [
@@ -235,11 +244,11 @@ unit = pd.MultiIndex.from_tuples(
     names=["em", "unit"],
 )
 
-# +
+# %%
 # TODO: update unit conversions as necessary, e.g. by following IAMC units.
 # Could also be done in a IAMC-preprocessing script.
 
-# +
+# %%
 # reformat
 burningCMIP7_ref = (
     burningCMIP7.pix.convert_unit(lambda u: u.replace("kt", "Mt"))
@@ -258,12 +267,15 @@ burningCMIP7_ref = (
 
 # add global level aggregation ("World")
 burningCMIP7_ref = add_global(burningCMIP7_ref, groups=["model", "scenario", "variable", "unit"])
-# -
 
+# %%
 burningCMIP7.pix
 
+# %%
 burningCMIP7_ref.pix
 
+# %% [markdown]
 # Save formatted GFED data
 
+# %%
 (burningCMIP7_ref.to_csv(gfed_processed_output_file))
