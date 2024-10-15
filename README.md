@@ -155,3 +155,10 @@ In this repository, we use the following tools:
     (for more thoughts on the usefulness of Jupytext, see
     [tips and tricks: Jupytext](https://gitlab.com/znicholls/mullet-rse/-/blob/main/book/tips-and-tricks/managing-notebooks-jupytext.md))
         - this avoids nasty merge conflicts and incomprehensible diffs
+
+## Original template
+
+This project was generated from this template:
+[basic python repository](https://gitlab.com/znicholls/copier-basic-python-repository).
+[copier](https://copier.readthedocs.io/en/stable/) is used to manage and
+distribute this template.

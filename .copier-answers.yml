@@ -1,11 +1,11 @@
 # Changes here will be overwritten by Copier
 _commit: v0.3.0
-_src_path: C:/Users/kikstra/Documents/GitHub/copier-basic-python-repository
+_src_path: gl:znicholls/copier-basic-python-repository
 email: kikstra@iiasa.ac.at
 initial_setup: false
 name: Jarmo S. Kikstra
 notebooks: true
-package_manager: poetry
+package_manager: pixi
 project_description_short: Scripts that combine historical emissions data records
     from several datasets like CEDS and GFED to create complete historical emissions
     files that are input to the IAM emissions harmonization algorithms in `IAMconsortium/concordia`
