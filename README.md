@@ -114,7 +114,7 @@ Overview of notebooks:
 #### Local package
 
 We have a local package, `emissions_harmonization_historical`,
-which we use to share general functions across the notebooks.
+that lives in `src`, which we use to share general functions across the notebooks.
 
 #### Data
 
