@@ -118,6 +118,30 @@ it all in the README is fine. -->
 Install and run instructions are the same as the above (this is a simple
 repository, without tests etc. so there are no development-only dependencies).
 
+### Adding new dependencies
+
+If there is a dependency missing, you can add it with pixi.
+Please only add dependencies with pixi,
+as this ensures that all the other developers will get the same dependencies as you
+(if you add dependencies directly with conda or pip,
+then they are not added to the `pixi.lock` file
+so other developers will not realise they are needed!).
+
+To add a conda dependency,
+
+```sh
+pixi add <dependency-name>
+```
+
+To add a PyPI/pip dependency,
+
+```sh
+pixi add --pypi <dependency-name>
+```
+
+The full documentation can be found [here](https://pixi.sh/v0.24.1/reference/cli/#add)
+in case you have a more exotic use case.
+
 ### Repository structure
 
 #### Notebooks
