@@ -38,9 +38,6 @@ To create the virtual environment, run
 ```sh
 pixi install
 pixi run pre-commit install
-# Install some specific dependencies which seem unhappy in the rest of the workflow
-pixi run pip install "git+https://github.com/gidden/ptolemy.git#egg=ptolemy-iamc" --no-deps
-pixi run pip install "git+https://github.com/iiasa/aneris.git@workflow#egg=aneris-iamc" --no-deps
 ```
 
 These steps are also captured in the `Makefile` so if you want a single
