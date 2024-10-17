@@ -1,7 +1,6 @@
 Download all data from source:
 https://www.geo.vu.nl/~gwerf/GFED/GFED4/
 It can also be downloaded with `download.py`
-[TODO: add script with pooch for doing this, clicking is the worst and filenames should be predictable]
 
 Last accessed: 10.10.2024
 

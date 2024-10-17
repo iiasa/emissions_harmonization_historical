@@ -50,6 +50,7 @@ h5py = ">=3.11.0,<4"
 netcdf4 = ">=1.7.1,<2"
 h5netcdf = ">=1.4.0,<2"
 pooch = ">=1.8.2,<2"
+nc-time-axis = ">=1.4.1,<2"
 
 [tool.pixi.pypi-dependencies]
 emissions_harmonization_historical = { path = ".", editable = true }
