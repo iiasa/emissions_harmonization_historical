@@ -33,12 +33,13 @@ To get started, you will need to make sure that pixi is installed
 ([instructions here](https://pixi.sh/latest),
 we found that using the pixi provided script was best on a Mac).
 
-To create the virtual environment, run
+To create the virtual environment, navigate to the root folder of this repository and run from your shell:
 
 ```sh
 pixi install
 pixi run pre-commit install
 ```
+This will create a python environment in "{LOCALPATH}\emissions_harmonization_historical\.pixi\envs\default\", with "python.EXE" in that folder being the default python interpreter (to be used if your for instance selecting a kernel for running a jupyter notebook in VSCode or any other IDE).
 
 These steps are also captured in the `Makefile` so if you want a single
 command, you can instead simply run `make virtual-enviroment`.
@@ -61,6 +62,15 @@ As another example, to run a notebook server, run
 ```sh
 pixi run jupyter lab
 ```
+
+You will likely be running the notebooks in the notebook folder, and may therefore want to create .ipynb versions of the .py scripts. To do this, you can run `jupytext` (see [jupytext docs](https://jupytext.readthedocs.io/en/latest/using-cli.html)) in the environment created with pixi, doing something like:
+```sh
+pixi run jupytext --to notebook .\notebooks\0101_CEDS-prepare.py
+pixi run jupytext --to notebook .\notebooks\0102_GFED4-prepare.py
+pixi run jupytext --to notebook .\notebooks\0103_GFED4-BB4CMIP-prepare.py
+```
+
+
 
 <!--- Other documentation and instructions can then be added here as you go,
 perhaps replacing the other instructions above as they may become redundant.
@@ -98,7 +108,7 @@ Note that this repository focuses on processing data, and does not currently als
 
 Files that need to be downloaded to make sure you can run the notebooks are specified in the relevant `data` subfolders,
 in README files, such as in `\data\national\ceds\data_raw\README.txt` for the CEDS data download,
-and in `\data\national\gfed\data_raw\README.txt` for the GFED data download.
+in `\data\national\gfed\data_raw\README.txt` for the GFED4.1s data download, and in `\data\national\gfed-bb4cmip\data_raw\README.md` for the GFED-based biomass burning data product for CMIP7 (BB4CMIP). We try to provide convenient data download scripts where possible. For instance, for GFED4.1s, you can download all data by running from the root folder `pixi run python data/gfed/data_raw/download.py`.
 
 ### Processed data
 Data is processed by the jupyter notebooks (saved as .py scripts using jupytext, under the `notebooks` folder).
