@@ -209,6 +209,7 @@ In this repository, we use the following tools:
     - (for more thoughts on the usefulness of pre-commit, see
       [general principles: automation](https://gitlab.com/znicholls/mullet-rse/-/blob/main/book/general-principles/automation.md)
     - track your notebooks using
+    - note: if the pre-commit hook that calls pixi (described above) does not work, try adding the location of your pixi binary (e.g. pixi.exe may be located in "C:\Users\username\.pixi\bin") to your path, and restart the shell
     [jupytext](https://jupytext.readthedocs.io/en/latest/index.html)
     (for more thoughts on the usefulness of Jupytext, see
     [tips and tricks: Jupytext](https://gitlab.com/znicholls/mullet-rse/-/blob/main/book/tips-and-tricks/managing-notebooks-jupytext.md))
