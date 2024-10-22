@@ -5374,7 +5374,7 @@ packages:
   name: emissions-harmonization-historical
   version: 0.1.0
   path: .
-  sha256: 5c35318d9cfb8a1a5cdc9b099acc336810eee20ce5e0de3531374688b9f110ff
+  sha256: e7ad60e96b845782cd9c59ff2bc93c49b3742d64661b5c204dad4b576008e03a
   requires_dist:
   - pre-commit==3.3.1
   - ptolemy-iamc @ git+https://github.com/gidden/ptolemy.git@015aa843c340bd57464eb7cfd5f3c8e397201266

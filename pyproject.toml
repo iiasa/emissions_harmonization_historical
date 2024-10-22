@@ -27,6 +27,9 @@ platforms = [
     "win-64",
 ]
 
+[tool.pixi.system-requirements]
+macos = "12.7.6"
+
 [tool.pixi.tasks]
 
 [tool.pixi.dependencies]
