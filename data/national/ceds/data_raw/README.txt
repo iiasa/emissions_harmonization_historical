@@ -4,7 +4,7 @@ Hoesly, R., Smith, S. J., Prime, N., Ahsan, H., Suchyta, H., O'Rourke, P., Cripp
 
 Place the extracted data in this folder.
 
-At the moment, we only usell files with a filename of the form:
+At the moment, we only use files with a filename of the form:
 
 "{species}_CEDS_emissions_by_country_sector_v2024_07_08.csv"
 

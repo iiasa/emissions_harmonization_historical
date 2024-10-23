@@ -33,12 +33,14 @@ To get started, you will need to make sure that pixi is installed
 ([instructions here](https://pixi.sh/latest),
 we found that using the pixi provided script was best on a Mac).
 
-To create the virtual environment, run
+To create the virtual environment, navigate to the root folder of this repository and run from your shell:
 
 ```sh
 pixi install
 pixi run pre-commit install
 ```
+
+This will create a python environment in "{LOCALPATH}/emissions_harmonization_historical/.pixi/envs/default/", with a Python executable in that folder. You should set this Python interpreter as the default in your IDE (to be used if your for instance selecting a kernel for running a jupyter notebook in VSCode or any other IDE).
 
 These steps are also captured in the `Makefile` so if you want a single
 command, you can instead simply run `make virtual-enviroment`.
@@ -61,6 +63,12 @@ As another example, to run a notebook server, run
 ```sh
 pixi run jupyter lab
 ```
+
+You will likely be running the notebooks in the notebook folder.
+There are several ways to run these .py scripts.
+One, which is what we recommend, is to run the `pixi run jupyter lab` line above, then right-click on the .py script and do `Open With > Jupytext Notebook`. If you are using VSCode, you can use the Python Interactive window. The [jupytext docs](https://jupytext.readthedocs.io/en/latest/using-cli.html) also explain how to use the CLI to create a .ipynb from a .py script, but since this does not scale well, we do not recommend this.
+
+
 
 <!--- Other documentation and instructions can then be added here as you go,
 perhaps replacing the other instructions above as they may become redundant.
@@ -97,14 +105,14 @@ For more info, see, for example, [here](https://graphite.dev/guides/how-to-use-g
 Note that this repository focuses on processing data, and does not currently also (re)host input data files.
 
 Files that need to be downloaded to make sure you can run the notebooks are specified in the relevant `data` subfolders,
-in README files, such as in `\data\national\ceds\data_raw\README.txt` for the CEDS data download,
-and in `\data\national\gfed\data_raw\README.txt` for the GFED data download.
+in README files, such as in `/data/national/ceds/data_raw/README.txt` for the CEDS data download,
+in `/data/national/gfed/data_raw/README.txt` for the GFED4.1s data download, and in `/data/national/gfed-bb4cmip/data_raw/README.md` for the GFED-based biomass burning data product for CMIP7 (BB4CMIP). We try to provide convenient data download scripts where possible. For instance, for GFED4.1s, you can download all data by running from the root folder `pixi run python data/gfed/data_raw/download.py`.
 
 ### Processed data
 Data is processed by the jupyter notebooks (saved as .py scripts using jupytext, under the `notebooks` folder).
 The output paths are generally specified at the beginning of each notebook.
 
-For instance, you find processed CEDS data at `\data\national\ceds\processed` and processed GFED data at `\data\national\gfed\processed`.
+For instance, you find processed CEDS data at `/data/national/ceds/processed` and processed GFED data at `/data/national/gfed/processed`.
 
 ## Development
 
@@ -199,6 +207,7 @@ In this repository, we use the following tools:
     - (for more thoughts on the usefulness of pre-commit, see
       [general principles: automation](https://gitlab.com/znicholls/mullet-rse/-/blob/main/book/general-principles/automation.md)
     - track your notebooks using
+    - note: if the pre-commit hook that calls pixi (described above) does not work, try adding the location of your pixi binary (e.g. pixi.exe may be located in "C:/Users/username/.pixi/bin") to your path, and restart the shell
     [jupytext](https://jupytext.readthedocs.io/en/latest/index.html)
     (for more thoughts on the usefulness of Jupytext, see
     [tips and tricks: Jupytext](https://gitlab.com/znicholls/mullet-rse/-/blob/main/book/tips-and-tricks/managing-notebooks-jupytext.md))
