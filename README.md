@@ -39,7 +39,8 @@ To create the virtual environment, navigate to the root folder of this repositor
 pixi install
 pixi run pre-commit install
 ```
-This will create a python environment in "{LOCALPATH}\emissions_harmonization_historical\.pixi\envs\default\", with "python.EXE" in that folder being the default python interpreter (to be used if your for instance selecting a kernel for running a jupyter notebook in VSCode or any other IDE).
+
+This will create a python environment in "{LOCALPATH}/emissions_harmonization_historical/.pixi/envs/default/", with a Python executable in that folder. You should set this Python interpreter as the default in your IDE (to be used if your for instance selecting a kernel for running a jupyter notebook in VSCode or any other IDE).
 
 These steps are also captured in the `Makefile` so if you want a single
 command, you can instead simply run `make virtual-enviroment`.
