@@ -65,7 +65,8 @@ venv/bin/esgpull update -y --tag bb4cmip
 venv/bin/esgpull download
 ```
 
-This download is big (>10GB), and download errors can occur. If you run into them, e.g. get an `Aborted!` error like [this](https://github.com/iiasa/emissions_harmonization_historical/pull/13#pullrequestreview-2377875682), you can restart the download by doing:
+This download is big (>10GB), and download errors can occur. If you run into them, e.g. get an `Aborted!` error like [this](https://github.com/iiasa/emissions_harmonization_historical/pull/13#pullrequestreview-2377875682), you can restart the download by doing (full esgpull docs are here: https://esgf.github.io/esgf-download/):
+
 ```sh
 venv/bin/esgpull retry
 venv/bin/esgpull download
