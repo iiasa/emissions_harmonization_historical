@@ -105,14 +105,14 @@ For more info, see, for example, [here](https://graphite.dev/guides/how-to-use-g
 Note that this repository focuses on processing data, and does not currently also (re)host input data files.
 
 Files that need to be downloaded to make sure you can run the notebooks are specified in the relevant `data` subfolders,
-in README files, such as in `\data\national\ceds\data_raw\README.txt` for the CEDS data download,
-in `\data\national\gfed\data_raw\README.txt` for the GFED4.1s data download, and in `\data\national\gfed-bb4cmip\data_raw\README.md` for the GFED-based biomass burning data product for CMIP7 (BB4CMIP). We try to provide convenient data download scripts where possible. For instance, for GFED4.1s, you can download all data by running from the root folder `pixi run python data/gfed/data_raw/download.py`.
+in README files, such as in `/data/national/ceds/data_raw/README.txt` for the CEDS data download,
+in `/data/national/gfed/data_raw/README.txt` for the GFED4.1s data download, and in `/data/national/gfed-bb4cmip/data_raw/README.md` for the GFED-based biomass burning data product for CMIP7 (BB4CMIP). We try to provide convenient data download scripts where possible. For instance, for GFED4.1s, you can download all data by running from the root folder `pixi run python data/gfed/data_raw/download.py`.
 
 ### Processed data
 Data is processed by the jupyter notebooks (saved as .py scripts using jupytext, under the `notebooks` folder).
 The output paths are generally specified at the beginning of each notebook.
 
-For instance, you find processed CEDS data at `\data\national\ceds\processed` and processed GFED data at `\data\national\gfed\processed`.
+For instance, you find processed CEDS data at `/data/national/ceds/processed` and processed GFED data at `/data/national/gfed/processed`.
 
 ## Development
 
@@ -207,7 +207,7 @@ In this repository, we use the following tools:
     - (for more thoughts on the usefulness of pre-commit, see
       [general principles: automation](https://gitlab.com/znicholls/mullet-rse/-/blob/main/book/general-principles/automation.md)
     - track your notebooks using
-    - note: if the pre-commit hook that calls pixi (described above) does not work, try adding the location of your pixi binary (e.g. pixi.exe may be located in "C:\Users\username\.pixi\bin") to your path, and restart the shell
+    - note: if the pre-commit hook that calls pixi (described above) does not work, try adding the location of your pixi binary (e.g. pixi.exe may be located in "C:/Users/username/.pixi/bin") to your path, and restart the shell
     [jupytext](https://jupytext.readthedocs.io/en/latest/index.html)
     (for more thoughts on the usefulness of Jupytext, see
     [tips and tricks: Jupytext](https://gitlab.com/znicholls/mullet-rse/-/blob/main/book/tips-and-tricks/managing-notebooks-jupytext.md))
