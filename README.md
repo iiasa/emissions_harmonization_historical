@@ -64,12 +64,9 @@ As another example, to run a notebook server, run
 pixi run jupyter lab
 ```
 
-You will likely be running the notebooks in the notebook folder, and may therefore want to create .ipynb versions of the .py scripts. To do this, you can run `jupytext` (see [jupytext docs](https://jupytext.readthedocs.io/en/latest/using-cli.html)) in the environment created with pixi, doing something like:
-```sh
-pixi run jupytext --to notebook .\notebooks\0101_CEDS-prepare.py
-pixi run jupytext --to notebook .\notebooks\0102_GFED4-prepare.py
-pixi run jupytext --to notebook .\notebooks\0103_GFED4-BB4CMIP-prepare.py
-```
+You will likely be running the notebooks in the notebook folder.
+There are several ways to run these .py scripts.
+One, which is what we recommend, is to run the `pixi run jupyter lab` line above, then right-click on the .py script and do `Open With > Jupytext Notebook`. If you are using VSCode, you can use the Python Interactive window. The [jupytext docs](https://jupytext.readthedocs.io/en/latest/using-cli.html) also explain how to use the CLI to create a .ipynb from a .py script, but since this does not scale well, we do not recommend this.
 
 
 
