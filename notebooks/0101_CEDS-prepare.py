@@ -121,3 +121,5 @@ ceds_ref = ceds.droplevel("unit").pix.semijoin(unit_wishes, how="left").rename_a
 
 # %%
 (ceds_ref.to_csv(ceds_processed_output_file))
+
+# %%

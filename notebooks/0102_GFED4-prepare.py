@@ -279,3 +279,5 @@ burningCMIP7_ref.pix
 
 # %%
 (burningCMIP7_ref.to_csv(gfed_processed_output_file))
+
+# %%
