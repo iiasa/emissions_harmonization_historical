@@ -40,8 +40,8 @@ ceds_processed_output_file = DATA_ROOT / Path("national", "ceds", "processed", "
 # Specify gases to processes
 
 # %%
-# use all gases covered in CEDS
-gases = [
+# use all species covered in CEDS
+species = [
     "BC",
     "CH4",
     "CO",
@@ -67,7 +67,8 @@ ceds_map.to_frame(index=False)
 
 # %%
 ceds = pd.concat(
-    read_CEDS(Path(ceds_data_folder) / f"{gas}_CEDS_emissions_by_country_sector_v{ceds_release}.csv") for gas in gases
+    read_CEDS(Path(ceds_data_folder) / f"{specie}_CEDS_emissions_by_country_sector_v{ceds_release}.csv")
+    for specie in species
 ).rename_axis(index={"region": "country"})
 ceds.attrs["name"] = "CEDS21"
 ceds = ceds.pix.semijoin(ceds_map, how="outer")
@@ -91,15 +92,19 @@ ceds = ceds.pix.aggregate(country=country_combinations)
 ceds = add_global(ceds)
 
 # %%
+# See Hoesly et al. 2018 plots of NOx for suggestion that NOx units is NO2
+# https://gmd.copernicus.org/articles/11/369/2018/gmd-11-369-2018.pdf
+
 unit_wishes = pd.MultiIndex.from_tuples(
     [
         ("BC", "Mt BC/yr"),
         ("CH4", "Mt CH4/yr"),
         ("CO", "Mt CO/yr"),
         ("CO2", "Mt CO2/yr"),
+        ("N2O", "Mt N2O/yr"),
         ("NH3", "Mt NH3/yr"),
         ("NMVOC", "Mt NMVOC/yr"),
-        ("NOx", "Mt NOx/yr"),
+        ("NOx", "Mt NO2/yr"),  # CEDS is reported in NO2 units
         ("OC", "Mt OC/yr"),
         ("SO2", "Mt SO2/yr"),
     ],
@@ -112,12 +117,28 @@ ceds.pix.unique(unit_wishes.names)
 # %%
 ceds.pix.unique(unit_wishes.names).symmetric_difference(unit_wishes)
 
+# %%
+# reformat
+ceds_ref = (
+    ceds.droplevel("unit")
+    .pix.semijoin(unit_wishes, how="left")
+    .rename_axis(index={"em": "variable", "country": "region"})
+)
+
+# %%
+# rename to IAMC-style variable names including standard index order
+ceds_ref = (
+    ceds_ref.rename(index={"SO2": "Sulfur"}, level="variable")
+    .pix.format(variable="CMIP7 History|Emissions|{variable}|{sector}", drop=True)
+    .pix.assign(model="History", scenario=f"CEDSv{ceds_release}")
+    .reorder_levels(["model", "scenario", "region", "variable", "unit"])
+)
+
 # %% [markdown]
 # Save formatted CEDS data
 
 # %%
-# reformat
-ceds_ref = ceds.droplevel("unit").pix.semijoin(unit_wishes, how="left").rename_axis(index={"em": "gas"})
+ceds_ref
 
 # %%
 (ceds_ref.to_csv(ceds_processed_output_file))
