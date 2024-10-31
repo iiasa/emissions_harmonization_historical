@@ -228,18 +228,18 @@ burningCMIP7 = (
 
 # %%
 # set units
-unit = pd.MultiIndex.from_tuples(
+unit_wishes = pd.MultiIndex.from_tuples(
     [
-        ("BC", "kt BC/yr"),
-        ("OC", "kt OC/yr"),
-        ("CO", "kt CO/yr"),
-        ("CO2", "kt CO2/yr"),
-        ("CH4", "kt CH4/yr"),
-        ("N2O", "kt N2O/yr"),
-        ("NH3", "kt NH3/yr"),
-        ("NOx", "kt NOx/yr"),
-        ("NMVOC", "kt VOC/yr"),
-        ("SO2", "kt SO2/yr"),
+        ("BC", "Mt BC/yr"),
+        ("OC", "Mt OC/yr"),
+        ("CO", "Mt CO/yr"),
+        ("CO2", "Mt CO2/yr"),
+        ("CH4", "Mt CH4/yr"),
+        ("N2O", "Mt N2O/yr"),
+        ("NH3", "Mt NH3/yr"),
+        ("NOx", "Mt NO/yr"),  # we know NO mass units, so label as such
+        ("NMVOC", "Mt VOC/yr"),
+        ("SO2", "Mt SO2/yr"),
     ],
     names=["em", "unit"],
 )
@@ -257,6 +257,8 @@ burningCMIP7_ref = (
     .sum()
 )
 
+# format units
+burningCMIP7_ref = burningCMIP7_ref.droplevel("unit").pix.semijoin(unit_wishes, how="left")
 
 # rename to IAMC-style variable names
 burningCMIP7_ref = (
@@ -266,7 +268,12 @@ burningCMIP7_ref = (
 )
 
 # add global level aggregation ("World")
-burningCMIP7_ref = add_global(burningCMIP7_ref, groups=["model", "scenario", "variable", "unit"])
+burningCMIP7_ref = add_global(burningCMIP7_ref, groups=["model", "scenario", "variable", "unit"]).rename_axis(
+    index={"country": "region"}
+)
+
+# fix order
+burningCMIP7_ref = burningCMIP7_ref.reorder_levels(["model", "scenario", "region", "variable", "unit"])
 
 # %%
 burningCMIP7.pix
