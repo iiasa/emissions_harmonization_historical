@@ -20,6 +20,7 @@ import numpy as np
 import ptolemy
 import scmdata
 import xarray as xr
+import xarray_regrid  # noqa: F401
 from tqdm import tqdm
 
 from emissions_harmonization_historical.constants import DATA_ROOT
