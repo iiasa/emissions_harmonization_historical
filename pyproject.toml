@@ -3,12 +3,13 @@ authors = [
     { name = "Jarmo S. Kikstra", email = "kikstra@iiasa.ac.at"},
     { name = "Jonas Hörsch" },
     { name = "Zebedee Nicholls", email = "zebedee.nicholls@climate-energy-college.org"},
+    { name = "Chris Smith", email = "chrisroadmap@gmail.com"}
 ]
 requires-python = "==3.11"
 dependencies = [
     "pre-commit==3.3.1",
     "ptolemy-iamc @ git+https://github.com/gidden/ptolemy.git@015aa843c340bd57464eb7cfd5f3c8e397201266",
-    "aneris-iamc @ git+https://github.com/iiasa/aneris.git@9e5aa002b523f1d5d0ac32554988816e8c20cb44", "openscm-units>=0.6.2", "scmdata>=0.17.0,<0.18",
+    "aneris-iamc @ git+https://github.com/iiasa/aneris.git@9e5aa002b523f1d5d0ac32554988816e8c20cb44", "openscm-units>=0.6.2", "scmdata>=0.17.0,<0.18", "xarray-regrid==0.4.0",
 ]
 name = "emissions-harmonization-historical"
 version = "0.1.0"
@@ -55,6 +56,7 @@ pooch = ">=1.8.2,<2"
 nc-time-axis = ">=1.4.1,<2"
 pint-xarray = ">=0.4,<0.5"
 seaborn = ">=0.13.2,<0.14"
+tqdm = ">=4.67.0,<5"
 
 [tool.pixi.pypi-dependencies]
 emissions_harmonization_historical = { path = ".", editable = true }

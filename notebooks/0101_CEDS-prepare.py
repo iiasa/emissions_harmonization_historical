@@ -37,7 +37,7 @@ ceds_sector_mapping_file = DATA_ROOT / Path("national", "ceds", "data_aux", "sec
 ceds_processed_output_file = DATA_ROOT / Path("national", "ceds", "processed", "ceds_cmip7_national_alpha.csv")
 
 # %% [markdown]
-# Specify gases to processes
+# Specify species to processes
 
 # %%
 # use all species covered in CEDS
@@ -132,7 +132,7 @@ ceds_ref = (
     .pix.format(variable="CMIP7 History|Emissions|{variable}|{sector}", drop=True)
     .pix.assign(model="History", scenario=f"CEDSv{ceds_release}")
     .reorder_levels(["model", "scenario", "region", "variable", "unit"])
-)
+).sort_values(by=["region", "variable"])
 
 # %% [markdown]
 # Save formatted CEDS data

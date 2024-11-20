@@ -16,6 +16,7 @@
 # import external packages and functions
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import ptolemy
 import xarray as xr
@@ -62,11 +63,11 @@ gfed_processed_output_file = DATA_ROOT / Path("national", "gfed", "processed", "
 gfed_temp_file = DATA_ROOT / Path("national", "gfed", "processed", "gfed_temporaryfile.csv")
 
 # %% [markdown]
-# Specify gases to processes
+# Specify species to processes
 
 # %%
-# use all gases covered in CEDS
-gases = [
+# use all species covered in CEDS
+species = [
     "BC",
     "CH4",
     "CO",
@@ -105,6 +106,23 @@ emissions["C"].attrs.update(dict(unit="g C m-2 / month"))
 # show xarray
 emissions
 
+# %%
+dummy = xr.Dataset(
+    data_vars=dict(
+        DM=(["lat", "lon"], np.zeros((360, 720))),
+    ),
+    coords=dict(
+        lat=("lat", np.arange(-89.75, 90, 0.5)),
+        lon=("lon", np.arange(-179.75, 180, 0.5)),
+    ),
+)
+
+# %%
+dummy
+
+# %%
+emissions["DM"].regrid.conservative(dummy)
+
 # %% [markdown]
 # Get emissions factor for different species
 
@@ -138,7 +156,7 @@ else:
 
 ef.loc["NMVOC"] = ef.multiply(nmvoc_factors, axis=0).sum()
 
-ef_per_DM = ef.loc[gases] / ef.loc["DM"]
+ef_per_DM = ef.loc[species] / ef.loc["DM"]
 # in kg {species} / kg DM
 ef_per_DM
 
@@ -151,18 +169,27 @@ ef_per_DM
 # 'chunks={"iso": 1}' uses Dask to enable chunking for memory efficiency, loading one ISO code at a time.
 idxr = xr.open_dataarray(gfed_isomask, chunks={"iso": 1})
 
+# %%
 # Step 2: Open a NetCDF file to use as a grid template for latitude and longitude coordinates.
 # The template file provides the lat/lon grid for regridding the emissions data.
-with xr.open_dataset(gfed_grid_template) as template:
-    # Interpolate the "DM" (Dry Matter) emissions data to the lat/lon grid from the template,
-    # using linear interpolation. This matches the emissions data to the same grid resolution.
-    dm_regrid = emissions["DM"].interp(lon=template.lon, lat=template.lat, method="linear")
 
+# Interpolate the "DM" (Dry Matter) emissions data to the lat/lon grid from the template,
+# using conservative interpolation. This matches the emissions data to the same grid resolution.
+dm_regrid = emissions["DM"].regrid.conservative(dummy)
+
+# %%
+dm_regrid
+
+# %%
 # Step 3: Compute the area of each grid cell using the 'ptolemy.cell_area' function.
 # This function calculates the area of each grid cell based on the interpolated lat/lon grid.
 # The resulting cell areas are stored in an xarray DataArray, with units of square meters ("m2").
 cell_area = xr.DataArray(ptolemy.cell_area(lats=dm_regrid.lat, lons=dm_regrid.lon), attrs=dict(unit="m2"))
 
+# %%
+cell_area
+
+# %%
 # calculate emissions by country by:
 # taking the country cell IDs (idxr), multiplying it by the area (cell_area),
 # and by the regridded lat/lon grid resummed to per year (dm_regrid.groupby("time.year").sum())
@@ -273,7 +300,9 @@ burningCMIP7_ref = add_global(burningCMIP7_ref, groups=["model", "scenario", "va
 )
 
 # fix order
-burningCMIP7_ref = burningCMIP7_ref.reorder_levels(["model", "scenario", "region", "variable", "unit"])
+burningCMIP7_ref = burningCMIP7_ref.reorder_levels(["model", "scenario", "region", "variable", "unit"]).sort_values(
+    by=["region", "variable"]
+)
 
 # %%
 burningCMIP7.pix
