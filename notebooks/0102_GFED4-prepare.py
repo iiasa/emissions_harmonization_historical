@@ -20,6 +20,7 @@ import numpy as np
 import pandas as pd
 import ptolemy
 import xarray as xr
+import xarray_regrid  # noqa: F401
 from pandas_indexing import set_openscm_registry_as_default
 
 from emissions_harmonization_historical.constants import DATA_ROOT
@@ -218,7 +219,7 @@ units = pd.MultiIndex.from_tuples(
         ("N2O", "kg N2O"),
         ("NH3", "kg NH3"),
         ("NOx", "kg NOx"),
-        ("VOC", voc_unit),
+        ("NMVOC", voc_unit),
         ("SO2", "kg SO2"),
     ],
     names=["em", "unit"],
@@ -265,7 +266,7 @@ unit_wishes = pd.MultiIndex.from_tuples(
         ("N2O", "Mt N2O/yr"),
         ("NH3", "Mt NH3/yr"),
         ("NOx", "Mt NO/yr"),  # we know NO mass units, so label as such
-        ("NMVOC", "Mt VOC/yr"),
+        ("NMVOC", "Mt NMVOC/yr"),
         ("SO2", "Mt SO2/yr"),
     ],
     names=["em", "unit"],
