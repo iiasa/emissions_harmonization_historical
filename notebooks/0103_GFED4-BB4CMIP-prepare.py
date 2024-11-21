@@ -57,6 +57,10 @@ species_data = {
         "unit_label": "Mt NMVOC / yr",
         "filename_label": "NMVOC_bulk",
     },
+    "CO": {
+        "unit_label": "Mt CO / yr",
+        "filename_label": "CO",
+    },
     "CO2": {
         "unit_label": "Mt CO2 / yr",
         "filename_label": "CO2",
