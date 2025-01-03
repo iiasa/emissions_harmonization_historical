@@ -16,9 +16,11 @@
 # import external packages and functions
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import ptolemy
 import xarray as xr
+import xarray_regrid  # noqa: F401
 from pandas_indexing import set_openscm_registry_as_default
 
 from emissions_harmonization_historical.constants import DATA_ROOT
@@ -62,11 +64,11 @@ gfed_processed_output_file = DATA_ROOT / Path("national", "gfed", "processed", "
 gfed_temp_file = DATA_ROOT / Path("national", "gfed", "processed", "gfed_temporaryfile.csv")
 
 # %% [markdown]
-# Specify gases to processes
+# Specify species to processes
 
 # %%
-# use all gases covered in CEDS
-gases = [
+# use all species covered in CEDS
+species = [
     "BC",
     "CH4",
     "CO",
@@ -105,6 +107,23 @@ emissions["C"].attrs.update(dict(unit="g C m-2 / month"))
 # show xarray
 emissions
 
+# %%
+dummy = xr.Dataset(
+    data_vars=dict(
+        DM=(["lat", "lon"], np.zeros((360, 720))),
+    ),
+    coords=dict(
+        lat=("lat", np.arange(-89.75, 90, 0.5)),
+        lon=("lon", np.arange(-179.75, 180, 0.5)),
+    ),
+)
+
+# %%
+dummy
+
+# %%
+emissions["DM"].regrid.conservative(dummy)
+
 # %% [markdown]
 # Get emissions factor for different species
 
@@ -138,7 +157,7 @@ else:
 
 ef.loc["NMVOC"] = ef.multiply(nmvoc_factors, axis=0).sum()
 
-ef_per_DM = ef.loc[gases] / ef.loc["DM"]
+ef_per_DM = ef.loc[species] / ef.loc["DM"]
 # in kg {species} / kg DM
 ef_per_DM
 
@@ -151,18 +170,27 @@ ef_per_DM
 # 'chunks={"iso": 1}' uses Dask to enable chunking for memory efficiency, loading one ISO code at a time.
 idxr = xr.open_dataarray(gfed_isomask, chunks={"iso": 1})
 
+# %%
 # Step 2: Open a NetCDF file to use as a grid template for latitude and longitude coordinates.
 # The template file provides the lat/lon grid for regridding the emissions data.
-with xr.open_dataset(gfed_grid_template) as template:
-    # Interpolate the "DM" (Dry Matter) emissions data to the lat/lon grid from the template,
-    # using linear interpolation. This matches the emissions data to the same grid resolution.
-    dm_regrid = emissions["DM"].interp(lon=template.lon, lat=template.lat, method="linear")
 
+# Interpolate the "DM" (Dry Matter) emissions data to the lat/lon grid from the template,
+# using conservative interpolation. This matches the emissions data to the same grid resolution.
+dm_regrid = emissions["DM"].regrid.conservative(dummy)
+
+# %%
+dm_regrid
+
+# %%
 # Step 3: Compute the area of each grid cell using the 'ptolemy.cell_area' function.
 # This function calculates the area of each grid cell based on the interpolated lat/lon grid.
 # The resulting cell areas are stored in an xarray DataArray, with units of square meters ("m2").
 cell_area = xr.DataArray(ptolemy.cell_area(lats=dm_regrid.lat, lons=dm_regrid.lon), attrs=dict(unit="m2"))
 
+# %%
+cell_area
+
+# %%
 # calculate emissions by country by:
 # taking the country cell IDs (idxr), multiplying it by the area (cell_area),
 # and by the regridded lat/lon grid resummed to per year (dm_regrid.groupby("time.year").sum())
@@ -191,7 +219,7 @@ units = pd.MultiIndex.from_tuples(
         ("N2O", "kg N2O"),
         ("NH3", "kg NH3"),
         ("NOx", "kg NOx"),
-        ("VOC", voc_unit),
+        ("NMVOC", voc_unit),
         ("SO2", "kg SO2"),
     ],
     names=["em", "unit"],
@@ -228,18 +256,18 @@ burningCMIP7 = (
 
 # %%
 # set units
-unit = pd.MultiIndex.from_tuples(
+unit_wishes = pd.MultiIndex.from_tuples(
     [
-        ("BC", "kt BC/yr"),
-        ("OC", "kt OC/yr"),
-        ("CO", "kt CO/yr"),
-        ("CO2", "kt CO2/yr"),
-        ("CH4", "kt CH4/yr"),
-        ("N2O", "kt N2O/yr"),
-        ("NH3", "kt NH3/yr"),
-        ("NOx", "kt NOx/yr"),
-        ("NMVOC", "kt VOC/yr"),
-        ("SO2", "kt SO2/yr"),
+        ("BC", "Mt BC/yr"),
+        ("OC", "Mt OC/yr"),
+        ("CO", "Mt CO/yr"),
+        ("CO2", "Mt CO2/yr"),
+        ("CH4", "Mt CH4/yr"),
+        ("N2O", "Mt N2O/yr"),
+        ("NH3", "Mt NH3/yr"),
+        ("NOx", "Mt NO/yr"),  # we know NO mass units, so label as such
+        ("NMVOC", "Mt NMVOC/yr"),
+        ("SO2", "Mt SO2/yr"),
     ],
     names=["em", "unit"],
 )
@@ -257,6 +285,8 @@ burningCMIP7_ref = (
     .sum()
 )
 
+# format units
+burningCMIP7_ref = burningCMIP7_ref.droplevel("unit").pix.semijoin(unit_wishes, how="left")
 
 # rename to IAMC-style variable names
 burningCMIP7_ref = (
@@ -266,7 +296,14 @@ burningCMIP7_ref = (
 )
 
 # add global level aggregation ("World")
-burningCMIP7_ref = add_global(burningCMIP7_ref, groups=["model", "scenario", "variable", "unit"])
+burningCMIP7_ref = add_global(burningCMIP7_ref, groups=["model", "scenario", "variable", "unit"]).rename_axis(
+    index={"country": "region"}
+)
+
+# fix order
+burningCMIP7_ref = burningCMIP7_ref.reorder_levels(["model", "scenario", "region", "variable", "unit"]).sort_values(
+    by=["region", "variable"]
+)
 
 # %%
 burningCMIP7.pix
@@ -279,3 +316,5 @@ burningCMIP7_ref.pix
 
 # %%
 (burningCMIP7_ref.to_csv(gfed_processed_output_file))
+
+# %%
