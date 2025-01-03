@@ -65,7 +65,7 @@ countries = df.Country.unique()
 nc = len(countries)
 
 # %%
-# iso_list
+countries
 
 # %%
 data = np.zeros((nt, nc))
@@ -103,7 +103,7 @@ df_out = (
             "scenario": "Global Carbon Budget",
         },
     )
-    .interpolate(target_times=np.arange(1750, 2023, dtype=int))
+    .interpolate(target_times=np.arange(1750, 2024, dtype=int))
     .timeseries(time_axis="year")
 )
 
@@ -168,9 +168,12 @@ for i in range(100):
     df_lu_extended.iloc[i, 1:] = df_lu_extended.iloc[100, 1:] * df_lu_extended.iloc[i, 0] / df_lu_extended.iloc[100, 0]
 
 # %%
+df_lu_converted = df_lu_extended * 3.664
+
+# %%
 df_lu_out = (
     scmdata.ScmRun(
-        df_lu_extended,
+        df_lu_converted,
         index=times,
         columns={
             "variable": [
@@ -191,3 +194,5 @@ df_lu_out
 
 # %%
 df_lu_out.to_csv(DATA_ROOT / Path("national", "gcb", "processed", "gcb_cmip7_national_luc_alpha.csv"))
+
+# %%
