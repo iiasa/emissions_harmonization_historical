@@ -10,14 +10,14 @@ import pandas as pd
 import pandas_indexing as pix
 import pytest
 
-from gcages.ar6 import get_ar6_harmoniser
+from gcages.ar6 import AR6_RAW_VARIABLES, get_ar6_harmoniser
 
 TEST_DATA_DIR = Path(__file__).parents[1] / "test-data"
 
 
 @pytest.fixture(scope="session")
-def ar6_raw():
-    res = pd.read_csv(TEST_DATA_DIR / "ar6_IPs_emissions.csv")
+def ar6_all_emissions():
+    res = pd.read_csv(TEST_DATA_DIR / "ar6_scenarios_raw.csv")
     res.columns = res.columns.str.lower()
     res = res.set_index(["model", "scenario", "variable", "region", "unit"])
     res.columns = res.columns.astype(int)
@@ -26,30 +26,29 @@ def ar6_raw():
 
 
 @pytest.fixture(scope="session")
-def ar6_harmonised_infilled():
-    res = pd.read_csv(TEST_DATA_DIR / "20220314_ar6emissions_harmonized_infilled.csv")
-    res.columns = res.columns.str.lower()
-    res = res.set_index(["model", "scenario", "variable", "region", "unit"])
-    res.columns = res.columns.astype(int)
+def ar6_raw(ar6_all_emissions):
+    res = ar6_all_emissions.loc[pix.ismatch(variable="Emissions**")]
 
     return res
 
 
 @pytest.fixture(scope="session")
-def ar6_harmonised(ar6_harmonised_infilled):
-    res = ar6_harmonised_infilled.loc[pix.ismatch(variable="**Harmonized**")]
+def ar6_harmonised(ar6_all_emissions):
+    res = ar6_all_emissions.loc[pix.ismatch(variable="**Harmonized**")]
 
     return res
 
 
 @pytest.fixture(scope="session")
-def ar6_infilled():
-    raise NotImplementedError()
+def ar6_infilled(ar6_all_emissions):
+    res = ar6_all_emissions.loc[pix.ismatch(variable="**Infilled**")]
+
+    return res
 
 
 def create_harmonisation_test_cases():
     model_scenarios = pd.read_csv(
-        TEST_DATA_DIR / "20220314_ar6emissions_harmonized_infilled_model_scenarios.csv"
+        TEST_DATA_DIR / "ar6_scenarios_raw_model_scenario_combinations.csv"
     )
 
     return tuple(
@@ -70,7 +69,11 @@ def test_harmonisation(
     ar6_raw,
     ar6_harmonised,
 ):
-    raw = ar6_raw.loc[pix.isin(model=model) & pix.isin(scenario=scenario)]
+    raw = ar6_raw.loc[
+        pix.isin(model=model)
+        & pix.isin(scenario=scenario)
+        & pix.isin(variable=AR6_RAW_VARIABLES)
+    ]
     if raw.empty:
         pytest.skip(f"No raw data for {model=} and {scenario=}")
         return
