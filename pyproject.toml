@@ -63,6 +63,7 @@ tqdm = ">=4.67.0,<5"
 
 [tool.pixi.pypi-dependencies]
 emissions_harmonization_historical = { path = ".", editable = true }
+gcages = { path = "gcages", editable = true }
 
 [tool.jupytext]
 formats = "ipynb,py:percent"
