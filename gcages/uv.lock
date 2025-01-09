@@ -883,6 +883,7 @@ all-dev = [
     { name = "toml" },
     { name = "tornado" },
     { name = "towncrier" },
+    { name = "tqdm" },
     { name = "traitlets" },
     { name = "types-python-dateutil" },
     { name = "typing-extensions" },
@@ -917,6 +918,7 @@ dev = [
     { name = "setuptools" },
     { name = "toml" },
     { name = "towncrier" },
+    { name = "tqdm" },
     { name = "typing-extensions" },
     { name = "virtualenv" },
 ]
@@ -1189,6 +1191,7 @@ all-dev = [
     { name = "toml", specifier = "==0.10.2" },
     { name = "tornado", specifier = "==6.4.2" },
     { name = "towncrier", specifier = "==24.8.0" },
+    { name = "tqdm", specifier = ">=4.67.1" },
     { name = "traitlets", specifier = "==5.14.3" },
     { name = "types-python-dateutil", specifier = "==2.9.0.20241206" },
     { name = "typing-extensions", specifier = "==4.12.2" },
@@ -1223,6 +1226,7 @@ dev = [
     { name = "setuptools", specifier = "==75.6.0" },
     { name = "toml", specifier = "==0.10.2" },
     { name = "towncrier", specifier = "==24.8.0" },
+    { name = "tqdm", specifier = ">=4.67.1" },
     { name = "typing-extensions", specifier = "==4.12.2" },
     { name = "virtualenv", specifier = "==20.28.1" },
 ]
@@ -3813,6 +3817,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/69/d7/a5183f788cf4fabf03f7c767ae0b968249b0c737eb64b4d87a07ae01fea7/towncrier-24.8.0.tar.gz", hash = "sha256:013423ee7eed102b2f393c287d22d95f66f1a3ea10a4baa82d298001a7f18af3", size = 61635 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/93/1b/2f7b88506e22d9798c139261af4946865c0787cfa345514ca3c70173a9cc/towncrier-24.8.0-py3-none-any.whl", hash = "sha256:9343209592b839209cdf28c339ba45792fbfe9775b5f9c177462fd693e127d8d", size = 56981 },
+]
+
+[[package]]
+name = "tqdm"
+version = "4.67.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a8/4b/29b4ef32e036bb34e4ab51796dd745cdba7ed47ad142a9f4a1eb8e0c744d/tqdm-4.67.1.tar.gz", hash = "sha256:f8aef9c52c08c13a65f30ea34f4e5aac3fd1a34959879d7e59e63027286627f2", size = 169737 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d0/30/dc54f88dd4a2b5dc8a0279bdd7270e735851848b762aeb1c1184ed1f6b14/tqdm-4.67.1-py3-none-any.whl", hash = "sha256:26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2", size = 78540 },
 ]
 
 [[package]]

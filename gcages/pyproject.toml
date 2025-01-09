@@ -66,6 +66,7 @@ dev = [
     "typing-extensions==4.12.2",
     "virtualenv==20.28.1",
     "pandas-indexing>=0.6.1",
+    "tqdm>=4.67.1",
 ]
 docs = [
     # Key dependencies

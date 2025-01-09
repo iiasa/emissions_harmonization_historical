@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 import pandas_indexing as pix
+import tqdm
 
 TEST_DATA_DIR = Path(__file__).parents[1] / "tests" / "test-data"
 # This file is available from the scenario explorer.
@@ -20,7 +21,13 @@ raw = pd.read_csv(
 
 emissions = raw[pix.ismatch(Variable="**Emissions**")]
 
-emissions.to_csv(TEST_DATA_DIR / "ar6_scenarios_raw.csv")
 emissions.index.to_frame()[["Model", "Scenario"]].drop_duplicates().to_csv(
     TEST_DATA_DIR / "ar6_scenarios_raw_model_scenario_combinations.csv", index=False
 )
+
+for (model, scenario), msdf in tqdm.tqdm(emissions.groupby(["Model", "Scenario"])):
+    filename = f"ar6_scenarios__{model}__{scenario}__emissions.csv"
+    filename = filename.replace("/", "_").replace(" ", "_")
+    out_file = TEST_DATA_DIR / filename
+
+    msdf.to_csv(out_file)

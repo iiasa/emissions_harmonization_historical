@@ -17,7 +17,9 @@ TEST_DATA_DIR = Path(__file__).parents[1] / "test-data"
 
 @pytest.fixture(scope="session")
 def ar6_all_emissions():
-    res = pd.read_csv(TEST_DATA_DIR / "ar6_scenarios_raw.csv")
+    res_l = [pd.read_csv(f) for f in TEST_DATA_DIR.glob("ar6_scenarios__*")]
+    res = pd.concat(res_l)
+
     res.columns = res.columns.str.lower()
     res = res.set_index(["model", "scenario", "variable", "region", "unit"])
     res.columns = res.columns.astype(int)
