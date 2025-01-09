@@ -14,5 +14,5 @@ project_description_short: Workflows for assessing the global climate implicatio
 project_name_human: Global Climate Assessment of Global Emission Scenarios
 project_name_pip: gcages
 project_name_python: gcages
-project_url: https://github.com/organizations/climate-resource/gcages
+project_url: https://github.com/openscm/gcages
 track_lock_file: true

@@ -5,20 +5,20 @@ Workflows for assessing the global climate implications of global emission scena
 
 **Key info :**
 [![Docs](https://readthedocs.org/projects/gcages/badge/?version=latest)](https://gcages.readthedocs.io)
-[![Main branch: supported Python versions](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Forganizations/climate-resource%2Fgcages%2Fmain%2Fpyproject.toml)](https://github.com/organizations/climate-resource/gcages/blob/main/pyproject.toml)
-[![Licence](https://img.shields.io/pypi/l/gcages?label=licence)](https://github.com/organizations/climate-resource/gcages/blob/main/LICENCE)
+[![Main branch: supported Python versions](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fopenscm%2Fgcages%2Fmain%2Fpyproject.toml)](https://github.com/openscm/gcages/blob/main/pyproject.toml)
+[![Licence](https://img.shields.io/pypi/l/gcages?label=licence)](https://github.com/openscm/gcages/blob/main/LICENCE)
 
 **PyPI :**
 [![PyPI](https://img.shields.io/pypi/v/gcages.svg)](https://pypi.org/project/gcages/)
-[![PyPI install](https://github.com/organizations/climate-resource/gcages/actions/workflows/install-pypi.yaml/badge.svg?branch=main)](https://github.com/organizations/climate-resource/gcages/actions/workflows/install-pypi.yaml)
+[![PyPI install](https://github.com/openscm/gcages/actions/workflows/install-pypi.yaml/badge.svg?branch=main)](https://github.com/openscm/gcages/actions/workflows/install-pypi.yaml)
 
 **Tests :**
-[![CI](https://github.com/organizations/climate-resource/gcages/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/organizations/climate-resource/gcages/actions/workflows/ci.yaml)
-[![Coverage](https://codecov.io/gh/organizations/climate-resource/gcages/branch/main/graph/badge.svg)](https://codecov.io/gh/organizations/climate-resource/gcages)
+[![CI](https://github.com/openscm/gcages/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/openscm/gcages/actions/workflows/ci.yaml)
+[![Coverage](https://codecov.io/gh/openscm/gcages/branch/main/graph/badge.svg)](https://codecov.io/gh/openscm/gcages)
 
 **Other info :**
-[![Last Commit](https://img.shields.io/github/last-commit/organizations/climate-resource/gcages.svg)](https://github.com/organizations/climate-resource/gcages/commits/main)
-[![Contributors](https://img.shields.io/github/contributors/organizations/climate-resource/gcages.svg)](https://github.com/organizations/climate-resource/gcages/graphs/contributors)
+[![Last Commit](https://img.shields.io/github/last-commit/openscm/gcages.svg)](https://github.com/openscm/gcages/commits/main)
+[![Contributors](https://img.shields.io/github/contributors/openscm/gcages.svg)](https://github.com/openscm/gcages/graphs/contributors)
 ## Status
 
 <!---
@@ -80,7 +80,7 @@ incompatible versions of Global Climate Assessment of Global Emission Scenarios'
 particularly ones which haven't been released yet!).
 Hence, you may run into installation issues.
 If you believe these are because of a problem in Global Climate Assessment of Global Emission Scenarios,
-please [raise an issue](https://github.com/organizations/climate-resource/gcages/issues).
+please [raise an issue](https://github.com/openscm/gcages/issues).
 
 The (non-locked) version of Global Climate Assessment of Global Emission Scenarios can be installed with
 
@@ -116,7 +116,7 @@ In order to create your environment, run `make virtual-environment`.
 
 If there are any issues, the messages from the `Makefile` should guide you through.
 If not, please raise an issue in the
-[issue tracker](https://github.com/organizations/climate-resource/gcages/issues).
+[issue tracker](https://github.com/openscm/gcages/issues).
 
 For the rest of our developer docs, please see [development][development].
 

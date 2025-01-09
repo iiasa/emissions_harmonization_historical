@@ -3,8 +3,8 @@ site_description: Workflows for assessing the global climate implications of glo
 site_url: https://gcages.readthedocs.io
 edit_uri: blob/master/docs/
 
-repo_name: climate-resource/gcages
-repo_url: https://github.com/organizations/climate-resource/gcages
+repo_name: openscm/gcages
+repo_url: https://github.com/openscm/gcages
 
 theme:
   name: "material"

@@ -66,7 +66,7 @@ jobs:
         with:
           # Exclude local links
           # and the template link in pyproject.toml
-          args: "--exclude 'file://' --exclude '^https://github\\.com/organizations/climate-resource/gcages/pull/\\{issue\\}$' ."
+          args: "--exclude 'file://' --exclude '^https://github\\.com/openscm/gcages/pull/\\{issue\\}$' ."
 
   tests:
     strategy:

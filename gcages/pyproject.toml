@@ -332,7 +332,7 @@ underlines = [
     "",
     "",
 ]
-issue_format = "[#{issue}](https://github.com/organizations/climate-resource/gcages/pull/{issue})"
+issue_format = "[#{issue}](https://github.com/openscm/gcages/pull/{issue})"
 type = [
     { directory = "breaking", name = "⚠️ Breaking Changes", showcontent = true },
     { directory = "deprecation", name = "🗑️ Deprecations", showcontent = true },
