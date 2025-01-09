@@ -65,6 +65,8 @@ dev = [
     "toml==0.10.2",
     "typing-extensions==4.12.2",
     "virtualenv==20.28.1",
+    "openpyxl>=3.1.5",
+    "pandas-indexing>=0.6.1",
 ]
 docs = [
     # Key dependencies
