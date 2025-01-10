@@ -227,10 +227,16 @@ class AR6Harmoniser:
             ~(emissions_to_harmonise[self.harmonisation_year] == 0.0)
         ]
 
+        # # In AR6, any emissions still with nan were dropped
+        # # (I think, might be wrong)
+        # emissions_to_harmonise = emissions_to_harmonise[
+        #     ~emissions_to_harmonise.isnull().any(axis="columns")
+        # ]
+
         # In AR6, we interpolated before harmonising
         # Check that there are no nans in the max year.
         # I don't know what happens in that case.
-        if in_emissions[in_emissions.columns.max()].isnull().any():
+        if emissions_to_harmonise[emissions_to_harmonise.columns.max()].isnull().any():
             raise NotImplementedError
 
         out_interp_years = list(

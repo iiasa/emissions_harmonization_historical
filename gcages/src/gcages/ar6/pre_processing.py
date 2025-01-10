@@ -29,6 +29,14 @@ class AR6PreProcessor:
     (if `self.run_checks` is `True`).
     """
 
+    negative_value_not_small_threshold: float
+    """
+    Threshold which defines when a negative value is not small
+
+    Non-CO2 emissions less than this that are negative
+    are not automatically set to zero.
+    """
+
     run_checks: bool = True
     """
     If `True`, run checks on both input and output data
@@ -104,6 +112,36 @@ class AR6PreProcessor:
                         [in_emissions.loc[~locator_sources], tmp], axis="rows"
                     )
 
+        conditional_keepers = (
+            # (
+            #     Variable to potentially remove,
+            #     remove if all of these variables are present
+            # )
+            (
+                "Emissions|CO2",
+                (
+                    "Emissions|CO2|Energy and Industrial Processes",
+                    "Emissions|CO2|AFOLU",
+                ),
+            ),
+        )
+        for v_drop, v_sub_components in conditional_keepers:
+            existing_vars = in_emissions.pix.unique("variable")
+            if v_drop in existing_vars:
+                if all(v in existing_vars for v in v_sub_components):
+                    in_emissions = in_emissions.loc[~pix.isin(variable=v_drop)]
+
+        # Negative value handling
+        co2_locator = pix.ismatch(variable="**CO2**")
+        in_emissions.loc[~co2_locator] = in_emissions.loc[~co2_locator].where(
+            # Where these conditions are true, keep the original data.
+            (in_emissions.loc[~co2_locator] > 0)
+            | (in_emissions.loc[~co2_locator] < self.negative_value_not_small_threshold)
+            | in_emissions.loc[~co2_locator].isnull(),
+            # Otherwise, set to zero
+            other=0.0,
+        )
+
         res = in_emissions.loc[pix.isin(variable=self.emissions_out)]
 
         # Strip out any units that won't play nice with pint
@@ -137,7 +175,7 @@ class AR6PreProcessor:
             "Emissions|PFC|C6F14",
             "Emissions|PFC|CF4",
             "Emissions|CO",
-            # "Emissions|CO2",  # Not used
+            "Emissions|CO2",
             "Emissions|CO2|AFOLU",
             "Emissions|CO2|Energy and Industrial Processes",
             "Emissions|CH4",
@@ -162,4 +200,8 @@ class AR6PreProcessor:
             "Emissions|VOC",
         )
 
-        return cls(emissions_out=ar6_emissions_for_harmonisation, run_checks=run_checks)
+        return cls(
+            emissions_out=ar6_emissions_for_harmonisation,
+            negative_value_not_small_threshold=-0.1,
+            run_checks=run_checks,
+        )

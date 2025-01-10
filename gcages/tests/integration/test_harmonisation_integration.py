@@ -81,7 +81,6 @@ def test_harmonisation_single_model_scenario(model, scenario):
 
     exp = (
         get_ar6_harmonised_emissions(model, scenario)
-        .loc[~pix.ismatch(variable="**CO2")]  # Not used downstream
         .loc[~pix.ismatch(variable="**Kyoto**")]  # Not used downstream
         .loc[~pix.ismatch(variable="**F-Gases")]  # Not used downstream
         .loc[~pix.ismatch(variable="**HFC")]  # Not used downstream
