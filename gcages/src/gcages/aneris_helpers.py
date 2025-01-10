@@ -1,5 +1,5 @@
 """
-Helpers for working with [`aneris`](aneris.readthedocs.io)
+Helpers for working with [`aneris`](https://aneris.readthedocs.io)
 
 A lot of this should be pushed upstream at some point.
 """

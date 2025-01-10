@@ -90,6 +90,25 @@ def create_model_scenario_test_cases(
 def get_ar6_all_emissions(
     model: str, scenario: str, test_data_dir: Path
 ) -> pd.DataFrame:
+    """
+    Get all emissions from AR6 for a given model-scenario
+
+    Parameters
+    ----------
+    model
+        Model
+
+    scenario
+        Scenario
+
+    test_data_dir
+        Test data directory where the data is saved
+
+    Returns
+    -------
+    :
+        All emissions from AR6 for `model`-`scenario`
+    """
     filename_emissions = f"ar6_scenarios__{model}__{scenario}__emissions.csv"
     filename_emissions = filename_emissions.replace("/", "_").replace(" ", "_")
     emissions_file = test_data_dir / filename_emissions
@@ -106,6 +125,25 @@ def get_ar6_all_emissions(
 def get_ar6_raw_emissions(
     model: str, scenario: str, test_data_dir: Path
 ) -> pd.DataFrame:
+    """
+    Get all raw emissions from AR6 for a given model-scenario
+
+    Parameters
+    ----------
+    model
+        Model
+
+    scenario
+        Scenario
+
+    test_data_dir
+        Test data directory where the data is saved
+
+    Returns
+    -------
+    :
+        All raw emissions from AR6 for `model`-`scenario`
+    """
     all_emissions = get_ar6_all_emissions(
         model=model, scenario=scenario, test_data_dir=test_data_dir
     )
@@ -120,6 +158,25 @@ def get_ar6_raw_emissions(
 def get_ar6_harmonised_emissions(
     model: str, scenario: str, test_data_dir: Path
 ) -> pd.DataFrame:
+    """
+    Get all harmonised emissions from AR6 for a given model-scenario
+
+    Parameters
+    ----------
+    model
+        Model
+
+    scenario
+        Scenario
+
+    test_data_dir
+        Test data directory where the data is saved
+
+    Returns
+    -------
+    :
+        All harmonised emissions from AR6 for `model`-`scenario`
+    """
     all_emissions = get_ar6_all_emissions(
         model=model, scenario=scenario, test_data_dir=test_data_dir
     )
@@ -133,6 +190,33 @@ def get_ar6_harmonised_emissions(
 def assert_frame_equal(
     res: pd.DataFrame, exp: pd.DataFrame, rtol: float = 1e-8, **kwargs: Any
 ) -> None:
+    """
+    Assert two `pd.DataFrame`'s are equal.
+
+    This is a very thin wrapper around
+    [`pd.testing.assert_frame_equal`][pandas.testing.assert_frame_equal]
+    that makes some use of [`pandas_indexing`][pandas_indexing]
+    to give slightly nicer and clearer errors.
+
+    Parameters
+    ----------
+    res
+        Result
+
+    exp
+        Expected value
+
+    rtol
+        Relative tolerance
+
+    **kwargs
+        Passed to [`pd.testing.assert_frame_equal`][pandas.testing.assert_frame_equal]
+
+    Raises
+    ------
+    AssertionError
+        The frames aren't equal
+    """
     for idx_name in res.index.names:
         idx_diffs = res.pix.unique(idx_name).symmetric_difference(  # type: ignore
             exp.pix.unique(idx_name)  # type: ignore
