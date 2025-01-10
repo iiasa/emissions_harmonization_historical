@@ -99,26 +99,6 @@ def test_harmonisation_single_model_scenario(model, scenario):
     pd.testing.assert_frame_equal(
         res.T, exp.T, check_like=True, check_exact=False, rtol=1e-8
     )
-    # try:
-    #     pd.testing.assert_frame_equal(
-    #         res.T, exp.T, check_exact=False, rtol=rtol, atol=atol
-    #     )
-    # except AssertionError:
-    #     import matplotlib
-    #     import matplotlib.pyplot as plt
-    #
-    #     matplotlib.use("MacOSX")
-    #
-    #     variable_to_plot = ""
-    #
-    #     fig, ax = plt.subplots()
-    #
-    #     exp.loc[(model, scenario, variable_to_plot)].T.plot(ax=ax)
-    #     res.loc[(model, scenario, variable_to_plot)].T.plot(ax=ax)
-    #
-    #     plt.show()
-    #
-    #     raise
 
 
 def test_harmonisation_ips_simultaneously():

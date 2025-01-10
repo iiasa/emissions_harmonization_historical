@@ -71,8 +71,14 @@ class AR6PreProcessor:
             # Mapping is much trickier with multiple scenarios
             raise NotImplementedError
 
-        # Rmove any rows with only zero
+        # Remove any rows with only zero
         in_emissions = in_emissions[~((in_emissions == 0.0).all(axis="columns"))]
+
+        # Remove any rows that have NaN in required years
+        required_years = list(range(2020, 2100 + 1, 10))
+        in_emissions = in_emissions[
+            ~in_emissions[required_years].isnull().any(axis="columns")
+        ]
 
         # TODO: add some configuration for this mapping
         conditional_sums = (
