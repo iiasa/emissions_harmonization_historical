@@ -4,6 +4,7 @@ Pre-processing part of the workflow
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 from attrs import define
@@ -129,6 +130,23 @@ class AR6PreProcessor:
             existing_vars = in_emissions.pix.unique("variable")
             if v_drop in existing_vars:
                 if all(v in existing_vars for v in v_sub_components):
+                    in_emissions = in_emissions.loc[~pix.isin(variable=v_drop)]
+
+        drop_if_identical = (
+            # (
+            #     Variable to potentially remove,
+            #     remove if identical to this variable
+            # )
+            ("Emissions|CO2", "Emissions|CO2|Energy and Industrial Processes"),
+            ("Emissions|CO2", "Emissions|CO2|AFOLU"),
+        )
+        for v_drop, v_check in drop_if_identical:
+            existing_vars = in_emissions.pix.unique("variable")
+            if v_drop in existing_vars:
+                if np.isclose(
+                    in_emissions.loc[pix.isin(variable=v_drop)],
+                    in_emissions.loc[pix.isin(variable=v_check)],
+                ).all():
                     in_emissions = in_emissions.loc[~pix.isin(variable=v_drop)]
 
         # Negative value handling
