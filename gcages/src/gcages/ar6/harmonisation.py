@@ -10,9 +10,12 @@ import multiprocessing
 import aneris.convenience  # type: ignore
 import pandas as pd
 import pandas_indexing as pix  # type: ignore
-import tqdm.autonotebook as tqdman
 from attrs import define
 
+from gcages.parallelisation import (
+    assert_only_working_on_variable_unit_variations,
+    run_parallel,
+)
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
 
@@ -114,6 +117,44 @@ def add_historical_year_based_on_scaling(
     out = pd.concat([emissions, fill_value], axis="columns").sort_index(axis="columns")
 
     return out
+
+
+def harmonise_scenario(
+    indf: pd.DataFrame, history: pd.DataFrame, year: int, overrides: pd.DataFrame | None
+) -> pd.DataFrame:
+    """
+    Harmonise a single scenario
+
+    Parameters
+    ----------
+    indf
+        Scenario to harmonise
+
+    history
+        History to harmonise to
+
+    year
+        Year to use for harmonisation
+
+    overrides
+        Overrides to pass to aneris
+
+
+    Returns
+    -------
+    :
+        Harmonised scenario
+    """
+    assert_only_working_on_variable_unit_variations(indf)
+
+    harmonised = aneris.convenience.harmonise_all(
+        indf,
+        history=history,
+        year=year,
+        overrides=overrides,
+    )
+
+    return harmonised
 
 
 @define
@@ -256,37 +297,21 @@ class AR6Harmoniser:
             columns=out_interp_years
         ).interpolate(method="slinear", axis="columns")
 
-        # TODO: Split out into separate function
-        # (also makes it possible to fix up the aneris dependence on pyam,
-        # i.e. write new convenience module)
-        harmonised_df_l = []
-        for _, msdf in tqdman.tqdm(
-            emissions_to_harmonise.groupby(["model", "scenario"])
-        ):
-            harmonised_df_l.append(
-                aneris.convenience.harmonise_all(
-                    msdf,
-                    history=self.historical_emissions,
-                    year=self.harmonisation_year,
-                    overrides=self.aneris_overrides,
-                )
+        harmonised_df = pix.concat(
+            run_parallel(  # type: ignore
+                func_to_call=harmonise_scenario,
+                iterable_input=(
+                    gdf
+                    for _, gdf in emissions_to_harmonise.groupby(["model", "scenario"])
+                ),
+                input_desc="model-scenario combinations to harmonise",
+                n_processes=self.n_processes,
+                history=self.historical_emissions,
+                year=self.harmonisation_year,
+                overrides=self.aneris_overrides,
             )
+        )
 
-        # # Parallel version of the above something like this
-        # with parallel_progress_bar(tqdm.tqdm(desc="Harmonisation")):
-        #     LOGGER.info("Harmonising in parallel")
-        #     # TODO: remove hard-coding of n_jobs
-        #     scenarios_harmonized = Parallel(n_jobs=-1)(
-        #         delayed(aneris.convenience.harmonise_all)(
-        #             msdf,
-        #             history=history,
-        #             harmonisation_year=harmonization_year,
-        #             overrides=overrides,
-        #         )
-        #         for _, msdf in scenarios.groupby(["model", "scenario"])
-        #     )
-
-        harmonised_df = pd.concat(harmonised_df_l)
         # Not sure why this is happening, anyway
         harmonised_df.columns = harmonised_df.columns.astype(int)
 

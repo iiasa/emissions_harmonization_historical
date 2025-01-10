@@ -13,33 +13,13 @@ import pandas as pd
 import pandas_indexing as pix  # type: ignore
 from attrs import define
 
-from gcages.parallelisation import run_parallel
+from gcages.parallelisation import (
+    assert_only_working_on_variable_unit_variations,
+    run_parallel,
+)
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
 P = ParamSpec("P")
-
-
-def assert_only_working_on_variable_unit_variations(indf: pd.DataFrame) -> None:
-    """
-    Assert that we're only working on variations in variable and unit
-
-    In other words, we don't have variations in scenarios, models etc.
-
-    Parameters
-    ----------
-    indf
-        Data to verify
-
-    Raises
-    ------
-    AssertionError
-        There are variations in columns other than variable and unit
-    """
-    non_v_u_cols = list(set(indf.index.names).difference(["variable", "unit"]))
-    variations_in_other_cols: pd.MultiIndex = indf.pix.unique(non_v_u_cols)  # type: ignore
-
-    if variations_in_other_cols.shape[0] > 1:
-        raise AssertionError(f"{variations_in_other_cols=}")
 
 
 def add_conditional_sums(

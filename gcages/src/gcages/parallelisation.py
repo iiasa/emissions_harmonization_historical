@@ -12,6 +12,7 @@ from collections.abc import Iterable
 from multiprocessing.context import BaseContext
 from typing import Callable, TypeVar
 
+import pandas as pd
 import tqdm
 from loguru import logger
 from typing_extensions import Concatenate, ParamSpec
@@ -19,6 +20,29 @@ from typing_extensions import Concatenate, ParamSpec
 P = ParamSpec("P")
 T = TypeVar("T")
 U = TypeVar("U")
+
+
+def assert_only_working_on_variable_unit_variations(indf: pd.DataFrame) -> None:
+    """
+    Assert that we're only working on variations in variable and unit
+
+    In other words, we don't have variations in scenarios, models etc.
+
+    Parameters
+    ----------
+    indf
+        Data to verify
+
+    Raises
+    ------
+    AssertionError
+        There are variations in columns other than variable and unit
+    """
+    non_v_u_cols = list(set(indf.index.names).difference(["variable", "unit"]))
+    variations_in_other_cols: pd.MultiIndex = indf.pix.unique(non_v_u_cols)  # type: ignore
+
+    if variations_in_other_cols.shape[0] > 1:
+        raise AssertionError(f"{variations_in_other_cols=}")
 
 
 def run_parallel(
