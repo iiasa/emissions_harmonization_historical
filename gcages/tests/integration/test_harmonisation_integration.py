@@ -16,10 +16,17 @@ from gcages.ar6 import AR6Harmoniser, AR6PreProcessor
 TEST_DATA_DIR = Path(__file__).parents[1] / "test-data"
 
 
-def create_harmonisation_test_cases():
+@functools.cache
+def get_all_model_scenarios():
     model_scenarios = pd.read_csv(
         TEST_DATA_DIR / "ar6_scenarios_raw_model_scenario_combinations.csv"
     )
+
+    return model_scenarios
+
+
+def create_harmonisation_test_cases():
+    model_scenarios = get_all_model_scenarios()
 
     return tuple(
         pytest.param(model, scenario, id=f"{model}__{scenario}")
@@ -66,6 +73,21 @@ def get_ar6_harmonised_emissions(model: str, scenario: str) -> pd.DataFrame:
     return res
 
 
+def check_results(res, exp):
+    # TODO: split this out to make it reusable
+    for idx_name in res.index.names:
+        idx_diffs = res.pix.unique(idx_name).symmetric_difference(
+            exp.pix.unique(idx_name)
+        )
+        if not idx_diffs.empty:
+            msg = f"Differences in the {idx_name} (res on the left): {idx_diffs=}"
+            raise AssertionError(msg)
+
+    pd.testing.assert_frame_equal(
+        res.T, exp.T, check_like=True, check_exact=False, rtol=1e-8
+    )
+
+
 @harmonisation_cases
 def test_harmonisation_single_model_scenario(model, scenario):
     raw = get_ar6_raw_emissions(model, scenario)
@@ -87,22 +109,67 @@ def test_harmonisation_single_model_scenario(model, scenario):
         .loc[~pix.ismatch(variable="**PFC")]  # Not used downstream
     )
 
-    # TODO: split this out to make it reusable
-    for idx_name in res.index.names:
-        idx_diffs = res.pix.unique(idx_name).symmetric_difference(
-            exp.pix.unique(idx_name)
-        )
-        if not idx_diffs.empty:
-            msg = f"Differences in the {idx_name} (res on the left): {idx_diffs=}"
-            raise AssertionError(msg)
-
-    pd.testing.assert_frame_equal(
-        res.T, exp.T, check_like=True, check_exact=False, rtol=1e-8
-    )
+    check_results(res, exp)
 
 
 def test_harmonisation_ips_simultaneously():
-    # Test that we can harmonise all the IPs at once.
-    # Tests parallel harmonisation.
-    # Without harmonising all scenarios at once (overkill).
+    AR6_IPS = (
+        ("GCAM 5.3", "NGFS2_Current Policies"),
+        ("REMIND-MAgPIE 2.1-4.2", "SusDev_SDP-PkBudg1000"),
+    )
+
+    raw = pd.concat(
+        [get_ar6_raw_emissions(model, scenario) for model, scenario in AR6_IPS]
+    )
+
+    pre_processor = AR6PreProcessor.from_ar6_like_config(run_checks=False)
+    harmoniser = AR6Harmoniser.from_ar6_like_config(run_checks=False)
+
+    pre_processed = pre_processor(raw)
+    res = harmoniser(pre_processed)
+
+    exp = (
+        pd.concat(
+            [
+                get_ar6_harmonised_emissions(model, scenario)
+                for model, scenario in AR6_IPS
+            ]
+        )
+        .loc[~pix.ismatch(variable="**Kyoto**")]  # Not used downstream
+        .loc[~pix.ismatch(variable="**F-Gases")]  # Not used downstream
+        .loc[~pix.ismatch(variable="**HFC")]  # Not used downstream
+        .loc[~pix.ismatch(variable="**PFC")]  # Not used downstream
+    )
+
+    check_results(res, exp)
+
+
+def test_harmonisation_all_simultaneously():
+    # TODO: add 'slow' or similar mark (might not be that slow, but still)
+    model_scenarios = get_all_model_scenarios().values
+
+    raw = pd.concat(
+        [get_ar6_raw_emissions(model, scenario) for model, scenario in model_scenarios]
+    )
+
+    pre_processor = AR6PreProcessor.from_ar6_like_config(run_checks=False)
+    harmoniser = AR6Harmoniser.from_ar6_like_config(run_checks=False)
+
+    pre_processed = pre_processor(raw)
+    res = harmoniser(pre_processed)
+
+    exp = (
+        pd.concat(
+            [
+                get_ar6_harmonised_emissions(model, scenario)
+                for model, scenario in model_scenarios
+            ]
+        )
+        .loc[~pix.ismatch(variable="**Kyoto**")]  # Not used downstream
+        .loc[~pix.ismatch(variable="**F-Gases")]  # Not used downstream
+        .loc[~pix.ismatch(variable="**HFC")]  # Not used downstream
+        .loc[~pix.ismatch(variable="**PFC")]  # Not used downstream
+    )
+
+    check_results(res, exp)
     raise NotImplementedError
