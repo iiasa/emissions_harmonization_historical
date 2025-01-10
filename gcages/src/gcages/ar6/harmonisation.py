@@ -50,6 +50,69 @@ def load_ar6_historical_emissions() -> pd.DataFrame:
     return res
 
 
+def add_historical_year_based_on_scaling(
+    year_to_add: int,
+    year_calc_scaling: int,
+    emissions: pd.DataFrame,
+    emissions_historical: pd.DataFrame,
+    ms: tuple[str, ...] = ("model", "scenario"),
+) -> pd.DataFrame:
+    """
+    Add a historical emissions year based on scaling
+
+    Parameters
+    ----------
+    year_to_add
+        Year to add
+
+    year_calc_scaling
+        Year to use to calculate the scaling
+
+    emissions
+        Emissions to which to add data for `year_to_add`
+
+    emissions_historical
+        Historical emissions to use to calculate
+        the fill values based on scaling
+
+    ms
+        Name of the model and scenario columns.
+
+        These have to be dropped from `emissions_historical`
+        before everything will line up.
+
+    Returns
+    -------
+    :
+        `emissions` with data for `year_to_add`
+        based on the scaling between `emissions`
+        and `emissions_historical` in `year_calc_scaling`.
+    """
+    if emissions.pix.unique(["model", "scenario"]).shape[0] > 1:
+        # Processing is much trickier with multiple scenarios
+        raise NotImplementedError
+
+    ms = ("model", "scenario")
+    # emissions_no_ms = emissions.reset_index(ms, drop=True)
+    emissions_historical_common_vars = emissions_historical.loc[
+        pix.isin(variable=emissions.pix.unique("variable"))
+    ]
+
+    emissions_historical_no_ms = emissions_historical_common_vars.reset_index(
+        ms, drop=True
+    )
+
+    scale_factor = emissions[year_calc_scaling].divide(
+        emissions_historical_no_ms[year_calc_scaling]
+    )
+    fill_value = scale_factor.multiply(emissions_historical_no_ms[year_to_add])
+    fill_value.name = year_to_add
+
+    out = pd.concat([emissions, fill_value], axis="columns").sort_index(axis="columns")
+
+    return out
+
+
 @define
 class AR6Harmoniser:
     """
@@ -67,6 +130,22 @@ class AR6Harmoniser:
     harmonisation_year: int
     """
     Year in which to harmonise
+    """
+
+    calc_scaling_year: int
+    """
+    Year to use for calculating a scaling factor from historical
+
+    This is only needed if `self.harmonisation_year`
+    is not in the emissions to be harmonised.
+
+    For example, if `self.harmonisation_year` is 2015
+    and `self.calc_scaling_year` is 2010
+    and we have a scenario without 2015 data,
+    then we will use the difference from historical in 2010
+    to infer a value for 2015.
+
+    This logic was perculiar to AR6, it may not be repeated.
     """
 
     aneris_overrides: pd.DataFrame | None
@@ -115,16 +194,25 @@ class AR6Harmoniser:
         # May need to drop out variables which are zero in the harmonisation year
 
         if self.harmonisation_year not in in_emissions:
-            # Need to add pre-processing in its own class
-            raise NotImplementedError
+            emissions_to_harmonise = add_historical_year_based_on_scaling(
+                year_to_add=self.harmonisation_year,
+                year_calc_scaling=self.calc_scaling_year,
+                emissions=in_emissions,
+                emissions_historical=self.historical_emissions,
+            )
+        else:
+            emissions_to_harmonise = in_emissions
 
         # In AR6, we interpolated before harmonising
-        # TODO: add check that there are no nans in the max year.
+        # Check that there are no nans in the max year.
         # I don't know what happens in that case.
+        if in_emissions[in_emissions.columns.max()].isnull().any():
+            raise NotImplementedError
+
         out_interp_years = list(
             range(self.harmonisation_year, in_emissions.columns.max() + 1)
         )
-        emissions_to_harmonise = in_emissions.reindex(
+        emissions_to_harmonise = emissions_to_harmonise.reindex(
             columns=out_interp_years
         ).interpolate(method="slinear", axis="columns")
 
@@ -313,6 +401,7 @@ class AR6Harmoniser:
         return cls(
             historical_emissions=historical_emissions,
             harmonisation_year=2015,
+            calc_scaling_year=2010,
             aneris_overrides=aneris_overrides_ar6,
             run_checks=run_checks,
         )
