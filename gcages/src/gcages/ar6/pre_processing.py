@@ -5,6 +5,7 @@ Pre-processing part of the workflow
 from __future__ import annotations
 
 import multiprocessing
+from functools import partial
 from typing import Callable, Concatenate, ParamSpec
 
 import pandas as pd
@@ -58,6 +59,7 @@ def add_conditional_sums(
 
         The first element of each sub-tuple is the name of the variable to add.
         The second element are its components.
+        If the variable is added, all the sub-components are dropped.
         All components must be present for the variable to be added.
         If the variable is already there, the sum is not re-calculated or checked.
 
@@ -77,18 +79,16 @@ def add_conditional_sums(
     else:
         out = indf
 
-    existing_vars = out.pix.unique("variable")
     for v_target, v_sources in conditional_sums:
+        existing_vars = out.pix.unique("variable")
         if v_target not in existing_vars:
             if all(v in existing_vars for v in v_sources):
                 locator_sources = pix.isin(variable=v_sources)
                 to_add = out.loc[locator_sources]
 
-                # Need to line up with model-scenario here
-                tmp = out.loc[pix.isin(variable=v_sources[0])]
-                tmp[:] = to_add.sum()
+                tmp = to_add.groupby(list(set(to_add.index.names) - {"variable"})).sum()
                 tmp = tmp.pix.assign(variable=v_target)
-                out = pd.concat([out.loc[~locator_sources], tmp], axis="rows")
+                out = pix.concat([out.loc[~locator_sources], tmp], axis="index")
 
     return out
 
@@ -183,12 +183,72 @@ def condtionally_remove_variables(
     else:
         out = indf
 
-    existing_vars = out.pix.unique("variable")
     for v_drop, v_sub_components in conditional_removals:
+        existing_vars = out.pix.unique("variable")
         if v_drop in existing_vars and all(
             v in existing_vars for v in v_sub_components
         ):
             out = out.loc[~pix.isin(variable=v_drop)]
+
+    return out
+
+
+def drop_variables_if_identical(
+    indf: pd.DataFrame,
+    drop_if_identical: tuple[tuple[str, str]],
+    copy_on_entry: bool = True,
+) -> pd.DataFrame:
+    """
+    Drop variables if they are identical to another variable
+
+    Parameters
+    ----------
+    indf
+        Data to add sums to
+
+    drop_if_identical
+        Definition of the variables that can be dropped.
+
+        For each tuple, the first element defines the variable that can be removed
+        and the second element defines the variable to compare it to.
+        If the variable to drop has the same values as the variable to compare to,
+        it is dropped.
+
+    copy_on_entry
+        Should the data be copied on entry?
+
+    Returns
+    -------
+    :
+        `indf` with variables removed according to this function's logic.
+    """
+    assert_only_working_on_variable_unit_variations(indf)
+
+    if copy_on_entry:
+        out = indf.copy()
+
+    else:
+        out = indf
+
+    for v_drop, v_check in drop_if_identical:
+        existing_vars = out.pix.unique("variable")
+        if all(v in existing_vars for v in (v_drop, v_check)):
+            # Should really use isclose here, but we didn't in AR6
+            # so we get some funny reporting for weird scenarios
+            # e.g. C3IAM 2.0 2C-hybrid
+            if (
+                (
+                    out.loc[pix.isin(variable=v_drop)].reset_index(
+                        "variable", drop=True
+                    )
+                    == out.loc[pix.isin(variable=v_check)].reset_index(
+                        "variable", drop=True
+                    )
+                )
+                .all()
+                .all()
+            ):
+                out = out.loc[~pix.isin(variable=v_drop)]
 
     return out
 
@@ -312,6 +372,23 @@ class AR6PreProcessor:
     if all the variables it depends on are present.
     """
 
+    drop_if_identical: tuple[tuple[str, str]] | None = None
+    """
+    Variables that can be dropped if they are idential to another variable
+
+    Form:
+
+    ```python
+    (
+        (variable_that_can_be_removed, variable_to_compare_to),
+        ...
+    )
+    ```
+
+    The variable that can be removed is only removed
+    if its values are identical to the variable it is compared to.
+    """
+
     run_checks: bool = True
     """
     If `True`, run checks on both input and output data
@@ -320,6 +397,13 @@ class AR6PreProcessor:
     you can disable the checks to speed things up
     (but we don't recommend this unless you really
     are confident about what you're doing).
+    """
+
+    n_processes: int = multiprocessing.cpu_count()
+    """
+    Number of processes to use for parallel processing.
+
+    Set to 1 to process in serial.
     """
 
     def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:
@@ -351,55 +435,34 @@ class AR6PreProcessor:
             ~in_emissions[required_years].isnull().any(axis="columns")
         ]
 
+        rp = partial(run_parallel_pre_processing, n_processes=self.n_processes)
         if self.conditional_sums is not None:
-            in_emissions = run_parallel_pre_processing(
+            in_emissions = rp(
                 in_emissions,
                 func_to_call=add_conditional_sums,
                 conditional_sums=self.conditional_sums,
             )
 
         if self.reclassifications is not None:
-            in_emissions = run_parallel_pre_processing(
+            in_emissions = rp(
                 in_emissions,
                 func_to_call=reclassify_variables,
                 reclassifications=self.reclassifications,
             )
 
         if self.conditional_removals is not None:
-            in_emissions = run_parallel_pre_processing(
+            in_emissions = rp(
                 in_emissions,
                 func_to_call=condtionally_remove_variables,
                 conditional_removals=self.conditional_removals,
             )
 
-        # in_emissions = drop_if_identical(in_emissions, self.drop_if_identical)
-        drop_if_identical = (
-            # (
-            #     Variable to potentially remove,
-            #     remove if identical to this variable
-            # )
-            ("Emissions|CO2", "Emissions|CO2|Energy and Industrial Processes"),
-            ("Emissions|CO2", "Emissions|CO2|AFOLU"),
-        )
-        for v_drop, v_check in drop_if_identical:
-            existing_vars = in_emissions.pix.unique("variable")
-            if all(v in existing_vars for v in (v_drop, v_check)):
-                # Should really use isclose here, but we didn't in AR6
-                # so we get some funny reporting for weird scenarios
-                # e.g. C3IAM 2.0 2C-hybrid
-                if (
-                    (
-                        in_emissions.loc[pix.isin(variable=v_drop)].reset_index(
-                            "variable", drop=True
-                        )
-                        == in_emissions.loc[pix.isin(variable=v_check)].reset_index(
-                            "variable", drop=True
-                        )
-                    )
-                    .all()
-                    .all()
-                ):
-                    in_emissions = in_emissions.loc[~pix.isin(variable=v_drop)]
+        if self.drop_if_identical is not None:
+            in_emissions = rp(
+                in_emissions,
+                func_to_call=drop_variables_if_identical,
+                drop_if_identical=self.drop_if_identical,
+            )
 
         # Negative value handling
         co2_locator = pix.ismatch(variable="**CO2**")
@@ -422,7 +485,9 @@ class AR6PreProcessor:
         return res
 
     @classmethod
-    def from_ar6_like_config(cls, run_checks: bool) -> AR6PreProcessor:
+    def from_ar6_like_config(
+        cls, run_checks: bool, n_processes: int = multiprocessing.cpu_count()
+    ) -> AR6PreProcessor:
         """
         Initialise from config (exactly) like what was used in AR6
 
@@ -433,6 +498,11 @@ class AR6PreProcessor:
 
             If this is turned off, things are faster,
             but error messages are much less clear if things go wrong.
+
+        n_processes
+            Number of processes to use for parallel processing.
+
+            Set to 1 to process in serial.
 
         Returns
         -------
@@ -493,6 +563,10 @@ class AR6PreProcessor:
                 ),
             ),
         )
+        drop_if_identical = (
+            ("Emissions|CO2", "Emissions|CO2|Energy and Industrial Processes"),
+            ("Emissions|CO2", "Emissions|CO2|AFOLU"),
+        )
 
         return cls(
             emissions_out=ar6_emissions_for_harmonisation,
@@ -500,5 +574,7 @@ class AR6PreProcessor:
             conditional_sums=conditional_sums,
             reclassifications=reclassifications,
             conditional_removals=conditional_removals,
+            drop_if_identical=drop_if_identical,
             run_checks=run_checks,
+            n_processes=n_processes,
         )

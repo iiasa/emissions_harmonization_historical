@@ -95,8 +95,10 @@ def test_harmonisation_single_model_scenario(model, scenario):
         msg = f"No test data for {model=} {scenario=}?"
         raise AssertionError(msg)
 
-    pre_processor = AR6PreProcessor.from_ar6_like_config(run_checks=False)
-    harmoniser = AR6Harmoniser.from_ar6_like_config(run_checks=False)
+    pre_processor = AR6PreProcessor.from_ar6_like_config(
+        run_checks=False, n_processes=1
+    )
+    harmoniser = AR6Harmoniser.from_ar6_like_config(run_checks=False, n_processes=1)
 
     pre_processed = pre_processor(raw)
     res = harmoniser(pre_processed)

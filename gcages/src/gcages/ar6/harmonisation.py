@@ -5,6 +5,7 @@ Harmonisation part of the AR6 workflow
 from __future__ import annotations
 
 import importlib
+import multiprocessing
 
 import aneris.convenience
 import pandas as pd
@@ -166,6 +167,13 @@ class AR6Harmoniser:
     are confident about what you're doing).
     """
 
+    n_processes: int = multiprocessing.cpu_count()
+    """
+    Number of processes to use for parallel processing.
+
+    Set to 1 to process in serial.
+    """
+
     def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:
         """
         Harmonise
@@ -298,7 +306,9 @@ class AR6Harmoniser:
         return out
 
     @classmethod
-    def from_ar6_like_config(cls, run_checks: bool = True) -> AR6Harmoniser:
+    def from_ar6_like_config(
+        cls, run_checks: bool = True, n_processes: int = multiprocessing.cpu_count()
+    ) -> AR6Harmoniser:
         """
         Initialise from config (exactly) like what was used in AR6
 
@@ -309,6 +319,11 @@ class AR6Harmoniser:
 
             If this is turned off, things are faster,
             but error messages are much less clear if things go wrong.
+
+        n_processes
+            Number of processes to use for parallel processing.
+
+            Set to 1 to process in serial.
 
         Returns
         -------
@@ -434,4 +449,5 @@ class AR6Harmoniser:
             calc_scaling_year=2010,
             aneris_overrides=aneris_overrides_ar6,
             run_checks=run_checks,
+            n_processes=n_processes,
         )
