@@ -4,13 +4,14 @@ Integration tests of harmonisation
 
 from __future__ import annotations
 
+import functools
 from pathlib import Path
 
 import pandas as pd
 import pandas_indexing as pix
 import pytest
 
-from gcages.ar6 import AR6_RAW_VARIABLES, get_ar6_harmoniser
+from gcages.ar6 import get_ar6_harmoniser
 
 TEST_DATA_DIR = Path(__file__).parents[1] / "test-data"
 
@@ -31,26 +32,47 @@ harmonisation_cases = pytest.mark.parametrize(
 )
 
 
+@functools.cache
+def get_ar6_all_emissions(model: str, scenario: str) -> pd.DataFrame:
+    filename_emissions = f"ar6_scenarios__{model}__{scenario}__emissions.csv"
+    filename_emissions = filename_emissions.replace("/", "_").replace(" ", "_")
+    emissions_file = TEST_DATA_DIR / filename_emissions
+
+    res = pd.read_csv(emissions_file)
+    res.columns = res.columns.str.lower()
+    res = res.set_index(["model", "scenario", "variable", "region", "unit"])
+    res.columns = res.columns.astype(int)
+
+    return res
+
+
+@functools.cache
+def get_ar6_raw_emissions(model: str, scenario: str) -> pd.DataFrame:
+    all_emissions = get_ar6_all_emissions(model, scenario)
+    res = all_emissions.loc[pix.ismatch(variable="Emissions**")]
+
+    return res
+
+
+@functools.cache
+def get_ar6_harmonised_emissions(model: str, scenario: str) -> pd.DataFrame:
+    all_emissions = get_ar6_all_emissions(model, scenario)
+    res = all_emissions.loc[pix.ismatch(variable="**Harmonized**")]
+
+    return res
+
+
 @harmonisation_cases
-def test_harmonisation(
-    model,
-    scenario,
-    ar6_raw,
-    ar6_harmonised,
-):
-    raw = ar6_raw.loc[
-        pix.isin(model=model)
-        & pix.isin(scenario=scenario)
-        & pix.isin(variable=AR6_RAW_VARIABLES)
-    ]
+def test_harmonisation(model, scenario):
+    raw = get_ar6_raw_emissions(model, scenario)
     if raw.empty:
-        pytest.skip(f"No raw data for {model=} and {scenario=}")
-        return
+        msg = f"No test data for {model=} {scenario=}?"
+        raise AssertionError(msg)
 
     harmoniser = get_ar6_harmoniser()
 
-    res = harmoniser.harmonise(raw)
+    res = harmoniser(raw)
 
-    exp = ar6_harmonised.loc[pix.isin(model=model) & pix.isin(scenario=scenario)]
+    exp = get_ar6_harmonised_emissions(model, scenario)
 
     pd.testing.assert_frame_equal(res, exp)
