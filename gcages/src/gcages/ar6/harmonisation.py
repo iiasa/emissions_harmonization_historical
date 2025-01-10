@@ -120,7 +120,11 @@ def add_historical_year_based_on_scaling(
 
 
 def harmonise_scenario(
-    indf: pd.DataFrame, history: pd.DataFrame, year: int, overrides: pd.DataFrame | None
+    indf: pd.DataFrame,
+    history: pd.DataFrame,
+    year: int,
+    overrides: pd.DataFrame | None,
+    calc_scaling_year: int,
 ) -> pd.DataFrame:
     """
     Harmonise a single scenario
@@ -139,6 +143,8 @@ def harmonise_scenario(
     overrides
         Overrides to pass to aneris
 
+    calc_scaling_year
+        Year to use for calculating scaling if `year` is not in `indf`
 
     Returns
     -------
@@ -147,8 +153,51 @@ def harmonise_scenario(
     """
     assert_only_working_on_variable_unit_variations(indf)
 
+    # A bunch of other fix ups that were applied in AR6
+    if year not in indf:
+        emissions_to_harmonise = add_historical_year_based_on_scaling(
+            year_to_add=year,
+            year_calc_scaling=calc_scaling_year,
+            emissions=indf,
+            emissions_historical=history,
+        )
+
+    elif indf[year].isnull().any():
+        null_emms_in_harm_year = indf[year].isnull()
+
+        dont_change = indf[~null_emms_in_harm_year]
+
+        updated = add_historical_year_based_on_scaling(
+            year_to_add=year,
+            year_calc_scaling=calc_scaling_year,
+            emissions=indf[null_emms_in_harm_year].drop(year, axis="columns"),
+            emissions_historical=history,
+        )
+
+        emissions_to_harmonise = pd.concat([dont_change, updated])
+
+    else:
+        emissions_to_harmonise = indf
+
+    # In AR6, any emissions with zero in the harmonisation year were dropped
+    emissions_to_harmonise = emissions_to_harmonise[
+        ~(emissions_to_harmonise[year] == 0.0)
+    ]
+
+    # In AR6, we interpolated before harmonising
+    # First, check that there are no nans in the max year.
+    # I don't know what happens in that case.
+    if emissions_to_harmonise[emissions_to_harmonise.columns.max()].isnull().any():
+        raise NotImplementedError
+
+    # Then interpolate
+    out_interp_years = list(range(year, emissions_to_harmonise.columns.max() + 1))
+    emissions_to_harmonise = emissions_to_harmonise.reindex(
+        columns=out_interp_years
+    ).interpolate(method="slinear", axis="columns")
+
     harmonised = aneris.convenience.harmonise_all(
-        indf,
+        emissions_to_harmonise,
         history=history,
         year=year,
         overrides=overrides,
@@ -244,71 +293,18 @@ class AR6Harmoniser:
         # May need to drop out variables which are all zero
         # May need to drop out variables which are zero in the harmonisation year
 
-        # TODO: move into apply_various_ar6_fix_ups
-        # or similar
-        if self.harmonisation_year not in in_emissions:
-            emissions_to_harmonise = add_historical_year_based_on_scaling(
-                year_to_add=self.harmonisation_year,
-                year_calc_scaling=self.calc_scaling_year,
-                emissions=in_emissions,
-                emissions_historical=self.historical_emissions,
-            )
-
-        elif in_emissions[self.harmonisation_year].isnull().any():
-            null_emms_in_harm_year = in_emissions[self.harmonisation_year].isnull()
-
-            dont_change = in_emissions[~null_emms_in_harm_year]
-
-            updated = add_historical_year_based_on_scaling(
-                year_to_add=self.harmonisation_year,
-                year_calc_scaling=self.calc_scaling_year,
-                emissions=in_emissions[null_emms_in_harm_year].drop(
-                    self.harmonisation_year, axis="columns"
-                ),
-                emissions_historical=self.historical_emissions,
-            )
-
-            emissions_to_harmonise = pd.concat([dont_change, updated])
-
-        else:
-            emissions_to_harmonise = in_emissions
-
-        # In AR6, any emissions with zero in the harmonisation year were dropped
-        emissions_to_harmonise = emissions_to_harmonise[
-            ~(emissions_to_harmonise[self.harmonisation_year] == 0.0)
-        ]
-
-        # # In AR6, any emissions still with nan were dropped
-        # # (I think, might be wrong)
-        # emissions_to_harmonise = emissions_to_harmonise[
-        #     ~emissions_to_harmonise.isnull().any(axis="columns")
-        # ]
-
-        # In AR6, we interpolated before harmonising
-        # Check that there are no nans in the max year.
-        # I don't know what happens in that case.
-        if emissions_to_harmonise[emissions_to_harmonise.columns.max()].isnull().any():
-            raise NotImplementedError
-
-        out_interp_years = list(
-            range(self.harmonisation_year, in_emissions.columns.max() + 1)
-        )
-        emissions_to_harmonise = emissions_to_harmonise.reindex(
-            columns=out_interp_years
-        ).interpolate(method="slinear", axis="columns")
-
         harmonised_df = pix.concat(
             run_parallel(  # type: ignore
                 func_to_call=harmonise_scenario,
                 iterable_input=(
-                    gdf
-                    for _, gdf in emissions_to_harmonise.groupby(["model", "scenario"])
+                    gdf for _, gdf in in_emissions.groupby(["model", "scenario"])
                 ),
                 input_desc="model-scenario combinations to harmonise",
                 n_processes=self.n_processes,
                 history=self.historical_emissions,
                 year=self.harmonisation_year,
                 overrides=self.aneris_overrides,
+                calc_scaling_year=self.calc_scaling_year,
             )
         )
 

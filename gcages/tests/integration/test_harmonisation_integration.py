@@ -181,4 +181,3 @@ def test_harmonisation_all_simultaneously():
     )
 
     check_results(res, exp)
-    raise NotImplementedError
