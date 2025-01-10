@@ -114,8 +114,15 @@ def test_harmonisation_single_model_scenario(model, scenario):
 
 def test_harmonisation_ips_simultaneously():
     AR6_IPS = (
+        ("AIM/CGE 2.2", "EN_NPi2020_900f"),
+        ("COFFEE 1.1", "EN_NPi2020_400f_lowBECCS"),
         ("GCAM 5.3", "NGFS2_Current Policies"),
+        ("IMAGE 3.0", "EN_INDCi2030_3000f"),
+        ("MESSAGEix-GLOBIOM 1.0", "LowEnergyDemand_1.3_IPCC"),
+        ("MESSAGEix-GLOBIOM_GEI 1.0", "SSP2_openres_lc_50"),
         ("REMIND-MAgPIE 2.1-4.2", "SusDev_SDP-PkBudg1000"),
+        ("REMIND-MAgPIE 2.1-4.3", "DeepElec_SSP2_ HighRE_Budg900"),
+        ("WITCH 5.0", "CO_Bridge"),
     )
 
     raw = pd.concat(
