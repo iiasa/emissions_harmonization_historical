@@ -11,7 +11,7 @@ import pandas as pd
 import pandas_indexing as pix
 import pytest
 
-from gcages.ar6 import get_ar6_harmoniser
+from gcages.ar6 import AR6Harmoniser
 
 TEST_DATA_DIR = Path(__file__).parents[1] / "test-data"
 
@@ -63,16 +63,25 @@ def get_ar6_harmonised_emissions(model: str, scenario: str) -> pd.DataFrame:
 
 
 @harmonisation_cases
-def test_harmonisation(model, scenario):
+def test_harmonisation_single_model_scenario(model, scenario):
     raw = get_ar6_raw_emissions(model, scenario)
     if raw.empty:
         msg = f"No test data for {model=} {scenario=}?"
         raise AssertionError(msg)
 
-    harmoniser = get_ar6_harmoniser()
+    pre_processor = AR6PreProcessor.from_ar6_like_config(run_checks=False)
+    harmoniser = AR6Harmoniser.from_ar6_like_config(run_checks=False)
 
-    res = harmoniser(raw)
+    pre_processed = pre_processor(raw)
+    res = harmoniser(pre_processed)
 
     exp = get_ar6_harmonised_emissions(model, scenario)
 
     pd.testing.assert_frame_equal(res, exp)
+
+
+def test_harmonisation_ips_simultaneously():
+    # Test that we can harmonise all the IPs at once.
+    # Tests parallel harmonisation.
+    # Without harmonising all scenarios at once (overkill).
+    raise NotImplementedError

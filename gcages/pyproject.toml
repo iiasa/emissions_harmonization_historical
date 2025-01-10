@@ -8,7 +8,14 @@ authors = [
 license = { text = "placeholder" }
 requires-python = ">=3.9"
 dependencies = [
+    "aneris-iamc>=0.3.1",
+    # Only required because aneris needs it
+    # (not sure if we can write that out or not)
+    "openscm-units>=0.6.3",
     "pandas",
+    # TODO: update aneris so it doesn't need pyam
+    "pyam-iamc>=1.6.0",
+    "tqdm>=4.67.1",
     "typer",
 ]
 readme = "README.md"
