@@ -219,12 +219,12 @@ def drop_variables_if_identical(
             # e.g. C3IAM 2.0 2C-hybrid
             if (
                 (
-                    out.loc[pix.isin(variable=v_drop)].reset_index(
-                        "variable", drop=True
-                    )
-                    == out.loc[pix.isin(variable=v_check)].reset_index(
-                        "variable", drop=True
-                    )
+                    out.loc[pix.isin(variable=v_drop)]
+                    .reset_index("variable", drop=True)
+                    .dropna(axis="columns")
+                    == out.loc[pix.isin(variable=v_check)]
+                    .reset_index("variable", drop=True)
+                    .dropna(axis="columns")
                 )
                 .all()
                 .all()
@@ -409,7 +409,9 @@ class AR6PreProcessor:
         #       - metadata is appropriate/usable
 
         # Remove any rows with only zero
-        in_emissions = in_emissions[~((in_emissions == 0.0).all(axis="columns"))]
+        in_emissions = in_emissions[
+            ~(((in_emissions == 0.0) | in_emissions.isnull()).all(axis="columns"))
+        ]
 
         # Remove any rows that have NaN in required years
         required_years = list(range(2020, 2100 + 1, 10))

@@ -111,6 +111,7 @@ def test_harmonisation_single_model_scenario(model, scenario):
         .loc[~pix.ismatch(variable="**PFC")]  # Not used downstream
     )
 
+    # breakpoint()
     check_results(res, exp)
 
 
@@ -161,7 +162,10 @@ def test_harmonisation_all_simultaneously():
         [get_ar6_raw_emissions(model, scenario) for model, scenario in model_scenarios]
     )
 
-    pre_processor = AR6PreProcessor.from_ar6_like_config(run_checks=False)
+    pre_processor = AR6PreProcessor.from_ar6_like_config(
+        run_checks=False,
+        # n_processes=1,
+    )
     harmoniser = AR6Harmoniser.from_ar6_like_config(run_checks=False)
 
     pre_processed = pre_processor(raw)
