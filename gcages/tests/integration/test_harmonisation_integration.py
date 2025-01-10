@@ -11,7 +11,7 @@ import pandas as pd
 import pandas_indexing as pix
 import pytest
 
-from gcages.ar6 import AR6Harmoniser
+from gcages.ar6 import AR6Harmoniser, AR6PreProcessor
 
 TEST_DATA_DIR = Path(__file__).parents[1] / "test-data"
 
@@ -49,7 +49,9 @@ def get_ar6_all_emissions(model: str, scenario: str) -> pd.DataFrame:
 @functools.cache
 def get_ar6_raw_emissions(model: str, scenario: str) -> pd.DataFrame:
     all_emissions = get_ar6_all_emissions(model, scenario)
-    res = all_emissions.loc[pix.ismatch(variable="Emissions**")]
+    res = all_emissions.loc[pix.ismatch(variable="Emissions**")].dropna(
+        how="all", axis="columns"
+    )
 
     return res
 
@@ -57,7 +59,9 @@ def get_ar6_raw_emissions(model: str, scenario: str) -> pd.DataFrame:
 @functools.cache
 def get_ar6_harmonised_emissions(model: str, scenario: str) -> pd.DataFrame:
     all_emissions = get_ar6_all_emissions(model, scenario)
-    res = all_emissions.loc[pix.ismatch(variable="**Harmonized**")]
+    res = all_emissions.loc[pix.ismatch(variable="**Harmonized**")].dropna(
+        how="all", axis="columns"
+    )
 
     return res
 
@@ -75,9 +79,45 @@ def test_harmonisation_single_model_scenario(model, scenario):
     pre_processed = pre_processor(raw)
     res = harmoniser(pre_processed)
 
-    exp = get_ar6_harmonised_emissions(model, scenario)
+    exp = (
+        get_ar6_harmonised_emissions(model, scenario)
+        .loc[~pix.ismatch(variable="**CO2")]  # Not used downstream
+        .loc[~pix.ismatch(variable="**Kyoto**")]  # Not used downstream
+        .loc[~pix.ismatch(variable="**F-Gases")]  # Not used downstream
+        .loc[~pix.ismatch(variable="**HFC")]  # Not used downstream
+        .loc[~pix.ismatch(variable="**PFC")]  # Not used downstream
+    )
 
-    pd.testing.assert_frame_equal(res, exp)
+    # TODO: split this out to make it reusable
+    for idx_name in res.index.names:
+        idx_diffs = res.pix.unique(idx_name).symmetric_difference(
+            exp.pix.unique(idx_name)
+        )
+        if not idx_diffs.empty:
+            msg = f"Differences in the {idx_name} (res on the left): {idx_diffs=}"
+            raise AssertionError(msg)
+
+    pd.testing.assert_frame_equal(res.T, exp.T, check_exact=False, rtol=1e-8)
+    # try:
+    #     pd.testing.assert_frame_equal(
+    #         res.T, exp.T, check_exact=False, rtol=rtol, atol=atol
+    #     )
+    # except AssertionError:
+    #     import matplotlib
+    #     import matplotlib.pyplot as plt
+    #
+    #     matplotlib.use("MacOSX")
+    #
+    #     variable_to_plot = ""
+    #
+    #     fig, ax = plt.subplots()
+    #
+    #     exp.loc[(model, scenario, variable_to_plot)].T.plot(ax=ax)
+    #     res.loc[(model, scenario, variable_to_plot)].T.plot(ax=ax)
+    #
+    #     plt.show()
+    #
+    #     raise
 
 
 def test_harmonisation_ips_simultaneously():

@@ -1,5 +1,5 @@
 """
-Reproduction of the AR6 workflow
+Harmonisation part of the AR6 workflow
 """
 
 from __future__ import annotations
@@ -12,62 +12,39 @@ import pandas_indexing as pix
 import tqdm.autonotebook as tqdman
 from attrs import define
 
-AR6_RAW_VARIABLES: tuple[str, ...] = (
-    "Emissions|BC",
-    "Emissions|PFC|C2F6",
-    "Emissions|PFC|C6F14",
-    "Emissions|PFC|CF4",
-    "Emissions|CO",
-    # "Emissions|CO2",  # Don't harmonise the totals because we don't use them anyway
-    "Emissions|CO2|AFOLU",
-    "Emissions|CO2|Energy and Industrial Processes",
-    "Emissions|CH4",
-    # "Emissions|F-Gases",  # Don't harmonise the totals because we don't use them anyway
-    # "Emissions|HFC",  # Don't harmonise the totals because we don't use them anyway
-    "Emissions|HFC|HFC125",
-    "Emissions|HFC|HFC134a",
-    "Emissions|HFC|HFC143a",
-    "Emissions|HFC|HFC227ea",
-    "Emissions|HFC|HFC23",
-    # 'Emissions|HFC|HFC245ca',  # all nan in historical dataset (RCMIP)
-    # "Emissions|HFC|HFC245fa",  # not in historical dataset (RCMIP)
-    "Emissions|HFC|HFC32",
-    "Emissions|HFC|HFC43-10",
-    "Emissions|N2O",
-    "Emissions|NH3",
-    "Emissions|NOx",
-    "Emissions|OC",
-    # "Emissions|PFC",  # Don't harmonise the totals because we don't use them anyway
-    "Emissions|SF6",
-    "Emissions|Sulfur",
-    "Emissions|VOC",
-)
-"""
-Raw variables that were used in the AR6 workflow
-
-Many variables were dropped before the workflow was entered.
-For example, most sectoral detail.
-"""
+from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
 
 def load_ar6_historical_emissions() -> pd.DataFrame:
+    """
+    Load the historical emissions that were used in AR6
+
+    The data is massaged to what is expected by our harmonisation,
+    it isn't the raw data (at least not raw metadata).
+
+    Returns
+    -------
+    :
+        Historical emissions used in AR6
+    """
     res = pd.read_csv(importlib.resources.open_binary("gcages", "history_ar6.csv"))
-    res = res.set_index(["Model", "Scenario", "Variable", "Unit", "Region"])
+    res.columns = res.columns.str.lower()
+    res = res.set_index(["model", "scenario", "variable", "unit", "region"])
     res.columns = res.columns.astype(int)
 
     res = pix.assignlevel(
         res,
-        Variable=res.pix.unique("Variable").map(
+        variable=res.pix.unique("variable").map(
             lambda x: x.replace("AR6 climate diagnostics|", "").replace(
                 "|Unharmonized", ""
             )
         ),
     )
 
-    # May need to clean up unit too
+    # Strip out any units that won't play nice with pint
+    res = strip_pint_incompatible_characters_from_units(res, units_index_level="unit")
 
-    # We only care about data from 1990 onwards
-    # (really, only 2015, but ok)
+    # We only care about data from 1990 onwards (really, only 2015, but ok).
     res = res.loc[:, 1990:]
 
     return res
@@ -110,15 +87,14 @@ class AR6Harmoniser:
     are confident about what you're doing).
     """
 
-    def __call__(self, raw_emissions: pd.DataFrame) -> pd.DataFrame:
+    def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:
         """
         Harmonise
 
         Parameters
         ----------
-        raw_emissions
+        in_emissions
             Emissions to harmonise
-
 
         Returns
         -------
@@ -138,13 +114,28 @@ class AR6Harmoniser:
         # May need to drop out variables which are all zero
         # May need to drop out variables which are zero in the harmonisation year
 
-        if self.harmonisation_year not in raw_emissions:
+        if self.harmonisation_year not in in_emissions:
             # Need to add pre-processing in its own class
             raise NotImplementedError
 
-        harmonised_dfs = []
-        for _, msdf in tqdman.tqdm(raw_emissions.groupby(["model", "scenario"])):
-            harmonised_dfs.append(
+        # In AR6, we interpolated before harmonising
+        # TODO: add check that there are no nans in the max year.
+        # I don't know what happens in that case.
+        out_interp_years = list(
+            range(self.harmonisation_year, in_emissions.columns.max() + 1)
+        )
+        emissions_to_harmonise = in_emissions.reindex(
+            columns=out_interp_years
+        ).interpolate(method="slinear", axis="columns")
+
+        # TODO: Split out into separate function
+        # (also makes it possible to fix up the aneris dependence on pyam,
+        # i.e. write new convenience module)
+        harmonised_df_l = []
+        for _, msdf in tqdman.tqdm(
+            emissions_to_harmonise.groupby(["model", "scenario"])
+        ):
+            harmonised_df_l.append(
                 aneris.convenience.harmonise_all(
                     msdf,
                     history=self.historical_emissions,
@@ -152,10 +143,8 @@ class AR6Harmoniser:
                     overrides=self.aneris_overrides,
                 )
             )
-        breakpoint()
-        harmonised_df = pd.concat(harmonised_dfs).reset_index()
 
-        # # Parallel version something like this
+        # # Parallel version of the above something like this
         # with parallel_progress_bar(tqdm.tqdm(desc="Harmonisation")):
         #     LOGGER.info("Harmonising in parallel")
         #     # TODO: remove hard-coding of n_jobs
@@ -169,15 +158,26 @@ class AR6Harmoniser:
         #         for _, msdf in scenarios.groupby(["model", "scenario"])
         #     )
 
+        harmonised_df = pd.concat(harmonised_df_l)
+        # Not sure why this is happening, anyway
+        harmonised_df.columns = harmonised_df.columns.astype(int)
+
+        # Apply AR6 naming scheme
+        out = harmonised_df.pix.format(
+            variable="AR6 climate diagnostics|Harmonized|{variable}"
+        )
+
         # TODO:
         #   - enable optional checks for:
-        #       - input and output metadata is identical (except maybe a stage indicator)
+        #       - input and output metadata is identical
+        #         (except maybe a stage indicator)
         #           - no mangled variable names
         #           - no mangled units
-        #           - output timesteps are from harmonisation year onwards, otherwise identical to input
+        #           - output timesteps are from harmonisation year onwards,
+        #             otherwise identical to input
         #       - output scenarios all have common starting point
 
-        raise NotImplementedError
+        return out
 
     @classmethod
     def from_ar6_like_config(cls, run_checks: bool = True) -> AR6Harmoniser:
@@ -245,7 +245,8 @@ class AR6Harmoniser:
                     "variable": "Emissions|CO2|Energy and Industrial Processes",
                 },
                 {
-                    # basket not used in infilling (sum of f-gases with low model reporting confidence)
+                    # basket not used in infilling
+                    # (sum of f-gases with low model reporting confidence)
                     "method": "constant_ratio",
                     "variable": "Emissions|F-Gases",
                 },
