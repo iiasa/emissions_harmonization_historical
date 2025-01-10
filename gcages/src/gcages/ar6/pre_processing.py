@@ -67,7 +67,9 @@ def add_conditional_sums(
                 locator_sources = pix.isin(variable=v_sources)
                 to_add = out.loc[locator_sources]
 
-                tmp = to_add.groupby(list(set(to_add.index.names) - {"variable"})).sum()
+                tmp = to_add.groupby(list(set(to_add.index.names) - {"variable"})).sum(
+                    min_count=len(v_sources)
+                )
                 tmp = tmp.pix.assign(variable=v_target)
                 out = pix.concat([out.loc[~locator_sources], tmp], axis="index")
 
