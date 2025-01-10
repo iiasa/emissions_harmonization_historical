@@ -193,6 +193,8 @@ class AR6Harmoniser:
         # May need to drop out variables which are all zero
         # May need to drop out variables which are zero in the harmonisation year
 
+        # TODO: move into apply_various_ar6_fix_ups
+        # or similar
         if self.harmonisation_year not in in_emissions:
             emissions_to_harmonise = add_historical_year_based_on_scaling(
                 year_to_add=self.harmonisation_year,
@@ -219,6 +221,11 @@ class AR6Harmoniser:
 
         else:
             emissions_to_harmonise = in_emissions
+
+        # In AR6, any emissions with zero in the harmonisation year were dropped
+        emissions_to_harmonise = emissions_to_harmonise[
+            ~(emissions_to_harmonise[self.harmonisation_year] == 0.0)
+        ]
 
         # In AR6, we interpolated before harmonising
         # Check that there are no nans in the max year.
