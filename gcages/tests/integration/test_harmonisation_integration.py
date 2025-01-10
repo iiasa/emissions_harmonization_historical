@@ -17,7 +17,9 @@ TEST_DATA_DIR = Path(__file__).parents[1] / "test-data"
 
 @pytest.fixture(scope="session")
 def ar6_all_emissions():
-    res_l = [pd.read_csv(f) for f in TEST_DATA_DIR.glob("ar6_scenarios__*")]
+    res_l = [
+        pd.read_csv(f) for f in TEST_DATA_DIR.glob("ar6_scenarios__*__emissions.csv")
+    ]
     res = pd.concat(res_l)
 
     res.columns = res.columns.str.lower()
