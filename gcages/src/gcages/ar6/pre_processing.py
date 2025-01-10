@@ -64,7 +64,6 @@ def add_conditional_sums(
     copy_on_entry
         Should the data be copied on entry?
 
-
     Returns
     -------
     :
@@ -90,6 +89,60 @@ def add_conditional_sums(
                 tmp[:] = to_add.sum()
                 tmp = tmp.pix.assign(variable=v_target)
                 out = pd.concat([out.loc[~locator_sources], tmp], axis="rows")
+
+    return out
+
+
+def reclassify_variables(
+    indf: pd.DataFrame,
+    reclassifications: dict[str, tuple[str, ...]],
+    copy_on_entry: bool = True,
+) -> pd.DataFrame:
+    """
+    Reclassify variables
+
+    Parameters
+    ----------
+    indf
+        Data to add sums to
+
+    reclassifications
+        Definition of the reclassifications.
+
+        For each variable (key) in `reclassifications`, the variables in its value
+        will be reclassified as part of its total.
+
+        For example, if `reclassifications` is
+
+        ```python
+        {"var_a": ("var_b", "var_c")}
+        ```
+
+        then if "var_b" or "var_c" (or both) is in `indf`,
+        they will be removed and their contents will be added to the total of `var_a`.
+
+    copy_on_entry
+        Should the data be copied on entry?
+
+    Returns
+    -------
+    :
+        `indf`, reclassified as needed.
+    """
+    assert_only_working_on_variable_unit_variations(indf)
+
+    if copy_on_entry:
+        out = indf.copy()
+
+    else:
+        out = indf
+
+    for v_target, v_sources in reclassifications.items():
+        locator_sources = pix.isin(variable=v_sources)
+        to_add = out.loc[locator_sources]
+        if not to_add.empty:
+            out.loc[pix.isin(variable=v_target)] += to_add.sum()
+            out = out.loc[~locator_sources]
 
     return out
 
@@ -182,6 +235,20 @@ class AR6PreProcessor:
     if all the variables it depends on are present.
     """
 
+    reclassifications: dict[str, tuple[str, ...]] | None = None
+    """
+    Specification for variables that should be reclassified as being another variable
+
+    Form:
+
+    ```python
+    {
+        variable_to_add_to: (variable_to_rename_1, variable_to_rename_2),
+        ...
+    }
+    ```
+    """
+
     run_checks: bool = True
     """
     If `True`, run checks on both input and output data
@@ -228,22 +295,12 @@ class AR6PreProcessor:
                 conditional_sums=self.conditional_sums,
             )
 
-        # in_emissions = reclassify_variables(in_emissions, self.reclassifications)
-        reclassifications = {
-            "Emissions|CO2|Energy and Industrial Processes": (
-                "Emissions|CO2|Other",
-                "Emissions|CO2|Waste",
+        if self.reclassifications is not None:
+            in_emissions = run_parallel_pre_processing(
+                in_emissions,
+                func_to_call=reclassify_variables,
+                reclassifications=self.reclassifications,
             )
-        }
-        for v_target, v_sources in reclassifications.items():
-            if any(
-                reclassify_v in in_emissions.pix.unique("variable")
-                for reclassify_v in v_sources
-            ):
-                locator_sources = pix.isin(variable=v_sources)
-                to_add = in_emissions.loc[locator_sources]
-                in_emissions.loc[pix.isin(variable=v_target)] += to_add.sum()
-                in_emissions = in_emissions.loc[~locator_sources]
 
         # in_emissions = condtionally_remove_variables(
         #     in_emissions, self.conditional_removals
@@ -373,10 +430,17 @@ class AR6PreProcessor:
                 ),
             ),
         )
+        reclassifications = {
+            "Emissions|CO2|Energy and Industrial Processes": (
+                "Emissions|CO2|Other",
+                "Emissions|CO2|Waste",
+            )
+        }
 
         return cls(
             emissions_out=ar6_emissions_for_harmonisation,
             negative_value_not_small_threshold=-0.1,
             conditional_sums=conditional_sums,
+            reclassifications=reclassifications,
             run_checks=run_checks,
         )
