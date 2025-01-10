@@ -71,6 +71,9 @@ class AR6PreProcessor:
             # Mapping is much trickier with multiple scenarios
             raise NotImplementedError
 
+        # Rmove any rows with only zero
+        in_emissions = in_emissions[~((in_emissions == 0.0).all(axis="columns"))]
+
         # TODO: add some configuration for this mapping
         conditional_sums = (
             # Variable to create: variables it depends on
