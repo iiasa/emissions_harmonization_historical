@@ -88,6 +88,7 @@ def check_results(res, exp):
     )
 
 
+@pytest.mark.slow
 @harmonisation_cases
 def test_harmonisation_single_model_scenario(model, scenario):
     raw = get_ar6_raw_emissions(model, scenario)
@@ -111,7 +112,6 @@ def test_harmonisation_single_model_scenario(model, scenario):
         .loc[~pix.ismatch(variable="**PFC")]  # Not used downstream
     )
 
-    # breakpoint()
     check_results(res, exp)
 
 
@@ -154,8 +154,8 @@ def test_harmonisation_ips_simultaneously():
     check_results(res, exp)
 
 
+@pytest.mark.slow
 def test_harmonisation_all_simultaneously():
-    # TODO: add 'slow' or similar mark (might not be that slow, but still)
     model_scenarios = get_all_model_scenarios().values
 
     raw = pd.concat(
