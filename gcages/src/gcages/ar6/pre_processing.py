@@ -4,7 +4,6 @@ Pre-processing part of the workflow
 
 from __future__ import annotations
 
-import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 from attrs import define
@@ -73,22 +72,6 @@ class AR6PreProcessor:
             raise NotImplementedError
 
         # TODO: add some configuration for this mapping
-        reclassifications = {
-            "Emissions|CO2|Energy and Industrial Processes": (
-                "Emissions|CO2|Other",
-                "Emissions|CO2|Waste",
-            )
-        }
-        for v_target, v_sources in reclassifications.items():
-            if any(
-                reclassify_v in in_emissions.pix.unique("variable")
-                for reclassify_v in v_sources
-            ):
-                locator_sources = pix.isin(variable=v_sources)
-                to_add = in_emissions.loc[locator_sources]
-                in_emissions.loc[pix.isin(variable=v_target)] += to_add.sum()
-                in_emissions = in_emissions.loc[~locator_sources]
-
         conditional_sums = (
             # Variable to create: variables it depends on
             (
@@ -112,6 +95,22 @@ class AR6PreProcessor:
                     in_emissions = pd.concat(
                         [in_emissions.loc[~locator_sources], tmp], axis="rows"
                     )
+
+        reclassifications = {
+            "Emissions|CO2|Energy and Industrial Processes": (
+                "Emissions|CO2|Other",
+                "Emissions|CO2|Waste",
+            )
+        }
+        for v_target, v_sources in reclassifications.items():
+            if any(
+                reclassify_v in in_emissions.pix.unique("variable")
+                for reclassify_v in v_sources
+            ):
+                locator_sources = pix.isin(variable=v_sources)
+                to_add = in_emissions.loc[locator_sources]
+                in_emissions.loc[pix.isin(variable=v_target)] += to_add.sum()
+                in_emissions = in_emissions.loc[~locator_sources]
 
         conditional_keepers = (
             # (
@@ -142,11 +141,22 @@ class AR6PreProcessor:
         )
         for v_drop, v_check in drop_if_identical:
             existing_vars = in_emissions.pix.unique("variable")
-            if v_drop in existing_vars:
-                if np.isclose(
-                    in_emissions.loc[pix.isin(variable=v_drop)],
-                    in_emissions.loc[pix.isin(variable=v_check)],
-                ).all():
+            if all(v in existing_vars for v in (v_drop, v_check)):
+                # Should really use isclose here, but we didn't in AR6
+                # so we get some funny reporting for weird scenarios
+                # e.g. C3IAM 2.0 2C-hybrid
+                if (
+                    (
+                        in_emissions.loc[pix.isin(variable=v_drop)].reset_index(
+                            "variable", drop=True
+                        )
+                        == in_emissions.loc[pix.isin(variable=v_check)].reset_index(
+                            "variable", drop=True
+                        )
+                    )
+                    .all()
+                    .all()
+                ):
                     in_emissions = in_emissions.loc[~pix.isin(variable=v_drop)]
 
         # Negative value handling
