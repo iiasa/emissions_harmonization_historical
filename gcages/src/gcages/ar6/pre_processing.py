@@ -5,11 +5,12 @@ Pre-processing part of the workflow
 from __future__ import annotations
 
 import multiprocessing
+from collections.abc import Mapping
 from functools import partial
 from typing import Callable, Concatenate, ParamSpec
 
 import pandas as pd
-import pandas_indexing as pix
+import pandas_indexing as pix  # type: ignore
 from attrs import define
 
 from gcages.parallelisation import run_parallel
@@ -35,7 +36,7 @@ def assert_only_working_on_variable_unit_variations(indf: pd.DataFrame) -> None:
         There are variations in columns other than variable and unit
     """
     non_v_u_cols = list(set(indf.index.names).difference(["variable", "unit"]))
-    variations_in_other_cols = indf.pix.unique(non_v_u_cols)
+    variations_in_other_cols: pd.MultiIndex = indf.pix.unique(non_v_u_cols)  # type: ignore
 
     if variations_in_other_cols.shape[0] > 1:
         raise AssertionError(f"{variations_in_other_cols=}")
@@ -43,7 +44,7 @@ def assert_only_working_on_variable_unit_variations(indf: pd.DataFrame) -> None:
 
 def add_conditional_sums(
     indf: pd.DataFrame,
-    conditional_sums: tuple[tuple[str, tuple[str, ...]]],
+    conditional_sums: tuple[tuple[str, tuple[str, ...]], ...],
     copy_on_entry: bool = True,
 ) -> pd.DataFrame:
     """
@@ -80,7 +81,7 @@ def add_conditional_sums(
         out = indf
 
     for v_target, v_sources in conditional_sums:
-        existing_vars = out.pix.unique("variable")
+        existing_vars: pd.MultiIndex = out.pix.unique("variable")  # type: ignore
         if v_target not in existing_vars:
             if all(v in existing_vars for v in v_sources):
                 locator_sources = pix.isin(variable=v_sources)
@@ -95,7 +96,7 @@ def add_conditional_sums(
 
 def reclassify_variables(
     indf: pd.DataFrame,
-    reclassifications: dict[str, tuple[str, ...]],
+    reclassifications: Mapping[str, tuple[str, ...]],
     copy_on_entry: bool = True,
 ) -> pd.DataFrame:
     """
@@ -149,7 +150,7 @@ def reclassify_variables(
 
 def condtionally_remove_variables(
     indf: pd.DataFrame,
-    conditional_removals: tuple[tuple[str, tuple[str, ...]]],
+    conditional_removals: tuple[tuple[str, tuple[str, ...]], ...],
     copy_on_entry: bool = True,
 ) -> pd.DataFrame:
     """
@@ -184,7 +185,7 @@ def condtionally_remove_variables(
         out = indf
 
     for v_drop, v_sub_components in conditional_removals:
-        existing_vars = out.pix.unique("variable")
+        existing_vars: pd.MultiIndex = out.pix.unique("variable")  # type: ignore
         if v_drop in existing_vars and all(
             v in existing_vars for v in v_sub_components
         ):
@@ -195,7 +196,7 @@ def condtionally_remove_variables(
 
 def drop_variables_if_identical(
     indf: pd.DataFrame,
-    drop_if_identical: tuple[tuple[str, str]],
+    drop_if_identical: tuple[tuple[str, str], ...],
     copy_on_entry: bool = True,
 ) -> pd.DataFrame:
     """
@@ -231,7 +232,7 @@ def drop_variables_if_identical(
         out = indf
 
     for v_drop, v_check in drop_if_identical:
-        existing_vars = out.pix.unique("variable")
+        existing_vars: pd.MultiIndex = out.pix.unique("variable")  # type: ignore
         if all(v in existing_vars for v in (v_drop, v_check)):
             # Should really use isclose here, but we didn't in AR6
             # so we get some funny reporting for weird scenarios
@@ -258,6 +259,7 @@ def run_parallel_pre_processing(
     func_to_call: Callable[Concatenate[pd.DataFrame, P], pd.DataFrame],
     groups: tuple[str, ...] = ("model", "scenario"),
     n_processes: int = multiprocessing.cpu_count(),
+    *args: P.args,
     **kwargs: P.kwargs,
 ) -> pd.DataFrame:
     """
@@ -278,7 +280,7 @@ def run_parallel_pre_processing(
         Number of parallel processes to use
 
     **kwargs
-        Passed to `func_to_call`
+        Passed to `run_parallel`
 
     Returns
     -------
@@ -286,12 +288,12 @@ def run_parallel_pre_processing(
         Result of calling `func_to_call` on each group in `indf`.
     """
     res = pd.concat(
-        run_parallel(
+        run_parallel(  # type: ignore
             func_to_call=func_to_call,
-            **kwargs,
             iterable_input=(gdf for _, gdf in indf.groupby(list(groups))),
             input_desc=f"{', '.join(groups)} combinations",
             n_processes=n_processes,
+            **kwargs,  # type: ignore
         )
     )
 
@@ -324,7 +326,7 @@ class AR6PreProcessor:
     are not automatically set to zero.
     """
 
-    conditional_sums: tuple[tuple[str, tuple[str, ...]]] | None = None
+    conditional_sums: tuple[tuple[str, tuple[str, ...]], ...] | None = None
     """
     Specification for variables that can be created from other variables
 
@@ -341,7 +343,7 @@ class AR6PreProcessor:
     if all the variables it depends on are present.
     """
 
-    reclassifications: dict[str, tuple[str, ...]] | None = None
+    reclassifications: Mapping[str, tuple[str, ...]] | None = None
     """
     Specification for variables that should be reclassified as being another variable
 
@@ -355,7 +357,7 @@ class AR6PreProcessor:
     ```
     """
 
-    conditional_removals: tuple[tuple[str, tuple[str, ...]]] | None = None
+    conditional_removals: tuple[tuple[str, tuple[str, ...]], ...] | None = None
     """
     Specification for variables that can be removed if other variables are present
 
@@ -372,7 +374,7 @@ class AR6PreProcessor:
     if all the variables it depends on are present.
     """
 
-    drop_if_identical: tuple[tuple[str, str]] | None = None
+    drop_if_identical: tuple[tuple[str, str], ...] | None = None
     """
     Variables that can be dropped if they are idential to another variable
 
@@ -437,28 +439,28 @@ class AR6PreProcessor:
 
         rp = partial(run_parallel_pre_processing, n_processes=self.n_processes)
         if self.conditional_sums is not None:
-            in_emissions = rp(
+            in_emissions = rp(  # type: ignore
                 in_emissions,
                 func_to_call=add_conditional_sums,
                 conditional_sums=self.conditional_sums,
             )
 
         if self.reclassifications is not None:
-            in_emissions = rp(
+            in_emissions = rp(  # type: ignore
                 in_emissions,
                 func_to_call=reclassify_variables,
                 reclassifications=self.reclassifications,
             )
 
         if self.conditional_removals is not None:
-            in_emissions = rp(
+            in_emissions = rp(  # type: ignore
                 in_emissions,
                 func_to_call=condtionally_remove_variables,
                 conditional_removals=self.conditional_removals,
             )
 
         if self.drop_if_identical is not None:
-            in_emissions = rp(
+            in_emissions = rp(  # type: ignore
                 in_emissions,
                 func_to_call=drop_variables_if_identical,
                 drop_if_identical=self.drop_if_identical,
@@ -475,7 +477,7 @@ class AR6PreProcessor:
             other=0.0,
         )
 
-        res = in_emissions.loc[pix.isin(variable=self.emissions_out)]
+        res: pd.DataFrame = in_emissions.loc[pix.isin(variable=self.emissions_out)]
 
         # Strip out any units that won't play nice with pint
         res = strip_pint_incompatible_characters_from_units(

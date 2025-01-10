@@ -5,7 +5,7 @@ Helpers for unit handling
 from __future__ import annotations
 
 import pandas as pd
-import pandas_indexing as pix
+import pandas_indexing as pix  # type: ignore
 
 
 def strip_pint_incompatible_characters_from_units(
@@ -28,7 +28,7 @@ def strip_pint_incompatible_characters_from_units(
         `indf` with pint-incompatible characters
         removed from the `units_index_level` of its index.
     """
-    res = pix.assignlevel(
+    res: pd.DataFrame = pix.assignlevel(
         indf,
         **{
             units_index_level: indf.index.get_level_values(units_index_level).map(

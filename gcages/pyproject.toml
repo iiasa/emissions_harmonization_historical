@@ -75,6 +75,8 @@ dev = [
     "virtualenv==20.28.1",
     "pandas-indexing>=0.6.1",
     "tqdm>=4.67.1",
+    "pandas-stubs>=2.2.2.240807",
+    "types-tqdm>=4.67.0.20241221",
 ]
 docs = [
     # Key dependencies

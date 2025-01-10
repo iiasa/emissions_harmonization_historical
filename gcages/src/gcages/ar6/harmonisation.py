@@ -7,9 +7,9 @@ from __future__ import annotations
 import importlib
 import multiprocessing
 
-import aneris.convenience
+import aneris.convenience  # type: ignore
 import pandas as pd
-import pandas_indexing as pix
+import pandas_indexing as pix  # type: ignore
 import tqdm.autonotebook as tqdman
 from attrs import define
 
@@ -28,14 +28,16 @@ def load_ar6_historical_emissions() -> pd.DataFrame:
     :
         Historical emissions used in AR6
     """
-    res = pd.read_csv(importlib.resources.open_binary("gcages", "history_ar6.csv"))
+    res: pd.DataFrame = pd.read_csv(
+        importlib.resources.open_binary("gcages", "history_ar6.csv")
+    )
     res.columns = res.columns.str.lower()
     res = res.set_index(["model", "scenario", "variable", "unit", "region"])
     res.columns = res.columns.astype(int)
 
     res = pix.assignlevel(
         res,
-        variable=res.pix.unique("variable").map(
+        variable=res.pix.unique("variable").map(  # type: ignore
             lambda x: x.replace("AR6 climate diagnostics|", "").replace(
                 "|Unharmonized", ""
             )
@@ -89,14 +91,14 @@ def add_historical_year_based_on_scaling(
         based on the scaling between `emissions`
         and `emissions_historical` in `year_calc_scaling`.
     """
-    if emissions.pix.unique(["model", "scenario"]).shape[0] > 1:
+    if emissions.pix.unique(["model", "scenario"]).shape[0] > 1:  # type: ignore
         # Processing is much trickier with multiple scenarios
         raise NotImplementedError
 
     ms = ("model", "scenario")
     # emissions_no_ms = emissions.reset_index(ms, drop=True)
     emissions_historical_common_vars = emissions_historical.loc[
-        pix.isin(variable=emissions.pix.unique("variable"))
+        pix.isin(variable=emissions.pix.unique("variable"))  # type: ignore
     ]
 
     emissions_historical_no_ms = emissions_historical_common_vars.reset_index(
@@ -289,7 +291,7 @@ class AR6Harmoniser:
         harmonised_df.columns = harmonised_df.columns.astype(int)
 
         # Apply AR6 naming scheme
-        out = harmonised_df.pix.format(
+        out: pd.DataFrame = harmonised_df.pix.format(
             variable="AR6 climate diagnostics|Harmonized|{variable}"
         )
 
