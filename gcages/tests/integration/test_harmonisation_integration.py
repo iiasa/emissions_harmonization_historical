@@ -97,7 +97,9 @@ def test_harmonisation_single_model_scenario(model, scenario):
             msg = f"Differences in the {idx_name} (res on the left): {idx_diffs=}"
             raise AssertionError(msg)
 
-    pd.testing.assert_frame_equal(res.T, exp.T, check_exact=False, rtol=1e-8)
+    pd.testing.assert_frame_equal(
+        res.T, exp.T, check_like=True, check_exact=False, rtol=1e-8
+    )
     # try:
     #     pd.testing.assert_frame_equal(
     #         res.T, exp.T, check_exact=False, rtol=rtol, atol=atol

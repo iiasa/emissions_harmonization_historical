@@ -200,6 +200,23 @@ class AR6Harmoniser:
                 emissions=in_emissions,
                 emissions_historical=self.historical_emissions,
             )
+
+        elif in_emissions[self.harmonisation_year].isnull().any():
+            null_emms_in_harm_year = in_emissions[self.harmonisation_year].isnull()
+
+            dont_change = in_emissions[~null_emms_in_harm_year]
+
+            updated = add_historical_year_based_on_scaling(
+                year_to_add=self.harmonisation_year,
+                year_calc_scaling=self.calc_scaling_year,
+                emissions=in_emissions[null_emms_in_harm_year].drop(
+                    self.harmonisation_year, axis="columns"
+                ),
+                emissions_historical=self.historical_emissions,
+            )
+
+            emissions_to_harmonise = pd.concat([dont_change, updated])
+
         else:
             emissions_to_harmonise = in_emissions
 

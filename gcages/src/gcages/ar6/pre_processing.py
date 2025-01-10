@@ -62,6 +62,7 @@ class AR6PreProcessor:
         if in_emissions.pix.unique(["model", "scenario"]).shape[0] > 1:
             # Mapping is much trickier with multiple scenarios
             raise NotImplementedError
+
         # TODO: add some configuration for this mapping
         reclassifications = {
             "Emissions|CO2|Energy and Industrial Processes": (
@@ -78,6 +79,30 @@ class AR6PreProcessor:
                 to_add = in_emissions.loc[locator_sources]
                 in_emissions.loc[pix.isin(variable=v_target)] += to_add.sum()
                 in_emissions = in_emissions.loc[~locator_sources]
+
+        conditional_sums = (
+            # Variable to create: variables it depends on
+            (
+                "Emissions|CO2|Energy and Industrial Processes",
+                (
+                    "Emissions|CO2|Industrial Processes",
+                    "Emissions|CO2|Energy",
+                ),
+            ),
+        )
+        for v_target, v_sources in conditional_sums:
+            existing_vars = in_emissions.pix.unique("variable")
+            if v_target not in existing_vars:
+                if all(v in existing_vars for v in v_sources):
+                    locator_sources = pix.isin(variable=v_sources)
+                    to_add = in_emissions.loc[locator_sources]
+
+                    tmp = in_emissions.loc[pix.isin(variable=v_sources[0])]
+                    tmp[:] = to_add.sum()
+                    tmp = tmp.pix.assign(variable=v_target)
+                    in_emissions = pd.concat(
+                        [in_emissions.loc[~locator_sources], tmp], axis="rows"
+                    )
 
         res = in_emissions.loc[pix.isin(variable=self.emissions_out)]
 
