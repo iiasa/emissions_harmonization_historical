@@ -147,6 +147,52 @@ def reclassify_variables(
     return out
 
 
+def condtionally_remove_variables(
+    indf: pd.DataFrame,
+    conditional_removals: tuple[tuple[str, tuple[str, ...]]],
+    copy_on_entry: bool = True,
+) -> pd.DataFrame:
+    """
+    Conditionally remove variables
+
+    Parameters
+    ----------
+    indf
+        Data to add sums to
+
+    conditional_removals
+        Definition of the conditional removals.
+
+        For each tuple, the first element defines the variable that can be removed.
+        This variable will be removed if all variables in the tuple's second element
+        are present in `indf`.
+
+    copy_on_entry
+        Should the data be copied on entry?
+
+    Returns
+    -------
+    :
+        `indf` with variables removed according to this function's logic.
+    """
+    assert_only_working_on_variable_unit_variations(indf)
+
+    if copy_on_entry:
+        out = indf.copy()
+
+    else:
+        out = indf
+
+    existing_vars = out.pix.unique("variable")
+    for v_drop, v_sub_components in conditional_removals:
+        if v_drop in existing_vars and all(
+            v in existing_vars for v in v_sub_components
+        ):
+            out = out.loc[~pix.isin(variable=v_drop)]
+
+    return out
+
+
 def run_parallel_pre_processing(
     indf: pd.DataFrame,
     func_to_call: Callable[Concatenate[pd.DataFrame, P], pd.DataFrame],
@@ -249,6 +295,23 @@ class AR6PreProcessor:
     ```
     """
 
+    conditional_removals: tuple[tuple[str, tuple[str, ...]]] | None = None
+    """
+    Specification for variables that can be removed if other variables are present
+
+    Form:
+
+    ```python
+    (
+        (variable_that_can_be_removed, (component_1, component_2)),
+        ...
+    )
+    ```
+
+    The variable that can be removed is only removed
+    if all the variables it depends on are present.
+    """
+
     run_checks: bool = True
     """
     If `True`, run checks on both input and output data
@@ -302,27 +365,12 @@ class AR6PreProcessor:
                 reclassifications=self.reclassifications,
             )
 
-        # in_emissions = condtionally_remove_variables(
-        #     in_emissions, self.conditional_removals
-        # )
-        conditional_keepers = (
-            # (
-            #     Variable to potentially remove,
-            #     remove if all of these variables are present
-            # )
-            (
-                "Emissions|CO2",
-                (
-                    "Emissions|CO2|Energy and Industrial Processes",
-                    "Emissions|CO2|AFOLU",
-                ),
-            ),
-        )
-        for v_drop, v_sub_components in conditional_keepers:
-            existing_vars = in_emissions.pix.unique("variable")
-            if v_drop in existing_vars:
-                if all(v in existing_vars for v in v_sub_components):
-                    in_emissions = in_emissions.loc[~pix.isin(variable=v_drop)]
+        if self.conditional_removals is not None:
+            in_emissions = run_parallel_pre_processing(
+                in_emissions,
+                func_to_call=condtionally_remove_variables,
+                conditional_removals=self.conditional_removals,
+            )
 
         # in_emissions = drop_if_identical(in_emissions, self.drop_if_identical)
         drop_if_identical = (
@@ -436,11 +484,21 @@ class AR6PreProcessor:
                 "Emissions|CO2|Waste",
             )
         }
+        conditional_removals = (
+            (
+                "Emissions|CO2",
+                (
+                    "Emissions|CO2|Energy and Industrial Processes",
+                    "Emissions|CO2|AFOLU",
+                ),
+            ),
+        )
 
         return cls(
             emissions_out=ar6_emissions_for_harmonisation,
             negative_value_not_small_threshold=-0.1,
             conditional_sums=conditional_sums,
             reclassifications=reclassifications,
+            conditional_removals=conditional_removals,
             run_checks=run_checks,
         )
