@@ -4,11 +4,139 @@ Pre-processing part of the workflow
 
 from __future__ import annotations
 
+import multiprocessing
+from typing import Callable, Concatenate, ParamSpec
+
 import pandas as pd
 import pandas_indexing as pix
 from attrs import define
 
+from gcages.parallelisation import run_parallel
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
+
+P = ParamSpec("P")
+
+
+def assert_only_working_on_variable_unit_variations(indf: pd.DataFrame) -> None:
+    """
+    Assert that we're only working on variations in variable and unit
+
+    In other words, we don't have variations in scenarios, models etc.
+
+    Parameters
+    ----------
+    indf
+        Data to verify
+
+    Raises
+    ------
+    AssertionError
+        There are variations in columns other than variable and unit
+    """
+    non_v_u_cols = list(set(indf.index.names).difference(["variable", "unit"]))
+    variations_in_other_cols = indf.pix.unique(non_v_u_cols)
+
+    if variations_in_other_cols.shape[0] > 1:
+        raise AssertionError(f"{variations_in_other_cols=}")
+
+
+def add_conditional_sums(
+    indf: pd.DataFrame,
+    conditional_sums: tuple[tuple[str, tuple[str, ...]]],
+    copy_on_entry: bool = True,
+) -> pd.DataFrame:
+    """
+    Add sums to a `pd.DataFrame` if all components are present
+
+    Parameters
+    ----------
+    indf
+        Data to add sums to
+
+    conditional_sums
+        Definition of the conditional sums.
+
+        The first element of each sub-tuple is the name of the variable to add.
+        The second element are its components.
+        All components must be present for the variable to be added.
+        If the variable is already there, the sum is not re-calculated or checked.
+
+    copy_on_entry
+        Should the data be copied on entry?
+
+
+    Returns
+    -------
+    :
+        `indf` with conditional sums added if all enabling conditions were fulfilled.
+    """
+    assert_only_working_on_variable_unit_variations(indf)
+
+    if copy_on_entry:
+        out = indf.copy()
+
+    else:
+        out = indf
+
+    existing_vars = out.pix.unique("variable")
+    for v_target, v_sources in conditional_sums:
+        if v_target not in existing_vars:
+            if all(v in existing_vars for v in v_sources):
+                locator_sources = pix.isin(variable=v_sources)
+                to_add = out.loc[locator_sources]
+
+                # Need to line up with model-scenario here
+                tmp = out.loc[pix.isin(variable=v_sources[0])]
+                tmp[:] = to_add.sum()
+                tmp = tmp.pix.assign(variable=v_target)
+                out = pd.concat([out.loc[~locator_sources], tmp], axis="rows")
+
+    return out
+
+
+def run_parallel_pre_processing(
+    indf: pd.DataFrame,
+    func_to_call: Callable[Concatenate[pd.DataFrame, P], pd.DataFrame],
+    groups: tuple[str, ...] = ("model", "scenario"),
+    n_processes: int = multiprocessing.cpu_count(),
+    **kwargs: P.kwargs,
+) -> pd.DataFrame:
+    """
+    Run a pre-processing step in parallel
+
+    Parameters
+    ----------
+    indf
+        Input data to process
+
+    func_to_call
+        Function to apply to each group in `indf`
+
+    groups
+        Columns to use to group the data in `indf`
+
+    n_processes
+        Number of parallel processes to use
+
+    **kwargs
+        Passed to `func_to_call`
+
+    Returns
+    -------
+    :
+        Result of calling `func_to_call` on each group in `indf`.
+    """
+    res = pd.concat(
+        run_parallel(
+            func_to_call=func_to_call,
+            **kwargs,
+            iterable_input=(gdf for _, gdf in indf.groupby(list(groups))),
+            input_desc=f"{', '.join(groups)} combinations",
+            n_processes=n_processes,
+        )
+    )
+
+    return res
 
 
 @define
@@ -35,6 +163,23 @@ class AR6PreProcessor:
 
     Non-CO2 emissions less than this that are negative
     are not automatically set to zero.
+    """
+
+    conditional_sums: tuple[tuple[str, tuple[str, ...]]] | None = None
+    """
+    Specification for variables that can be created from other variables
+
+    Form:
+
+    ```python
+    (
+        (variable_that_can_be_created, (component_1, component_2)),
+        ...
+    )
+    ```
+
+    The variable that can be created is only created
+    if all the variables it depends on are present.
     """
 
     run_checks: bool = True
@@ -67,10 +212,6 @@ class AR6PreProcessor:
         #       - only data with a useable time axis is in there
         #       - metadata is appropriate/usable
 
-        if in_emissions.pix.unique(["model", "scenario"]).shape[0] > 1:
-            # Mapping is much trickier with multiple scenarios
-            raise NotImplementedError
-
         # Remove any rows with only zero
         in_emissions = in_emissions[~((in_emissions == 0.0).all(axis="columns"))]
 
@@ -80,31 +221,14 @@ class AR6PreProcessor:
             ~in_emissions[required_years].isnull().any(axis="columns")
         ]
 
-        # TODO: add some configuration for this mapping
-        conditional_sums = (
-            # Variable to create: variables it depends on
-            (
-                "Emissions|CO2|Energy and Industrial Processes",
-                (
-                    "Emissions|CO2|Industrial Processes",
-                    "Emissions|CO2|Energy",
-                ),
-            ),
-        )
-        for v_target, v_sources in conditional_sums:
-            existing_vars = in_emissions.pix.unique("variable")
-            if v_target not in existing_vars:
-                if all(v in existing_vars for v in v_sources):
-                    locator_sources = pix.isin(variable=v_sources)
-                    to_add = in_emissions.loc[locator_sources]
+        if self.conditional_sums is not None:
+            in_emissions = run_parallel_pre_processing(
+                in_emissions,
+                func_to_call=add_conditional_sums,
+                conditional_sums=self.conditional_sums,
+            )
 
-                    tmp = in_emissions.loc[pix.isin(variable=v_sources[0])]
-                    tmp[:] = to_add.sum()
-                    tmp = tmp.pix.assign(variable=v_target)
-                    in_emissions = pd.concat(
-                        [in_emissions.loc[~locator_sources], tmp], axis="rows"
-                    )
-
+        # in_emissions = reclassify_variables(in_emissions, self.reclassifications)
         reclassifications = {
             "Emissions|CO2|Energy and Industrial Processes": (
                 "Emissions|CO2|Other",
@@ -121,6 +245,9 @@ class AR6PreProcessor:
                 in_emissions.loc[pix.isin(variable=v_target)] += to_add.sum()
                 in_emissions = in_emissions.loc[~locator_sources]
 
+        # in_emissions = condtionally_remove_variables(
+        #     in_emissions, self.conditional_removals
+        # )
         conditional_keepers = (
             # (
             #     Variable to potentially remove,
@@ -140,6 +267,7 @@ class AR6PreProcessor:
                 if all(v in existing_vars for v in v_sub_components):
                     in_emissions = in_emissions.loc[~pix.isin(variable=v_drop)]
 
+        # in_emissions = drop_if_identical(in_emissions, self.drop_if_identical)
         drop_if_identical = (
             # (
             #     Variable to potentially remove,
@@ -236,9 +364,19 @@ class AR6PreProcessor:
             "Emissions|Sulfur",
             "Emissions|VOC",
         )
+        conditional_sums = (
+            (
+                "Emissions|CO2|Energy and Industrial Processes",
+                (
+                    "Emissions|CO2|Industrial Processes",
+                    "Emissions|CO2|Energy",
+                ),
+            ),
+        )
 
         return cls(
             emissions_out=ar6_emissions_for_harmonisation,
             negative_value_not_small_threshold=-0.1,
+            conditional_sums=conditional_sums,
             run_checks=run_checks,
         )

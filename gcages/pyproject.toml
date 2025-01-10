@@ -9,6 +9,7 @@ license = { text = "placeholder" }
 requires-python = ">=3.9"
 dependencies = [
     "aneris-iamc>=0.3.1",
+    "loguru>=0.7.3",
     # Only required because aneris needs it
     # (not sure if we can write that out or not)
     "openscm-units>=0.6.3",
