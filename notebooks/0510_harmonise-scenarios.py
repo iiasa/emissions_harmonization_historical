@@ -68,12 +68,7 @@ if not scenario_files:
 scenario_files[:5]
 
 # %%
-scenarios_raw = pix.concat(
-    [
-        load_csv(f).iloc[:-1, :]  # Drop out IIASA copyright row
-        for f in tqdman.tqdm(scenario_files)
-    ]
-)
+scenarios_raw = pix.concat([load_csv(f) for f in tqdman.tqdm(scenario_files)])
 scenarios_raw_global = scenarios_raw.loc[
     pix.ismatch(region="World") & pix.isin(variable=history_cut.pix.unique("variable"))
 ]
