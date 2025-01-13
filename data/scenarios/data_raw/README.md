@@ -10,7 +10,7 @@ then remove `venv/bin/` from all the commands below).
 # Install pyam-iamc
 python3 -m venv venv
 venv/bin/pip install --upgrade pip wheel
-venv/bin/pip install pyam-iamc
+venv/bin/pip install pyam-iamc tqdm
 ```
 
 Login with ixmp4

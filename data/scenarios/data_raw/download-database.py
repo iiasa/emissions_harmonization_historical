@@ -2,6 +2,7 @@ import datetime as dt
 from pathlib import Path
 
 import pyam
+import tqdm
 
 OUT_DIR = Path(__file__).parents[0]
 
@@ -14,9 +15,14 @@ props = conn_ssp.properties().reset_index()
 
 # Retrieve the desired scenarios' emissions
 # (download everything; loop over model-scenario combinations to not blow up RAM)
-for model, scenario in zip(props["model"], props["scenario"]):
+for model, scenario in tqdm.tqdm(
+    zip(props["model"], props["scenario"]), total=len(props["model"]), desc="Model-scenario combinations"
+):
     print(f"Grabbing {model=} {scenario=}")
     df = pyam.read_iiasa("ssp_submission", model=model, scenario=scenario, variable="Emissions|*")
+    if df.empty:
+        print(f"No data for {model=} {scenario=}")
+        continue
 
     # Write out the scenario data
     output_filename = f"{time_id}__scenarios-scenariomip__{model}__{scenario}.csv".replace("/", "_").replace(" ", "-")
