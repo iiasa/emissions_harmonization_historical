@@ -24,12 +24,20 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import pandas_indexing as pix
 import seaborn as sns
+import tqdm.autonotebook as tqdman
 
-from emissions_harmonization_historical.constants import CEDS_PROCESSING_ID, DATA_ROOT, GFED_PROCESSING_ID
+from emissions_harmonization_historical.constants import (
+    DATA_ROOT,
+    HISTORICAL_COMPOSITE_PROCESSING_ID,
+)
 
 # %%
-SCENARIO_PATH = DATA_ROOT / "scenarios" / "ssp-submission_snapshot_1736754562.csv"
-SCENARIO_PATH
+SCENARIO_TIME_ID = "20250113-182449"
+
+# %%
+HISTORICAL_GLOBAL_COMPOSITE_PATH = (
+    DATA_ROOT / "global-composite" / f"historical-global-composite_{HISTORICAL_COMPOSITE_PROCESSING_ID}.csv"
+)
 
 
 # %%
@@ -43,9 +51,37 @@ def load_csv(fp):
 
 
 # %%
-scenarios_raw = load_csv(SCENARIO_PATH).iloc[:-1, :]  # Drop out IIASA copyright row
-scenarios_raw_global = scenarios_raw.loc[pix.ismatch(region="World")]
+history = load_csv(HISTORICAL_GLOBAL_COMPOSITE_PATH)
+history_cut = history.loc[:, 1990:]
+history_cut
+
+# %%
+SCENARIO_PATH = DATA_ROOT / "scenarios" / "data_raw"
+SCENARIO_PATH
+
+# %%
+scenario_files = tuple(SCENARIO_PATH.glob(f"{SCENARIO_TIME_ID}__scenarios-scenariomip__*.csv"))
+if not scenario_files:
+    msg = f"Check your scenario ID. {list(SCENARIO_PATH.glob('*.csv'))=}"
+    raise AssertionError(msg)
+
+scenario_files[:5]
+
+# %%
+scenarios_raw = pix.concat(
+    [
+        load_csv(f).iloc[:-1, :]  # Drop out IIASA copyright row
+        for f in tqdman.tqdm(scenario_files)
+    ]
+)
+scenarios_raw_global = scenarios_raw.loc[
+    pix.ismatch(region="World") & pix.isin(variable=history_cut.pix.unique("variable"))
+]
 scenarios_raw_global
+
+# %%
+# pandas-indexing is so well done
+# scenarios_raw_global.pix.extract(variable="Emissions|{species}|{sector}|{subsector}", dropna=False, keep=True).index.to_frame(index=False)
 
 # %%
 scenarios_raw_global.pix.unique(["model", "scenario"]).to_frame(index=False)
@@ -72,70 +108,16 @@ make_all_var_plot = partial(
 
 # %%
 make_all_var_plot(
-    data=get_sns_df(scenarios_raw_global),
-    kind="scatter",
+    data=get_sns_df(history_cut),
+    kind="line",
     hue="scenario",
     style="model",
 )
 
-# %% [markdown]
-# Create historical timeseries
-# TODO: move this to its own notebook
-
-# %%
-ceds_raw = load_csv(DATA_ROOT / "national" / "ceds" / "processed" / f"ceds_cmip7_global_{CEDS_PROCESSING_ID}.csv")
-ceds_raw
-
-# %%
-ceds_sum = (
-    ceds_raw.pix.extract(variable="Emissions|{species}|{sector}")
-    .groupby([*(set(ceds_raw.index.names) - {"variable"}), "species"])
-    .sum()
-    .pix.format(variable="Emissions|{species}|CEDS", drop=True)
-)
-
-# %%
-bb4cmip_raw = load_csv(
-    DATA_ROOT / "national/gfed-bb4cmip/processed" / f"gfed-bb4cmip_cmip7_global_{GFED_PROCESSING_ID}.csv"
-)
-bb4cmip_raw
-
-# %%
-ceds_co2_search = "Emissions|CO2"
-ceds_co2_out_name = f"{ceds_co2_search}|Energy and Industrial Processes"
-ceds_co2 = (
-    ceds_raw.loc[pix.ismatch(variable=f"{ceds_co2_search}**")]
-    .groupby([*set(ceds_raw.index.names) - {"variable"}])
-    .sum()
-    .pix.assign(variable=ceds_co2_out_name)
-)
-ceds_co2 = ceds_co2.pix.assign(scenario="history", model=ceds_co2.pix.unique("scenario"))
-ceds_co2
-
-# %%
-history = (
-    pix.concat([ceds_sum, bb4cmip_raw])
-    # Need to add GCP data for CO2 AFOLU
-    # and figure out what to do with CO2 burning data
-    .loc[~pix.ismatch(variable="Emissions|CO2**")]
-    .pix.extract(variable="Emissions|{species}|{source}")
-    .pix.assign(model="CEDS-BB4CMIP", scenario="history")
-    .groupby([*(set(ceds_raw.index.names) - {"variable"}), "species"])
-    .sum()  # not unit aware, but could make it so in future
-    .pix.format(variable="Emissions|{species}", drop=True)
-)
-history = pix.concat([history, ceds_co2])
-
-history
-
-# %%
-history_cut = history.loc[:, 1990:]
-history_cut
-
 # %%
 make_all_var_plot(
-    data=get_sns_df(history_cut),
-    kind="line",
+    data=get_sns_df(scenarios_raw_global),
+    kind="scatter",
     hue="scenario",
     style="model",
 )
@@ -338,10 +320,17 @@ harmoniser = Harmoniser(
     calc_scaling_year=calc_scaling_year,
     aneris_overrides=aneris_overrides,
     n_processes=multiprocessing.cpu_count(),
+    # n_processes = 1,
 )
 
 # %%
-pre_processed = pre_processor(scenarios_raw_global)
+# This business of having some scenarios end in 2150 and others in 2100
+# is causing some issues. Will fix in next steps.
+scenarios_raw_global_cut = scenarios_raw_global.loc[:, :2100]
+scenarios_raw_global_cut
+
+# %%
+pre_processed = pre_processor(scenarios_raw_global_cut)
 harmonised = harmoniser(pre_processed)
 harmonised
 
@@ -354,7 +343,7 @@ for model, mdf in pix.concat(
 ).groupby("model"):
     variables_to_show = mdf.pix.unique("variable").intersection(history_cut.pix.unique("variable"))
     pdf_wide = pix.concat([mdf, history_cut.pix.assign(stage="history")]).loc[pix.isin(variable=variables_to_show)]
-
+    # pdf_wide = pdf_wide.loc[:, 2010: 2028]
     fg = make_all_var_plot(
         data=get_sns_df(pdf_wide),
         kind="line",

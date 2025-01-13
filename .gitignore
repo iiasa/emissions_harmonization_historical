@@ -2,6 +2,7 @@
 data/national/ceds/processed
 data/national/gfed/processed
 data/national/gfed-bb4cmip/processed
+data/global-composite
 
 # RCMIP data
 data/global/rcmip/data_raw

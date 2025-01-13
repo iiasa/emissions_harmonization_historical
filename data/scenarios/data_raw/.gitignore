@@ -1,0 +1,2 @@
+# Ignore the download scenarios, they should be grabbed from the database
+*__scenarios-scenariomip__*.csv
