@@ -25,39 +25,3 @@ def pandas_terminal_width():
     # Display as many columns as you want (i.e. let the display width do the
     # truncation)
     pd.set_option("display.max_columns", 1000)
-
-
-# TODO: delete all this
-# @pytest.fixture(scope="session")
-# def ar6_all_emissions():
-#     res_l = [
-#         pd.read_csv(f) for f in TEST_DATA_DIR.glob("ar6_scenarios__*__emissions.csv")
-#     ]
-#     res = pd.concat(res_l)
-#
-#     res.columns = res.columns.str.lower()
-#     res = res.set_index(["model", "scenario", "variable", "region", "unit"])
-#     res.columns = res.columns.astype(int)
-#
-#     return res
-#
-#
-# @pytest.fixture(scope="session")
-# def ar6_raw(ar6_all_emissions):
-#     res = ar6_all_emissions.loc[pix.ismatch(variable="Emissions**")]
-#
-#     return res
-#
-#
-# @pytest.fixture(scope="session")
-# def ar6_harmonised(ar6_all_emissions):
-#     res = ar6_all_emissions.loc[pix.ismatch(variable="**Harmonized**")]
-#
-#     return res
-#
-#
-# @pytest.fixture(scope="session")
-# def ar6_infilled(ar6_all_emissions):
-#     res = ar6_all_emissions.loc[pix.ismatch(variable="**Infilled**")]
-#
-#     return res

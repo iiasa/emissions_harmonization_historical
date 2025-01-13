@@ -8,12 +8,12 @@ authors = [
 license = { text = "placeholder" }
 requires-python = ">=3.9"
 dependencies = [
-    "aneris-iamc>=0.3.1",
-    "loguru>=0.7.3",
-    "openscm-units>=0.6.3",
+    "aneris-iamc>=0.3.0",
+    "loguru",
+    "openscm-units",
     "pandas",
-    "scipy>=1.13.1",
-    "tqdm>=4.67.1",
+    "scipy",
+    "tqdm",
     "typer",
 ]
 readme = "README.md"
