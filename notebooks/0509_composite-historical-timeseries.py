@@ -18,7 +18,6 @@
 # Create our historical timeseries from the underlying data.
 
 # %%
-import pandas as pd
 import pandas_indexing as pix
 
 from emissions_harmonization_historical.constants import (
@@ -27,19 +26,10 @@ from emissions_harmonization_historical.constants import (
     GFED_PROCESSING_ID,
     HISTORICAL_COMPOSITE_PROCESSING_ID,
 )
+from emissions_harmonization_historical.io import load_csv
 
 # %%
 OUT_FILE = DATA_ROOT / "global-composite" / f"historical-global-composite_{HISTORICAL_COMPOSITE_PROCESSING_ID}.csv"
-
-
-# %%
-def load_csv(fp):
-    out = pd.read_csv(fp)
-    out.columns = out.columns.str.lower()
-    out = out.set_index(["model", "scenario", "variable", "region", "unit"])
-    out.columns = out.columns.astype(int)
-
-    return out
 
 
 # %%
