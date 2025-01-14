@@ -302,5 +302,3 @@ for model, mdf in pix.concat(
     fg.fig.suptitle(model, y=1.01)
     plt.show()
     # break
-
-# %%
