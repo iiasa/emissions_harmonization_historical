@@ -98,7 +98,7 @@ def harmonise_scenario(
             year_to_add=year,
             year_calc_scaling=calc_scaling_year,
             emissions=indf,
-            emissions_historical=history,
+            emissions_history=history,
         )
 
     elif indf[year].isnull().any():
@@ -110,7 +110,7 @@ def harmonise_scenario(
             year_to_add=year,
             year_calc_scaling=calc_scaling_year,
             emissions=indf[null_emms_in_harm_year].drop(year, axis="columns"),
-            emissions_historical=history,
+            emissions_history=history,
         )
 
         emissions_to_harmonise = pd.concat([dont_change, updated])

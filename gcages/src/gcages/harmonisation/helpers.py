@@ -5,7 +5,7 @@ General helpers for harmonisation
 from __future__ import annotations
 
 import pandas as pd
-import pandas_indexing as pix
+import pandas_indexing as pix  # type: ignore
 
 
 def add_historical_year_based_on_scaling(

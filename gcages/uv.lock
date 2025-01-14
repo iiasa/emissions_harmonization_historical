@@ -1161,14 +1161,14 @@ tests = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aneris-iamc", specifier = ">=0.3.1" },
+    { name = "aneris-iamc", specifier = ">=0.3.0" },
     { name = "gcages", extras = ["plots"], marker = "extra == 'full'" },
-    { name = "loguru", specifier = ">=0.7.3" },
+    { name = "loguru" },
     { name = "matplotlib", marker = "extra == 'plots'", specifier = ">=3.7.1" },
-    { name = "openscm-units", specifier = ">=0.6.3" },
+    { name = "openscm-units" },
     { name = "pandas" },
-    { name = "scipy", specifier = ">=1.13.1" },
-    { name = "tqdm", specifier = ">=4.67.1" },
+    { name = "scipy" },
+    { name = "tqdm" },
     { name = "typer" },
 ]
 

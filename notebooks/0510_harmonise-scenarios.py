@@ -268,6 +268,8 @@ harmoniser = Harmoniser(
     calc_scaling_year=calc_scaling_year,
     aneris_overrides=aneris_overrides,
     n_processes=multiprocessing.cpu_count(),
+    # TODO: implement and enable
+    run_checks=False,
 )
 
 # %%

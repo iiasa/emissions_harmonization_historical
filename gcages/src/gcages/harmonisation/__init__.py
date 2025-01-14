@@ -7,7 +7,7 @@ from __future__ import annotations
 import multiprocessing
 
 import pandas as pd
-import pandas_indexing as pix
+import pandas_indexing as pix  # type: ignore
 from attrs import define
 
 from gcages.aneris_helpers import harmonise_all
@@ -81,15 +81,80 @@ def harmonise_scenario(
 
 @define
 class Harmoniser:
+    """
+    Harmoniser
+    """
+
     historical_emissions: pd.DataFrame
+    """
+    Historical emissions to use for harmonisation
+    """
+
     harmonisation_year: int
+    """
+    Year in which to harmonise
+    """
+
     calc_scaling_year: int
+    """
+    Year to use for calculating a scaling factor from historical
+
+    This is only needed if `self.harmonisation_year`
+    is not in the emissions to be harmonised.
+
+    For example, if `self.harmonisation_year` is 2015
+    and `self.calc_scaling_year` is 2010
+    and we have a scenario without 2015 data,
+    then we will use the difference from historical in 2010
+    to infer a value for 2015.
+
+    This logic was perculiar to AR6, it may not be repeated.
+    """
+
     aneris_overrides: pd.DataFrame | None
+    """
+    Overrides to supply to `aneris.convenience.harmonise_all`
+
+    For source code and docs,
+    see e.g. https://github.com/iiasa/aneris/blob/v0.4.2/src/aneris/convenience.py.
+    """
+
+    run_checks: bool = True
+    """
+    If `True`, run checks on both input and output data
+
+    If you are sure about your workflow,
+    you can disable the checks to speed things up
+    (but we don't recommend this unless you really
+    are confident about what you're doing).
+    """
+
     n_processes: int = multiprocessing.cpu_count()
+    """
+    Number of processes to use for parallel processing.
+
+    Set to 1 to process in serial.
+    """
 
     def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:
-        # TODO: add checks back in
-        harmonised_df = pix.concat(
+        """
+        Harmonise
+
+        Parameters
+        ----------
+        in_emissions
+            Emissions to harmonise
+
+        Returns
+        -------
+        :
+            Harmonised emissions
+        """
+        if self.run_checks:
+            # TODO: add checks back in
+            raise NotImplementedError
+
+        harmonised_df: pd.DataFrame = pix.concat(
             run_parallel(
                 func_to_call=harmonise_scenario,
                 iterable_input=(
