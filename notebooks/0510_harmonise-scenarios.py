@@ -18,13 +18,23 @@
 # Underlying scenario database: https://data.ece.iiasa.ac.at/ssp-submission/#/workspaces
 
 # %%
+# Make sure pyam doesn't set up logging
+import logging
+
+logging.disable()
+
+# %%
+import multiprocessing
 from functools import partial
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import pandas_indexing as pix
+import scipy.stats
 import seaborn as sns
 import tqdm.autonotebook as tqdman
+from gcages.harmonisation import Harmoniser
+from gcages.pre_processing import PreProcessor
 
 from emissions_harmonization_historical.constants import (
     DATA_ROOT,
@@ -32,7 +42,7 @@ from emissions_harmonization_historical.constants import (
 )
 
 # %%
-SCENARIO_TIME_ID = "20250113-182449"
+SCENARIO_TIME_ID = "20250113-200523"
 
 # %%
 HISTORICAL_GLOBAL_COMPOSITE_PATH = (
@@ -68,7 +78,7 @@ if not scenario_files:
 scenario_files[:5]
 
 # %%
-scenarios_raw = pix.concat([load_csv(f) for f in tqdman.tqdm(scenario_files)])
+scenarios_raw = pix.concat([load_csv(f) for f in tqdman.tqdm(scenario_files)]).sort_index(axis="columns")
 scenarios_raw_global = scenarios_raw.loc[
     pix.ismatch(region="World") & pix.isin(variable=history_cut.pix.unique("variable"))
 ]
@@ -84,6 +94,9 @@ scenarios_raw_global.pix.unique(["model", "scenario"]).to_frame(index=False)
 
 # %%
 def get_sns_df(indf):
+    """
+    Get data frame to use with seaborn's plotting
+    """
     out = indf.copy()
     out.columns.name = "year"
     out = out.stack().to_frame("value").reset_index()
@@ -102,89 +115,31 @@ make_all_var_plot = partial(
 )
 
 # %%
-make_all_var_plot(
-    data=get_sns_df(history_cut),
-    kind="line",
-    hue="scenario",
-    style="model",
-)
+# make_all_var_plot(
+#     data=get_sns_df(history_cut),
+#     kind="line",
+#     hue="scenario",
+#     style="model",
+# )
 
 # %%
-make_all_var_plot(
-    data=get_sns_df(scenarios_raw_global),
-    kind="scatter",
-    hue="scenario",
-    style="model",
-)
+# make_all_var_plot(
+#     data=get_sns_df(scenarios_raw_global),
+#     kind="scatter",
+#     hue="scenario",
+#     style="model",
+# )
 
 # %%
-for model, mdf in scenarios_raw_global.groupby("model"):
-    pdf = pd.concat([get_sns_df(mdf), get_sns_df(history_cut)])
-    make_all_var_plot(
-        data=pdf,
-        kind="line",
-        hue="scenario",
-        style="model",
-    )
-    plt.show()
-
-# %%
-# TODO: move this into gcages?
-import multiprocessing
-
-from attrs import define
-from gcages.ar6.harmonisation import harmonise_scenario
-from gcages.parallelisation import run_parallel
-from gcages.units_helpers import strip_pint_incompatible_characters_from_units
-
-
-@define
-class PreProcessor:
-    emissions_out: tuple[str, ...]
-
-    def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:
-        # TODO: add checks:
-        # - no rows should be all zero or all nan
-        # - data should be available for all required years
-        # - no negative values for non-CO2
-        res: pd.DataFrame = in_emissions.loc[pix.isin(variable=self.emissions_out)]
-
-        res = strip_pint_incompatible_characters_from_units(res, units_index_level="unit")
-
-        return res
-
-
-@define
-class Harmoniser:
-    historical_emissions: pd.DataFrame
-    harmonisation_year: int
-    calc_scaling_year: int
-    aneris_overrides: pd.DataFrame | None
-    n_processes: int = multiprocessing.cpu_count()
-
-    def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:
-        # TODO: add checks back in
-        # TODO: swap logic, blow up for scenarios that don't have the
-        # harmonisation year and push that logic into the layer above
-        # so we can remove calc_sccalc_scaling_year here.
-        harmonised_df = pix.concat(
-            run_parallel(
-                func_to_call=harmonise_scenario,
-                iterable_input=(gdf for _, gdf in in_emissions.groupby(["model", "scenario"])),
-                input_desc="model-scenario combinations to harmonise",
-                n_processes=self.n_processes,
-                history=self.historical_emissions,
-                year=self.harmonisation_year,
-                overrides=self.aneris_overrides,
-                calc_scaling_year=self.calc_scaling_year,
-            )
-        )
-
-        # Not sure why this is happening, anyway
-        harmonised_df.columns = harmonised_df.columns.astype(int)
-
-        return harmonised_df
-
+# for model, mdf in scenarios_raw_global.groupby("model"):
+#     pdf = pd.concat([get_sns_df(mdf), get_sns_df(history_cut)])
+#     make_all_var_plot(
+#         data=pdf,
+#         kind="line",
+#         hue="scenario",
+#         style="model",
+#     )
+#     plt.show()
 
 # %%
 pre_processor = PreProcessor(emissions_out=tuple(history.pix.unique("variable")))
@@ -284,15 +239,14 @@ aneris_overrides = pd.DataFrame(
 )
 
 # %%
-import scipy.stats
+# TODO: discuss and think through better
+harmonisation_year = 2021
+calc_scaling_year = 2015
 
 # %%
-harmonisation_year = 2021
-# To discuss with Jarmo
-calc_scaling_year = 2015
 history_values = history_cut.loc[:, calc_scaling_year:harmonisation_year].copy()
 
-# TODO: add use of an average for variables with high variability here
+# TODO: decide which variables exactly to use averaging with
 high_variability_variables = ("Emissions|BC", "Emissions|CO", "Emissions|OC")
 n_years_for_regress = 10
 for high_variability_variable in high_variability_variables:
@@ -315,19 +269,15 @@ harmoniser = Harmoniser(
     calc_scaling_year=calc_scaling_year,
     aneris_overrides=aneris_overrides,
     n_processes=multiprocessing.cpu_count(),
-    # n_processes = 1,
 )
 
 # %%
-# This business of having some scenarios end in 2150 and others in 2100
-# is causing some issues. Will fix in next steps.
-scenarios_raw_global_cut = scenarios_raw_global.loc[:, :2100]
-scenarios_raw_global_cut
+pre_processed = pre_processor(scenarios_raw_global)
+harmonised = harmoniser(pre_processed)
 
 # %%
-pre_processed = pre_processor(scenarios_raw_global_cut)
-harmonised = harmoniser(pre_processed)
-harmonised
+colours = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+colours
 
 # %%
 for model, mdf in pix.concat(
@@ -339,11 +289,17 @@ for model, mdf in pix.concat(
     variables_to_show = mdf.pix.unique("variable").intersection(history_cut.pix.unique("variable"))
     pdf_wide = pix.concat([mdf, history_cut.pix.assign(stage="history")]).loc[pix.isin(variable=variables_to_show)]
     # pdf_wide = pdf_wide.loc[:, 2010: 2028]
+    palette = {k: colours[i % len(colours)] for i, k in enumerate(pdf_wide.pix.unique("scenario"))}
     fg = make_all_var_plot(
         data=get_sns_df(pdf_wide),
         kind="line",
         hue="scenario",
+        hue_order=sorted(pdf_wide.pix.unique("scenario")),
+        palette={**palette, "history": "black"},
         style="stage",
     )
     fg.fig.suptitle(model, y=1.01)
     plt.show()
+    # break
+
+# %%

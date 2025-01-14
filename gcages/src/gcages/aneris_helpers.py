@@ -228,6 +228,8 @@ def harmonise_all(
         # need to convert to aneris' internal datastructure
         level_order = ["model", "scenario", "region", "variable", "unit"]
         msdf_aneris = msdf.reorder_levels(level_order)
+        # Drop out any years that are all nan before passing to aneris
+        msdf_aneris = msdf_aneris.dropna(how="all", axis="columns")
         hist_msdf_aneris = hist_msdf.reorder_levels(level_order)
 
         h = Harmonizer(msdf_aneris, hist_msdf_aneris, harm_idx=["variable", "region"])

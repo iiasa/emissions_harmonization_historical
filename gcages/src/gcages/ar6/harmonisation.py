@@ -13,6 +13,7 @@ import pandas_indexing as pix  # type: ignore
 from attrs import define
 
 from gcages.aneris_helpers import harmonise_all
+from gcages.harmonisation.helpers import add_historical_year_based_on_scaling
 from gcages.parallelisation import (
     assert_only_working_on_variable_unit_variations,
     run_parallel,
@@ -56,68 +57,6 @@ def load_ar6_historical_emissions() -> pd.DataFrame:
     return res
 
 
-def add_historical_year_based_on_scaling(
-    year_to_add: int,
-    year_calc_scaling: int,
-    emissions: pd.DataFrame,
-    emissions_historical: pd.DataFrame,
-    ms: tuple[str, ...] = ("model", "scenario"),
-) -> pd.DataFrame:
-    """
-    Add a historical emissions year based on scaling
-
-    Parameters
-    ----------
-    year_to_add
-        Year to add
-
-    year_calc_scaling
-        Year to use to calculate the scaling
-
-    emissions
-        Emissions to which to add data for `year_to_add`
-
-    emissions_historical
-        Historical emissions to use to calculate
-        the fill values based on scaling
-
-    ms
-        Name of the model and scenario columns.
-
-        These have to be dropped from `emissions_historical`
-        before everything will line up.
-
-    Returns
-    -------
-    :
-        `emissions` with data for `year_to_add`
-        based on the scaling between `emissions`
-        and `emissions_historical` in `year_calc_scaling`.
-    """
-    if emissions.pix.unique(["model", "scenario"]).shape[0] > 1:  # type: ignore
-        # Processing is much trickier with multiple scenarios
-        raise NotImplementedError
-
-    ms = ("model", "scenario")
-    emissions_historical_common_vars = emissions_historical.loc[
-        pix.isin(variable=emissions.pix.unique("variable"))  # type: ignore
-    ]
-
-    emissions_historical_no_ms = emissions_historical_common_vars.reset_index(
-        ms, drop=True
-    )
-
-    scale_factor = emissions[year_calc_scaling].divide(
-        emissions_historical_no_ms[year_calc_scaling]
-    )
-    fill_value = scale_factor.multiply(emissions_historical_no_ms[year_to_add])
-    fill_value.name = year_to_add
-
-    out = pd.concat([emissions, fill_value], axis="columns").sort_index(axis="columns")
-
-    return out
-
-
 def harmonise_scenario(
     indf: pd.DataFrame,
     history: pd.DataFrame,
@@ -152,6 +91,7 @@ def harmonise_scenario(
     """
     assert_only_working_on_variable_unit_variations(indf)
 
+    # TODO: split this out
     # A bunch of other fix ups that were applied in AR6
     if year not in indf:
         emissions_to_harmonise = add_historical_year_based_on_scaling(
