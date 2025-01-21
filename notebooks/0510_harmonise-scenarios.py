@@ -28,6 +28,7 @@ import seaborn as sns
 import tqdm.autonotebook as tqdman
 from gcages.harmonisation import Harmoniser
 from gcages.pre_processing import PreProcessor
+from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
 from emissions_harmonization_historical.constants import (
     DATA_ROOT,
@@ -49,8 +50,8 @@ HISTORICAL_GLOBAL_COMPOSITE_PATH = (
 
 
 # %%
-history = load_csv(HISTORICAL_GLOBAL_COMPOSITE_PATH)
-history_cut = history.loc[:, 1990:]
+history = strip_pint_incompatible_characters_from_units(load_csv(HISTORICAL_GLOBAL_COMPOSITE_PATH))
+history_cut = history.loc[:, 1990:2025]
 history_cut
 
 # %%
@@ -72,6 +73,9 @@ scenarios_raw_global = scenarios_raw.loc[
     # & pix.isin(variable=history_cut.pix.unique("variable"))
 ]
 scenarios_raw_global
+
+# %%
+# scenarios_raw.loc[pix.ismatch(variable="Emissions|VOC")].pix.unique(["variable", "unit"])
 
 # %%
 # What are we still missing.

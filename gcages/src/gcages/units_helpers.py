@@ -1,13 +1,17 @@
+# %%
 """
 Helpers for unit handling
 """
 
+# %%
 from __future__ import annotations
 
+# %%
 import pandas as pd
 import pandas_indexing as pix  # type: ignore
 
 
+# %%
 def strip_pint_incompatible_characters_from_units(
     indf: pd.DataFrame, units_index_level: str = "unit"
 ) -> pd.DataFrame:
