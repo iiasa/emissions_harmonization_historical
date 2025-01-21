@@ -68,9 +68,49 @@ scenario_files[:5]
 # %%
 scenarios_raw = pix.concat([load_csv(f) for f in tqdman.tqdm(scenario_files)]).sort_index(axis="columns")
 scenarios_raw_global = scenarios_raw.loc[
-    pix.ismatch(region="World") & pix.isin(variable=history_cut.pix.unique("variable"))
+    pix.ismatch(region="World")
+    # & pix.isin(variable=history_cut.pix.unique("variable"))
 ]
 scenarios_raw_global
+
+# %%
+scenarios_raw.loc[pix.ismatch(variable="**CO2**AFOLU**")]
+
+# %%
+# What are we still missing.
+# Notes:
+# - CO2 hierarchy processing is below.
+# - drop out CO2 AFOLU NGHGI from harmonisation (?)
+# - can we drop out the totals e.g. HFC, PFC, Kyoto Gases?
+#   does anyone provide these but not the components?
+#   (If yes, this is fiddlier because you probably want to harmonise,
+#   then infill directly using the totals as the lead gas,
+#   which would be new.)
+still_missing = sorted(
+    scenarios_raw.loc[
+        pix.ismatch(variable="Emissions|*")
+        | pix.ismatch(variable="Emissions|CO2|*")
+        | pix.ismatch(variable="Emissions|F-Gases**")
+        | pix.ismatch(variable="Emissions|HFC**")
+        | pix.ismatch(variable="Emissions|PFC**")
+    ]
+    .pix.unique("variable")
+    .difference(history_cut.pix.unique("variable"))
+)
+still_missing
+
+# %%
+# Checking need for CO2 aggregation
+tmp = scenarios_raw.loc[
+    pix.ismatch(region="World")
+    & pix.ismatch(variable="Emissions|CO2|*")
+    & ~pix.ismatch(variable="Emissions|CO2|AFOLU*")
+]
+for (model, scenario), msdf in tmp.groupby(["model", "scenario"]):
+    if "Emissions|CO2|Energy and Industrial Processes" not in msdf.pix.unique("variable"):
+        msg = "Emissions|CO2|Energy and Industrial Processes missing"
+        print(f"{model=} {scenario=}")
+        raise NotImplementedError(msg)
 
 # %%
 # pandas-indexing is so well done

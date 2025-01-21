@@ -3,9 +3,13 @@ data/national/ceds/processed
 data/national/gfed/processed
 data/national/gfed-bb4cmip/processed
 data/global-composite
+data/global/gcb/processed
 
 # RCMIP data
 data/global/rcmip/data_raw
+
+# GCB raw data
+data/global/gcb/data_raw
 
 # CEDS data
 data/national/ceds/data_raw
