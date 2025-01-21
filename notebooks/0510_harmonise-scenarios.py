@@ -74,9 +74,6 @@ scenarios_raw_global = scenarios_raw.loc[
 scenarios_raw_global
 
 # %%
-scenarios_raw.loc[pix.ismatch(variable="**CO2**AFOLU**")]
-
-# %%
 # What are we still missing.
 # Notes:
 # - CO2 hierarchy processing is below.
@@ -145,12 +142,12 @@ make_all_var_plot = partial(
 )
 
 # %%
-# make_all_var_plot(
-#     data=get_sns_df(history_cut),
-#     kind="line",
-#     hue="scenario",
-#     style="model",
-# )
+make_all_var_plot(
+    data=get_sns_df(history_cut),
+    kind="line",
+    hue="scenario",
+    style="model",
+)
 
 # %%
 # make_all_var_plot(
@@ -286,7 +283,13 @@ calc_scaling_year = 2015
 history_values = history_cut.loc[:, calc_scaling_year:harmonisation_year].copy()
 
 # TODO: decide which variables exactly to use averaging with
-high_variability_variables = ("Emissions|BC", "Emissions|CO", "Emissions|OC")
+high_variability_variables = (
+    "Emissions|BC",
+    "Emissions|CO",
+    # # Having looked at the data, I'm not sure I would do this for CO2 AFOLU
+    # "Emissions|CO2|AFOLU",
+    "Emissions|OC",
+)
 n_years_for_regress = 10
 for high_variability_variable in high_variability_variables:
     regress_vals = history_cut.loc[
@@ -307,6 +310,7 @@ harmoniser = Harmoniser(
     harmonisation_year=harmonisation_year,
     calc_scaling_year=calc_scaling_year,
     aneris_overrides=aneris_overrides,
+    # n_processes=1,
     n_processes=multiprocessing.cpu_count(),
     # TODO: implement and enable
     run_checks=False,
@@ -314,6 +318,24 @@ harmoniser = Harmoniser(
 
 # %%
 pre_processed = pre_processor(scenarios_raw_global)
+
+# %%
+# TODO: move this into pre-processing
+pre_processed_l = []
+for (model, scenario), msdf in pre_processed.groupby(["model", "scenario"]):
+    if "Emissions|CO2|Energy and Industrial Processes" not in msdf.pix.unique("variable"):
+        print(
+            f"Excluding {model=} {scenario=} because there are no CO2 fossil emissions. "
+            f"Available variables: {sorted(msdf.pix.unique('variable').tolist())}."
+        )
+        continue
+
+    pre_processed_l.append(msdf)
+
+pre_processed = pix.concat(pre_processed_l)
+pre_processed
+
+# %%
 harmonised = harmoniser(pre_processed)
 
 # %%

@@ -23,6 +23,7 @@ import pandas_indexing as pix
 from emissions_harmonization_historical.constants import (
     CEDS_PROCESSING_ID,
     DATA_ROOT,
+    GCB_PROCESSING_ID,
     GFED_PROCESSING_ID,
     HISTORICAL_COMPOSITE_PROCESSING_ID,
 )
@@ -63,6 +64,10 @@ bb4cmip_raw = load_csv(
 bb4cmip_raw
 
 # %%
+gcb_afolu_raw = load_csv(DATA_ROOT / "global" / "gcb" / "processed" / f"gcb-afolu_cmip7_global_{GCB_PROCESSING_ID}.csv")
+gcb_afolu_raw
+
+# %%
 history_non_co2 = (
     pix.concat([ceds_sum, bb4cmip_raw])
     # Need to add GCP data for CO2 AFOLU
@@ -74,7 +79,10 @@ history_non_co2 = (
     .sum()  # not unit aware, but could make it so in future
     .pix.format(variable="Emissions|{species}", drop=True)
 )
-history = pix.concat([history_non_co2, ceds_co2])
+history = pix.concat([history_non_co2, ceds_co2, gcb_afolu_raw.pix.assign(scenario="history")])
+if len(history.pix.unique("scenario")) > 1:
+    msg = f"{history.pix.unique(['model', 'scenario'])}"
+    raise AssertionError(msg)
 
 history
 
