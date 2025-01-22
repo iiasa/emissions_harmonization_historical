@@ -1,3 +1,6 @@
+# Output plots
+*.pdf
+
 # Processed data
 data/national/ceds/processed
 data/national/gfed/processed

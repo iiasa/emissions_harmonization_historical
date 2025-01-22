@@ -79,6 +79,9 @@ velders_et_al_2022_raw = load_csv(
 velders_et_al_2022_raw
 
 # %%
+# history_non_co2.index.set_levels?
+
+# %%
 history_non_co2 = (
     pix.concat([ceds_sum, bb4cmip_raw])
     # Need to add GCP data for CO2 AFOLU
@@ -89,8 +92,11 @@ history_non_co2 = (
     .groupby([*(set(ceds_raw.index.names) - {"variable"}), "species"])
     .sum()  # not unit aware, but could make it so in future
     .pix.format(variable="Emissions|{species}", drop=True)
-    # TODO: rename NMVOC to VOC here, same for units
 )
+history_non_co2.index = history_non_co2.index.set_levels(
+    history_non_co2.index.get_level_values("variable").str.replace("NMVOC", "VOC"), level="variable"
+).set_levels(history_non_co2.index.get_level_values("unit").str.replace("NMVOC", "VOC"), level="unit")
+
 history = pix.concat(
     [
         history_non_co2,

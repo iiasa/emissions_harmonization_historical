@@ -41,7 +41,7 @@ from emissions_harmonization_historical.io import load_csv
 logging.disable()
 
 # %%
-SCENARIO_TIME_ID = "20250113-200523"
+SCENARIO_TIME_ID = "20250122-140031"
 
 # %%
 HISTORICAL_GLOBAL_COMPOSITE_PATH = (
@@ -293,6 +293,7 @@ high_variability_variables = (
     # # Having looked at the data, I'm not sure I would do this for CO2 AFOLU
     # "Emissions|CO2|AFOLU",
     "Emissions|OC",
+    "Emissions|VOC",
 )
 n_years_for_regress = 10
 for high_variability_variable in high_variability_variables:
@@ -368,3 +369,5 @@ for model, mdf in pix.concat(
     fg.fig.suptitle(model, y=1.01)
     plt.show()
     # break
+
+# %%
