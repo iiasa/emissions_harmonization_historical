@@ -24,6 +24,7 @@ from emissions_harmonization_historical.constants import (
     ADAM_ET_AL_2024_PROCESSING_ID,
     CEDS_PROCESSING_ID,
     DATA_ROOT,
+    EDGAR_PROCESSING_ID,
     GCB_PROCESSING_ID,
     GFED_PROCESSING_ID,
     HISTORICAL_COMPOSITE_PROCESSING_ID,
@@ -97,6 +98,15 @@ wmo_2022_raw = load_csv(
 wmo_2022_raw
 
 # %%
+edgar_raw = load_csv(
+    DATA_ROOT / "global" / "edgar" / "processed" / f"edgar_cmip7_global_{EDGAR_PROCESSING_ID}.csv",
+)
+edgar_raw
+
+# %%
+edgar_variables = ["Emissions|C6F14"]
+
+# %%
 history_non_co2 = (
     pix.concat([ceds_sum, bb4cmip_raw])
     # Need to add GCP data for CO2 AFOLU
@@ -120,6 +130,7 @@ history = pix.concat(
         velders_et_al_2022_raw.pix.assign(scenario="history"),
         adam_et_al_2024_raw.pix.assign(scenario="history"),
         wmo_2022_raw.pix.assign(scenario="history"),
+        edgar_raw.loc[pix.isin(variable=edgar_variables)].pix.assign(scenario="history"),
     ]
 )
 if len(history.pix.unique("scenario")) > 1:

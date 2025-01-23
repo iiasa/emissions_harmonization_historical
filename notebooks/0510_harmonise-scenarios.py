@@ -310,9 +310,6 @@ for high_variability_variable in high_variability_variables:
 history_values
 
 # %%
-history_values.shape
-
-# %%
 harmoniser = Harmoniser(
     historical_emissions=history_values,
     harmonisation_year=harmonisation_year,
@@ -378,5 +375,3 @@ for model, mdf in pix.concat(
     fg.fig.suptitle(model, y=1.01)
     plt.show()
     # break
-
-# %%
