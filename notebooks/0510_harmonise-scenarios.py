@@ -55,6 +55,42 @@ history_cut = history.loc[:, 1990:2025]
 history_cut
 
 # %%
+RCMIP_PATH = DATA_ROOT / "global/rcmip/data_raw/rcmip-emissions-annual-means-v5-1-0.csv"
+RCMIP_PATH
+
+
+# %%
+def transform_rcmip_to_iamc_variable(v):
+    """Transform RCMIP variables to IAMC variables"""
+    res = v
+
+    replacements = (
+        ("F-Gases|", ""),
+        ("PFC|", ""),
+        ("HFC4310mee", "HFC43-10"),
+        ("MAGICC AFOLU", "AFOLU"),
+        ("MAGICC Fossil and Industrial", "Energy and Industrial Processes"),
+    )
+    for old, new in replacements:
+        res = res.replace(old, new)
+
+    return res
+
+
+# %%
+rcmip = pd.read_csv(RCMIP_PATH)
+ar6_history = rcmip.copy()
+ar6_history.columns = ar6_history.columns.str.lower()
+ar6_history = ar6_history.set_index(["model", "scenario", "region", "variable", "unit", "mip_era", "activity_id"])
+ar6_history = ar6_history.loc[
+    pix.ismatch(mip_era="CMIP6") & pix.ismatch(scenario="historical") & pix.ismatch(region="World")
+]
+ar6_history = ar6_history.reset_index(["mip_era", "activity_id"], drop=True)
+ar6_history.columns = ar6_history.columns.astype(int)
+ar6_history = ar6_history.pix.assign(variable=ar6_history.pix.unique("variable").map(transform_rcmip_to_iamc_variable))
+ar6_history
+
+# %%
 SCENARIO_PATH = DATA_ROOT / "scenarios" / "data_raw"
 SCENARIO_PATH
 
@@ -89,11 +125,14 @@ scenarios_raw_global
 #   which would be new.)
 still_missing = sorted(
     scenarios_raw.loc[
-        pix.ismatch(variable="Emissions|*")
-        | pix.ismatch(variable="Emissions|CO2|*")
-        | pix.ismatch(variable="Emissions|F-Gases**")
-        | pix.ismatch(variable="Emissions|HFC**")
-        | pix.ismatch(variable="Emissions|PFC**")
+        (
+            pix.ismatch(variable="Emissions|*")
+            | pix.ismatch(variable="Emissions|CO2|*")
+            | pix.ismatch(variable="Emissions|F-Gases**")
+            | pix.ismatch(variable="Emissions|HFC**")
+            | pix.ismatch(variable="Emissions|PFC**")
+        )
+        & ~(pix.ismatch(variable="Emissions|Kyoto Gases") | pix.ismatch(variable="Emissions|CO2|AFOLU [NGHGI]"))
     ]
     .pix.unique("variable")
     .difference(history_cut.pix.unique("variable"))
@@ -147,9 +186,26 @@ make_all_var_plot = partial(
 
 # %%
 make_all_var_plot(
-    data=get_sns_df(history_cut),
+    data=get_sns_df(scenarios_raw.loc[pix.isin(variable=["Emissions|CO2|AFOLU [NGHGI]"]) & pix.isin(region="World")]),
     kind="line",
     hue="scenario",
+    style="model",
+)
+
+# %%
+make_all_var_plot(
+    data=get_sns_df(
+        pix.concat(
+            [
+                history_cut.pix.assign(mip_era="cmip7"),
+                ar6_history.loc[:, history_cut.columns]
+                .loc[pix.isin(variable=history_cut.pix.unique("variable"))]
+                .pix.assign(mip_era="cmip6"),
+            ]
+        )
+    ),
+    kind="line",
+    hue="mip_era",
     style="model",
 )
 
