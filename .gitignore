@@ -6,6 +6,7 @@ data/national/ceds/processed
 data/national/gfed/processed
 data/national/gfed-bb4cmip/processed
 data/global-composite
+data/global/adam-et-al-2024/processed
 data/global/gcb/processed
 data/global/velders-et-al-2022/processed/
 

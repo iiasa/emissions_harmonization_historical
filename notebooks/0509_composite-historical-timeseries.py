@@ -21,6 +21,7 @@
 import pandas_indexing as pix
 
 from emissions_harmonization_historical.constants import (
+    ADAM_ET_AL_2024_PROCESSING_ID,
     CEDS_PROCESSING_ID,
     DATA_ROOT,
     GCB_PROCESSING_ID,
@@ -79,7 +80,14 @@ velders_et_al_2022_raw = load_csv(
 velders_et_al_2022_raw
 
 # %%
-# history_non_co2.index.set_levels?
+adam_et_al_2024_raw = load_csv(
+    DATA_ROOT
+    / "global"
+    / "adam-et-al-2024"
+    / "processed"
+    / f"adam-et-al-2024_cmip7_global_{ADAM_ET_AL_2024_PROCESSING_ID}.csv"
+)
+adam_et_al_2024_raw
 
 # %%
 history_non_co2 = (
@@ -103,6 +111,7 @@ history = pix.concat(
         ceds_co2,
         gcb_afolu_raw.pix.assign(scenario="history"),
         velders_et_al_2022_raw.pix.assign(scenario="history"),
+        adam_et_al_2024_raw.pix.assign(scenario="history"),
     ]
 )
 if len(history.pix.unique("scenario")) > 1:

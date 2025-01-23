@@ -22,6 +22,7 @@ import io
 from pathlib import Path
 
 import pandas as pd
+import pandas_indexing as pix  # noqa: F401
 
 from emissions_harmonization_historical.constants import DATA_ROOT, VELDERS_ET_AL_2022_PROCESSING_ID
 

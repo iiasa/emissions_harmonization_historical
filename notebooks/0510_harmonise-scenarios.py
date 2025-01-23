@@ -335,7 +335,13 @@ for (model, scenario), msdf in pre_processed.groupby(["model", "scenario"]):
         )
         continue
 
-    pre_processed_l.append(msdf)
+    all_nan_or_zero = (msdf.isnull() | (msdf == 0.0)).all(axis=1)
+    if all_nan_or_zero.any():
+        print(f"Dropping out all nan or zero:\n{msdf[all_nan_or_zero].index.to_frame(index=False)}")
+
+    msdf_use = msdf[~all_nan_or_zero]
+
+    pre_processed_l.append(msdf_use)
 
 pre_processed = pix.concat(pre_processed_l)
 pre_processed
