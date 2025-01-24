@@ -21,6 +21,7 @@ import multiprocessing
 from functools import partial
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 import scipy.stats
@@ -77,15 +78,16 @@ def transform_rcmip_to_iamc_variable(v):
 
 # %%
 rcmip = pd.read_csv(RCMIP_PATH)
-ar6_history = rcmip.copy()
-ar6_history.columns = ar6_history.columns.str.lower()
-ar6_history = ar6_history.set_index(["model", "scenario", "region", "variable", "unit", "mip_era", "activity_id"])
-ar6_history = ar6_history.loc[
+rcmip_clean = rcmip.copy()
+rcmip_clean.columns = rcmip_clean.columns.str.lower()
+rcmip_clean = rcmip_clean.set_index(["model", "scenario", "region", "variable", "unit", "mip_era", "activity_id"])
+rcmip_clean.columns = rcmip_clean.columns.astype(int)
+rcmip_clean = rcmip_clean.pix.assign(
+    variable=rcmip_clean.index.get_level_values("variable").map(transform_rcmip_to_iamc_variable)
+)
+ar6_history = rcmip_clean.loc[
     pix.ismatch(mip_era="CMIP6") & pix.ismatch(scenario="historical") & pix.ismatch(region="World")
-]
-ar6_history = ar6_history.reset_index(["mip_era", "activity_id"], drop=True)
-ar6_history.columns = ar6_history.columns.astype(int)
-ar6_history = ar6_history.pix.assign(variable=ar6_history.pix.unique("variable").map(transform_rcmip_to_iamc_variable))
+].reset_index(["mip_era", "activity_id"], drop=True)
 ar6_history
 
 # %%
@@ -208,6 +210,169 @@ fg = make_all_var_plot(
 )
 for ax in fg.axes.flatten():
     ax.set_ylim(ymin=0)
+
+# %%
+to_infill = sorted(
+    [
+        v
+        for v in ar6_history.pix.unique("variable").difference(scenarios_raw_global.pix.unique("variable"))
+        if not any(s in v for s in ["|BC|", "|CH4|", "|CO2|", "|CO|", "|NH3|", "|NOx|", "|OC|", "|Sulfur|", "|VOC|"])
+    ]
+)
+print(f"{len(to_infill)=}")
+to_infill
+
+# %%
+rcmip_infill_vars = rcmip_clean.loc[pix.isin(variable=to_infill) & pix.ismatch(scenario="ssp*")]
+rcmip_infill_vars
+
+# %%
+fg = make_all_var_plot(
+    data=get_sns_df(rcmip_infill_vars),
+    kind="line",
+    hue="scenario",
+    # style="model",
+)
+for ax in fg.axes.flatten():
+    ax.set_ylim(ymin=0)
+
+# %%
+rcmip_helper = (
+    rcmip_clean.loc[pix.ismatch(scenario="ssp*") & pix.ismatch(region="World")]
+    .dropna(axis="columns", how="all")
+    .reset_index(["mip_era", "activity_id"], drop=True)
+)
+rcmip_helper
+
+# %%
+for v_check in to_infill:
+    v_loc = pix.isin(variable=v_check)
+    v_values = rcmip_helper.loc[v_loc].reset_index(["variable", "unit"], drop=True)
+
+    if (v_values.loc[:, 2015:] == 0.0).all().all():
+        print(f"All future RCMIP values are zero for {v_check}")
+        continue
+
+    potential_leads = rcmip_helper.loc[
+        ~v_loc & pix.isin(variable=scenarios_raw_global.pix.unique("variable")) & ~pix.ismatch(variable="**Burning**")
+    ]
+    potential_leads = potential_leads.loc[~(potential_leads == 0.0).all(axis="columns")]
+    quotient = potential_leads.divide(v_values, axis="rows").loc[:, 2020:2090]
+    quotient_stds = quotient.loc[:, np.isfinite(quotient).any()].groupby("variable").std()
+    # lead = quotient_stds.loc[~(quotient==0.0).all(axis="columns"), :].idxmin(axis="rows", skipna=True)
+    lead = quotient_stds.idxmin(axis="rows", skipna=True)
+    if len(lead.unique()) > 1:
+        print(f"Ambiguous lead for {v_check}, could be\n{lead}")
+        make_all_var_plot(
+            data=get_sns_df(rcmip_helper.loc[pix.isin(variable=[v_check, *lead.unique()])].loc[:, 2015:2100]),
+            kind="line",
+            hue="scenario",
+            # style="model",
+        )
+        plt.show()
+        continue
+        # raise AssertionError(lead)
+
+    lead = lead.unique()[0]
+    print(f"{v_check} follows {lead}")
+    make_all_var_plot(
+        data=get_sns_df(rcmip_helper.loc[pix.isin(variable=[v_check, lead])].loc[:, 2015:2100]),
+        kind="line",
+        hue="scenario",
+        # style="model",
+    )
+    plt.show()
+    # break
+
+# %%
+montreal_vars = rcmip_helper.loc[pix.ismatch(variable="**Montreal**")].pix.unique("variable").tolist()
+montreal_vars
+
+# %%
+for v_check in montreal_vars:
+    v_loc = pix.isin(variable=v_check)
+    v_values = rcmip_helper.loc[v_loc].reset_index(["variable", "unit"], drop=True)
+
+    if (v_values.loc[:, 2015:] == 0.0).all().all():
+        print(f"All future RCMIP values are zero for {v_check}")
+        continue
+
+    potential_leads = rcmip_helper.loc[~v_loc & pix.isin(variable=montreal_vars)]
+    potential_leads = potential_leads.loc[~(potential_leads == 0.0).all(axis="columns")]
+    quotient = potential_leads.divide(v_values, axis="rows").loc[:, 2020:2090]
+    quotient_stds = quotient.loc[:, np.isfinite(quotient).any()].groupby("variable").std()
+
+    # lead = quotient_stds.loc[~(quotient_stds==0.0).any(axis="columns"), :].idxmin(axis="rows", skipna=True)
+    # lead = quotient_stds.idxmin(axis="rows", skipna=True)
+    def get_std(g):
+        # display(g)
+        return np.std((g.values - g.values[0][0]) / g.values[0][0])
+
+    lead = quotient.groupby("variable").apply(get_std).idxmin()
+
+    #     if len(lead.unique()) > 1:
+    #         print(f"Ambiguous lead for {v_check}, could be\n{lead}")
+    #         make_all_var_plot(
+    #     data=get_sns_df(rcmip_helper.loc[pix.isin(variable=[v_check, *lead.unique()])].loc[:, 2015:2100]),
+    #     kind="line",
+    #     hue="scenario",
+    #     # style="model",
+    # )
+    #         plt.show()
+    #         continue
+    #         # raise AssertionError(lead)
+
+    # lead = lead.unique()[0]
+    print(f"{v_check} follows {lead}")
+    make_all_var_plot(
+        data=get_sns_df(rcmip_helper.loc[pix.isin(variable=[v_check, lead])].loc[:, 2015:2100]),
+        kind="line",
+        hue="scenario",
+        # style="model",
+    )
+    plt.show()
+    # break
+
+# %%
+quotient.loc[pix.isin(variable=[lead])]
+
+# %%
+rcmip_infill_vars = rcmip_clean.loc[pix.isin(variable=to_infill) & pix.ismatch(scenario="ssp*")]
+rcmip_infill_vars
+
+# %%
+[
+    # 'Emissions|C3F8',
+    "Emissions|C4F10",
+    "Emissions|C5F12",
+    "Emissions|C7F16",
+    "Emissions|C8F18",
+    # 'Emissions|Montreal Gases|CCl4',
+    # 'Emissions|Montreal Gases|CFC|CFC11',
+    # 'Emissions|Montreal Gases|CFC|CFC113',
+    # 'Emissions|Montreal Gases|CFC|CFC114',
+    # 'Emissions|Montreal Gases|CFC|CFC115',
+    # 'Emissions|Montreal Gases|CFC|CFC12',
+    # 'Emissions|Montreal Gases|CH2Cl2',
+    # 'Emissions|Montreal Gases|CH3Br',
+    # 'Emissions|Montreal Gases|CH3CCl3',
+    # 'Emissions|Montreal Gases|CH3Cl',
+    # 'Emissions|Montreal Gases|CHCl3',
+    # 'Emissions|Montreal Gases|HCFC141b',
+    # 'Emissions|Montreal Gases|HCFC142b',
+    # 'Emissions|Montreal Gases|HCFC22',
+    "Emissions|Montreal Gases|Halon1202",
+    # 'Emissions|Montreal Gases|Halon1211',
+    # 'Emissions|Montreal Gases|Halon1301',
+    # 'Emissions|Montreal Gases|Halon2402',
+    # 'Emissions|NF3',
+    # 'Emissions|SO2F2',
+    "Emissions|cC4F8",
+    # # Guus
+    # 'Emissions|HFC|HFC152a',
+    # 'Emissions|HFC|HFC236fa',
+    # 'Emissions|HFC|HFC365mfc',
+]
 
 # %%
 # make_all_var_plot(
