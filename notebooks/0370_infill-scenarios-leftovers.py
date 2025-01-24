@@ -22,18 +22,68 @@ import logging
 from functools import partial
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 import seaborn as sns
 
 from emissions_harmonization_historical.constants import (
     DATA_ROOT,
+    HARMONISATION_ID,
+    INFILLING_LEFTOVERS_ID,
+    INFILLING_SILICONE_ID,
+    INFILLING_WMO_ID,
 )
+from emissions_harmonization_historical.io import load_csv
 
 # %%
 # Disable all logging to avoid a million messages
 logging.disable()
+
+# %%
+SCENARIO_TIME_ID = "20250122-140031"
+
+# %%
+harmonised_file = (
+    DATA_ROOT
+    / "climate-assessment-workflow"
+    / "harmonised"
+    / f"harmonised-scenarios_{SCENARIO_TIME_ID}_{HARMONISATION_ID}.csv"
+)
+harmonised_file
+
+# %%
+infilled_silicone_file = (
+    DATA_ROOT
+    / "climate-assessment-workflow"
+    / "interim"
+    / f"infilled-silicone_{SCENARIO_TIME_ID}_{INFILLING_SILICONE_ID}.csv"
+)
+infilled_silicone_file
+
+# %%
+infilled_wmo_file = (
+    DATA_ROOT / "climate-assessment-workflow" / "interim" / f"infilled-wmo_{SCENARIO_TIME_ID}_{INFILLING_WMO_ID}.csv"
+)
+infilled_wmo_file
+
+# %%
+out_file = (
+    DATA_ROOT
+    / "climate-assessment-workflow"
+    / "interim"
+    / f"infilled-leftovers_{SCENARIO_TIME_ID}_{INFILLING_LEFTOVERS_ID}.csv"
+)
+out_file
+
+# %%
+all_so_far = pix.concat(
+    [
+        load_csv(harmonised_file),
+        load_csv(infilled_silicone_file),
+        load_csv(infilled_wmo_file),
+    ]
+)
+all_so_far.sort_index()
 
 # %%
 RCMIP_PATH = DATA_ROOT / "global/rcmip/data_raw/rcmip-emissions-annual-means-v5-1-0.csv"
@@ -67,153 +117,60 @@ rcmip_clean.columns = rcmip_clean.columns.astype(int)
 rcmip_clean = rcmip_clean.pix.assign(
     variable=rcmip_clean.index.get_level_values("variable").map(transform_rcmip_to_iamc_variable)
 )
-rcmip_clean
-
-
-# %%
-def get_sns_df(indf):
-    """
-    Get data frame to use with seaborn's plotting
-    """
-    out = indf.copy()
-    out.columns.name = "year"
-    out = out.stack().to_frame("value").reset_index()
-
-    return out
-
-
-# %%
-make_var_comparison_plot = partial(
-    sns.relplot,
-    x="year",
-    y="value",
-    hue="scenario",
-    style="variable",
-    facet_kws=dict(sharey=False),
+ar6_history = rcmip_clean.loc[pix.isin(mip_era=["CMIP6"], scenario=["ssp245"], region=["World"])]
+ar6_history = (
+    ar6_history.loc[
+        ~pix.ismatch(
+            variable=[
+                f"Emissions|{stub}|**" for stub in ["BC", "CH4", "CO", "N2O", "NH3", "NOx", "OC", "Sulfur", "VOC"]
+            ]
+        )
+        & ~pix.ismatch(variable=["Emissions|CO2|*|**"])
+        & ~pix.isin(variable=["Emissions|CO2"])
+    ]
+    .T.interpolate("index")
+    .T
 )
+full_var_set = ar6_history.pix.unique("variable")
+n_variables_in_full_scenario = 52
+if len(full_var_set) != n_variables_in_full_scenario:
+    raise AssertionError
+
+sorted(full_var_set)
 
 # %%
-# Leftovers - make this dynamic in future
-# by doing difference between RCMIP variables
-# and what is in the scenarios as they've been infilled up to this point.
-leftovers = [
-    "Emissions|C3F8",
-    "Emissions|C4F10",
-    "Emissions|C5F12",
-    "Emissions|C7F16",
-    "Emissions|C8F18",
-    # # Velders probably
-    # 'Emissions|HFC|HFC152a',
-    # 'Emissions|HFC|HFC236fa',
-    # 'Emissions|HFC|HFC365mfc',
-    # WMO almost definitely
-    # 'Emissions|Montreal Gases|HCFC141b',
-    # 'Emissions|Montreal Gases|HCFC142b',
-    #    # WMO probably
-    # 'Emissions|Montreal Gases|CCl4',
-    # 'Emissions|Montreal Gases|CFC|CFC11',
-    # 'Emissions|Montreal Gases|CFC|CFC113',
-    # 'Emissions|Montreal Gases|CFC|CFC114',
-    # 'Emissions|Montreal Gases|CFC|CFC115',
-    # 'Emissions|Montreal Gases|CFC|CFC12',
-    "Emissions|Montreal Gases|CH2Cl2",
-    # 'Emissions|Montreal Gases|CH3Br',
-    # 'Emissions|Montreal Gases|CH3CCl3',
-    # 'Emissions|Montreal Gases|CH3Cl',
-    "Emissions|Montreal Gases|CHCl3",
-    # 'Emissions|Montreal Gases|HCFC22',
-    # 'Emissions|Montreal Gases|Halon1202',
-    # 'Emissions|Montreal Gases|Halon1211',
-    # 'Emissions|Montreal Gases|Halon1301',
-    # 'Emissions|Montreal Gases|Halon2402',
-    #
-    "Emissions|NF3",
-    "Emissions|SO2F2",
-    "Emissions|cC4F8",
-]
+# TODO: use Guus' data for the HFCs rather than this infilling (?)
+leftover_vars = set(full_var_set) - set(all_so_far.pix.unique("variable"))
+leftover_vars
 
 # %%
-ssps = (
-    rcmip_clean.loc[pix.ismatch(scenario="ssp*", region="World")]
-    .reset_index(["mip_era", "activity_id"], drop=True)
-    .dropna(axis="columns", how="all")
-)
-ssps = ssps.loc[:, 2015:2090]
-ssps
-
-
-# %%
-def get_std(idf):
-    return np.std(idf.values)
-
-
-# %%
-follow_leaders = {}
-for follow in leftovers:
-    potential_leads = ssps[~(ssps == 0.0).all(axis="columns") & ~pix.isin(variable=[follow, *leftovers])]
-
-    lead = (
-        potential_leads.divide(ssps.loc[pix.isin(variable=[follow])].reset_index(["variable", "unit"], drop=True))
-        .groupby("variable")
-        .apply(get_std)
-        .idxmin()
-    )
-
-    follow_leaders[follow] = lead
-
-    # display(ssps.loc[pix.isin(variable=[lead])].divide(
-    #     ssps.loc[pix.isin(variable=[follow])].reset_index(["variable", "unit"], drop=True)
-    # ).round(3))
-
-    pdf = ssps.loc[pix.isin(variable=[lead, follow])]
-    pdf = pdf.divide(pdf[2015].groupby("variable").mean(), axis="rows")
-    fg = make_var_comparison_plot(
-        data=get_sns_df(pdf),
-        kind="line",
-        alpha=0.5,
-    )
-    for ax in fg.axes.flatten():
-        ax.set_ylim(ymin=0)
-
-    plt.show()
+for (model, scenario), msdf in all_so_far.groupby(["model", "scenario"]):
+    if set(full_var_set) - set(msdf.pix.unique("variable")) != leftover_vars:
+        print(f"{model=} {scenario=}")
     # break
-
-# %%
-follow_leaders
 
 # %%
 # Extracted from `magicc-archive/run/SSP5_34_OS_HFC_C2F6_CF4_SF6_MISSGAS_ExtPlus.SCEN7`
 follow_leaders_mm = {
-    "Emissions|cC4F8": "Emissions|CF4",
-    "Emissions|SO2F2": "Emissions|CF4",
-    "Emissions|NF3": "Emissions|SF6",
-    "Emissions|HFC|HFC365mfc": "Emissions|HFC|HFC134a",
-    "Emissions|HFC|HFC32": "Emissions|HFC|HFC23",
-    "Emissions|HFC|HFC236fa": "Emissions|HFC|HFC245fa",
-    "Emissions|HFC|HFC152a": "Emissions|HFC|HFC43-10",
-    "Emissions|Montreal Gases|CHCl3": "Emissions|C2F6",
-    "Emissions|Montreal Gases|CH3Br": "Emissions|C2F6",
-    "Emissions|Montreal Gases|CH3Cl": "Emissions|CF4",
-    "Emissions|Montreal Gases|CH2Cl2": "Emissions|HFC|HFC134a",
-    "Emissions|Montreal Gases|Halon1202": "Emissions|Montreal Gases|Halon1211",
     "Emissions|C3F8": "Emissions|C2F6",
     "Emissions|C4F10": "Emissions|C2F6",
     "Emissions|C5F12": "Emissions|C2F6",
-    "Emissions|C6F14": "Emissions|C2F6",
     "Emissions|C7F16": "Emissions|C2F6",
     "Emissions|C8F18": "Emissions|C2F6",
+    "Emissions|cC4F8": "Emissions|CF4",
+    "Emissions|SO2F2": "Emissions|CF4",
+    "Emissions|HFC|HFC236fa": "Emissions|HFC|HFC245fa",
+    "Emissions|HFC|HFC152a": "Emissions|HFC|HFC43-10",
+    "Emissions|HFC|HFC365mfc": "Emissions|HFC|HFC134a",
+    "Emissions|Montreal Gases|CH2Cl2": "Emissions|HFC|HFC134a",
+    "Emissions|Montreal Gases|CHCl3": "Emissions|C2F6",
+    # "Emissions|Montreal Gases|CH3Br": "Emissions|C2F6",
+    # "Emissions|Montreal Gases|CH3Cl": "Emissions|CF4",
+    "Emissions|NF3": "Emissions|SF6",
+    "Emissions|Montreal Gases|Halon1202": "Emissions|Montreal Gases|Halon1211",
 }
-
-# %%
-for follow, lead in follow_leaders_mm.items():
-    pdf = ssps.loc[pix.isin(variable=[lead, follow])]
-    pdf = pdf.divide(pdf[2015].groupby("variable").mean(), axis="rows")
-    fg = make_var_comparison_plot(data=get_sns_df(pdf), kind="line", alpha=0.5, dashes={lead: "", follow: (3, 3)})
-    for ax in fg.axes.flatten():
-        ax.set_ylim(ymin=0)
-
-    plt.show()
-    # break
+if leftover_vars - set(follow_leaders_mm.keys()):
+    raise AssertionError()
 
 # %% [markdown]
 # Have to be a bit clever with scaling to consider background/natural emissions.
@@ -230,6 +187,98 @@ for follow, lead in follow_leaders_mm.items():
 # f - f_0 = a * (l - l_0)
 # $$
 # where $f_0$ is pre-industrial emissions of the follow variable and $l_0$ is pre-industrial emissions of the lead.
+
+# %%
+harmonisation_year = 2021
+
+infilled_l = []
+for v in leftover_vars:
+    leader = follow_leaders_mm[v]
+
+    lead_df = all_so_far.loc[pix.isin(variable=[leader])]
+
+    # TODO: use better source for pre-industrial emissions
+    f_0 = ar6_history.loc[pix.isin(variable=[v])][1750].values.squeeze()
+    print(f"{v=} {f_0=}")
+    l_0 = ar6_history.loc[pix.isin(variable=[leader])][1750].values.squeeze()
+
+    # TODO use actual history for this
+    follow_df_history = ar6_history.loc[pix.isin(variable=[v])]
+    unit = follow_df_history.pix.unique("unit").unique().tolist()
+    if len(unit) > 1:
+        raise AssertionError(unit)
+
+    unit = unit[0]
+
+    # TODO: use history for this and then remove the mean stuff everywhere
+    scaling_factor = (lead_df - l_0)[harmonisation_year].values.mean() / (follow_df_history - f_0)[
+        harmonisation_year
+    ].values.mean()
+
+    follow_df = (scaling_factor * (lead_df - l_0) + f_0).pix.assign(variable=v, unit=unit)
+
+    infilled_l.append(follow_df)
+
+infilled = pix.concat(infilled_l)
+infilled
+
+
+# %%
+def get_sns_df(indf):
+    """
+    Get data frame to use with seaborn's plotting
+    """
+    out = indf.copy()
+    out.columns.name = "year"
+    out = out.stack().to_frame("value").reset_index()
+
+    return out
+
+
+# %%
+sns.relplot(
+    data=get_sns_df(infilled),
+    kind="line",
+    x="year",
+    y="value",
+    hue="model",
+    col="variable",
+    col_wrap=3,
+    facet_kws=dict(sharey=False),
+    units="scenario",
+    estimator=None,
+)
+
+# %%
+out_file.parent.mkdir(exist_ok=True, parents=True)
+infilled.to_csv(out_file)
+out_file
+
+# %% [markdown]
+# ## CMIP6
+#
+# We can also show that this was used in CMIP6.
+# It's not perfect for CHCl3 (probably because of feedbacks),
+# but it's near enough.
+
+# %%
+make_var_comparison_plot = partial(
+    sns.relplot,
+    x="year",
+    y="value",
+    hue="scenario",
+    style="variable",
+    facet_kws=dict(sharey=False),
+)
+
+# %%
+ssps = (
+    rcmip_clean.loc[pix.ismatch(scenario="ssp*", region="World")]
+    .reset_index(["mip_era", "activity_id"], drop=True)
+    .dropna(axis="columns", how="all")
+)
+ssps = ssps.loc[:, 2015:2100]
+ssps
 
 # %%
 for follow, lead in follow_leaders_mm.items():

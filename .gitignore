@@ -2,6 +2,7 @@
 *.pdf
 
 # Processed data
+data/climate-assessment-workflow
 data/national/ceds/processed
 data/national/gfed/processed
 data/national/gfed-bb4cmip/processed

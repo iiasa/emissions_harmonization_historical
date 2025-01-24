@@ -100,6 +100,9 @@ ar6_history = rcmip_clean.loc[
 ar6_history
 
 # %%
+ar6_history.loc[pix.ismatch(variable="**Montreal**")]
+
+# %%
 SCENARIO_PATH = DATA_ROOT / "scenarios" / "data_raw"
 SCENARIO_PATH
 

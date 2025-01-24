@@ -13,24 +13,22 @@
 # ---
 
 # %% [markdown]
-# - infill using silicone
-# - should get us so that we have the same emissions from all IAMs
-# - in follow up notebooks, infill the rest with:
-#     - Velders stuff
-#     - WMO stuff
-#     - whatever else we need to use
+# # Infill - silicone
+#
+# Here we infill the variables we can using [silicone]().
 
 # %%
 import matplotlib.pyplot as plt
+import pandas as pd
 import pandas_indexing as pix
 import pyam
-import seaborn as sns
 import silicone.database_crunchers
 import tqdm.autonotebook as tqdman
 
 from emissions_harmonization_historical.constants import (
     DATA_ROOT,
     HARMONISATION_ID,
+    INFILLING_SILICONE_ID,
 )
 from emissions_harmonization_historical.io import load_csv
 
@@ -45,6 +43,15 @@ harmonised_file = (
     / f"harmonised-scenarios_{SCENARIO_TIME_ID}_{HARMONISATION_ID}.csv"
 )
 harmonised_file
+
+# %%
+out_file = (
+    DATA_ROOT
+    / "climate-assessment-workflow"
+    / "interim"
+    / f"infilled-silicone_{SCENARIO_TIME_ID}_{INFILLING_SILICONE_ID}.csv"
+)
+out_file
 
 # %%
 harmonised = load_csv(harmonised_file)
@@ -67,39 +74,57 @@ variables_to_infill = set(variables_to_infill_l)
 variables_to_infill
 
 # %%
-lead_vars = {
-    "Emissions|BC": "Emissions|CO2|Energy and Industrial Processes",
-    "Emissions|C2F6": "Emissions|CO2|Energy and Industrial Processes",
-    "Emissions|C6F14": "Emissions|CO2|Energy and Industrial Processes",
-    "Emissions|CF4": "Emissions|CO2|Energy and Industrial Processes",
-    "Emissions|CO": "Emissions|CO2|Energy and Industrial Processes",
-    "Emissions|HFC|HFC125": "Emissions|CO2|Energy and Industrial Processes",
-    "Emissions|HFC|HFC134a": "Emissions|CO2|Energy and Industrial Processes",
-    "Emissions|HFC|HFC143a": "Emissions|CO2|Energy and Industrial Processes",
-    "Emissions|HFC|HFC227ea": "Emissions|CO2|Energy and Industrial Processes",
-    "Emissions|HFC|HFC23": "Emissions|CO2|Energy and Industrial Processes",
-    "Emissions|HFC|HFC245fa": "Emissions|CO2|Energy and Industrial Processes",
-    "Emissions|HFC|HFC32": "Emissions|CO2|Energy and Industrial Processes",
-    "Emissions|HFC|HFC43-10": "Emissions|CO2|Energy and Industrial Processes",
-    "Emissions|NH3": "Emissions|CO2|Energy and Industrial Processes",
-    "Emissions|NOx": "Emissions|CO2|Energy and Industrial Processes",
-    "Emissions|OC": "Emissions|CO2|Energy and Industrial Processes",
-    "Emissions|SF6": "Emissions|CO2|Energy and Industrial Processes",
-    "Emissions|Sulfur": "Emissions|CO2|Energy and Industrial Processes",
-    "Emissions|VOC": "Emissions|CO2|Energy and Industrial Processes",
+# TODO: think some of these through a bit more
+lead_vars_crunchers = {
+    "Emissions|BC": (
+        "Emissions|CO2|Energy and Industrial Processes",
+        silicone.database_crunchers.QuantileRollingWindows,
+    ),
+    "Emissions|C2F6": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
+    "Emissions|C6F14": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
+    "Emissions|CF4": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
+    "Emissions|CO": (
+        "Emissions|CO2|Energy and Industrial Processes",
+        silicone.database_crunchers.QuantileRollingWindows,
+    ),
+    "Emissions|HFC|HFC125": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
+    "Emissions|HFC|HFC134a": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
+    "Emissions|HFC|HFC143a": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
+    "Emissions|HFC|HFC227ea": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
+    "Emissions|HFC|HFC23": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
+    "Emissions|HFC|HFC245fa": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
+    "Emissions|HFC|HFC32": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
+    "Emissions|HFC|HFC43-10": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
+    "Emissions|NH3": (
+        "Emissions|CO2|Energy and Industrial Processes",
+        silicone.database_crunchers.QuantileRollingWindows,
+    ),
+    "Emissions|NOx": (
+        "Emissions|CO2|Energy and Industrial Processes",
+        silicone.database_crunchers.QuantileRollingWindows,
+    ),
+    "Emissions|OC": (
+        "Emissions|CO2|Energy and Industrial Processes",
+        silicone.database_crunchers.QuantileRollingWindows,
+    ),
+    "Emissions|SF6": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
+    "Emissions|Sulfur": (
+        "Emissions|CO2|Energy and Industrial Processes",
+        silicone.database_crunchers.QuantileRollingWindows,
+    ),
+    "Emissions|VOC": (
+        "Emissions|CO2|Energy and Industrial Processes",
+        silicone.database_crunchers.QuantileRollingWindows,
+    ),
 }
 
 # %%
 infillers = {}
-for v_infill in variables_to_infill:
-    # if not v_infill.endswith("HFC23"):
-    #     continue
+for v_infill in tqdman.tqdm(variables_to_infill):
+    leader, cruncher = lead_vars_crunchers[v_infill]
 
-    leader = lead_vars[v_infill]
     v_infill_db = harmonised.loc[pix.isin(variable=[v_infill, leader])]
-    infillers[v_infill] = silicone.database_crunchers.QuantileRollingWindows(
-        pyam.IamDataFrame(v_infill_db)
-    ).derive_relationship(
+    infillers[v_infill] = cruncher(pyam.IamDataFrame(v_infill_db)).derive_relationship(
         variable_follower=v_infill,
         variable_leaders=[leader],
     )
@@ -139,33 +164,70 @@ def get_sns_df(indf):
 
 
 # %%
-pdf_all = pix.concat(
-    [
-        harmonised.pix.assign(stage="harmonised"),
-        infilled.pix.assign(stage="infilled"),
-    ]
-)
-
 for v in variables_to_infill:
-    pdf = pdf_all.loc[pix.isin(variable=v)]
+    # if not v.endswith("HFC134a"):
+    #     continue
 
-    sns_df = get_sns_df(pdf)
-    sns_df["scenario_group"] = sns_df["scenario"].apply(lambda x: x.split(" - ")[-1].strip())
-    sns_df = sns_df[sns_df["scenario_group"].isin(sns_df[sns_df["stage"] == "infilled"]["scenario_group"].unique())]
+    leader, cruncher = lead_vars_crunchers[v]
 
-    fg = sns.relplot(
-        sns_df,
-        x="year",
-        y="value",
-        col="scenario_group",
-        hue="model",
-        style="stage",
-        units="scenario",
-        estimator=None,
-        col_wrap=3,
-        facet_kws=dict(sharey=False),
-        kind="line",
+    fig, axes = plt.subplot_mosaic(
+        [
+            ["lead_all", "follow_all"],
+            ["lead_infilled", "follow_infilled"],
+        ],
+        figsize=(12, 8),
     )
-    fg.fig.suptitle(v, y=1.1)
 
+    background_pkwargs = dict(
+        legend=False,
+        color="tab:gray",
+        linewidth=0.5,
+    )
+    foreground_pkwargs = dict(
+        linewidth=3,
+        zorder=3,
+    )
+
+    def prep_for_plot(indf: pd.DataFrame) -> pd.DataFrame:
+        """
+        Prep for plot
+        """
+        return indf.dropna(axis="columns", how="all")
+
+    prep_for_plot(harmonised.loc[pix.isin(variable=[leader])]).reset_index(drop=True).T.interpolate(
+        method="index"
+    ).plot(ax=axes["lead_all"], **background_pkwargs)
+
+    harmonised.loc[pix.isin(variable=[v])].reset_index(drop=True).T.interpolate(method="index").plot(
+        ax=axes["follow_all"], **background_pkwargs
+    )
+
+    infilled_lines = (
+        prep_for_plot(infilled.loc[pix.isin(variable=[v])])
+        .reset_index(infilled.index.names.difference(["model", "scenario"]), drop=True)
+        .T.interpolate(method="index")
+    )
+    infilled_lines.plot(ax=axes["follow_all"], legend=False, **foreground_pkwargs)
+
+    harmonised_infilled_scenarios = (
+        prep_for_plot(harmonised[harmonised.index.isin(infilled_lines.T.index)].loc[pix.isin(variable=[leader])])
+        .reset_index(infilled.index.names.difference(["model", "scenario"]), drop=True)
+        .T.interpolate(method="index")
+    )
+    harmonised_infilled_scenarios.plot(ax=axes["lead_all"], legend=False, **foreground_pkwargs)
+
+    harmonised_infilled_scenarios.plot(ax=axes["lead_infilled"], **foreground_pkwargs)
+
+    infilled_lines.plot(ax=axes["follow_infilled"], legend=False, alpha=0.7, **foreground_pkwargs)
+    axes["lead_infilled"].legend(loc="upper center", bbox_to_anchor=(1.1, -0.2))
+
+    axes["lead_all"].set_title(leader)
+    axes["follow_all"].set_title(v)
     plt.show()
+
+    # break
+
+# %%
+out_file.parent.mkdir(exist_ok=True, parents=True)
+infilled.to_csv(out_file)
+out_file
