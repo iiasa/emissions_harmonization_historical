@@ -376,6 +376,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/aa/b7/a881b08bb24ae15bd3644b313244d89b0eb50d88dbda577ce72e5e3e4be4/rioxarray-0.18.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/d3/cd/2e032e7bb1dcd389da2a803df2e41cce7b202686f5871f0ba9b1b2c01d86/scmdata-0.17.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e0/f9/0595336914c5619e5f28a1fb793285925a8cd4b432c9da0a987836c7f822/shellingham-1.5.4-py2.py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/e5/f2/f788f3b5873604ab0cb62475ec6167544f9c669fb069c26cbf5818269457/silicone-1.3.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/04/be/d09147ad1ec7934636ad912901c5fd7667e1c858e19d355237db0d0cd5e4/smmap-5.0.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/57/4f/e1db9475f940f1c54c365ed02d4f6390f884fc95a6a4022ece7725956664/SQLAlchemy-2.0.37-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/d5/f0/dc4757b83ac1ab853cf222df8535ed73973e0c203d983982ba7b8bc60508/SQLAlchemy_Utils-0.41.2-py3-none-any.whl
@@ -760,6 +761,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/aa/b7/a881b08bb24ae15bd3644b313244d89b0eb50d88dbda577ce72e5e3e4be4/rioxarray-0.18.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/d3/cd/2e032e7bb1dcd389da2a803df2e41cce7b202686f5871f0ba9b1b2c01d86/scmdata-0.17.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e0/f9/0595336914c5619e5f28a1fb793285925a8cd4b432c9da0a987836c7f822/shellingham-1.5.4-py2.py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/e5/f2/f788f3b5873604ab0cb62475ec6167544f9c669fb069c26cbf5818269457/silicone-1.3.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/04/be/d09147ad1ec7934636ad912901c5fd7667e1c858e19d355237db0d0cd5e4/smmap-5.0.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/9c/54/2df4b3d0d11b384b6e9a8788d0f1123243f2d2356e2ccf626f93dcc1a09f/SQLAlchemy-2.0.37-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
       - pypi: https://files.pythonhosted.org/packages/d5/f0/dc4757b83ac1ab853cf222df8535ed73973e0c203d983982ba7b8bc60508/SQLAlchemy_Utils-0.41.2-py3-none-any.whl
@@ -1137,6 +1139,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/aa/b7/a881b08bb24ae15bd3644b313244d89b0eb50d88dbda577ce72e5e3e4be4/rioxarray-0.18.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/d3/cd/2e032e7bb1dcd389da2a803df2e41cce7b202686f5871f0ba9b1b2c01d86/scmdata-0.17.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e0/f9/0595336914c5619e5f28a1fb793285925a8cd4b432c9da0a987836c7f822/shellingham-1.5.4-py2.py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/e5/f2/f788f3b5873604ab0cb62475ec6167544f9c669fb069c26cbf5818269457/silicone-1.3.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/04/be/d09147ad1ec7934636ad912901c5fd7667e1c858e19d355237db0d0cd5e4/smmap-5.0.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/7c/37/4915290c1849337be6d24012227fb3c30c575151eec2b182ee5f45e96ce7/SQLAlchemy-2.0.37-cp311-cp311-macosx_10_9_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/d5/f0/dc4757b83ac1ab853cf222df8535ed73973e0c203d983982ba7b8bc60508/SQLAlchemy_Utils-0.41.2-py3-none-any.whl
@@ -1513,6 +1516,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/aa/b7/a881b08bb24ae15bd3644b313244d89b0eb50d88dbda577ce72e5e3e4be4/rioxarray-0.18.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/d3/cd/2e032e7bb1dcd389da2a803df2e41cce7b202686f5871f0ba9b1b2c01d86/scmdata-0.17.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e0/f9/0595336914c5619e5f28a1fb793285925a8cd4b432c9da0a987836c7f822/shellingham-1.5.4-py2.py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/e5/f2/f788f3b5873604ab0cb62475ec6167544f9c669fb069c26cbf5818269457/silicone-1.3.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/04/be/d09147ad1ec7934636ad912901c5fd7667e1c858e19d355237db0d0cd5e4/smmap-5.0.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/4c/f5/8cce9196434014a24cc65f6c68faa9a887080932361ee285986c0a35892d/SQLAlchemy-2.0.37-cp311-cp311-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/d5/f0/dc4757b83ac1ab853cf222df8535ed73973e0c203d983982ba7b8bc60508/SQLAlchemy_Utils-0.41.2-py3-none-any.whl
@@ -1881,6 +1885,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/aa/b7/a881b08bb24ae15bd3644b313244d89b0eb50d88dbda577ce72e5e3e4be4/rioxarray-0.18.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/d3/cd/2e032e7bb1dcd389da2a803df2e41cce7b202686f5871f0ba9b1b2c01d86/scmdata-0.17.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e0/f9/0595336914c5619e5f28a1fb793285925a8cd4b432c9da0a987836c7f822/shellingham-1.5.4-py2.py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/e5/f2/f788f3b5873604ab0cb62475ec6167544f9c669fb069c26cbf5818269457/silicone-1.3.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/04/be/d09147ad1ec7934636ad912901c5fd7667e1c858e19d355237db0d0cd5e4/smmap-5.0.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/7b/9d/6e030cc2c675539dbc5ef73aa97a3cbe09341e27ad38caed2b70c4273aff/SQLAlchemy-2.0.37-cp311-cp311-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/d5/f0/dc4757b83ac1ab853cf222df8535ed73973e0c203d983982ba7b8bc60508/SQLAlchemy_Utils-0.41.2-py3-none-any.whl
@@ -5791,7 +5796,7 @@ packages:
   name: emissions-harmonization-historical
   version: 0.1.0
   path: .
-  sha256: eaea92c6c8245344eeb9ce017fd0568512597bbfd3639a797e715b893bfec63e
+  sha256: 4c9d05e421fd1171e4728bd3771403bc29147af0306c0468b0ee4860510c64ab
   requires_dist:
   - pre-commit==3.3.1
   - ptolemy-iamc @ git+https://github.com/gidden/ptolemy.git@015aa843c340bd57464eb7cfd5f3c8e397201266
@@ -5800,6 +5805,8 @@ packages:
   - scmdata>=0.17.0,<0.18
   - nomenclature-iamc>=0.22.1,<0.23
   - xarray-regrid==0.4.0
+  - silicone>=1.3.0,<2
+  - pyam-iamc>=3.0.0,<4
   requires_python: ==3.11
   editable: true
 - kind: conda
@@ -20148,6 +20155,58 @@ packages:
   url: https://files.pythonhosted.org/packages/e0/f9/0595336914c5619e5f28a1fb793285925a8cd4b432c9da0a987836c7f822/shellingham-1.5.4-py2.py3-none-any.whl
   sha256: 7ecfff8f2fd72616f7481040475a65b2bf8af90a56c89140852d1120324e8686
   requires_python: '>=3.7'
+- kind: pypi
+  name: silicone
+  version: 1.3.0
+  url: https://files.pythonhosted.org/packages/e5/f2/f788f3b5873604ab0cb62475ec6167544f9c669fb069c26cbf5818269457/silicone-1.3.0-py2.py3-none-any.whl
+  sha256: 1f15b98edaf0313a951afad57a4d4ef81a4604a83a9af445c47cf8921ea40669
+  requires_dist:
+  - openscm-units>=0.2
+  - pint
+  - pyam-iamc>=1.0.0
+  - python-dateutil
+  - numpy
+  - scipy
+  - tqdm
+  - setuptools>=38.6.0 ; extra == 'deploy'
+  - twine>=1.11.0 ; extra == 'deploy'
+  - wheel>=0.31.0 ; extra == 'deploy'
+  - black ; extra == 'dev'
+  - black-nb ; extra == 'dev'
+  - bandit ; extra == 'dev'
+  - coverage ; extra == 'dev'
+  - flake8 ; extra == 'dev'
+  - isort ; extra == 'dev'
+  - mypy ; extra == 'dev'
+  - nbdime ; extra == 'dev'
+  - pydocstyle ; extra == 'dev'
+  - pylint ; extra == 'dev'
+  - notebook ; extra == 'dev'
+  - seaborn ; extra == 'dev'
+  - statsmodels ; extra == 'dev'
+  - codecov ; extra == 'dev'
+  - nbval ; extra == 'dev'
+  - pytest ; extra == 'dev'
+  - pytest-console-scripts ; extra == 'dev'
+  - pytest-cov ; extra == 'dev'
+  - sphinx>2.1 ; extra == 'dev'
+  - sphinx-rtd-theme ; extra == 'dev'
+  - sphinx-autodoc-typehints ; extra == 'dev'
+  - setuptools>=38.6.0 ; extra == 'dev'
+  - twine>=1.11.0 ; extra == 'dev'
+  - wheel>=0.31.0 ; extra == 'dev'
+  - sphinx>2.1 ; extra == 'docs'
+  - sphinx-rtd-theme ; extra == 'docs'
+  - sphinx-autodoc-typehints ; extra == 'docs'
+  - notebook ; extra == 'notebooks'
+  - seaborn ; extra == 'notebooks'
+  - statsmodels ; extra == 'notebooks'
+  - codecov ; extra == 'tests'
+  - nbval ; extra == 'tests'
+  - coverage ; extra == 'tests'
+  - pytest ; extra == 'tests'
+  - pytest-console-scripts ; extra == 'tests'
+  - pytest-cov ; extra == 'tests'
 - kind: conda
   name: six
   version: 1.16.0

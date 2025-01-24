@@ -25,5 +25,7 @@ COMBINED_HISTORY_ID = "0002"
 
 IAMC_REGION_PROCESSING_ID = "0002"
 
+HARMONISATION_ID = "0001"
+
 # Chosen to match the CMIP experiment ID
 HISTORY_SCENARIO_NAME = "historical"

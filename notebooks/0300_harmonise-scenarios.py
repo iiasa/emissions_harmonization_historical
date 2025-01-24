@@ -33,6 +33,7 @@ from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 from emissions_harmonization_historical.constants import (
     COMBINED_HISTORY_ID,
     DATA_ROOT,
+    HARMONISATION_ID,
 )
 from emissions_harmonization_historical.io import load_csv
 
@@ -42,6 +43,15 @@ logging.disable()
 
 # %%
 SCENARIO_TIME_ID = "20250122-140031"
+
+# %%
+output_file = (
+    DATA_ROOT
+    / "climate-assessment-workflow"
+    / "harmonised"
+    / f"harmonised-scenarios_{SCENARIO_TIME_ID}_{HARMONISATION_ID}.csv"
+)
+output_file
 
 # %%
 HISTORICAL_GLOBAL_COMPOSITE_PATH = DATA_ROOT / "global-composite" / f"cmip7_history_world_{COMBINED_HISTORY_ID}.csv"
@@ -426,3 +436,8 @@ for model, mdf in pix.concat(
     fg.fig.suptitle(model, y=1.01)
     plt.show()
     # break
+
+# %%
+output_file.parent.mkdir(exist_ok=True, parents=True)
+harmonised.to_csv(output_file)
+output_file
