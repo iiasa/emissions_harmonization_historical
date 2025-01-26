@@ -5821,7 +5821,7 @@ packages:
   name: emissions-harmonization-historical
   version: 0.1.0
   path: .
-  sha256: cededf35ea6e7c6e8fe180fc9d798ff029fd1b9e930cb86d6c88d00c3fbd9617
+  sha256: d53d0c1aa864592282a0a414fb7dc405d739d461c678b53a2bcef8507d35d5e4
   requires_dist:
   - pre-commit==3.3.1
   - ptolemy-iamc @ git+https://github.com/gidden/ptolemy.git@015aa843c340bd57464eb7cfd5f3c8e397201266
@@ -5833,6 +5833,7 @@ packages:
   - silicone>=1.3.0,<2
   - pyam-iamc>=3.0.0,<4
   - openscm-runner>=0.13.0,<0.14
+  - pymagicc>=2.1.5,<3
   requires_python: ==3.11
   editable: true
 - kind: conda

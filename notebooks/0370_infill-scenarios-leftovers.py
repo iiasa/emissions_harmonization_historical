@@ -210,12 +210,12 @@ for v in leftover_vars:
 
     unit = unit[0]
 
-    # TODO: use history for this and then remove the mean stuff everywhere
-    scaling_factor = (lead_df - l_0)[harmonisation_year].values.mean() / (follow_df_history - f_0)[
+    # TODO: use actual history for this and remove the mean stuff everywhere
+    norm_factor = (lead_df - l_0)[harmonisation_year].values.mean() / (follow_df_history - f_0)[
         harmonisation_year
     ].values.mean()
 
-    follow_df = (scaling_factor * (lead_df - l_0) + f_0).pix.assign(variable=v, unit=unit)
+    follow_df = ((lead_df - l_0) / norm_factor + f_0).pix.assign(variable=v, unit=unit)
 
     infilled_l.append(follow_df)
 
@@ -237,7 +237,16 @@ def get_sns_df(indf):
 
 # %%
 sns.relplot(
-    data=get_sns_df(infilled),
+    data=get_sns_df(
+        pix.concat(
+            [
+                infilled,
+                ar6_history.loc[pix.isin(variable=list(leftover_vars)), 2000:harmonisation_year].reset_index(
+                    ["mip_era", "activity_id"], drop=True
+                ),
+            ]
+        )
+    ),
     kind="line",
     x="year",
     y="value",
