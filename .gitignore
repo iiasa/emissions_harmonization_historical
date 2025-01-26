@@ -14,6 +14,9 @@ data/global/wmo-2022/processed
 data/combined-processed-output
 data/global-composite
 
+# MAGICC stuff
+magicc
+
 # Raw WMO data
 data/global/wmo-2022/data_raw
 
