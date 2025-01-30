@@ -75,17 +75,85 @@ metadata
     # .sort_index()
 )
 
+
 # %%
-# This is the better comparison as the climate model is the same
-# so the differences are only due to harmonisation and infilling.
+def get_scenario_group(scenario: str) -> str:
+    """Get the scenario group"""
+    return scenario.split("-")[-1].split("_")[0].strip()
+
+
+# %%
+# Isolate differences due to climate model.
+workflow_new = "updated-workflow_magiccv7.6.0"
+workflow_base = "updated-workflow_magiccv7.5.3"
+
+tmp = metadata.stack().unstack("workflow").unstack()
+metadata_diffs = tmp[workflow_new]["Peak warming 50.0"] - tmp[workflow_base]["Peak warming 50.0"]
+peak_warming_diff_magicc_update = metadata_diffs.sort_values()
+peak_warming_diff_magicc_update.name = "delta_magicc_update"
+peak_warming_diff_magicc_update
+
+# %%
+# Isolate differences due to harmonisation and infilling.
 workflow_new = "updated-workflow_magiccv7.5.3"
-# workflow_new = "updated-workflow_magiccv7.6.0"
 workflow_base = "ar6-workflow"
 
 tmp = metadata.stack().unstack("workflow").unstack()
 metadata_diffs = tmp[workflow_new]["Peak warming 50.0"] - tmp[workflow_base]["Peak warming 50.0"]
 peak_warming_diff_harmonisation_infilling = metadata_diffs.sort_values()
+peak_warming_diff_harmonisation_infilling.name = "delta_harmonisation_infilling"
 peak_warming_diff_harmonisation_infilling
+
+# %%
+box_kwargs = dict(saturation=0.3, legend=False)
+swarm_kwargs = dict(dodge=True)
+
+# %%
+pdf = (
+    pd.concat([peak_warming_diff_magicc_update, peak_warming_diff_harmonisation_infilling], axis="columns")
+    .melt(ignore_index=False)
+    .reset_index()
+)
+pdf["scenario_group"] = pdf["scenario"].apply(get_scenario_group)
+
+fig, ax = plt.subplots(figsize=(12, 8))
+
+pkwargs = dict(
+    data=pdf,
+    y="value",
+    x="scenario_group",
+    hue="variable",
+    ax=ax,
+)
+sns.boxplot(**pkwargs, **box_kwargs)
+sns.swarmplot(**pkwargs, **swarm_kwargs)
+
+fig.suptitle(title)
+
+# %%
+for start, title in (
+    (peak_warming_diff_magicc_update, "Change in peak warming due to MAGICC update"),
+    (peak_warming_diff_harmonisation_infilling, "Change in peak warming due to infilling and harmonisation"),
+):
+    pdf = start.to_frame().reset_index()
+    pdf["scenario_group"] = pdf["scenario"].apply(get_scenario_group)
+
+    fig, ax = plt.subplots(figsize=(12, 8))
+
+    pkwargs = dict(
+        data=pdf,
+        y=start.name,
+        x="scenario_group",
+        hue="model",
+        hue_order=sorted(pdf["model"].unique()),
+        ax=ax,
+    )
+    sns.boxplot(**pkwargs, **box_kwargs)
+    sns.swarmplot(**pkwargs, **swarm_kwargs)
+
+    ax.axhline(0.0, color="tab:gray")
+
+    fig.suptitle(title)
 
 
 # %% [markdown]
@@ -127,12 +195,6 @@ def transform_ar6_workflow_output_to_iamc_variable(v):
             res = res.replace(old, new)
 
     return res
-
-
-# %%
-def get_scenario_group(scenario: str) -> str:
-    """Get the scenario group"""
-    return scenario.split("-")[-1].split("_")[0].strip()
 
 
 # %%
@@ -350,6 +412,7 @@ for variable, vdf in (
         style="workflow",
         dashes={
             "history": "",
+            "updated-workflow_magiccv7.5.3": "",
             "updated-workflow_magiccv7.6.0": "",
             "history-ar6": (3, 3),
             "ar6-workflow": (3, 3),
@@ -498,10 +561,11 @@ variables_to_plot = [
 ]
 
 # %% [markdown]
-# Plot the infilled emissions for the scenarios that have the biggest change in peak warming.
+# Plot the infilled emissions for the scenarios that have the biggest change in peak warming
+# due to harmonisation and infilling.
 
 # %%
-for model, pwd in peak_warming_diff.groupby("model"):
+for model, pwd in peak_warming_diff_harmonisation_infilling.groupby("model"):
     print(f"{model}: {workflow_new} - {workflow_base}")
     display(pwd)
     plot_mod_scen = pwd.iloc[:5].index

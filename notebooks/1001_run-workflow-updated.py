@@ -660,8 +660,8 @@ infilled
 scenarios_run = infilled.loc[pix.ismatch(scenario="*Very Low*")]
 
 # %%
-# # To run all, just uncomment the below
-# scenarios_run = infilled
+# To run all, just uncomment the below
+scenarios_run = infilled
 
 # %%
 scenarios_run.pix.unique(["model", "scenario"]).to_frame(index=False)
@@ -673,7 +673,7 @@ scenarios_run
 # ## Run SCMs
 
 # %%
-batch_size_scenarios = 5
+batch_size_scenarios = 15
 scm_output_variables = ("Surface Air Temperature Change",)
 
 # %% [markdown]
