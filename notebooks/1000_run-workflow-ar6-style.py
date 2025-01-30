@@ -24,8 +24,6 @@
 import logging
 import multiprocessing
 import os
-import platform
-import random
 
 import pandas as pd
 import pandas_indexing as pix
@@ -63,7 +61,7 @@ OUTPUT_PATH = DATA_ROOT / "climate-assessment-workflow" / "output" / "ar6-workfl
 scm_output_variables = ("Surface Air Temperature Change",)
 
 # %%
-batch_size_scenarios = 5
+batch_size_scenarios = 15
 n_processes = multiprocessing.cpu_count()
 # n_processes = 1
 
@@ -202,43 +200,43 @@ pre_pre_processed
 # ### Down-select scenarios
 
 # %%
-# Randomly select some scenarios
-# (this is how I generated the hard-coded values in the next cell).
-base = pre_pre_processed.pix.unique(["model", "scenario"]).to_frame(index=False)
-base["scenario_group"] = base["scenario"].apply(lambda x: x.split("-")[-1].split("_")[0].strip())
+# # Randomly select some scenarios
+# # (this is how I generated the hard-coded values in the next cell).
+# base = pre_pre_processed.pix.unique(["model", "scenario"]).to_frame(index=False)
+# base["scenario_group"] = base["scenario"].apply(lambda x: x.split("-")[-1].split("_")[0].strip())
 
-selected_scenarios_l = []
-selected_models = []
-for scenario_group, sdf in base.groupby("scenario_group"):
-    options = sdf.index.values.tolist()
-    random.shuffle(options)
+# selected_scenarios_l = []
+# selected_models = []
+# for scenario_group, sdf in base.groupby("scenario_group"):
+#     options = sdf.index.values.tolist()
+#     random.shuffle(options)
 
-    n_selected = 0
-    for option_loc in options:
-        selected_model = sdf.loc[option_loc, :].model
-        if selected_model not in selected_models:
-            selected_scenarios_l.append(sdf.loc[option_loc, :])
-            selected_models.append(selected_model)
-            n_selected += 1
-            if n_selected >= 2:  # noqa: PLR2004
-                break
+#     n_selected = 0
+#     for option_loc in options:
+#         selected_model = sdf.loc[option_loc, :].model
+#         if selected_model not in selected_models:
+#             selected_scenarios_l.append(sdf.loc[option_loc, :])
+#             selected_models.append(selected_model)
+#             n_selected += 1
+#             if n_selected >= 2:
+#                 break
 
-    else:
-        if n_selected >= 1:
-            selected_scenarios_l.append(sdf.loc[option_loc, :])
-            selected_models.append(selected_model)
-        else:
-            selected_scenarios_l.append(sdf.loc[option_loc, :])
-            selected_models.append(selected_model)
+#     else:
+#         if n_selected >= 1:
+#             selected_scenarios_l.append(sdf.loc[option_loc, :])
+#             selected_models.append(selected_model)
+#         else:
+#             selected_scenarios_l.append(sdf.loc[option_loc, :])
+#             selected_models.append(selected_model)
 
-            option_loc = options[-2]
-            selected_model = sdf.loc[option_loc, :].model
-            selected_scenarios_l.append(sdf.loc[option_loc, :])
-            selected_models.append(selected_model)
+#             option_loc = options[-2]
+#             selected_model = sdf.loc[option_loc, :].model
+#             selected_scenarios_l.append(sdf.loc[option_loc, :])
+#             selected_models.append(selected_model)
 
-selected_scenarios = pd.concat(selected_scenarios_l, axis="columns").T
-selected_scenarios_idx = selected_scenarios.set_index(["model", "scenario"]).index
-selected_scenarios
+# selected_scenarios = pd.concat(selected_scenarios_l, axis="columns").T
+# selected_scenarios_idx = selected_scenarios.set_index(["model", "scenario"]).index
+# selected_scenarios
 
 # %%
 selected_scenarios_idx = pd.MultiIndex.from_tuples(
@@ -261,8 +259,8 @@ scenarios_run = pre_pre_processed[pre_pre_processed.index.isin(selected_scenario
 scenarios_run = pre_pre_processed.loc[pix.ismatch(scenario="*Very Low*")]
 
 # %%
-# # To run all, just uncomment the below
-# scenarios_run = pre_pre_processed
+# To run all, just uncomment the below
+scenarios_run = pre_pre_processed
 
 # %%
 scenarios_run.pix.unique(["model", "scenario"]).to_frame(index=False)
@@ -281,8 +279,6 @@ res = run_ar6_workflow(
 
 # %%
 res.post_processed_scenario_metadata.value_counts()
-
-# %%
 
 # %%
 post_processor = PostProcessor(
