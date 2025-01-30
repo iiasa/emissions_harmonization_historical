@@ -39,6 +39,7 @@ from nomenclature import DataStructureDefinition
 from emissions_harmonization_historical.constants import (
     DATA_ROOT,
     SCENARIO_TIME_ID,
+    WORKFLOW_ID,
 )
 from emissions_harmonization_historical.pre_pre_processing import pre_pre_process
 
@@ -55,10 +56,63 @@ SCENARIO_PATH = DATA_ROOT / "scenarios" / "data_raw"
 SCENARIO_PATH
 
 # %%
-OUTPUT_PATH = DATA_ROOT / "climate-assessment-workflow" / "output" / "ar6-workflow-magicc" / SCENARIO_TIME_ID
+run_id = f"{WORKFLOW_ID}_ar6-workflow-magicc"
+run_id
 
 # %%
-scm_output_variables = ("Surface Air Temperature Change",)
+OUTPUT_PATH = DATA_ROOT / "climate-assessment-workflow" / "output" / run_id / SCENARIO_TIME_ID
+
+# %%
+scm_output_variables = (
+    # GSAT
+    "Surface Air Temperature Change",
+    # # GMST
+    # "Surface Air Ocean Blended Temperature Change",
+    # ERFs
+    "Effective Radiative Forcing",
+    "Effective Radiative Forcing|Anthropogenic",
+    "Effective Radiative Forcing|Aerosols",
+    "Effective Radiative Forcing|Aerosols|Direct Effect",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|BC",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|OC",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|SOx",
+    "Effective Radiative Forcing|Aerosols|Indirect Effect",
+    "Effective Radiative Forcing|Greenhouse Gases",
+    "Effective Radiative Forcing|CO2",
+    "Effective Radiative Forcing|CH4",
+    "Effective Radiative Forcing|N2O",
+    "Effective Radiative Forcing|F-Gases",
+    "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
+    # "Effective Radiative Forcing|CFC11",
+    # "Effective Radiative Forcing|CFC12",
+    # "Effective Radiative Forcing|HCFC22",
+    # "Effective Radiative Forcing|Ozone",
+    # "Effective Radiative Forcing|HFC125",
+    # "Effective Radiative Forcing|HFC134a",
+    # "Effective Radiative Forcing|HFC143a",
+    # "Effective Radiative Forcing|HFC227ea",
+    # "Effective Radiative Forcing|HFC23",
+    # "Effective Radiative Forcing|HFC245fa",
+    # "Effective Radiative Forcing|HFC32",
+    # "Effective Radiative Forcing|HFC4310mee",
+    # "Effective Radiative Forcing|CF4",
+    # "Effective Radiative Forcing|C6F14",
+    # "Effective Radiative Forcing|C2F6",
+    # "Effective Radiative Forcing|SF6",
+    # # Heat uptake
+    # "Heat Uptake",
+    # "Heat Uptake|Ocean",
+    # Atmospheric concentrations
+    "Atmospheric Concentrations|CO2",
+    "Atmospheric Concentrations|CH4",
+    "Atmospheric Concentrations|N2O",
+    # # Carbon cycle
+    # "Net Atmosphere to Land Flux|CO2",
+    # "Net Atmosphere to Ocean Flux|CO2",
+    # # permafrost
+    # "Net Land to Atmosphere Flux|CO2|Earth System Feedbacks|Permafrost",
+    # "Net Land to Atmosphere Flux|CH4|Earth System Feedbacks|Permafrost",
+)
 
 # %%
 batch_size_scenarios = 15
@@ -81,9 +135,7 @@ else:
 
 magicc_exe_path = DATA_ROOT.parents[0] / "magicc" / "magicc-v7.5.3" / "bin" / magicc_exe
 magicc_prob_distribution_path = DATA_ROOT.parents[0] / "magicc" / "magicc-v7.5.3" / "configs" / "600-member.json"
-scm_results_db = GCDB(
-    DATA_ROOT / "climate-assessment-workflow" / "scm-output" / "ar6-workflow-magicc" / SCENARIO_TIME_ID
-)
+scm_results_db = GCDB(DATA_ROOT / "climate-assessment-workflow" / "scm-output" / run_id / SCENARIO_TIME_ID)
 
 # %%
 # If you need to re-write.
@@ -257,9 +309,11 @@ scenarios_run = pre_pre_processed[pre_pre_processed.index.isin(selected_scenario
 
 scenarios_run = pre_pre_processed.loc[pix.ismatch(scenario="*Low*")]
 
+scenarios_run = pre_pre_processed.loc[pix.ismatch(model="*COFFEE*")]
+
 # %%
-# To run all, just uncomment the below
-scenarios_run = pre_pre_processed
+# # To run all, just uncomment the below
+# scenarios_run = pre_pre_processed
 
 # %%
 scenarios_run.pix.unique(["model", "scenario"]).to_frame(index=False)
@@ -314,6 +368,7 @@ for out_file, df in (
     ("pre-processed.csv", res.pre_processed_emissions),
     ("harmonised.csv", res.harmonised_emissions),
     ("infilled.csv", res.infilled_emissions),
+    ("timeseries-percentiles.csv", post_processed_updated.timeseries_percentiles),
     # Don't write this, already in the database
     # ("scm-results.csv", res.scm_results_raw),
     # Can write this, but not using yet so just leave out at the moment

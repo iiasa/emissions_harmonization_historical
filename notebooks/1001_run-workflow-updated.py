@@ -659,9 +659,11 @@ infilled
 
 scenarios_run = infilled.loc[pix.ismatch(scenario="*Low*")]
 
+scenarios_run = infilled.loc[pix.ismatch(model="*COFFEE*")]
+
 # %%
-# To run all, just uncomment the below
-scenarios_run = infilled
+# # To run all, just uncomment the below
+# scenarios_run = infilled
 
 # %%
 scenarios_run.pix.unique(["model", "scenario"]).to_frame(index=False)
@@ -674,7 +676,56 @@ scenarios_run
 
 # %%
 batch_size_scenarios = 15
-scm_output_variables = ("Surface Air Temperature Change",)
+scm_output_variables = (
+    # GSAT
+    "Surface Air Temperature Change",
+    # # GMST
+    # "Surface Air Ocean Blended Temperature Change",
+    # ERFs
+    "Effective Radiative Forcing",
+    "Effective Radiative Forcing|Anthropogenic",
+    "Effective Radiative Forcing|Aerosols",
+    "Effective Radiative Forcing|Aerosols|Direct Effect",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|BC",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|OC",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|SOx",
+    "Effective Radiative Forcing|Aerosols|Indirect Effect",
+    "Effective Radiative Forcing|Greenhouse Gases",
+    "Effective Radiative Forcing|CO2",
+    "Effective Radiative Forcing|CH4",
+    "Effective Radiative Forcing|N2O",
+    "Effective Radiative Forcing|F-Gases",
+    "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
+    # "Effective Radiative Forcing|CFC11",
+    # "Effective Radiative Forcing|CFC12",
+    # "Effective Radiative Forcing|HCFC22",
+    # "Effective Radiative Forcing|Ozone",
+    # "Effective Radiative Forcing|HFC125",
+    # "Effective Radiative Forcing|HFC134a",
+    # "Effective Radiative Forcing|HFC143a",
+    # "Effective Radiative Forcing|HFC227ea",
+    # "Effective Radiative Forcing|HFC23",
+    # "Effective Radiative Forcing|HFC245fa",
+    # "Effective Radiative Forcing|HFC32",
+    # "Effective Radiative Forcing|HFC4310mee",
+    # "Effective Radiative Forcing|CF4",
+    # "Effective Radiative Forcing|C6F14",
+    # "Effective Radiative Forcing|C2F6",
+    # "Effective Radiative Forcing|SF6",
+    # # Heat uptake
+    # "Heat Uptake",
+    # "Heat Uptake|Ocean",
+    # Atmospheric concentrations
+    "Atmospheric Concentrations|CO2",
+    "Atmospheric Concentrations|CH4",
+    "Atmospheric Concentrations|N2O",
+    # # Carbon cycle
+    # "Net Atmosphere to Land Flux|CO2",
+    # "Net Atmosphere to Ocean Flux|CO2",
+    # # permafrost
+    # "Net Land to Atmosphere Flux|CO2|Earth System Feedbacks|Permafrost",
+    # "Net Land to Atmosphere Flux|CH4|Earth System Feedbacks|Permafrost",
+)
 
 # %% [markdown]
 # ### MAGICC stuff
@@ -867,6 +918,7 @@ for out_file, df in (
     ("pre-processed.csv", pre_processed),
     ("harmonised.csv", harmonised),
     ("infilled.csv", infilled),
+    ("timeseries-percentiles.csv", post_processed.timeseries_percentiles),
     # Don't write this, already in the database
     # ("scm-results.csv", scm_results),
     # Can write this, but not using yet so just leave out at the moment

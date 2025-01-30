@@ -354,36 +354,32 @@ class PostProcessor:
 
         exceedance_probabilities_over_time = pix.concat(exceedance_probabilities_l)
 
-        temperatures_in_line_with_assessment_percentiles = (
-            temperatures_in_line_with_assessment.groupby(
-                ["climate_model", "model", "scenario", "variable", "region", "unit"]
-            ).quantile(list(self.percentiles_to_calculate))
+        timeseries_percentiles = pix.concat(
+            [
+                in_df,
+                temperatures_in_line_with_assessment,
+            ]
         )
-        temperatures_in_line_with_assessment_percentiles.index.names = [
-            *temperatures_in_line_with_assessment_percentiles.index.names[:-1],
+
+        timeseries_percentiles = timeseries_percentiles.groupby(
+            ["climate_model", "model", "scenario", "variable", "region", "unit"]
+        ).quantile(list(self.percentiles_to_calculate))
+        timeseries_percentiles.index.names = [
+            *timeseries_percentiles.index.names[:-1],
             "quantile",
         ]
-        temperatures_in_line_with_assessment_percentiles = (
-            temperatures_in_line_with_assessment_percentiles.reset_index("quantile")
+        timeseries_percentiles = timeseries_percentiles.reset_index("quantile")
+        timeseries_percentiles["percentile"] = (
+            (100 * timeseries_percentiles["quantile"]).round(1).astype(str)
         )
-        temperatures_in_line_with_assessment_percentiles["percentile"] = (
-            (100 * temperatures_in_line_with_assessment_percentiles["quantile"])
-            .round(1)
-            .astype(str)
-        )
-        temperatures_in_line_with_assessment_percentiles = (
-            temperatures_in_line_with_assessment_percentiles.drop(
-                "quantile", axis="columns"
-            ).set_index("percentile", append=True)
-        )
+        timeseries_percentiles = timeseries_percentiles.drop(
+            "quantile", axis="columns"
+        ).set_index("percentile", append=True)
+        timeseries_percentiles.columns = timeseries_percentiles.columns.astype(int)
 
         timeseries_l = [temperatures_in_line_with_assessment]
         timeseries = pix.concat(timeseries_l)
         timeseries.columns = timeseries.columns.astype(int)
-
-        timeseries_percentiles_l = [temperatures_in_line_with_assessment_percentiles]
-        timeseries_percentiles = pix.concat(timeseries_percentiles_l)
-        timeseries_percentiles.columns = timeseries_percentiles.columns.astype(int)
 
         timeseries_aggregate_l = [exceedance_probabilities_over_time]
         timeseries_aggregate = pix.concat(timeseries_aggregate_l)
