@@ -27,18 +27,20 @@ from gcages.io import load_timeseries_csv
 from gcages.pandas_helpers import multi_index_lookup
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
-from emissions_harmonization_historical.constants import COMBINED_HISTORY_ID, DATA_ROOT, SCENARIO_TIME_ID
+from emissions_harmonization_historical.constants import COMBINED_HISTORY_ID, DATA_ROOT, SCENARIO_TIME_ID, WORKFLOW_ID
 
 # %% [markdown]
 # ## Define some constants
 
 # %%
-ar6_workflow_out_dir = DATA_ROOT / "climate-assessment-workflow" / "output" / "ar6-workflow-magicc" / SCENARIO_TIME_ID
+ar6_workflow_out_dir = (
+    DATA_ROOT / "climate-assessment-workflow" / "output" / f"{WORKFLOW_ID}_ar6-workflow-magicc" / SCENARIO_TIME_ID
+)
 ar6_workflow_out_dir
 
 # %%
 updated_workflow_magicc_v753_dir = (
-    DATA_ROOT / "climate-assessment-workflow" / "output" / "0001_magicc-v7-5-3_600-member" / SCENARIO_TIME_ID
+    DATA_ROOT / "climate-assessment-workflow" / "output" / f"{WORKFLOW_ID}_magicc-v7-5-3_600-member" / SCENARIO_TIME_ID
 )
 updated_workflow_magicc_v753_dir
 
@@ -47,7 +49,7 @@ updated_workflow_magicc_v760_dir = (
     DATA_ROOT
     / "climate-assessment-workflow"
     / "output"
-    / "0001_magicc-v7-6-0a3_magicc-ar7-fast-track-drawnset-v0-3-0"
+    / f"{WORKFLOW_ID}_magicc-v7-6-0a3_magicc-ar7-fast-track-drawnset-v0-3-0"
     / SCENARIO_TIME_ID
 )
 updated_workflow_magicc_v760_dir
@@ -242,6 +244,7 @@ def transform_ar6_workflow_output_to_iamc_variable(v):
 def load_stage(
     out_file_name: str,
     ar6_prefix: str,
+    index_columns: tuple[str, ...] = ("model", "scenario", "region", "variable", "unit"),
 ) -> pd.DataFrame:
     """
     Load data for a given stage
@@ -254,7 +257,7 @@ def load_stage(
     ):
         tmp = load_timeseries_csv(
             out_dir / out_file_name,
-            index_columns=["model", "scenario", "region", "variable", "unit"],
+            index_columns=list(index_columns),
             out_column_type=int,
         ).pix.assign(workflow=label)
 
@@ -655,6 +658,61 @@ for model, pwd in deltas["delta_harmonisation_infilling_update"].groupby("model"
     for ax in fg.axes.flatten():
         if "CO2" not in ax.get_title():
             ax.set_ylim(ymin=0)
+
+        ax.grid()
+
+    fg.figure.suptitle(model, y=1.01)
+
+    plt.show()
+    # break
+
+# %% [markdown]
+# ## Climate variables
+
+# %%
+climate_percentiles = load_stage(
+    out_file_name="timeseries-percentiles.csv",
+    ar6_prefix="AR6 climate diagnostics|",
+    index_columns=("climate_model", "model", "scenario", "region", "variable", "percentile", "unit"),
+)
+climate_percentiles
+
+# %%
+variables_to_plot = climate_percentiles.pix.unique("variable")
+percentile_to_plot = 50.0
+
+# %%
+for model, pwd in deltas["delta_harmonisation_infilling_update"].groupby("model"):
+    print(f"{model}: {workflow_new} - {workflow_base}")
+    # display(pwd.sort_values())
+    plot_mod_scen = pd.concat([pwd.iloc[:3], pwd.iloc[-3:]]).index
+    pdf = get_sns_df(
+        multi_index_lookup(climate_percentiles, plot_mod_scen)
+        .loc[pix.isin(workflow=[workflow_base, workflow_new])]
+        .loc[pix.isin(percentile=percentile_to_plot)]
+        .loc[:, 1990:2100]
+    )
+    pdf["model-scenario"] = pdf["model"] + " - " + pdf["scenario"]
+    fg = sns.relplot(
+        data=pdf,
+        x="year",
+        y="value",
+        hue="model-scenario",
+        style="workflow",
+        dashes={
+            workflow_new: "",
+            workflow_base: (3, 3),
+            "updated-workflow": "",
+        },
+        col="variable",
+        col_wrap=3,
+        col_order=sorted(variables_to_plot),
+        facet_kws=dict(sharey=False),
+        kind="line",
+    )
+    for ax in fg.axes.flatten():
+        # if "CO2" not in ax.get_title():
+        #     ax.set_ylim(ymin=0)
 
         ax.grid()
 
