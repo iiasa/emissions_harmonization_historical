@@ -493,7 +493,7 @@ for gwl in [1.5, 2.0, 2.5]:
             temperature_match_historical_assessment.index.names.difference(["variable", "unit", "run_id"])
         )
         .apply(get_exceedance_probability_over_time, warming_level=gwl)
-        .pix.assign(unit="%", variable=f"{gwl:.2f}°C exceedance probability")
+        .pix.assign(unit="%", variable=f"{gwl:.2f}°C exceedancse probability")
     )
 
     exceedance_probabilities_l.append(ep)
