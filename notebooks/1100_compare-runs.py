@@ -68,52 +68,83 @@ for label, out_dir in (
 metadata = pix.concat(metadata_l)
 metadata
 
-# %%
-(
-    metadata.groupby(["workflow"])["category"].value_counts().unstack("workflow")
-    # .reorder_levels(["category", "workflow"])
-    # .sort_index()
-)
-
 
 # %%
 def get_scenario_group(scenario: str) -> str:
     """Get the scenario group"""
-    return scenario.split("-")[-1].split("_")[0].strip()
+    return scenario.split(" - ")[-1].split("_")[0].strip()
 
 
 # %%
-# Isolate differences due to climate model.
-workflow_new = "updated-workflow_magiccv7.6.0"
-workflow_base = "updated-workflow_magiccv7.5.3"
-
-tmp = metadata.stack().unstack("workflow").unstack()
-metadata_diffs = tmp[workflow_new]["Peak warming 50.0"] - tmp[workflow_base]["Peak warming 50.0"]
-peak_warming_diff_magicc_update = metadata_diffs.sort_values()
-peak_warming_diff_magicc_update.name = "delta_magicc_update"
-peak_warming_diff_magicc_update
+scenario_group_order = [
+    "Very Low Emissions",
+    "Low Overshoot",
+    "Low Emissions",
+    "Medium-Low Emissions",
+    "Medium Emissions",
+    "High Emissions",
+]
 
 # %%
-# Isolate differences due to harmonisation and infilling.
-workflow_new = "updated-workflow_magiccv7.5.3"
-workflow_base = "ar6-workflow"
+tmp = metadata.pix.assign(scenario_group=metadata.index.get_level_values("scenario").map(get_scenario_group))
+disp = (
+    tmp.groupby(["scenario_group", "workflow"])["category"]
+    .value_counts()
+    .to_frame("n_scenarios")
+    .reset_index()
+    .pivot_table(
+        aggfunc="sum", values=["n_scenarios"], columns=["workflow"], index=["category", "scenario_group"], margins=True
+    )
+    .drop(("n_scenarios", "All"), axis="columns")
+)
+# Surely there is an easier way to do this
+disp_l = []
+for category, cdf in disp.groupby("category"):
+    if category == "All":
+        all_df = cdf
 
-tmp = metadata.stack().unstack("workflow").unstack()
-metadata_diffs = tmp[workflow_new]["Peak warming 50.0"] - tmp[workflow_base]["Peak warming 50.0"]
-peak_warming_diff_harmonisation_infilling = metadata_diffs.sort_values()
-peak_warming_diff_harmonisation_infilling.name = "delta_harmonisation_infilling"
-peak_warming_diff_harmonisation_infilling
+    else:
+        disp_l.append(
+            cdf.loc[
+                (
+                    slice(None),
+                    [v for v in scenario_group_order if v in cdf.index.get_level_values("scenario_group").values],
+                ),
+                :,
+            ]
+        )
+
+disp = pd.concat([*disp_l, all_df])
+disp
+
+# %%
+metadata_by_workflow = metadata.stack().unstack("workflow").unstack()
+metadata_by_workflow
+
+# %%
+deltas_l = []
+for label, workflow_new, workflow_base in (
+    ("delta_total", "updated-workflow_magiccv7.6.0", "ar6-workflow"),
+    ("delta_magicc_update", "updated-workflow_magiccv7.6.0", "updated-workflow_magiccv7.5.3"),
+    ("delta_harmonisation_infilling_update", "updated-workflow_magiccv7.5.3", "ar6-workflow"),
+):
+    tmp = (
+        metadata_by_workflow[workflow_new]["Peak warming 50.0"]
+        - metadata_by_workflow[workflow_base]["Peak warming 50.0"].sort_values()
+    )
+    tmp.name = label
+
+    deltas_l.append(tmp)
+
+deltas = pd.concat(deltas_l, axis="columns")
+deltas
 
 # %%
 box_kwargs = dict(saturation=0.3, legend=False)
 swarm_kwargs = dict(dodge=True)
 
 # %%
-pdf = (
-    pd.concat([peak_warming_diff_magicc_update, peak_warming_diff_harmonisation_infilling], axis="columns")
-    .melt(ignore_index=False)
-    .reset_index()
-)
+pdf = deltas.melt(ignore_index=False).reset_index()
 pdf["scenario_group"] = pdf["scenario"].apply(get_scenario_group)
 
 fig, ax = plt.subplots(figsize=(12, 8))
@@ -122,30 +153,37 @@ pkwargs = dict(
     data=pdf,
     y="value",
     x="scenario_group",
+    order=scenario_group_order,
     hue="variable",
     ax=ax,
 )
 sns.boxplot(**pkwargs, **box_kwargs)
 sns.swarmplot(**pkwargs, **swarm_kwargs)
 
-fig.suptitle(title)
+ax.axhline(0.0, color="tab:gray", zorder=1.2)
 
 # %%
 for start, title in (
-    (peak_warming_diff_magicc_update, "Change in peak warming due to MAGICC update"),
-    (peak_warming_diff_harmonisation_infilling, "Change in peak warming due to infilling and harmonisation"),
+    (deltas["delta_total"], "Change in peak warming"),
+    (deltas["delta_magicc_update"], "Change in peak warming due to MAGICC update"),
+    (deltas["delta_harmonisation_infilling_update"], "Change in peak warming due to infilling and harmonisation"),
 ):
     pdf = start.to_frame().reset_index()
     pdf["scenario_group"] = pdf["scenario"].apply(get_scenario_group)
 
-    fig, ax = plt.subplots(figsize=(12, 8))
+    fig, ax = plt.subplots(figsize=(20, 8))
 
     pkwargs = dict(
         data=pdf,
         y=start.name,
-        x="scenario_group",
-        hue="model",
-        hue_order=sorted(pdf["model"].unique()),
+        # x="scenario_group",
+        # order=scenario_group_order,
+        # hue="model",
+        # hue_order=sorted(pdf["model"].unique()),
+        x="model",
+        order=sorted(pdf["model"].unique()),
+        hue="scenario_group",
+        hue_order=scenario_group_order,
         ax=ax,
     )
     sns.boxplot(**pkwargs, **box_kwargs)
@@ -153,6 +191,9 @@ for start, title in (
 
     ax.axhline(0.0, color="tab:gray")
 
+    plt.xticks(rotation=90)
+
+    # ax.grid()
     fig.suptitle(title)
 
 
@@ -202,6 +243,9 @@ def load_stage(
     out_file_name: str,
     ar6_prefix: str,
 ) -> pd.DataFrame:
+    """
+    Load data for a given stage
+    """
     stage_l = []
     for label, out_dir, strip_out_ar6_prefix, transform_variables in (
         ("ar6-workflow", ar6_workflow_out_dir, True, True),
@@ -499,13 +543,17 @@ infilled = load_stage(
     out_file_name="infilled.csv",
     ar6_prefix="AR6 climate diagnostics|Infilled|",
 )
-if len(sorted(infilled.pix.unique("variable"))) != 52:
+exp_n_variables = 52
+if len(sorted(infilled.pix.unique("variable"))) != exp_n_variables:
     raise AssertionError
 
 infilled
 
 # %%
-variables_to_plot = [
+all_variables = sorted(infilled.pix.unique("variable"))
+
+# %%
+zn_custom_variables = [
     "Emissions|BC",
     "Emissions|C2F6",
     # 'Emissions|C3F8',
@@ -560,15 +608,19 @@ variables_to_plot = [
     # 'Emissions|cC4F8',
 ]
 
+# %%
+variables_to_plot = all_variables
+variables_to_plot = zn_custom_variables
+
 # %% [markdown]
 # Plot the infilled emissions for the scenarios that have the biggest change in peak warming
 # due to harmonisation and infilling.
 
 # %%
-for model, pwd in peak_warming_diff_harmonisation_infilling.groupby("model"):
+for model, pwd in deltas["delta_harmonisation_infilling_update"].groupby("model"):
     print(f"{model}: {workflow_new} - {workflow_base}")
-    display(pwd)
-    plot_mod_scen = pwd.iloc[:5].index
+    # display(pwd.sort_values())
+    plot_mod_scen = pd.concat([pwd.iloc[:3], pwd.iloc[-3:]]).index
     pdf = get_sns_df(
         pix.concat(
             [
@@ -604,6 +656,9 @@ for model, pwd in peak_warming_diff_harmonisation_infilling.groupby("model"):
         if "CO2" not in ax.get_title():
             ax.set_ylim(ymin=0)
 
+        ax.grid()
+
     fg.figure.suptitle(model, y=1.01)
 
     plt.show()
+    # break

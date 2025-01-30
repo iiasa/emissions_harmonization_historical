@@ -657,7 +657,7 @@ infilled
 # )
 # scenarios_run = infilled[infilled.index.isin(selected_scenarios_idx)]
 
-scenarios_run = infilled.loc[pix.ismatch(scenario="*Very Low*")]
+scenarios_run = infilled.loc[pix.ismatch(scenario="*Low*")]
 
 # %%
 # To run all, just uncomment the below
@@ -867,8 +867,11 @@ for out_file, df in (
     ("pre-processed.csv", pre_processed),
     ("harmonised.csv", harmonised),
     ("infilled.csv", infilled),
-    ("scm-results.csv", scm_results),
-    ("post-processed-timeseries.csv", post_processed.timeseries),
+    # Don't write this, already in the database
+    # ("scm-results.csv", scm_results),
+    # Can write this, but not using yet so just leave out at the moment
+    # because it's slow to write.
+    # ("post-processed-timeseries.csv", post_processed.timeseries),
 ):
     full_path = OUTPUT_PATH / out_file
     print(f"Writing {full_path}")
