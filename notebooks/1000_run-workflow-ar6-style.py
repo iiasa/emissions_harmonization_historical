@@ -29,18 +29,20 @@ import random
 
 import pandas as pd
 import pandas_indexing as pix
+import pyam
 import tqdm.autonotebook as tqdman
 from gcages.ar6 import run_ar6_workflow
-from gcages.ar6.post_processing import get_temperatures_in_line_with_assessment
 from gcages.database import GCDB
 from gcages.io import load_timeseries_csv
 from gcages.post_processing import PostProcessor
 from loguru import logger
+from nomenclature import DataStructureDefinition
 
 from emissions_harmonization_historical.constants import (
     DATA_ROOT,
     SCENARIO_TIME_ID,
 )
+from emissions_harmonization_historical.pre_pre_processing import pre_pre_process
 
 # %%
 # Disable logging to avoid a million messages.
@@ -55,16 +57,10 @@ SCENARIO_PATH = DATA_ROOT / "scenarios" / "data_raw"
 SCENARIO_PATH
 
 # %%
-OUTPUT_PATH = (
-    DATA_ROOT 
-    / "climate-assessment-workflow" 
-    / "output" 
-    / "ar6-workflow-magicc"
-    / SCENARIO_TIME_ID
-)
+OUTPUT_PATH = DATA_ROOT / "climate-assessment-workflow" / "output" / "ar6-workflow-magicc" / SCENARIO_TIME_ID
 
 # %%
-scm_output_variables=("Surface Air Temperature Change",)
+scm_output_variables = ("Surface Air Temperature Change",)
 
 # %%
 batch_size_scenarios = 5
@@ -81,7 +77,7 @@ if platform.system() == "Darwin":
     else:
         raise NotImplementedError(platform.processor())
 elif platform.system() == "Windows":
-        magicc_exe = "magicc.exe"
+    magicc_exe = "magicc.exe"
 else:
     raise NotImplementedError(platform.system())
 
@@ -129,35 +125,78 @@ scenarios_raw_global
 # %% [markdown]
 # ### Hacky pre-processing
 
-# %%
-# TODO: move this somewhere clearer,
-# probably as a pre-processing check.
+# %% [markdown]
+# ### Use common definitions to check aggregation issues
 
 # %%
-pre_pre_processed_l = []
-all_nan_or_zero_l = []
-for (model, scenario), msdf in scenarios_raw_global.groupby(["model", "scenario"]):
-    if "Emissions|CO2|Energy and Industrial Processes" not in msdf.pix.unique("variable"):
-        print(
-            f"Excluding {model=} {scenario=} because there are no CO2 fossil emissions."
-            # f"\nAvailable variables: {sorted(msdf.pix.unique('variable').tolist())}.\n"
+dsd = DataStructureDefinition(DATA_ROOT / ".." / ".." / "common-definitions" / "definitions")
+
+# %%
+dsd.variable["Emissions|CO2|Energy"].check_aggregate = True
+dsd.variable["Emissions|CO2|Industrial Processes"].check_aggregate = True
+dsd.variable["Emissions|CO2|Energy and Industrial Processes"].check_aggregate = True
+dsd.variable["Emissions|CO2|AFOLU"].check_aggregate = True
+dsd.variable["Emissions|CO2"].check_aggregate = True
+
+# %%
+pyam_df = pyam.IamDataFrame(scenarios_raw_global)
+pyam_df
+
+# %%
+reporting_issues = (
+    dsd.check_aggregate(pyam_df)
+    .loc[~pix.isin(model=["MESSAGEix-GLOBIOM 2.1-M-R12"])]
+    .pix.unique(["model", "scenario", "variable"])
+    .to_frame(index=False)
+)
+
+# %%
+reporting_issues.drop("scenario", axis="columns").drop_duplicates().sort_values("model")
+
+# %%
+for (model, variable), mdf in reporting_issues.groupby(["model", "variable"]):
+    print(f"Reporting  issues for {model} {variable}")
+
+    if variable == "Emissions|CO2|Energy and Industrial Processes":
+        component_vars = dsd.variable[variable].components
+
+    else:
+        component_vars = sorted(
+            scenarios_raw_global.loc[pix.ismatch(model=model, variable=f"{variable}|*")].pix.unique("variable")
         )
-        continue
 
-    all_nan_or_zero = (msdf.isnull() | (msdf == 0.0)).all(axis=1)
-    if all_nan_or_zero.any():
-        all_nan_or_zero_l.append(msdf[all_nan_or_zero])
+    print(f"{component_vars=}")
 
-    msdf_use = msdf[~all_nan_or_zero]
+    exp_component_vars = dsd.variable[variable].components
+    if exp_component_vars is None:
+        print("No expected component variables")
 
-    pre_pre_processed_l.append(msdf_use)
+    else:
+        variables_not_in_exp_component_variables = set(component_vars).difference(set(exp_component_vars))
+        print(f"{variables_not_in_exp_component_variables=}")
 
-all_nan_or_zero = pix.concat(all_nan_or_zero_l)
-pre_pre_processed = pix.concat(pre_pre_processed_l)
-pre_pre_processed
+        components_handled_by_nomenclature = set(exp_component_vars).intersection(set(component_vars))
+        print(f"{components_handled_by_nomenclature=}")
+
+    differences_ts = (
+        dsd.check_aggregate(pyam.IamDataFrame(pyam_df.filter(model=model)))
+        .loc[pix.isin(variable=variable)]
+        .melt(ignore_index=False)
+        .set_index("variable", append=True)
+        .unstack("year")
+    )
+    display(differences_ts)
+    if not component_vars:
+        break
 
 # %%
-all_nan_or_zero.index.to_frame(index=False).groupby(["model"])["scenario"].value_counts().sort_values()
+pre_pre_processed = pre_pre_process(
+    scenarios_raw_global,
+    co2_ei_check_rtol=1e-3,
+    raise_on_co2_ei_difference=False,
+    silent=True,
+)
+pre_pre_processed
 
 # %% [markdown]
 # ### Down-select scenarios
@@ -219,10 +258,10 @@ selected_scenarios_idx = pd.MultiIndex.from_tuples(
 )
 scenarios_run = pre_pre_processed[pre_pre_processed.index.isin(selected_scenarios_idx)]
 
-# scenarios_run = pre_pre_processed.loc[pix.ismatch(scenario="*Very Low*")]
+scenarios_run = pre_pre_processed.loc[pix.ismatch(scenario="*Very Low*")]
 
 # %%
-# To run all, just uncomment the line below
+# # To run all, just uncomment the below
 # scenarios_run = pre_pre_processed
 
 # %%
@@ -276,6 +315,9 @@ post_processed_updated.metadata.groupby(["model"])["category"].value_counts().so
 # %%
 for out_file, df in (
     ("metadata.csv", post_processed_updated.metadata),
+    ("pre-pre-processed.csv", pre_pre_processed),
+    ("pre-processed.csv", res.pre_processed_emissions),
+    ("harmonised.csv", res.harmonised_emissions),
     ("infilled.csv", res.infilled_emissions),
     ("scm-results.csv", res.scm_results_raw),
     ("post-processed-timeseries.csv", post_processed_updated.timeseries),

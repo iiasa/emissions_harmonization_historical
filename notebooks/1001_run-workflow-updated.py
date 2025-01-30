@@ -50,6 +50,7 @@ from emissions_harmonization_historical.constants import (
     SCENARIO_TIME_ID,
     WORKFLOW_ID,
 )
+from emissions_harmonization_historical.pre_pre_processing import pre_pre_process
 
 # %%
 # Disable logging to avoid a million messages.
@@ -102,34 +103,23 @@ scenarios_raw_global
 # ### Hacky pre-processing
 
 # %%
-# TODO: move this somewhere clearer,
-# probably as a pre-processing check.
-
-# %%
-pre_pre_processed_l = []
-all_nan_or_zero_l = []
-for (model, scenario), msdf in scenarios_raw_global.groupby(["model", "scenario"]):
-    if "Emissions|CO2|Energy and Industrial Processes" not in msdf.pix.unique("variable"):
-        print(
-            f"Excluding {model=} {scenario=} because there are no CO2 fossil emissions."
-            # f"\nAvailable variables: {sorted(msdf.pix.unique('variable').tolist())}.\n"
-        )
-        continue
-
-    all_nan_or_zero = (msdf.isnull() | (msdf == 0.0)).all(axis=1)
-    if all_nan_or_zero.any():
-        all_nan_or_zero_l.append(msdf[all_nan_or_zero])
-
-    msdf_use = msdf[~all_nan_or_zero]
-
-    pre_pre_processed_l.append(msdf_use)
-
-all_nan_or_zero = pix.concat(all_nan_or_zero_l)
-pre_pre_processed = pix.concat(pre_pre_processed_l)
+pre_pre_processed = pre_pre_process(
+    scenarios_raw_global,
+    co2_ei_check_rtol=1e-3,
+    raise_on_co2_ei_difference=False,
+    silent=True,
+)
 pre_pre_processed
 
 # %%
-all_nan_or_zero.index.to_frame(index=False).groupby(["model"])["scenario"].value_counts().sort_values()
+scenarios_raw_global.loc[
+    pix.isin(model="IMAGE 3.4", scenario="SSP1 - Low Emissions") & pix.ismatch(variable="**CO2|*")
+].dropna(how="all", axis="columns")
+
+# %%
+scenarios_raw_global.loc[
+    pix.isin(model="WITCH 6.0", scenario="SSP5 - High Emissions") & pix.ismatch(variable="**CO2|*")
+].dropna(how="all", axis="columns")
 
 # %% [markdown]
 # ## Pre-process
@@ -692,7 +682,9 @@ scm_output_variables = ("Surface Air Temperature Change",)
 # %%
 startyear = 1750
 endyear = 2100
-out_dynamic_vars = [f"DAT_{v}" for v in convert_openscm_runner_output_names_to_magicc_output_names(scm_output_variables)]
+out_dynamic_vars = [
+    f"DAT_{v}" for v in convert_openscm_runner_output_names_to_magicc_output_names(scm_output_variables)
+]
 
 # %%
 # Needed for 7.5.3 on a mac
@@ -702,24 +694,18 @@ magicc_expected_version = "v7.5.3"
 magicc_prob_distribution_path = DATA_ROOT.parents[0] / "magicc" / "magicc-v7.5.3" / "configs" / "600-member.json"
 
 # %%
-magicc_exe_path = DATA_ROOT.parents[0] / "magicc" / "magicc-v7.6.0a3" / "bin" / "magicc-darwin-arm64"
-magicc_expected_version = "v7.6.0a3"
-magicc_prob_distribution_path = (
-    DATA_ROOT.parents[0] / "magicc" / "magicc-v7.6.0a3" / "configs" / "magicc-ar7-fast-track-drawnset-v0-3-0.json"
-)
+# magicc_exe_path = DATA_ROOT.parents[0] / "magicc" / "magicc-v7.6.0a3" / "bin" / "magicc-darwin-arm64"
+# magicc_expected_version = "v7.6.0a3"
+# magicc_prob_distribution_path = (
+#     DATA_ROOT.parents[0] / "magicc" / "magicc-v7.6.0a3" / "configs" / "magicc-ar7-fast-track-drawnset-v0-3-0.json"
+# )
 
 # %%
 run_id = f"{WORKFLOW_ID}_magicc-{magicc_expected_version.replace('.', '-')}_{magicc_prob_distribution_path.stem}"
 run_id
 
 # %%
-scm_results_db = GCDB(
-    DATA_ROOT
-    / "climate-assessment-workflow"
-    / "scm-output"
-    / run_id
-    / SCENARIO_TIME_ID
-)
+scm_results_db = GCDB(DATA_ROOT / "climate-assessment-workflow" / "scm-output" / run_id / SCENARIO_TIME_ID)
 scm_results_db
 
 # %%
@@ -772,6 +758,7 @@ scm_runner = SCMRunner(
 # scm_results_db.delete()
 # scm_results_db.load_metadata()
 
+
 # %%
 def transform_rcmip_to_iamc_variable(v):
     """Transform RCMIP variables to IAMC variables"""
@@ -821,7 +808,7 @@ with pint.get_application_registry().context("NOx_conversions"):
 expected_n_variables = ar6_harmonisation_points.shape[0]
 if ar6_harmonisation_points.shape[0] != expected_n_variables:
     raise AssertionError(ar6_harmonisation_points.shape[0])
-    
+
 ar6_harmonisation_points
 
 # %%
@@ -864,13 +851,7 @@ post_processed.metadata.sort_values(["category", "Peak warming 33.0"])
 post_processed.metadata.groupby(["model"])["category"].value_counts().sort_index()
 
 # %%
-OUTPUT_PATH = (
-    DATA_ROOT 
-    / "climate-assessment-workflow" 
-    / "output" 
-    / run_id
-    / SCENARIO_TIME_ID
-)
+OUTPUT_PATH = DATA_ROOT / "climate-assessment-workflow" / "output" / run_id / SCENARIO_TIME_ID
 OUTPUT_PATH
 
 # %%
@@ -882,6 +863,9 @@ metadata_out
 # %%
 for out_file, df in (
     ("metadata.csv", post_processed.metadata),
+    ("pre-pre-processed.csv", pre_pre_processed),
+    ("pre-processed.csv", pre_processed),
+    ("harmonised.csv", harmonised),
     ("infilled.csv", infilled),
     ("scm-results.csv", scm_results),
     ("post-processed-timeseries.csv", post_processed.timeseries),
