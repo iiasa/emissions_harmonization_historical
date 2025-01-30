@@ -37,5 +37,7 @@ INFILLING_LEFTOVERS_ID = "0001"
 
 MAGICC_RUN_ID = "0001"
 
+WORKFLOW_ID = "0001"
+
 # Chosen to match the CMIP experiment ID
 HISTORY_SCENARIO_NAME = "historical"
