@@ -183,9 +183,8 @@ for (model, variable), mdf in reporting_issues.groupby(["model", "variable"]):
         .set_index("variable", append=True)
         .unstack("year")
     )
-    display(differences_ts)
-    if not component_vars:
-        break
+    # display(differences_ts)
+    # print(differences_ts)
 
 # %%
 pre_pre_processed = pre_pre_process(
@@ -256,7 +255,7 @@ selected_scenarios_idx = pd.MultiIndex.from_tuples(
 )
 scenarios_run = pre_pre_processed[pre_pre_processed.index.isin(selected_scenarios_idx)]
 
-scenarios_run = pre_pre_processed.loc[pix.ismatch(scenario="*Very Low*")]
+scenarios_run = pre_pre_processed.loc[pix.ismatch(scenario="*Low*")]
 
 # %%
 # To run all, just uncomment the below
@@ -278,7 +277,7 @@ res = run_ar6_workflow(
 )
 
 # %%
-res.post_processed_scenario_metadata.value_counts()
+res.post_processed_scenario_metadata.value_counts().sort_index()
 
 # %%
 post_processor = PostProcessor(
@@ -294,7 +293,7 @@ post_processor = PostProcessor(
 
 # %%
 post_processed_updated = post_processor(res.scm_results_raw)
-post_processed_updated.metadata
+# post_processed_updated.metadata
 
 # %%
 pd.testing.assert_series_equal(
@@ -315,8 +314,11 @@ for out_file, df in (
     ("pre-processed.csv", res.pre_processed_emissions),
     ("harmonised.csv", res.harmonised_emissions),
     ("infilled.csv", res.infilled_emissions),
-    ("scm-results.csv", res.scm_results_raw),
-    ("post-processed-timeseries.csv", post_processed_updated.timeseries),
+    # Don't write this, already in the database
+    # ("scm-results.csv", res.scm_results_raw),
+    # Can write this, but not using yet so just leave out at the moment
+    # because it's slow to write.
+    # ("post-processed-timeseries.csv", post_processed_updated.timeseries),
 ):
     full_path = OUTPUT_PATH / out_file
     print(f"Writing {full_path}")
