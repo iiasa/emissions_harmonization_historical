@@ -12,6 +12,12 @@
 #     name: python3
 # ---
 
+# %% [markdown]
+# # Prepare GFED BB4CMIP
+#
+# Prepare GFED data as submitted to
+# [ESGF](https://aims2.llnl.gov/search?project=input4MIPs&activeFacets=%7B%22mip_era%22%3A%22CMIP6Plus%22%2C%22institution_id%22%3A%22DRES%22%7D).
+
 # %%
 from collections import defaultdict
 from pathlib import Path
@@ -267,5 +273,3 @@ for species, species_info in tqdm(species_data.items(), desc="Species"):
     print(f"Wrote {gfed_temp_file_country}")
 
     # break
-
-# %%

@@ -13,8 +13,13 @@
 # ---
 
 # %% [markdown]
+# # Post-process prepared GFED BB4CMIP data
+#
 # The 0103 script dumped the files into separate CSVs; here we combine and make consistenct with other emissions files
 # and IAMC format
+
+# %% [markdown]
+# ## Imports
 
 # %%
 import pandas as pd

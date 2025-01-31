@@ -12,6 +12,11 @@
 #     name: python3
 # ---
 
+# %% [markdown]
+# # Prepare GFED
+#
+# Prepare data from [GFED](https://www.globalfiredata.org/).
+
 # %%
 # import external packages and functions
 from pathlib import Path

@@ -13,11 +13,13 @@
 # ---
 
 # %% [markdown]
-# Process Global Carbon Budget data
+# # Process GCB
 #
-# We use the version from 10.5281/zenodo.14106218, since the Excel sheet of fossil fuel production by country may have
+# Process data from the global carbon budget (GCB).
+# We use the version from [10.5281/zenodo.14106218](https://zenodo.org/records/14106218),
+# since the Excel sheet of fossil fuel production by country may have
 # errors (in any case the sum of country emissions and bunkers does not equal the global total in the Excel sheets).
-# See https://bsky.app/profile/cjsmith.be/post/3lbhxt4chqc2x.
+# For details on this, see https://bsky.app/profile/cjsmith.be/post/3lbhxt4chqc2x.
 
 # %%
 from pathlib import Path
