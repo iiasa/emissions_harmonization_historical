@@ -126,6 +126,7 @@ scenarios_raw_global.loc[
 
 # %%
 HISTORICAL_GLOBAL_COMPOSITE_PATH = DATA_ROOT / "global-composite" / f"cmip7_history_world_{COMBINED_HISTORY_ID}.csv"
+HISTORICAL_GLOBAL_COMPOSITE_PATH
 
 # %%
 history = strip_pint_incompatible_characters_from_units(

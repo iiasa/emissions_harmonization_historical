@@ -18,6 +18,9 @@ data/global-composite
 # MAGICC stuff
 magicc
 
+# Raw ESGF data
+data/global/esgf
+
 # Raw WMO data
 data/global/wmo-2022/data_raw
 
