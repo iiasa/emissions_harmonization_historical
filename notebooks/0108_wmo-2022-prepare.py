@@ -58,8 +58,8 @@ for gdir in raw_data_path.glob("*"):
     outputs_dir = gdir / "outputs"
     emissions_file = list(outputs_dir.glob("*Global_annual_emissions.csv"))
     if not emissions_file:
-        print(f"No data in {outputs_dir=}")
-        continue
+        msg = f"No data in {outputs_dir=}"
+        raise FileNotFoundError(msg)
 
     if len(emissions_file) != 1:
         raise NotImplementedError(list(outputs_dir.glob("*")))
