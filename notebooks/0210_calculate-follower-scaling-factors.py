@@ -29,8 +29,8 @@ from emissions_harmonization_historical.constants import (
     COMBINED_HISTORY_ID,
     DATA_ROOT,
     FOLLOWER_SCALING_FACTORS_ID,
-    HARMONISATION_YEAR,
 )
+from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR
 from emissions_harmonization_historical.infilling_followers import FOLLOW_LEADERS
 
 # %%
@@ -119,10 +119,10 @@ for follower, leader in FOLLOW_LEADERS.items():
 
     l_0 = pi_values[leader].to(l_unit).m
 
-    if (f_harmonisation_year - f_0) == 0.0:
-        scaling_factor = 0.0
-    else:
-        scaling_factor = (l_harmonisation_year - l_0) / (f_harmonisation_year - f_0)
+    # if (f_harmonisation_year - f_0) == 0.0:
+    #     scaling_factor = 0.0
+    # else:
+    scaling_factor = (f_harmonisation_year - f_0) / (l_harmonisation_year - l_0)
 
     if np.isnan(scaling_factor):
         msg = f"{f_harmonisation_year=} {l_harmonisation_year=} {f_0=} {l_0=}"
@@ -131,10 +131,11 @@ for follower, leader in FOLLOW_LEADERS.items():
     leaders_scaling_factors[follower] = {
         "leader": leader,
         "scaling_factor": scaling_factor,
-        "intercept": f_0,
         "calculation_year": HARMONISATION_YEAR,
         "l_calculation_year": l_harmonisation_year,
         "f_calculation_year": f_harmonisation_year,
+        "f_0": f_0,
+        "l_0": l_0,
         "l_unit": l_unit,
         "f_unit": f_unit,
     }

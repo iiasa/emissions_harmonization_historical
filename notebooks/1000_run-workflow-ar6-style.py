@@ -60,6 +60,7 @@ SCENARIO_PATH
 # %%
 OUTPUT_PATH = DATA_ROOT / "climate-assessment-workflow" / "output" / f"{WORKFLOW_ID}_{SCENARIO_TIME_ID}_ar6-workflow"
 OUTPUT_PATH_MAGICC = OUTPUT_PATH / "magicc-ar6"
+OUTPUT_PATH_MAGICC
 
 # %%
 scm_output_variables = (
@@ -82,10 +83,14 @@ scm_output_variables = (
     "Effective Radiative Forcing|N2O",
     "Effective Radiative Forcing|F-Gases",
     "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
+    "Effective Radiative Forcing|Ozone",
+    "Effective Radiative Forcing|Aviation|Cirrus",
+    "Effective Radiative Forcing|Aviation|Contrail",
+    "Effective Radiative Forcing|Aviation|H2O",
+    "Effective Radiative Forcing|Black Carbon on Snow",
     # "Effective Radiative Forcing|CFC11",
     # "Effective Radiative Forcing|CFC12",
     # "Effective Radiative Forcing|HCFC22",
-    # "Effective Radiative Forcing|Ozone",
     # "Effective Radiative Forcing|HFC125",
     # "Effective Radiative Forcing|HFC134a",
     # "Effective Radiative Forcing|HFC143a",
@@ -135,6 +140,7 @@ else:
 magicc_exe_path = DATA_ROOT.parents[0] / "magicc" / "magicc-v7.5.3" / "bin" / magicc_exe
 magicc_prob_distribution_path = DATA_ROOT.parents[0] / "magicc" / "magicc-v7.5.3" / "configs" / "600-member.json"
 scm_results_db = GCDB(OUTPUT_PATH_MAGICC / "db")
+scm_results_db
 
 # %%
 # If you need to re-write.
@@ -306,7 +312,7 @@ selected_scenarios_idx = pd.MultiIndex.from_tuples(
 )
 scenarios_run = pre_pre_processed[pre_pre_processed.index.isin(selected_scenarios_idx)]
 
-scenarios_run = pre_pre_processed.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model="GCAM*")]
+scenarios_run = pre_pre_processed.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["GCAM*", "AIM*", "*"])]
 
 # %%
 # To run all, just uncomment the line below

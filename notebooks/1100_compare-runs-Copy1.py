@@ -75,7 +75,7 @@ for label, out_dir in (
     metadata_l.append(tmp)
 
 metadata = pix.concat(metadata_l)
-metadata#.loc[pix.ismatch(workflow="*updated*v7.6*")].sort_values("Peak warming 33.0").iloc[:20, :]
+metadata  # .loc[pix.ismatch(workflow="*updated*v7.6*")].sort_values("Peak warming 33.0").iloc[:20, :]
 
 
 # %%
@@ -149,7 +149,10 @@ for label, workflow_new, workflow_base in (
     ("delta_magicc_update", "ar6-workflow_magiccv7.6.0", "ar6-workflow_magiccv7.5.3"),
     # ("delta_magicc_update_updated_workflow", "updated-workflow_magiccv7.6.0", "updated-workflow_magiccv7.5.3"),
     # ("delta_harmonisation_infilling_update", "updated-workflow_magiccv7.6.0", "ar6-workflow_magiccv7.6.0"),
-    # ("delta_harmonisation_infilling_update_magiccv7.5.3", "updated-workflow_magiccv7.5.3", "ar6-workflow_magiccv7.5.3"),
+    # (
+    #    "delta_harmonisation_infilling_update_magiccv7.5.3",
+    #    "updated-workflow_magiccv7.5.3", "ar6-workflow_magiccv7.5.3",
+    # ),
 ):
     tmp = (
         metadata_by_workflow[workflow_new]["Peak warming 50.0"]
