@@ -58,11 +58,8 @@ SCENARIO_PATH = DATA_ROOT / "scenarios" / "data_raw"
 SCENARIO_PATH
 
 # %%
-run_id = f"{WORKFLOW_ID}_ar6-workflow-magicc"
-run_id
-
-# %%
-OUTPUT_PATH = DATA_ROOT / "climate-assessment-workflow" / "output" / run_id / SCENARIO_TIME_ID
+OUTPUT_PATH = DATA_ROOT / "climate-assessment-workflow" / "output" / f"{WORKFLOW_ID}_{SCENARIO_TIME_ID}_ar6-workflow"
+OUTPUT_PATH_MAGICC = OUTPUT_PATH / "magicc-ar6"
 
 # %%
 scm_output_variables = (
@@ -137,7 +134,7 @@ else:
 
 magicc_exe_path = DATA_ROOT.parents[0] / "magicc" / "magicc-v7.5.3" / "bin" / magicc_exe
 magicc_prob_distribution_path = DATA_ROOT.parents[0] / "magicc" / "magicc-v7.5.3" / "configs" / "600-member.json"
-scm_results_db = GCDB(DATA_ROOT / "climate-assessment-workflow" / "scm-output" / run_id / SCENARIO_TIME_ID)
+scm_results_db = GCDB(OUTPUT_PATH_MAGICC / "db")
 
 # %%
 # If you need to re-write.
@@ -364,20 +361,20 @@ post_processed_updated.metadata.sort_values(["category", "Peak warming 33.0"])
 post_processed_updated.metadata.groupby(["model"])["category"].value_counts().sort_index()
 
 # %%
-for out_file, df in (
-    ("metadata.csv", post_processed_updated.metadata),
-    ("pre-pre-processed.csv", pre_pre_processed),
-    ("pre-processed.csv", res.pre_processed_emissions),
-    ("harmonised.csv", res.harmonised_emissions),
-    ("infilled.csv", res.infilled_emissions),
-    ("timeseries-percentiles.csv", post_processed_updated.timeseries_percentiles),
+for full_path, df in (
+    (OUTPUT_PATH_MAGICC / "metadata.csv", post_processed_updated.metadata),
+    (OUTPUT_PATH / "pre-pre-processed.csv", pre_pre_processed),
+    (OUTPUT_PATH / "pre-processed.csv", res.pre_processed_emissions),
+    (OUTPUT_PATH / "harmonised.csv", res.harmonised_emissions),
+    (OUTPUT_PATH / "infilled.csv", res.infilled_emissions),
+    (OUTPUT_PATH_MAGICC / "scm-effective-emissions.csv", res.infilled_emissions),
+    (OUTPUT_PATH_MAGICC / "timeseries-percentiles.csv", post_processed_updated.timeseries_percentiles),
     # Don't write this, already in the database
     # ("scm-results.csv", res.scm_results_raw),
     # Can write this, but not using yet so just leave out at the moment
     # because it's slow to write.
     # ("post-processed-timeseries.csv", post_processed_updated.timeseries),
 ):
-    full_path = OUTPUT_PATH / out_file
     print(f"Writing {full_path}")
     full_path.parent.mkdir(exist_ok=True, parents=True)
     df.to_csv(full_path)
