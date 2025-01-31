@@ -234,7 +234,7 @@ for (model, variable), mdf in reporting_issues.groupby(["model", "variable"]):
         .set_index("variable", append=True)
         .unstack("year")
     )
-    # display(differences_ts)
+    display(differences_ts)  # noqa:F821
     # print(differences_ts)
 
 # %%
@@ -306,9 +306,9 @@ selected_scenarios_idx = pd.MultiIndex.from_tuples(
 )
 scenarios_run = pre_pre_processed[pre_pre_processed.index.isin(selected_scenarios_idx)]
 
-scenarios_run = pre_pre_processed.loc[pix.ismatch(scenario="*Low*")]
+scenarios_run = pre_pre_processed.loc[pix.ismatch(scenario="*Very Low*")]
 
-scenarios_run = pre_pre_processed.loc[pix.ismatch(model="*COFFEE*")]
+# scenarios_run = pre_pre_processed.loc[pix.ismatch(model="*COFFEE*")]
 
 # %%
 # To run all, just uncomment the line below
