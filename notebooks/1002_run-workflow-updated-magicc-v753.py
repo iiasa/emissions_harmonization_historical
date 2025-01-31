@@ -146,9 +146,9 @@ infilled
 # )
 # scenarios_run = infilled[infilled.index.isin(selected_scenarios_idx)]
 
-scenarios_run = infilled.loc[pix.ismatch(scenario="*Low*")]
+scenarios_run = infilled.loc[pix.ismatch(scenario="*Very Low*")]
 
-scenarios_run = infilled.loc[pix.ismatch(model="*COFFEE*")]
+# scenarios_run = infilled.loc[pix.ismatch(model="*COFFEE*")]
 
 # %%
 # # To run all, just uncomment the below

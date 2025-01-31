@@ -148,9 +148,9 @@ infilled
 # )
 # scenarios_run = infilled[infilled.index.isin(selected_scenarios_idx)]
 
-scenarios_run = infilled.loc[pix.ismatch(scenario="*Low*")]
+scenarios_run = infilled.loc[pix.ismatch(scenario="*Very Low*")]
 
-scenarios_run = infilled.loc[pix.ismatch(model="*COFFEE*")]
+# scenarios_run = infilled.loc[pix.ismatch(model="*COFFEE*")]
 
 # %%
 # # To run all, just uncomment the below
@@ -346,12 +346,6 @@ if scenarios_run.isnull().any().any():
         raise AssertionError
 
 scenarios_run
-
-# %%
-scenarios_run.loc[pix.ismatch(variable="*|OC")]
-
-# %%
-scenarios_run.loc[pix.ismatch(variable="*|OC")].T.plot()
 
 # %% [markdown]
 # ### Run

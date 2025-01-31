@@ -73,17 +73,26 @@ metadata
 # %%
 def get_scenario_group(scenario: str) -> str:
     """Get the scenario group"""
-    return scenario.split(" - ")[-1].split("_")[0].strip()
+    scenario_map_mapping = {
+        "Very Low Emissions": "VLLO",
+        "Low Overshoot": "VLHO",
+        "Low Emissions": "L",
+        "Medium-Low Emissions": "ML",
+        "Medium Emissions": "M",
+        "High Emissions": "H",
+    }
+    key = scenario.split(" - ")[-1].split("_")[0].strip()
+    return scenario_map_mapping[key]
 
 
 # %%
 scenario_group_order = [
-    "Very Low Emissions",
-    "Low Overshoot",
-    "Low Emissions",
-    "Medium-Low Emissions",
-    "Medium Emissions",
-    "High Emissions",
+    "VLLO",
+    "VLHO",
+    "L",
+    "ML",
+    "M",
+    "H",
 ]
 
 # %%
@@ -474,7 +483,7 @@ for variable, vdf in (
         },
         col="scenario_group",
         col_wrap=3,
-        col_order=["Very Low Emissions", "Low Emissions", "Low Overshoot", "Medium Emissions", "High Emissions"],
+        col_order=scenario_group_order,
         facet_kws=dict(sharey=True),
         kind="line",
         alpha=0.7,
@@ -532,7 +541,7 @@ for variable, vdf in (
             },
             col="scenario_group",
             col_wrap=3,
-            col_order=["Very Low Emissions", "Low Emissions", "Low Overshoot", "Medium Emissions", "High Emissions"],
+            col_order=scenario_group_order,
             facet_kws=dict(sharey=True),
             kind="line",
         )
@@ -869,3 +878,5 @@ for model, pwd in deltas["delta_harmonisation_infilling_update"].groupby("model"
 
     plt.show()
     # break
+
+# %%
