@@ -249,14 +249,6 @@ inverse_info = pix.concat(inverse_info_l)
 inverse_info
 
 # %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
 OUT_PATH.parent.mkdir(exist_ok=True, parents=True)
 inverse_info.loc[pix.ismatch(variable="Emissions**", model=f"{source_id}-inverse-smooth")].to_csv(OUT_PATH)
 OUT_PATH

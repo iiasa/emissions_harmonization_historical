@@ -12,6 +12,11 @@
 #     name: python3
 # ---
 
+# %% [markdown]
+# # Prepare CEDS
+#
+# Prepare data from [CEDS](https://github.com/JGCRI/CEDS).
+
 # %%
 # import external packages and functions
 from pathlib import Path
