@@ -13,10 +13,10 @@
 # ---
 
 # %% [markdown]
-# # Run workflow - updated MAGICC v7.5.3
+# # Run workflow - updated MAGICC v7.6.0
 #
 # Run the climate assessment workflow with our updated processing,
-# using MAGICC v7.5.3 as the SCM.
+# using MAGICC v7.6.0 as the SCM.
 
 # %% [markdown]
 # ## Imports
@@ -27,17 +27,19 @@ import logging
 import multiprocessing
 import os
 
+import matplotlib.pyplot as plt
 import openscm_runner.adapters
-import pandas as pd
 import pandas_indexing as pix
-import pint
+import scipy.stats
 from gcages.database import GCDB
 from gcages.io import load_timeseries_csv
 from gcages.post_processing import PostProcessor
 from gcages.scm_running import SCMRunner, convert_openscm_runner_output_names_to_magicc_output_names
+from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 from loguru import logger
 
 from emissions_harmonization_historical.constants import (
+    COMBINED_HISTORY_ID,
     DATA_ROOT,
     SCENARIO_TIME_ID,
     WORKFLOW_ID,
@@ -59,11 +61,11 @@ run_checks = False  # TODO: turn on
 INPUT_PATH = DATA_ROOT / "climate-assessment-workflow" / "output" / f"{WORKFLOW_ID}_{SCENARIO_TIME_ID}_updated-workflow"
 
 # %%
-# Needed for 7.5.3 on a mac
-os.environ["DYLD_LIBRARY_PATH"] = "/opt/homebrew/opt/gfortran/lib/gcc/current/"
-magicc_exe_path = DATA_ROOT.parents[0] / "magicc" / "magicc-v7.5.3" / "bin" / "magicc-darwin-arm64"
-magicc_expected_version = "v7.5.3"
-magicc_prob_distribution_path = DATA_ROOT.parents[0] / "magicc" / "magicc-v7.5.3" / "configs" / "600-member.json"
+magicc_exe_path = DATA_ROOT.parents[0] / "magicc" / "magicc-v7.6.0a3" / "bin" / "magicc-darwin-arm64"
+magicc_expected_version = "v7.6.0a3"
+magicc_prob_distribution_path = (
+    DATA_ROOT.parents[0] / "magicc" / "magicc-v7.6.0a3" / "configs" / "magicc-ar7-fast-track-drawnset-v0-3-0.json"
+)
 
 # %%
 os.environ["MAGICC_EXECUTABLE_7"] = str(magicc_exe_path)
@@ -146,9 +148,7 @@ infilled
 # )
 # scenarios_run = infilled[infilled.index.isin(selected_scenarios_idx)]
 
-scenarios_run = infilled.loc[pix.ismatch(scenario="*Very Low*")]
-
-# scenarios_run = infilled.loc[pix.ismatch(model="*COFFEE*")]
+scenarios_run = infilled.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model="GCAM*")]
 
 # %%
 # # To run all, just uncomment the below
@@ -277,61 +277,68 @@ scm_runner = SCMRunner(
 # scm_results_db.load_metadata()
 
 
-# %%
-def transform_rcmip_to_iamc_variable(v):
-    """Transform RCMIP variables to IAMC variables"""
-    res = v
-
-    replacements = (
-        ("F-Gases|", ""),
-        ("PFC|", ""),
-        ("HFC4310mee", "HFC43-10"),
-        ("MAGICC AFOLU", "AFOLU"),
-        ("MAGICC Fossil and Industrial", "Energy and Industrial Processes"),
-    )
-    for old, new in replacements:
-        res = res.replace(old, new)
-
-    return res
-
+# %% [markdown]
+# Add in data from the end of MAGICC's internal historical emissions.
 
 # %%
-pix.set_openscm_registry_as_default()
+# TODO: split this out into a function
 
 # %%
 MAGICC_FORCE_START_YEAR = 2015
-endyear = 2100
-
-RCMIP_PATH = DATA_ROOT / "global/rcmip/data_raw/rcmip-emissions-annual-means-v5-1-0.csv"
-
-rcmip = pd.read_csv(RCMIP_PATH)
-rcmip_clean = rcmip.copy()
-rcmip_clean.columns = rcmip_clean.columns.str.lower()
-rcmip_clean = rcmip_clean.set_index(["model", "scenario", "region", "variable", "unit", "mip_era", "activity_id"])
-rcmip_clean.columns = rcmip_clean.columns.astype(int)
-rcmip_clean = rcmip_clean.pix.assign(
-    variable=rcmip_clean.index.get_level_values("variable").map(transform_rcmip_to_iamc_variable)
-)
-ar6_harmonisation_points = rcmip_clean.loc[
-    pix.ismatch(mip_era="CMIP6")
-    & pix.ismatch(scenario="ssp245")
-    & pix.ismatch(region="World")
-    & pix.ismatch(variable=scenarios_run.pix.unique("variable"))
-].reset_index(["mip_era", "activity_id"], drop=True)[MAGICC_FORCE_START_YEAR]
-with pint.get_application_registry().context("NOx_conversions"):
-    ar6_harmonisation_points = ar6_harmonisation_points.pix.convert_unit(
-        {"Mt NOx/yr": "Mt NO2/yr", "kt HFC4310mee/yr": "kt HFC4310/yr"}
-    )
-
-expected_n_variables = ar6_harmonisation_points.shape[0]
-if ar6_harmonisation_points.shape[0] != expected_n_variables:
-    raise AssertionError(ar6_harmonisation_points.shape[0])
-
-ar6_harmonisation_points
 
 # %%
-a, b = ar6_harmonisation_points.reset_index(["model", "scenario"], drop=True).align(scenarios_run)
-scenarios_run = pix.concat([a.to_frame(), b], axis="columns").sort_index(axis="columns")
+HISTORICAL_GLOBAL_COMPOSITE_PATH = DATA_ROOT / "global-composite" / f"cmip7_history_world_{COMBINED_HISTORY_ID}.csv"
+
+# %%
+history = strip_pint_incompatible_characters_from_units(
+    load_timeseries_csv(
+        HISTORICAL_GLOBAL_COMPOSITE_PATH,
+        index_columns=["model", "scenario", "region", "variable", "unit"],
+        out_column_type=int,
+    )
+)
+for v in ["Emissions|OC"]:
+    loc = pix.isin(variable=[v])
+    cols = range(2011, 2021 + 1)
+    tmp = history.loc[loc, cols].dropna(axis="columns")
+    ax = tmp.T.plot()
+    linreg = scipy.stats.linregress(x=tmp.columns, y=tmp.values)
+    history.loc[loc, tmp.columns] = linreg.intercept + linreg.slope * tmp.columns
+
+    history.loc[loc, :].T.plot(ax=ax)
+    plt.show()
+
+history
+
+# %%
+history_wmo = load_timeseries_csv(
+    INPUT_PATH / "history-wmo.csv",
+    index_columns=["model", "scenario", "region", "variable", "unit"],
+    out_column_type=int,
+)
+history_leftovers = load_timeseries_csv(
+    INPUT_PATH / "history-leftovers.csv",
+    index_columns=["model", "scenario", "region", "variable", "unit"],
+    out_column_type=int,
+)
+
+history_cut = pix.concat([history, history_wmo, history_leftovers]).loc[
+    :, MAGICC_FORCE_START_YEAR : scenarios_run.columns.min() - 1
+]
+if history_cut.isnull().any().any():
+    raise AssertionError
+
+exp_n_variables = 52
+if history_cut.shape[0] != exp_n_variables:
+    raise AssertionError
+
+history_cut
+
+# %%
+a, b = history_cut.reset_index(["model", "scenario"], drop=True).align(scenarios_run)
+scenarios_run = pix.concat(
+    [a.dropna(how="all", axis="columns"), b.dropna(how="all", axis="columns")], axis="columns"
+).sort_index(axis="columns")
 
 # Interpolate so it's clearer what went into MAGICC
 scenarios_run = scenarios_run.T.interpolate("index").T

@@ -36,8 +36,15 @@ from emissions_harmonization_historical.constants import COMBINED_HISTORY_ID, DA
 ar6_workflow_out_dir = (
     DATA_ROOT / "climate-assessment-workflow" / "output" / f"{WORKFLOW_ID}_{SCENARIO_TIME_ID}_ar6-workflow"
 )
-ar6_workflow_out_dir_magicc = ar6_workflow_out_dir / "magicc-ar6"
-ar6_workflow_out_dir_magicc
+ar6_workflow_out_dir
+
+# %%
+ar6_workflow_out_dir_magicc_v753 = ar6_workflow_out_dir / "magicc-ar6"
+ar6_workflow_out_dir_magicc_v753
+
+# %%
+ar6_workflow_out_dir_magicc_v760 = ar6_workflow_out_dir / "magicc-v7-6-0a3_magicc-ar7-fast-track-drawnset-v0-3-0"
+ar6_workflow_out_dir_magicc_v760
 
 # %%
 updated_workflow_dir = (
@@ -59,15 +66,16 @@ updated_workflow_dir_magicc_v760
 # %%
 metadata_l = []
 for label, out_dir in (
-    ("ar6-workflow_magiccv7.5.3", ar6_workflow_out_dir_magicc),
-    ("updated-workflow_magiccv7.5.3", updated_workflow_dir_magicc_v753),
-    ("updated-workflow_magiccv7.6.0", updated_workflow_dir_magicc_v760),
+    ("ar6-workflow_magiccv7.5.3", ar6_workflow_out_dir_magicc_v753),
+    ("ar6-workflow_magiccv7.6.0", ar6_workflow_out_dir_magicc_v760),
+    # ("updated-workflow_magiccv7.5.3", updated_workflow_dir_magicc_v753),
+    # ("updated-workflow_magiccv7.6.0", updated_workflow_dir_magicc_v760),
 ):
     tmp = pd.read_csv(out_dir / "metadata.csv").set_index(["model", "scenario"]).pix.assign(workflow=label)
     metadata_l.append(tmp)
 
 metadata = pix.concat(metadata_l)
-metadata
+metadata#.loc[pix.ismatch(workflow="*updated*v7.6*")].sort_values("Peak warming 33.0").iloc[:20, :]
 
 
 # %%
@@ -132,11 +140,16 @@ metadata_by_workflow = metadata.stack().unstack("workflow").unstack()
 metadata_by_workflow
 
 # %%
+metadata.pix.unique("workflow")
+
+# %%
 deltas_l = []
 for label, workflow_new, workflow_base in (
-    ("delta_total", "updated-workflow_magiccv7.6.0", "ar6-workflow_magiccv7.5.3"),
-    ("delta_magicc_update", "updated-workflow_magiccv7.6.0", "updated-workflow_magiccv7.5.3"),
-    ("delta_harmonisation_infilling_update", "updated-workflow_magiccv7.5.3", "ar6-workflow_magiccv7.5.3"),
+    # ("delta_total", "updated-workflow_magiccv7.6.0", "ar6-workflow_magiccv7.5.3"),
+    ("delta_magicc_update", "ar6-workflow_magiccv7.6.0", "ar6-workflow_magiccv7.5.3"),
+    # ("delta_magicc_update_updated_workflow", "updated-workflow_magiccv7.6.0", "updated-workflow_magiccv7.5.3"),
+    # ("delta_harmonisation_infilling_update", "updated-workflow_magiccv7.6.0", "ar6-workflow_magiccv7.6.0"),
+    # ("delta_harmonisation_infilling_update_magiccv7.5.3", "updated-workflow_magiccv7.5.3", "ar6-workflow_magiccv7.5.3"),
 ):
     tmp = (
         metadata_by_workflow[workflow_new]["Peak warming 50.0"]
@@ -261,7 +274,8 @@ def load_stage(
     stage_l = []
     if magicc_output:
         to_load = (
-            ("ar6-workflow_magicc-v7.5.3", ar6_workflow_out_dir_magicc, True, True),
+            ("ar6-workflow_magicc-v7.5.3", ar6_workflow_out_dir_magicc_v753, True, True),
+            ("ar6-workflow_magicc-v7.6.0", ar6_workflow_out_dir_magicc_v760, True, True),
             ("updated-workflow_magicc-v7.5.3", updated_workflow_dir_magicc_v753, False, False),
             ("updated-workflow_magicc-v7.6.0", updated_workflow_dir_magicc_v760, False, False),
         )
@@ -704,7 +718,7 @@ scm_effective
 # %%
 variables_to_plot = all_variables
 variables_to_plot = zn_custom_variables
-variables_to_plot = ["Emissions|OC", "Emissions|Sulfur"]
+# variables_to_plot = ["Emissions|OC", "Emissions|Sulfur"]
 
 # %% [markdown]
 # Compare the emissions across workflows.
@@ -743,6 +757,7 @@ for model, mdf in scm_effective.groupby("model"):
         style="workflow",
         dashes={
             "ar6-workflow_magicc-v7.5.3": "",
+            "ar6-workflow_magicc-v7.6.0": "",
             "updated-workflow_magicc-v7.5.3": (1, 1),
             "updated-workflow_magicc-v7.6.0": (3, 3),
         },
@@ -768,8 +783,8 @@ for model, mdf in scm_effective.groupby("model"):
 # due to harmonisation and infilling.
 
 # %%
-workflow_base = "ar6-workflow_magicc-v7.5.3"
-workflow_new = "updated-workflow_magicc-v7.5.3"
+workflow_base = "ar6-workflow_magicc-v7.6.0"
+workflow_new = "updated-workflow_magicc-v7.6.0"
 
 # %%
 for model, pwd in deltas["delta_harmonisation_infilling_update"].groupby("model"):
@@ -853,9 +868,108 @@ for model, pwd in deltas["delta_harmonisation_infilling_update"].groupby("model"
         hue="model-scenario",
         style="workflow",
         dashes={
-            "ar6-workflow_magicc-v7.5.3": "",
+            "ar6-workflow_magicc-v7.5.3": (3, 1),
+            "ar6-workflow_magicc-v7.6.0": "",
             "updated-workflow_magicc-v7.5.3": (1, 1),
             "updated-workflow_magicc-v7.6.0": (3, 3),
+        },
+        # dashes={
+        #     workflow_new: "",
+        #     workflow_base: (3, 3),
+        #     "updated-workflow": "",
+        # },
+        col="variable",
+        col_wrap=3,
+        col_order=sorted(variables_to_plot),
+        facet_kws=dict(sharey=False),
+        kind="line",
+    )
+    for ax in fg.axes.flatten():
+        # if "CO2" not in ax.get_title():
+        #     ax.set_ylim(ymin=0)
+
+        ax.grid()
+
+    fg.figure.suptitle(model, y=1.01)
+
+    plt.show()
+    # break
+
+# %%
+workflow_base = "ar6-workflow_magicc-v7.6.0"
+workflow_new = "updated-workflow_magicc-v7.6.0"
+
+# %%
+for model, pwd in deltas["delta_harmonisation_infilling_update"].groupby("model"):
+    print(f"{model}: {workflow_new} - {workflow_base}")
+    # display(pwd.sort_values())
+    plot_mod_scen = pd.concat([pwd.iloc[:3], pwd.iloc[-3:]]).index
+    pdf = get_sns_df(
+        multi_index_lookup(climate_percentiles, plot_mod_scen)
+        .loc[pix.isin(workflow=[workflow_base, workflow_new])]
+        .loc[pix.isin(percentile=percentile_to_plot)]
+        .loc[:, 2015:2050]
+    )
+    pdf["model-scenario"] = pdf["model"] + " - " + pdf["scenario"]
+    fg = sns.relplot(
+        data=pdf,
+        x="year",
+        y="value",
+        hue="model-scenario",
+        style="workflow",
+        dashes={
+            "ar6-workflow_magicc-v7.5.3": (3, 3),
+            "ar6-workflow_magicc-v7.6.0": (3, 1),
+            "updated-workflow_magicc-v7.5.3": (1, 1),
+            "updated-workflow_magicc-v7.6.0": "",
+        },
+        # dashes={
+        #     workflow_new: "",
+        #     workflow_base: (3, 3),
+        #     "updated-workflow": "",
+        # },
+        col="variable",
+        col_wrap=3,
+        col_order=sorted(variables_to_plot),
+        facet_kws=dict(sharey=False),
+        kind="line",
+    )
+    for ax in fg.axes.flatten():
+        # if "CO2" not in ax.get_title():
+        #     ax.set_ylim(ymin=0)
+
+        ax.grid()
+
+    fg.figure.suptitle(model, y=1.01)
+
+    plt.show()
+    # break
+
+# %%
+workflow_base = "ar6-workflow_magicc-v7.5.3"
+workflow_new = "ar6-workflow_magicc-v7.6.0"
+
+# %%
+for model, pwd in deltas["delta_harmonisation_infilling_update"].groupby("model"):
+    print(f"{model}: {workflow_new} - {workflow_base}")
+    # display(pwd.sort_values())
+    plot_mod_scen = pd.concat([pwd.iloc[:3], pwd.iloc[-3:]]).index
+    pdf = get_sns_df(
+        multi_index_lookup(climate_percentiles, plot_mod_scen)
+        .loc[pix.isin(workflow=[workflow_base, workflow_new])]
+        .loc[pix.isin(percentile=percentile_to_plot)]
+        .loc[:, 2015:2050]
+    )
+    pdf["model-scenario"] = pdf["model"] + " - " + pdf["scenario"]
+    fg = sns.relplot(
+        data=pdf,
+        x="year",
+        y="value",
+        hue="model-scenario",
+        style="workflow",
+        dashes={
+            workflow_base: (3, 3),
+            workflow_new: "",
         },
         # dashes={
         #     workflow_new: "",

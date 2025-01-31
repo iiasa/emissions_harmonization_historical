@@ -13,10 +13,10 @@
 # ---
 
 # %% [markdown]
-# # Run workflow - updated MAGICC v7.6.0
+# # Run workflow - updated MAGICC v7.5.3
 #
 # Run the climate assessment workflow with our updated processing,
-# using MAGICC v7.6.0 as the SCM.
+# using MAGICC v7.5.3 as the SCM.
 
 # %% [markdown]
 # ## Imports
@@ -29,7 +29,9 @@ import os
 
 import matplotlib.pyplot as plt
 import openscm_runner.adapters
+import pandas as pd
 import pandas_indexing as pix
+import pint
 import scipy.stats
 from gcages.database import GCDB
 from gcages.io import load_timeseries_csv
@@ -61,11 +63,11 @@ run_checks = False  # TODO: turn on
 INPUT_PATH = DATA_ROOT / "climate-assessment-workflow" / "output" / f"{WORKFLOW_ID}_{SCENARIO_TIME_ID}_updated-workflow"
 
 # %%
-magicc_exe_path = DATA_ROOT.parents[0] / "magicc" / "magicc-v7.6.0a3" / "bin" / "magicc-darwin-arm64"
-magicc_expected_version = "v7.6.0a3"
-magicc_prob_distribution_path = (
-    DATA_ROOT.parents[0] / "magicc" / "magicc-v7.6.0a3" / "configs" / "magicc-ar7-fast-track-drawnset-v0-3-0.json"
-)
+# Needed for 7.5.3 on a mac
+os.environ["DYLD_LIBRARY_PATH"] = "/opt/homebrew/opt/gfortran/lib/gcc/current/"
+magicc_exe_path = DATA_ROOT.parents[0] / "magicc" / "magicc-v7.5.3" / "bin" / "magicc-darwin-arm64"
+magicc_expected_version = "v7.5.3"
+magicc_prob_distribution_path = DATA_ROOT.parents[0] / "magicc" / "magicc-v7.5.3" / "configs" / "600-member.json"
 
 # %%
 os.environ["MAGICC_EXECUTABLE_7"] = str(magicc_exe_path)
@@ -148,9 +150,7 @@ infilled
 # )
 # scenarios_run = infilled[infilled.index.isin(selected_scenarios_idx)]
 
-scenarios_run = infilled.loc[pix.ismatch(scenario="*Very Low*")]
-
-# scenarios_run = infilled.loc[pix.ismatch(model="*COFFEE*")]
+scenarios_run = infilled.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model="GCAM*")]
 
 # %%
 # # To run all, just uncomment the below
@@ -281,6 +281,9 @@ scm_runner = SCMRunner(
 
 # %% [markdown]
 # Add in data from the end of MAGICC's internal historical emissions.
+
+# %%
+# TODO: split this out into a function
 
 # %%
 MAGICC_FORCE_START_YEAR = 2015
