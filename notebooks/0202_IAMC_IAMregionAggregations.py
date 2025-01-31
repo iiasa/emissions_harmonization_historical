@@ -40,11 +40,6 @@ if not region_file.exists() or force_generation:
     )
 
 # %%
-# drop REMIND 3.1 region definitions and overwrite region_df.csv accordingly
-region_mapping = region_mapping[region_mapping["model"]!="REMIND 3.1"]
-region_mapping.to_csv(region_file)
-
-# %%
 cmip7_history_file = DATA_ROOT / Path("combined-processed-output", f"cmip7_history_{COMBINED_HISTORY_ID}.csv")
 
 # file name for output
@@ -65,6 +60,11 @@ cmip7_history
 
 # %%
 region_mapping = pd.read_csv(region_mapping_file)
+
+# drop REMIND 3.1 region definitions and overwrite region_df.csv accordingly
+region_mapping = region_mapping[region_mapping["model"]!="REMIND 3.1"]
+region_mapping.to_csv(region_file)
+
 region_mapping = region_mapping.rename(columns={"name": "model_region", "hierarchy": "model", "iso3": "iso_list"})
 region_mapping = region_mapping[["model_region", "model", "iso_list"]]
 region_mapping = region_mapping.dropna(
@@ -75,9 +75,6 @@ region_mapping["iso_list"] = region_mapping["iso_list"].apply(
     lambda x: x.strip("[]").replace("'", "").split(", ")
 )  # transform from Series/string to list-like object which is iterable
 region_mapping
-
-# %%
-region_mapping = region_mapping[region_mapping["model"]!="REMIND 3.1"]
 
 # %%
 cmip7_history[(cmip7_history["region"].isin(["usa"]))]

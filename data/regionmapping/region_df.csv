@@ -1,159 +1,159 @@
-,model_region,model,iso_list
-2,OECD & EU (R5),R5,"['alb', 'aus', 'aut', 'bel', 'bih', 'bgr', 'can', 'hrv', 'cyp', 'cze', 'dnk', 'est', 'fin', 'fra', 'deu', 'grc', 'gum', 'hun', 'isl', 'irl', 'ita', 'jpn', 'kos', 'lva', 'ltu', 'lux', 'mlt', 'mne', 'nld', 'nzl', 'mkd', 'nor', 'pol', 'prt', 'pri', 'rou', 'srb', 'svk', 'svn', 'esp', 'swe', 'che', 'tur', 'gbr', 'usa']"
-3,Reforming Economies (R5),R5,"['arm', 'aze', 'blr', 'geo', 'kaz', 'kgz', 'mda', 'rus', 'tjk', 'tkm', 'ukr', 'uzb']"
-4,Asia (R5),R5,"['afg', 'bgd', 'btn', 'brn', 'khm', 'chn', 'cok', 'fji', 'pyf', 'hkg', 'ind', 'idn', 'kir', 'lao', 'mac', 'mys', 'mdv', 'mhl', 'fsm', 'mng', 'mmr', 'nru', 'npl', 'niu', 'ncl', 'prk', 'pak', 'png', 'plw', 'phl', 'kor', 'wsm', 'sgp', 'slb', 'lka', 'twn', 'tha', 'tls', 'ton', 'tuv', 'vut', 'vnm']"
-5,Middle East & Africa (R5),R5,"['dza', 'ago', 'bhr', 'ben', 'bwa', 'bfa', 'bdi', 'cmr', 'cpv', 'caf', 'tcd', 'com', 'cog', 'civ', 'cod', 'dji', 'egy', 'gnq', 'eri', 'eth', 'gab', 'gmb', 'gha', 'gin', 'gnb', 'irn', 'irq', 'isr', 'jor', 'ken', 'kwt', 'lbn', 'lso', 'lbr', 'lby', 'mdg', 'mwi', 'mli', 'mrt', 'mus', 'myt', 'mar', 'moz', 'nam', 'ner', 'nga', 'pse', 'omn', 'qat', 'rwa', 'reu', 'stp', 'sau', 'sen', 'syc', 'sle', 'som', 'zaf', 'ssd', 'sdn', 'swz', 'syr', 'tgo', 'tun', 'uga', 'are', 'tza', 'esh', 'yem', 'zmb', 'zwe']"
-6,Latin America (R5),R5,"['atg', 'arg', 'abw', 'bhs', 'brb', 'blz', 'bol', 'bra', 'chl', 'col', 'cri', 'cub', 'dom', 'ecu', 'slv', 'guf', 'grd', 'glp', 'gtm', 'guy', 'hti', 'hnd', 'jam', 'mtq', 'mex', 'nic', 'pan', 'pry', 'per', 'kna', 'lca', 'vct', 'sur', 'tto', 'vir', 'ury', 'ven']"
-8,European Union (R9),R9,"['aut', 'bel', 'bgr', 'hrv', 'cyp', 'cze', 'dnk', 'est', 'fin', 'fra', 'deu', 'grc', 'hun', 'irl', 'ita', 'lva', 'ltu', 'lux', 'mlt', 'nld', 'pol', 'prt', 'rou', 'svk', 'svn', 'esp', 'swe']"
-9,USA (R9),R9,['usa']
-10,Other OECD (R9),R9,"['alb', 'aus', 'bih', 'can', 'gum', 'isl', 'jpn', 'kos', 'mne', 'nzl', 'mkd', 'nor', 'pri', 'srb', 'gbr', 'che', 'tur']"
-11,China (R9),R9,"['chn', 'hkg', 'mac']"
-12,India (R9),R9,['ind']
-13,Other Asia (R9),R9,"['afg', 'bgd', 'btn', 'brn', 'khm', 'cok', 'fji', 'pyf', 'idn', 'kir', 'lao', 'mys', 'mdv', 'mhl', 'fsm', 'mng', 'mmr', 'nru', 'niu', 'npl', 'ncl', 'prk', 'pak', 'plw', 'png', 'phl', 'kor', 'wsm', 'sgp', 'slb', 'lka', 'twn', 'tuv', 'tha', 'tls', 'ton', 'vut', 'vnm']"
-14,Reforming Economies (R9),R9,"['arm', 'aze', 'blr', 'geo', 'kaz', 'kgz', 'mda', 'rus', 'tjk', 'tkm', 'ukr', 'uzb']"
-15,Middle East & Africa (R9),R9,"['dza', 'ago', 'bhr', 'ben', 'bwa', 'bfa', 'bdi', 'cmr', 'cpv', 'caf', 'tcd', 'com', 'cog', 'civ', 'cod', 'dji', 'egy', 'gnq', 'eri', 'swz', 'eth', 'gab', 'gmb', 'gha', 'gin', 'gnb', 'irn', 'irq', 'isr', 'jor', 'ken', 'kwt', 'lbn', 'lso', 'lbr', 'lby', 'mdg', 'mwi', 'mli', 'mrt', 'mus', 'myt', 'mar', 'moz', 'nam', 'ner', 'nga', 'pse', 'omn', 'qat', 'rwa', 'reu', 'stp', 'sau', 'sen', 'syc', 'sle', 'som', 'zaf', 'ssd', 'sdn', 'syr', 'tgo', 'tun', 'uga', 'are', 'tza', 'esh', 'yem', 'zmb', 'zwe']"
-16,Latin America (R9),R9,"['atg', 'arg', 'abw', 'bhs', 'brb', 'blz', 'bol', 'bra', 'chl', 'col', 'cri', 'cub', 'dom', 'ecu', 'slv', 'guf', 'grd', 'glp', 'gtm', 'guy', 'hti', 'hnd', 'jam', 'mtq', 'mex', 'nic', 'pan', 'pry', 'per', 'kna', 'lca', 'vct', 'sur', 'tto', 'vir', 'ury', 'ven']"
-18,Africa (R10),R10,"['dza', 'ago', 'ben', 'bwa', 'bfa', 'bdi', 'cmr', 'cpv', 'caf', 'tcd', 'com', 'cog', 'civ', 'cod', 'dji', 'egy', 'gnq', 'eri', 'eth', 'gab', 'gmb', 'gha', 'gin', 'gnb', 'ken', 'lso', 'lbr', 'lby', 'mdg', 'mwi', 'mli', 'mrt', 'mus', 'myt', 'mar', 'moz', 'nam', 'ner', 'nga', 'rwa', 'reu', 'stp', 'sen', 'syc', 'sle', 'som', 'zaf', 'ssd', 'sdn', 'swz', 'tgo', 'tun', 'uga', 'tza', 'esh', 'zmb', 'zwe']"
-19,China+ (R10),R10,"['chn', 'hkg', 'mac', 'mng', 'prk', 'kor']"
-20,Europe (R10),R10,"['alb', 'aut', 'bel', 'bih', 'bgr', 'hrv', 'cyp', 'cze', 'dnk', 'est', 'fra', 'fin', 'deu', 'grc', 'hun', 'isl', 'irl', 'ita', 'kos', 'lva', 'ltu', 'lux', 'mlt', 'mne', 'nld', 'mkd', 'nor', 'prt', 'che', 'pol', 'rou', 'srb', 'svk', 'svn', 'esp', 'swe', 'tur', 'gbr']"
-21,India+ (R10),R10,"['ind', 'afg', 'bgd', 'btn', 'mdv', 'npl', 'pak', 'lka']"
-22,Latin America (R10),R10,"['atg', 'arg', 'abw', 'bhs', 'brb', 'blz', 'bol', 'bra', 'chl', 'col', 'cri', 'cub', 'dom', 'ecu', 'slv', 'guf', 'grd', 'glp', 'gtm', 'guy', 'hti', 'hnd', 'jam', 'mtq', 'mex', 'nic', 'pan', 'pry', 'per', 'pri', 'kna', 'lca', 'vct', 'sur', 'tto', 'vir', 'ury', 'ven']"
-23,Middle East (R10),R10,"['bhr', 'irq', 'irn', 'isr', 'jor', 'kwt', 'lbn', 'omn', 'pse', 'qat', 'sau', 'syr', 'are', 'yem']"
-24,North America (R10),R10,"['can', 'gum', 'usa']"
-25,Pacific OECD (R10),R10,"['aus', 'jpn', 'nzl']"
-26,Reforming Economies (R10),R10,"['arm', 'aze', 'blr', 'geo', 'kaz', 'kgz', 'mda', 'rus', 'tjk', 'tkm', 'ukr', 'uzb']"
-27,Rest of Asia (R10),R10,"['brn', 'khm', 'cok', 'fji', 'pyf', 'idn', 'kir', 'lao', 'mys', 'mhl', 'fsm', 'mmr', 'nru', 'niu', 'plw', 'ncl', 'png', 'phl', 'wsm', 'sgp', 'slb', 'twn', 'tha', 'tls', 'ton', 'tuv', 'vut', 'vnm']"
-63,COFFEE 1.5|Africa (excluding South Africa),COFFEE 1.5,"['dza', 'ago', 'ben', 'bwa', 'bfa', 'bdi', 'cpv', 'cmr', 'caf', 'tcd', 'com', 'cog', 'civ', 'cod', 'dji', 'egy', 'gnq', 'eri', 'swz', 'eth', 'gab', 'gmb', 'gha', 'gin', 'gnb', 'ken', 'lso', 'lbr', 'lby', 'mdg', 'mwi', 'mli', 'mrt', 'mus', 'myt', 'mar', 'moz', 'nam', 'ner', 'nga', 'rwa', 'reu', 'stp', 'sen', 'syc', 'sle', 'som', 'ssd', 'sdn', 'tza', 'tgo', 'tun', 'uga', 'esh', 'zmb']"
-64,COFFEE 1.5|Australia & New Zealand,COFFEE 1.5,"['aus', 'nzl']"
-65,COFFEE 1.5|Brazil,COFFEE 1.5,['bra']
-66,COFFEE 1.5|Central America,COFFEE 1.5,"['aia', 'atg', 'abw', 'bhs', 'brb', 'blz', 'bmu', 'bes', 'cym', 'cri', 'cub', 'cuw', 'dma', 'dom', 'slv', 'guf', 'grd', 'glp', 'gtm', 'guy', 'hti', 'hnd', 'jam', 'mtq', 'mex', 'msr', 'nic', 'pan', 'blm', 'kna', 'lca', 'maf', 'vct', 'sxm', 'sur', 'tto', 'tca']"
-67,COFFEE 1.5|Canada,COFFEE 1.5,"['can', 'shn', 'spm']"
-68,COFFEE 1.5|Caspian Sea,COFFEE 1.5,"['afg', 'arm', 'aze', 'geo', 'kaz', 'kgz', 'pak', 'tjk', 'tkm', 'uzb']"
-69,COFFEE 1.5|China,COFFEE 1.5,"['chn', 'hkg', 'mac']"
-70,COFFEE 1.5|Europe,COFFEE 1.5,"['and', 'aut', 'bel', 'bvt', 'bgr', 'cyp', 'cze', 'dnk', 'est', 'fro', 'fin', 'fra', 'deu', 'gib', 'grc', 'grl', 'ggy', 'hun', 'isl', 'irl', 'imn', 'ita', 'jey', 'lva', 'lie', 'ltu', 'lux', 'mlt', 'mco', 'nld', 'nor', 'pol', 'prt', 'rou', 'smr', 'svk', 'svn', 'esp', 'sjm', 'swe', 'che', 'tur', 'gbr', 'vat', 'ala']"
-71,COFFEE 1.5|India,COFFEE 1.5,['ind']
-72,COFFEE 1.5|Japan,COFFEE 1.5,['jpn']
-73,COFFEE 1.5|South Korea,COFFEE 1.5,['kor']
-74,COFFEE 1.5|Middle East,COFFEE 1.5,"['bhr', 'irn', 'irq', 'isr', 'jor', 'kwt', 'lbn', 'omn', 'pse', 'qat', 'sau', 'syr', 'are', 'yem']"
-75,COFFEE 1.5|Rest of Asia and Oceania,COFFEE 1.5,"['ata', 'bgd', 'btn', 'iot', 'brn', 'khm', 'cxr', 'cck', 'cok', 'fji', 'pyf', 'atf', 'gum', 'hmd', 'idn', 'kir', 'lao', 'mys', 'mdv', 'mhl', 'fsm', 'mng', 'mmr', 'nru', 'npl', 'ncl', 'niu', 'nfk', 'prk', 'mnp', 'plw', 'png', 'phl', 'pcn', 'wsm', 'sgp', 'slb', 'lka', 'twn', 'tha', 'tls', 'tkl', 'ton', 'tuv', 'vut', 'vnm', 'wlf']"
-76,COFFEE 1.5|Russia,COFFEE 1.5,['rus']
-77,COFFEE 1.5|South Africa,COFFEE 1.5,['zaf']
-78,COFFEE 1.5|South America,COFFEE 1.5,"['arg', 'bol', 'chl', 'col', 'ecu', 'flk', 'pry', 'per', 'sgs', 'ury', 'ven']"
-79,COFFEE 1.5|United States,COFFEE 1.5,"['asm', 'vgb', 'pri', 'usa', 'umi', 'vir']"
-80,COFFEE 1.5|Rest of Europe,COFFEE 1.5,"['alb', 'blr', 'bih', 'hrv', 'mda', 'mne', 'mkd', 'srb', 'ukr']"
-81,GCAM 7.1|Africa_Eastern,GCAM 7.1,"['bdi', 'com', 'dji', 'eri', 'eth', 'ken', 'mdg', 'mus', 'reu', 'rwa', 'som', 'sdn', 'ssd', 'uga']"
-82,GCAM 7.1|Africa_Northern,GCAM 7.1,"['dza', 'egy', 'lby', 'mar', 'tun', 'esh']"
-83,GCAM 7.1|Africa_Southern,GCAM 7.1,"['ago', 'moz', 'mwi', 'lso', 'bwa', 'tza', 'nam', 'swz', 'zmb', 'zwe']"
-84,GCAM 7.1|Africa_Western,GCAM 7.1,"['ben', 'cog', 'cod', 'cmr', 'tcd', 'caf', 'cpv', 'gnq', 'gmb', 'gab', 'gha', 'gin', 'civ', 'lbr', 'mli', 'mrt', 'ner', 'nga', 'gnb', 'sen', 'sle', 'tgo', 'stp', 'bfa']"
-85,GCAM 7.1|Argentina,GCAM 7.1,['arg']
-86,GCAM 7.1|Australia_NZ,GCAM 7.1,"['aus', 'nzl']"
-87,GCAM 7.1|Brazil,GCAM 7.1,['bra']
-88,GCAM 7.1|Canada,GCAM 7.1,['can']
-89,GCAM 7.1|Central America and Caribbean,GCAM 7.1,"['atg', 'brb', 'bmu', 'bhs', 'blz', 'cym', 'cri', 'cub', 'dma', 'dom', 'slv', 'grd', 'gtm', 'hti', 'hnd', 'jam', 'mtq', 'msr', 'abw', 'aia', 'nic', 'pan', 'kna', 'lca', 'tto', 'vct', 'glp']"
-90,GCAM 7.1|Central Asia,GCAM 7.1,"['aze', 'arm', 'geo', 'kgz', 'kaz', 'mng', 'tjk', 'tkm', 'uzb']"
-91,GCAM 7.1|China,GCAM 7.1,"['chn', 'hkg', 'mac']"
-92,GCAM 7.1|Colombia,GCAM 7.1,['col']
-93,GCAM 7.1|EU-12,GCAM 7.1,"['bgr', 'cyp', 'est', 'cze', 'hun', 'lva', 'ltu', 'svk', 'mlt', 'pol', 'rou', 'svn']"
-94,GCAM 7.1|EU-15,GCAM 7.1,"['dnk', 'irl', 'aut', 'fin', 'flk', 'fra', 'grl', 'deu', 'grc', 'ita', 'bel', 'fro', 'and', 'gib', 'imn', 'lux', 'mco', 'nld', 'prt', 'esp', 'swe', 'gbr', 'vgb', 'spm', 'smr', 'tca']"
-95,GCAM 7.1|Europe_Eastern,GCAM 7.1,"['blr', 'mda', 'ukr']"
-96,GCAM 7.1|Europe_Non_EU,GCAM 7.1,"['alb', 'bih', 'hrv', 'mkd', 'mne', 'tur', 'srb']"
-97,GCAM 7.1|European Free Trade Association,GCAM 7.1,"['isl', 'lie', 'nor', 'che']"
-98,GCAM 7.1|India,GCAM 7.1,['ind']
-99,GCAM 7.1|Indonesia,GCAM 7.1,['idn']
-100,GCAM 7.1|Japan,GCAM 7.1,['jpn']
-101,GCAM 7.1|Mexico,GCAM 7.1,['mex']
-102,GCAM 7.1|Middle East,GCAM 7.1,"['bhr', 'irn', 'isr', 'irq', 'jor', 'kwt', 'lbn', 'omn', 'pse', 'qat', 'sau', 'syr', 'yem', 'are']"
-103,GCAM 7.1|Pakistan,GCAM 7.1,['pak']
-104,GCAM 7.1|Russia,GCAM 7.1,['rus']
-105,GCAM 7.1|South Africa,GCAM 7.1,['zaf']
-106,GCAM 7.1|South America_Northern,GCAM 7.1,"['guf', 'guy', 'sur', 'ven']"
-107,GCAM 7.1|South America_Southern,GCAM 7.1,"['bol', 'chl', 'ecu', 'pry', 'per', 'ury']"
-108,GCAM 7.1|South Asia,GCAM 7.1,"['bgd', 'lka', 'afg', 'btn', 'mdv', 'npl']"
-109,GCAM 7.1|South Korea,GCAM 7.1,['kor']
-110,GCAM 7.1|Southeast Asia,GCAM 7.1,"['asm', 'mmr', 'slb', 'brn', 'khm', 'cok', 'fji', 'fsm', 'pyf', 'gum', 'prk', 'kir', 'lao', 'mys', 'ncl', 'niu', 'mnp', 'myt', 'nfk', 'cck', 'cxr', 'vut', 'nru', 'png', 'phl', 'syc', 'sgp', 'tha', 'tkl', 'ton', 'tuv', 'vnm', 'wsm', 'tls', 'plw', 'mhl']"
-111,GCAM 7.1|Taiwan,GCAM 7.1,['twn']
-112,GCAM 7.1|USA,GCAM 7.1,"['pri', 'usa', 'vir']"
-113,WITCH 6.0|Brazil,WITCH 6.0,['bra']
-114,WITCH 6.0|Canada,WITCH 6.0,"['can', 'spm']"
-115,WITCH 6.0|China,WITCH 6.0,"['chn', 'hkg', 'mac', 'twn']"
-116,WITCH 6.0|Europe (EU+EFTA+Balkan Countries and Turkey),WITCH 6.0,"['bgr', 'cyp', 'cze', 'est', 'hun', 'ltu', 'lva', 'pol', 'rou', 'svk', 'svn', 'mlt', 'hrv', 'aut', 'bel', 'deu', 'dnk', 'esp', 'fin', 'fra', 'gbr', 'grc', 'irl', 'ita', 'lux', 'nld', 'prt', 'swe', 'lie', 'nor', 'che', 'grl', 'isl', 'fro', 'ala', 'and', 'ggy', 'gib', 'imn', 'jey', 'mco', 'sjm', 'smr', 'vat', 'bih', 'alb', 'mkd', 'mne', 'srb']"
-117,WITCH 6.0|India,WITCH 6.0,['ind']
-118,WITCH 6.0|Indonesia,WITCH 6.0,['idn']
-119,WITCH 6.0|Japan and Korea,WITCH 6.0,"['jpn', 'kor', 'prk']"
-120,WITCH 6.0|Latin America and the Caribbean,WITCH 6.0,"['ata', 'bmu', 'sgs', 'tca', 'vgb', 'vir', 'abw', 'aia', 'arg', 'atg', 'bes', 'bhs', 'blm', 'blz', 'bol', 'brb', 'chl', 'col', 'cri', 'cub', 'cuw', 'cym', 'dma', 'dom', 'ecu', 'flk', 'glp', 'grd', 'gtm', 'guf', 'guy', 'hnd', 'hti', 'jam', 'kna', 'lca', 'maf', 'msr', 'mtq', 'nic', 'pan', 'per', 'pri', 'pry', 'slv', 'sur', 'sxm', 'tto', 'ury', 'vct', 'ven']"
-121,WITCH 6.0|Middle East and North Africa,WITCH 6.0,"['are', 'bhr', 'dza', 'egy', 'esh', 'irn', 'irq', 'isr', 'jor', 'kwt', 'lbn', 'lby', 'mar', 'omn', 'pse', 'qat', 'sau', 'syr', 'tun', 'yem']"
-122,WITCH 6.0|Mexico,WITCH 6.0,['mex']
-123,"WITCH 6.0|Australia, New Zealand, and Oceania islands",WITCH 6.0,"['nzl', 'aus', 'cxr', 'cok', 'hmd', 'nfk', 'niu', 'nru', 'pcn', 'tkl', 'tuv', 'umi', 'wlf', 'fji', 'png', 'fsm', 'gum', 'asm', 'tls', 'pyf', 'kir', 'mnp', 'mhl', 'ncl', 'plw', 'wsm', 'slb', 'ton', 'vut']"
-124,WITCH 6.0|South Asia,WITCH 6.0,"['afg', 'bgd', 'btn', 'lka', 'mdv', 'npl', 'pak']"
-125,WITCH 6.0|South East Asia,WITCH 6.0,"['brn', 'cck', 'khm', 'lao', 'mmr', 'mys', 'phl', 'sgp', 'tha', 'vnm']"
-126,WITCH 6.0|South Africa,WITCH 6.0,['zaf']
-127,WITCH 6.0|Sub Saharan Africa,WITCH 6.0,"['dji', 'iot', 'bvt', 'atf', 'ago', 'ben', 'bwa', 'bfa', 'bdi', 'cmr', 'cpv', 'caf', 'tcd', 'com', 'cog', 'cod', 'civ', 'gnq', 'eri', 'eth', 'gab', 'gmb', 'gha', 'gin', 'gnb', 'ken', 'lso', 'lbr', 'mdg', 'mwi', 'mli', 'mrt', 'mus', 'myt', 'moz', 'nam', 'ner', 'nga', 'reu', 'rwa', 'stp', 'sen', 'syc', 'shn', 'sle', 'som', 'ssd', 'sdn', 'swz', 'tza', 'tgo', 'uga', 'zmb', 'zwe']"
-128,WITCH 6.0|Non-EU Eastern European and Transition Countries,WITCH 6.0,"['mng', 'arm', 'aze', 'blr', 'geo', 'kaz', 'kgz', 'mda', 'rus', 'tjk', 'tur', 'tkm', 'ukr', 'uzb']"
-129,WITCH 6.0|United States of America,WITCH 6.0,['usa']
-130,MESSAGEix-GLOBIOM 2.1-R12|Sub-Saharan Africa,MESSAGEix-GLOBIOM 2.1-R12,"['ago', 'ben', 'cog', 'cod', 'bdi', 'cmr', 'tcd', 'com', 'caf', 'cpv', 'dji', 'gnq', 'swz', 'eri', 'eth', 'gmb', 'gab', 'gha', 'gin', 'civ', 'ken', 'lbr', 'mdg', 'mli', 'mus', 'mrt', 'moz', 'mwi', 'ner', 'nga', 'gnb', 'rwa', 'syc', 'zaf', 'lso', 'bwa', 'sen', 'sle', 'som', 'tgo', 'stp', 'tza', 'uga', 'bfa', 'nam', 'zmb', 'zwe', 'esh']"
-131,MESSAGEix-GLOBIOM 2.1-R12|Rest of Centrally Planned Asia,MESSAGEix-GLOBIOM 2.1-R12,"['khm', 'prk', 'lao', 'mng', 'mac', 'vnm']"
-132,MESSAGEix-GLOBIOM 2.1-R12|China,MESSAGEix-GLOBIOM 2.1-R12,"['chn', 'hkg']"
-133,MESSAGEix-GLOBIOM 2.1-R12|Eastern Europe,MESSAGEix-GLOBIOM 2.1-R12,"['alb', 'bih', 'bgr', 'est', 'cze', 'hrv', 'hun', 'lva', 'ltu', 'svk', 'mkd', 'mne', 'pol', 'rou', 'svn', 'srb']"
-134,MESSAGEix-GLOBIOM 2.1-R12|Former Soviet Union,MESSAGEix-GLOBIOM 2.1-R12,"['aze', 'arm', 'geo', 'kgz', 'kaz', 'blr', 'mda', 'rus', 'tjk', 'tkm', 'ukr', 'uzb']"
-135,MESSAGEix-GLOBIOM 2.1-R12|Latin America and the Caribbean,MESSAGEix-GLOBIOM 2.1-R12,"['atg', 'arg', 'brb', 'bmu', 'bhs', 'blz', 'bol', 'bra', 'chl', 'cym', 'col', 'cri', 'cub', 'dma', 'dom', 'ecu', 'slv', 'guf', 'flk', 'grd', 'gtm', 'guy', 'hti', 'hnd', 'jam', 'mtq', 'msr', 'mex', 'abw', 'aia', 'sur', 'nic', 'pry', 'per', 'pan', 'kna', 'lca', 'tto', 'ury', 'vct', 'ven', 'glp', 'tca']"
-136,MESSAGEix-GLOBIOM 2.1-R12|Middle East and North Africa,MESSAGEix-GLOBIOM 2.1-R12,"['dza', 'bhr', 'egy', 'irn', 'isr', 'irq', 'jor', 'kwt', 'lbn', 'lby', 'mar', 'omn', 'pse', 'qat', 'sau', 'sdn', 'ssd', 'syr', 'tun', 'yem', 'are']"
-137,MESSAGEix-GLOBIOM 2.1-R12|North America,MESSAGEix-GLOBIOM 2.1-R12,"['can', 'gum', 'umi', 'pri', 'usa', 'vir']"
-138,MESSAGEix-GLOBIOM 2.1-R12|Pacific OECD,MESSAGEix-GLOBIOM 2.1-R12,"['aus', 'jpn', 'nzl', 'cxr', 'hmd', 'tkl']"
-139,MESSAGEix-GLOBIOM 2.1-R12|Other Pacific Asia,MESSAGEix-GLOBIOM 2.1-R12,"['asm', 'mmr', 'slb', 'brn', 'cok', 'fji', 'fsm', 'pyf', 'kir', 'kor', 'mys', 'ncl', 'niu', 'mnp', 'cck', 'vut', 'nru', 'png', 'phl', 'sgp', 'tha', 'ton', 'tuv', 'wsm', 'idn', 'tls', 'plw', 'mhl', 'twn']"
-140,MESSAGEix-GLOBIOM 2.1-R12|South Asia,MESSAGEix-GLOBIOM 2.1-R12,"['bgd', 'lka', 'afg', 'btn', 'ind', 'mdv', 'npl', 'pak']"
-141,MESSAGEix-GLOBIOM 2.1-R12|Western Europe,MESSAGEix-GLOBIOM 2.1-R12,"['cyp', 'dnk', 'irl', 'aut', 'fin', 'fra', 'grl', 'deu', 'grc', 'isl', 'ita', 'lie', 'mlt', 'bel', 'fro', 'and', 'gib', 'imn', 'lux', 'mco', 'myt', 'ala', 'nfk', 'iot', 'nld', 'nor', 'prt', 'reu', 'esp', 'swe', 'che', 'tur', 'gbr', 'vgb', 'wlf', 'pcn', 'spm', 'smr', 'vat', 'sjm', 'maf', 'blm', 'ggy', 'jey', 'sgs']"
-142,AIM 3.0|Brazil,AIM 3.0,['bra']
-143,AIM 3.0|Canada,AIM 3.0,['can']
-144,AIM 3.0|China,AIM 3.0,"['chn', 'hkg']"
-145,AIM 3.0|Former USSR,AIM 3.0,"['arm', 'aze', 'blr', 'geo', 'kaz', 'kgz', 'mda', 'rus', 'tjk', 'tkm', 'ukr', 'uzb']"
-146,AIM 3.0|India,AIM 3.0,['ind']
-147,AIM 3.0|Japan,AIM 3.0,['jpn']
-148,AIM 3.0|Turkey,AIM 3.0,['tur']
-149,AIM 3.0|USA,AIM 3.0,['usa']
-150,AIM 3.0|Other Africa,AIM 3.0,"['ago', 'ben', 'bwa', 'bfa', 'bdi', 'cpv', 'cmr', 'caf', 'tcd', 'com', 'cog', 'civ', 'cod', 'dji', 'gnq', 'eri', 'swz', 'eth', 'gab', 'gmb', 'gha', 'gin', 'gnb', 'ken', 'lso', 'lbr', 'mdg', 'mwi', 'mli', 'mrt', 'mus', 'myt', 'moz', 'nam', 'ner', 'nga', 'rwa', 'reu', 'stp', 'sen', 'syc', 'sle', 'som', 'zaf', 'sdn', 'tza', 'tgo', 'uga', 'esh', 'zmb', 'zwe']"
-151,AIM 3.0|EU & UK,AIM 3.0,"['aut', 'bel', 'cyp', 'cze', 'dnk', 'est', 'fin', 'fra', 'deu', 'grc', 'hun', 'irl', 'ita', 'lva', 'ltu', 'lux', 'mlt', 'nld', 'pol', 'prt', 'svk', 'svn', 'esp', 'swe', 'gbr']"
-152,AIM 3.0|Rest of Europe,AIM 3.0,"['alb', 'and', 'bih', 'bgr', 'hrv', 'fro', 'gib', 'isl', 'lie', 'mco', 'mne', 'mkd', 'nor', 'rou', 'smr', 'srb', 'sjm', 'che', 'vat']"
-153,AIM 3.0|Rest of Latin America,AIM 3.0,"['aia', 'atg', 'arg', 'abw', 'bhs', 'brb', 'blz', 'bmu', 'bol', 'bvt', 'vgb', 'cym', 'chl', 'col', 'cri', 'cub', 'dma', 'dom', 'ecu', 'slv', 'flk', 'guf', 'grl', 'grd', 'glp', 'gtm', 'guy', 'hti', 'hnd', 'jam', 'mtq', 'mex', 'msr', 'nic', 'pan', 'pry', 'per', 'pri', 'kna', 'lca', 'spm', 'vct', 'sgs', 'sur', 'tto', 'tca', 'vir', 'ury', 'ven']"
-154,AIM 3.0|Middle East,AIM 3.0,"['bhr', 'irn', 'irq', 'isr', 'jor', 'kwt', 'lbn', 'omn', 'qat', 'sau', 'syr', 'are', 'yem']"
-155,AIM 3.0|North Africa,AIM 3.0,"['dza', 'egy', 'lby', 'mar', 'tun']"
-156,AIM 3.0|New Zealand and Australia,AIM 3.0,"['aus', 'nzl']"
-157,AIM 3.0|Rest of Asia,AIM 3.0,"['afg', 'asm', 'bgd', 'btn', 'iot', 'brn', 'cxr', 'cck', 'cok', 'fji', 'pyf', 'atf', 'gum', 'hmd', 'kir', 'mdv', 'mhl', 'fsm', 'nru', 'npl', 'ncl', 'niu', 'nfk', 'mnp', 'pak', 'plw', 'png', 'pcn', 'wsm', 'slb', 'lka', 'tkl', 'ton', 'tuv', 'umi', 'vut', 'wlf']"
-158,AIM 3.0|Rest of East and South East Asia,AIM 3.0,"['khm', 'idn', 'lao', 'mys', 'mng', 'mmr', 'prk', 'phl', 'sgp', 'kor', 'twn', 'tha', 'tls', 'vnm']"
-159,IMAGE 3.4|Brazil,IMAGE 3.4,['bra']
-160,IMAGE 3.4|Canada,IMAGE 3.4,['can']
-161,IMAGE 3.4|Central Europe,IMAGE 3.4,"['alb', 'bih', 'bgr', 'hrv', 'cyp', 'cze', 'est', 'hun', 'lva', 'ltu', 'mkd', 'pol', 'rou', 'srb', 'mne', 'svk', 'svn']"
-162,IMAGE 3.4|China Region,IMAGE 3.4,"['chn', 'hkg', 'mac', 'mng', 'twn']"
-163,IMAGE 3.4|Eastern Africa,IMAGE 3.4,"['bdi', 'com', 'dji', 'eri', 'eth', 'ken', 'mdg', 'mus', 'reu', 'rwa', 'syc', 'som', 'sdn', 'uga']"
-164,IMAGE 3.4|India,IMAGE 3.4,['ind']
-165,IMAGE 3.4|Indonesia Region,IMAGE 3.4,"['tls', 'idn', 'png']"
-166,IMAGE 3.4|Japan,IMAGE 3.4,['jpn']
-167,IMAGE 3.4|Korea Region,IMAGE 3.4,"['kor', 'prk']"
-168,IMAGE 3.4|Middle East,IMAGE 3.4,"['bhr', 'irn', 'irq', 'isr', 'jor', 'kwt', 'lbn', 'omn', 'pse', 'qat', 'sau', 'syr', 'are', 'yem']"
-169,IMAGE 3.4|Mexico,IMAGE 3.4,['mex']
-170,IMAGE 3.4|Northern Africa,IMAGE 3.4,"['dza', 'egy', 'lby', 'mar', 'tun', 'esh']"
-171,IMAGE 3.4|Oceania,IMAGE 3.4,"['asm', 'aus', 'cok', 'fji', 'pyf', 'kir', 'mhl', 'fsm', 'nru', 'ncl', 'nzl', 'niu', 'mnp', 'plw', 'pcn', 'wsm', 'slb', 'tkl', 'ton', 'tuv', 'vut', 'wlf']"
-172,IMAGE 3.4|Central America,IMAGE 3.4,"['aia', 'abw', 'bhs', 'brb', 'blz', 'bmu', 'cym', 'cri', 'dma', 'dom', 'slv', 'grd', 'glp', 'gtm', 'hti', 'hnd', 'jam', 'mtq', 'msr', 'nic', 'pan', 'pri', 'kna', 'lca', 'vct', 'tto', 'tca', 'vgb', 'vir']"
-173,IMAGE 3.4|Rest of Southern Africa,IMAGE 3.4,"['ago', 'bwa', 'lso', 'mwi', 'moz', 'nam', 'swz', 'tza', 'zmb', 'zwe']"
-174,IMAGE 3.4|Rest of South America,IMAGE 3.4,"['arg', 'bol', 'chl', 'col', 'ecu', 'guf', 'guy', 'pry', 'per', 'sur', 'ury', 'ven']"
-175,IMAGE 3.4|Rest of South Asia,IMAGE 3.4,"['afg', 'bgd', 'btn', 'mdv', 'npl', 'pak', 'lka']"
-176,IMAGE 3.4|Russia Region,IMAGE 3.4,"['arm', 'aze', 'geo', 'rus']"
-177,IMAGE 3.4|South Africa,IMAGE 3.4,['zaf']
-178,IMAGE 3.4|Southeastern Asia,IMAGE 3.4,"['brn', 'khm', 'lao', 'mys', 'mmr', 'phl', 'sgp', 'tha', 'vnm']"
-179,IMAGE 3.4|Central Asia,IMAGE 3.4,"['kaz', 'kgz', 'tjk', 'tkm', 'uzb']"
-180,IMAGE 3.4|Turkey,IMAGE 3.4,['tur']
-181,IMAGE 3.4|Ukraine Region,IMAGE 3.4,"['blr', 'mda', 'ukr']"
-182,IMAGE 3.4|United States,IMAGE 3.4,"['spm', 'usa']"
-183,IMAGE 3.4|Western Africa,IMAGE 3.4,"['ben', 'bfa', 'cmr', 'cpv', 'caf', 'tcd', 'cod', 'civ', 'gnq', 'gab', 'gmb', 'gha', 'gin', 'gnb', 'lbr', 'mli', 'mrt', 'ner', 'nga', 'stp', 'sen', 'sle', 'shn', 'tgo']"
-184,IMAGE 3.4|Western Europe,IMAGE 3.4,"['and', 'aut', 'bel', 'dnk', 'fro', 'fin', 'fra', 'deu', 'gib', 'grc', 'isl', 'irl', 'ita', 'lie', 'lux', 'mlt', 'mco', 'nld', 'nor', 'prt', 'smr', 'esp', 'swe', 'che', 'gbr', 'vat']"
-185,"REMIND-MAgPIE 3.4-4.8|Canada, Australia, New Zealand",REMIND-MAgPIE 3.4-4.8,"['aus', 'can', 'hmd', 'nzl', 'spm']"
-186,REMIND-MAgPIE 3.4-4.8|China and Taiwan,REMIND-MAgPIE 3.4-4.8,"['chn', 'hkg', 'mac', 'twn']"
-187,REMIND-MAgPIE 3.4-4.8|India,REMIND-MAgPIE 3.4-4.8,['ind']
-188,REMIND-MAgPIE 3.4-4.8|Japan,REMIND-MAgPIE 3.4-4.8,['jpn']
-189,REMIND-MAgPIE 3.4-4.8|Other Asia,REMIND-MAgPIE 3.4-4.8,"['afg', 'asm', 'bgd', 'btn', 'iot', 'brn', 'khm', 'cxr', 'cck', 'cok', 'fji', 'pyf', 'atf', 'gum', 'idn', 'kir', 'lao', 'mys', 'mdv', 'mhl', 'fsm', 'mng', 'mmr', 'nru', 'npl', 'ncl', 'niu', 'nfk', 'prk', 'mnp', 'pak', 'plw', 'png', 'phl', 'pcn', 'wsm', 'sgp', 'slb', 'kor', 'lka', 'tha', 'tls', 'tkl', 'ton', 'tuv', 'umi', 'vut', 'vnm', 'wlf']"
-190,REMIND-MAgPIE 3.4-4.8|Latin America and the Caribbean,REMIND-MAgPIE 3.4-4.8,"['aia', 'ata', 'atg', 'arg', 'abw', 'bhs', 'brb', 'blz', 'bmu', 'bol', 'bes', 'bvt', 'bra', 'vgb', 'cym', 'chl', 'col', 'cri', 'cub', 'cuw', 'cuw', 'dma', 'dom', 'ecu', 'slv', 'flk', 'guf', 'grd', 'glp', 'gtm', 'guy', 'hti', 'hnd', 'jam', 'mtq', 'mex', 'msr', 'nic', 'pan', 'pry', 'per', 'pri', 'blm', 'kna', 'lca', 'maf', 'vct', 'sxm', 'sgs', 'sur', 'tto', 'tca', 'vir', 'ury', 'ven']"
-191,REMIND-MAgPIE 3.4-4.8|Middle East and North Africa,REMIND-MAgPIE 3.4-4.8,"['dza', 'bhr', 'egy', 'irn', 'irq', 'isr', 'jor', 'kwt', 'lbn', 'lby', 'mar', 'omn', 'pse', 'qat', 'sau', 'sdn', 'syr', 'tun', 'are', 'esh', 'yem']"
-192,REMIND-MAgPIE 3.4-4.8|Russia and Reforming Economies,REMIND-MAgPIE 3.4-4.8,"['arm', 'aze', 'blr', 'geo', 'kaz', 'kgz', 'mda', 'rus', 'tjk', 'tkm', 'ukr', 'uzb']"
-193,REMIND-MAgPIE 3.4-4.8|Sub-Saharan Africa,REMIND-MAgPIE 3.4-4.8,"['ago', 'ben', 'bwa', 'bfa', 'bdi', 'cpv', 'cmr', 'caf', 'tcd', 'com', 'cog', 'civ', 'cod', 'dji', 'gnq', 'eri', 'swz', 'eth', 'gab', 'gmb', 'gha', 'gin', 'gnb', 'ken', 'lso', 'lbr', 'mdg', 'mwi', 'mli', 'mrt', 'mus', 'myt', 'moz', 'nam', 'ner', 'nga', 'rwa', 'reu', 'shn', 'stp', 'sen', 'syc', 'sle', 'som', 'zaf', 'ssd', 'tza', 'tgo', 'uga', 'zmb', 'zwe']"
-194,REMIND-MAgPIE 3.4-4.8|United States of America,REMIND-MAgPIE 3.4-4.8,['usa']
-195,REMIND-MAgPIE 3.4-4.8|EU 28,REMIND-MAgPIE 3.4-4.8,"['aut', 'bel', 'bgr', 'hrv', 'cyp', 'cze', 'dnk', 'est', 'fro', 'fin', 'fra', 'deu', 'gib', 'gib', 'grc', 'ggy', 'ggy', 'hun', 'irl', 'imn', 'ita', 'ita', 'jey', 'lva', 'ltu', 'lux', 'mlt', 'nld', 'pol', 'prt', 'rou', 'svk', 'svn', 'esp', 'swe', 'gbr', 'ala']"
-196,REMIND-MAgPIE 3.4-4.8|Non-EU28 Europe,REMIND-MAgPIE 3.4-4.8,"['alb', 'and', 'bih', 'grl', 'isl', 'lie', 'mco', 'mne', 'mkd', 'nor', 'smr', 'srb', 'sjm', 'che', 'tur', 'vat']"
+,Unnamed: 0,model_region,model,iso_list
+0,2,OECD & EU (R5),R5,"['alb', 'aus', 'aut', 'bel', 'bih', 'bgr', 'can', 'hrv', 'cyp', 'cze', 'dnk', 'est', 'fin', 'fra', 'deu', 'grc', 'gum', 'hun', 'isl', 'irl', 'ita', 'jpn', 'kos', 'lva', 'ltu', 'lux', 'mlt', 'mne', 'nld', 'nzl', 'mkd', 'nor', 'pol', 'prt', 'pri', 'rou', 'srb', 'svk', 'svn', 'esp', 'swe', 'che', 'tur', 'gbr', 'usa']"
+1,3,Reforming Economies (R5),R5,"['arm', 'aze', 'blr', 'geo', 'kaz', 'kgz', 'mda', 'rus', 'tjk', 'tkm', 'ukr', 'uzb']"
+2,4,Asia (R5),R5,"['afg', 'bgd', 'btn', 'brn', 'khm', 'chn', 'cok', 'fji', 'pyf', 'hkg', 'ind', 'idn', 'kir', 'lao', 'mac', 'mys', 'mdv', 'mhl', 'fsm', 'mng', 'mmr', 'nru', 'npl', 'niu', 'ncl', 'prk', 'pak', 'png', 'plw', 'phl', 'kor', 'wsm', 'sgp', 'slb', 'lka', 'twn', 'tha', 'tls', 'ton', 'tuv', 'vut', 'vnm']"
+3,5,Middle East & Africa (R5),R5,"['dza', 'ago', 'bhr', 'ben', 'bwa', 'bfa', 'bdi', 'cmr', 'cpv', 'caf', 'tcd', 'com', 'cog', 'civ', 'cod', 'dji', 'egy', 'gnq', 'eri', 'eth', 'gab', 'gmb', 'gha', 'gin', 'gnb', 'irn', 'irq', 'isr', 'jor', 'ken', 'kwt', 'lbn', 'lso', 'lbr', 'lby', 'mdg', 'mwi', 'mli', 'mrt', 'mus', 'myt', 'mar', 'moz', 'nam', 'ner', 'nga', 'pse', 'omn', 'qat', 'rwa', 'reu', 'stp', 'sau', 'sen', 'syc', 'sle', 'som', 'zaf', 'ssd', 'sdn', 'swz', 'syr', 'tgo', 'tun', 'uga', 'are', 'tza', 'esh', 'yem', 'zmb', 'zwe']"
+4,6,Latin America (R5),R5,"['atg', 'arg', 'abw', 'bhs', 'brb', 'blz', 'bol', 'bra', 'chl', 'col', 'cri', 'cub', 'dom', 'ecu', 'slv', 'guf', 'grd', 'glp', 'gtm', 'guy', 'hti', 'hnd', 'jam', 'mtq', 'mex', 'nic', 'pan', 'pry', 'per', 'kna', 'lca', 'vct', 'sur', 'tto', 'vir', 'ury', 'ven']"
+5,8,European Union (R9),R9,"['aut', 'bel', 'bgr', 'hrv', 'cyp', 'cze', 'dnk', 'est', 'fin', 'fra', 'deu', 'grc', 'hun', 'irl', 'ita', 'lva', 'ltu', 'lux', 'mlt', 'nld', 'pol', 'prt', 'rou', 'svk', 'svn', 'esp', 'swe']"
+6,9,USA (R9),R9,['usa']
+7,10,Other OECD (R9),R9,"['alb', 'aus', 'bih', 'can', 'gum', 'isl', 'jpn', 'kos', 'mne', 'nzl', 'mkd', 'nor', 'pri', 'srb', 'gbr', 'che', 'tur']"
+8,11,China (R9),R9,"['chn', 'hkg', 'mac']"
+9,12,India (R9),R9,['ind']
+10,13,Other Asia (R9),R9,"['afg', 'bgd', 'btn', 'brn', 'khm', 'cok', 'fji', 'pyf', 'idn', 'kir', 'lao', 'mys', 'mdv', 'mhl', 'fsm', 'mng', 'mmr', 'nru', 'niu', 'npl', 'ncl', 'prk', 'pak', 'plw', 'png', 'phl', 'kor', 'wsm', 'sgp', 'slb', 'lka', 'twn', 'tuv', 'tha', 'tls', 'ton', 'vut', 'vnm']"
+11,14,Reforming Economies (R9),R9,"['arm', 'aze', 'blr', 'geo', 'kaz', 'kgz', 'mda', 'rus', 'tjk', 'tkm', 'ukr', 'uzb']"
+12,15,Middle East & Africa (R9),R9,"['dza', 'ago', 'bhr', 'ben', 'bwa', 'bfa', 'bdi', 'cmr', 'cpv', 'caf', 'tcd', 'com', 'cog', 'civ', 'cod', 'dji', 'egy', 'gnq', 'eri', 'swz', 'eth', 'gab', 'gmb', 'gha', 'gin', 'gnb', 'irn', 'irq', 'isr', 'jor', 'ken', 'kwt', 'lbn', 'lso', 'lbr', 'lby', 'mdg', 'mwi', 'mli', 'mrt', 'mus', 'myt', 'mar', 'moz', 'nam', 'ner', 'nga', 'pse', 'omn', 'qat', 'rwa', 'reu', 'stp', 'sau', 'sen', 'syc', 'sle', 'som', 'zaf', 'ssd', 'sdn', 'syr', 'tgo', 'tun', 'uga', 'are', 'tza', 'esh', 'yem', 'zmb', 'zwe']"
+13,16,Latin America (R9),R9,"['atg', 'arg', 'abw', 'bhs', 'brb', 'blz', 'bol', 'bra', 'chl', 'col', 'cri', 'cub', 'dom', 'ecu', 'slv', 'guf', 'grd', 'glp', 'gtm', 'guy', 'hti', 'hnd', 'jam', 'mtq', 'mex', 'nic', 'pan', 'pry', 'per', 'kna', 'lca', 'vct', 'sur', 'tto', 'vir', 'ury', 'ven']"
+14,18,Africa (R10),R10,"['dza', 'ago', 'ben', 'bwa', 'bfa', 'bdi', 'cmr', 'cpv', 'caf', 'tcd', 'com', 'cog', 'civ', 'cod', 'dji', 'egy', 'gnq', 'eri', 'eth', 'gab', 'gmb', 'gha', 'gin', 'gnb', 'ken', 'lso', 'lbr', 'lby', 'mdg', 'mwi', 'mli', 'mrt', 'mus', 'myt', 'mar', 'moz', 'nam', 'ner', 'nga', 'rwa', 'reu', 'stp', 'sen', 'syc', 'sle', 'som', 'zaf', 'ssd', 'sdn', 'swz', 'tgo', 'tun', 'uga', 'tza', 'esh', 'zmb', 'zwe']"
+15,19,China+ (R10),R10,"['chn', 'hkg', 'mac', 'mng', 'prk', 'kor']"
+16,20,Europe (R10),R10,"['alb', 'aut', 'bel', 'bih', 'bgr', 'hrv', 'cyp', 'cze', 'dnk', 'est', 'fra', 'fin', 'deu', 'grc', 'hun', 'isl', 'irl', 'ita', 'kos', 'lva', 'ltu', 'lux', 'mlt', 'mne', 'nld', 'mkd', 'nor', 'prt', 'che', 'pol', 'rou', 'srb', 'svk', 'svn', 'esp', 'swe', 'tur', 'gbr']"
+17,21,India+ (R10),R10,"['ind', 'afg', 'bgd', 'btn', 'mdv', 'npl', 'pak', 'lka']"
+18,22,Latin America (R10),R10,"['atg', 'arg', 'abw', 'bhs', 'brb', 'blz', 'bol', 'bra', 'chl', 'col', 'cri', 'cub', 'dom', 'ecu', 'slv', 'guf', 'grd', 'glp', 'gtm', 'guy', 'hti', 'hnd', 'jam', 'mtq', 'mex', 'nic', 'pan', 'pry', 'per', 'pri', 'kna', 'lca', 'vct', 'sur', 'tto', 'vir', 'ury', 'ven']"
+19,23,Middle East (R10),R10,"['bhr', 'irq', 'irn', 'isr', 'jor', 'kwt', 'lbn', 'omn', 'pse', 'qat', 'sau', 'syr', 'are', 'yem']"
+20,24,North America (R10),R10,"['can', 'gum', 'usa']"
+21,25,Pacific OECD (R10),R10,"['aus', 'jpn', 'nzl']"
+22,26,Reforming Economies (R10),R10,"['arm', 'aze', 'blr', 'geo', 'kaz', 'kgz', 'mda', 'rus', 'tjk', 'tkm', 'ukr', 'uzb']"
+23,27,Rest of Asia (R10),R10,"['brn', 'khm', 'cok', 'fji', 'pyf', 'idn', 'kir', 'lao', 'mys', 'mhl', 'fsm', 'mmr', 'nru', 'niu', 'plw', 'ncl', 'png', 'phl', 'wsm', 'sgp', 'slb', 'twn', 'tha', 'tls', 'ton', 'tuv', 'vut', 'vnm']"
+24,63,COFFEE 1.5|Africa (excluding South Africa),COFFEE 1.5,"['dza', 'ago', 'ben', 'bwa', 'bfa', 'bdi', 'cpv', 'cmr', 'caf', 'tcd', 'com', 'cog', 'civ', 'cod', 'dji', 'egy', 'gnq', 'eri', 'swz', 'eth', 'gab', 'gmb', 'gha', 'gin', 'gnb', 'ken', 'lso', 'lbr', 'lby', 'mdg', 'mwi', 'mli', 'mrt', 'mus', 'myt', 'mar', 'moz', 'nam', 'ner', 'nga', 'rwa', 'reu', 'stp', 'sen', 'syc', 'sle', 'som', 'ssd', 'sdn', 'tza', 'tgo', 'tun', 'uga', 'esh', 'zmb']"
+25,64,COFFEE 1.5|Australia & New Zealand,COFFEE 1.5,"['aus', 'nzl']"
+26,65,COFFEE 1.5|Brazil,COFFEE 1.5,['bra']
+27,66,COFFEE 1.5|Central America,COFFEE 1.5,"['aia', 'atg', 'abw', 'bhs', 'brb', 'blz', 'bmu', 'bes', 'cym', 'cri', 'cub', 'cuw', 'dma', 'dom', 'slv', 'guf', 'grd', 'glp', 'gtm', 'guy', 'hti', 'hnd', 'jam', 'mtq', 'mex', 'msr', 'nic', 'pan', 'blm', 'kna', 'lca', 'maf', 'vct', 'sxm', 'sur', 'tto', 'tca']"
+28,67,COFFEE 1.5|Canada,COFFEE 1.5,"['can', 'shn', 'spm']"
+29,68,COFFEE 1.5|Caspian Sea,COFFEE 1.5,"['afg', 'arm', 'aze', 'geo', 'kaz', 'kgz', 'pak', 'tjk', 'tkm', 'uzb']"
+30,69,COFFEE 1.5|China,COFFEE 1.5,"['chn', 'hkg', 'mac']"
+31,70,COFFEE 1.5|Europe,COFFEE 1.5,"['and', 'aut', 'bel', 'bvt', 'bgr', 'cyp', 'cze', 'dnk', 'est', 'fro', 'fin', 'fra', 'deu', 'gib', 'grc', 'grl', 'ggy', 'hun', 'isl', 'irl', 'imn', 'ita', 'jey', 'lva', 'lie', 'ltu', 'lux', 'mlt', 'mco', 'nld', 'nor', 'pol', 'prt', 'rou', 'smr', 'svk', 'svn', 'esp', 'sjm', 'swe', 'che', 'tur', 'gbr', 'vat', 'ala']"
+32,71,COFFEE 1.5|India,COFFEE 1.5,['ind']
+33,72,COFFEE 1.5|Japan,COFFEE 1.5,['jpn']
+34,73,COFFEE 1.5|South Korea,COFFEE 1.5,['kor']
+35,74,COFFEE 1.5|Middle East,COFFEE 1.5,"['bhr', 'irn', 'irq', 'isr', 'jor', 'kwt', 'lbn', 'omn', 'pse', 'qat', 'sau', 'syr', 'are', 'yem']"
+36,75,COFFEE 1.5|Rest of Asia and Oceania,COFFEE 1.5,"['ata', 'bgd', 'btn', 'iot', 'brn', 'khm', 'cxr', 'cck', 'cok', 'fji', 'pyf', 'atf', 'gum', 'hmd', 'idn', 'kir', 'lao', 'mys', 'mdv', 'mhl', 'fsm', 'mng', 'mmr', 'nru', 'npl', 'ncl', 'niu', 'nfk', 'prk', 'mnp', 'plw', 'png', 'phl', 'pcn', 'wsm', 'sgp', 'slb', 'lka', 'twn', 'tha', 'tls', 'tkl', 'ton', 'tuv', 'vut', 'vnm', 'wlf']"
+37,76,COFFEE 1.5|Russia,COFFEE 1.5,['rus']
+38,77,COFFEE 1.5|South Africa,COFFEE 1.5,['zaf']
+39,78,COFFEE 1.5|South America,COFFEE 1.5,"['arg', 'bol', 'chl', 'col', 'ecu', 'flk', 'pry', 'per', 'sgs', 'ury', 'ven']"
+40,79,COFFEE 1.5|United States,COFFEE 1.5,"['asm', 'vgb', 'pri', 'usa', 'umi', 'vir']"
+41,80,COFFEE 1.5|Rest of Europe,COFFEE 1.5,"['alb', 'blr', 'bih', 'hrv', 'mda', 'mne', 'mkd', 'srb', 'ukr']"
+42,81,GCAM 7.1|Africa_Eastern,GCAM 7.1,"['bdi', 'com', 'dji', 'eri', 'eth', 'ken', 'mdg', 'mus', 'reu', 'rwa', 'som', 'sdn', 'ssd', 'uga']"
+43,82,GCAM 7.1|Africa_Northern,GCAM 7.1,"['dza', 'egy', 'lby', 'mar', 'tun', 'esh']"
+44,83,GCAM 7.1|Africa_Southern,GCAM 7.1,"['ago', 'moz', 'mwi', 'lso', 'bwa', 'tza', 'nam', 'swz', 'zmb', 'zwe']"
+45,84,GCAM 7.1|Africa_Western,GCAM 7.1,"['ben', 'cog', 'cod', 'cmr', 'tcd', 'caf', 'cpv', 'gnq', 'gmb', 'gab', 'gha', 'gin', 'civ', 'lbr', 'mli', 'mrt', 'ner', 'nga', 'gnb', 'sen', 'sle', 'tgo', 'stp', 'bfa']"
+46,85,GCAM 7.1|Argentina,GCAM 7.1,['arg']
+47,86,GCAM 7.1|Australia_NZ,GCAM 7.1,"['aus', 'nzl']"
+48,87,GCAM 7.1|Brazil,GCAM 7.1,['bra']
+49,88,GCAM 7.1|Canada,GCAM 7.1,['can']
+50,89,GCAM 7.1|Central America and Caribbean,GCAM 7.1,"['atg', 'brb', 'bmu', 'bhs', 'blz', 'cym', 'cri', 'cub', 'dma', 'dom', 'slv', 'grd', 'gtm', 'hti', 'hnd', 'jam', 'mtq', 'msr', 'abw', 'aia', 'nic', 'pan', 'kna', 'lca', 'tto', 'vct', 'glp']"
+51,90,GCAM 7.1|Central Asia,GCAM 7.1,"['aze', 'arm', 'geo', 'kgz', 'kaz', 'mng', 'tjk', 'tkm', 'uzb']"
+52,91,GCAM 7.1|China,GCAM 7.1,"['chn', 'hkg', 'mac']"
+53,92,GCAM 7.1|Colombia,GCAM 7.1,['col']
+54,93,GCAM 7.1|EU-12,GCAM 7.1,"['bgr', 'cyp', 'est', 'cze', 'hun', 'lva', 'ltu', 'svk', 'mlt', 'pol', 'rou', 'svn']"
+55,94,GCAM 7.1|EU-15,GCAM 7.1,"['dnk', 'irl', 'aut', 'fin', 'flk', 'fra', 'grl', 'deu', 'grc', 'ita', 'bel', 'fro', 'and', 'gib', 'imn', 'lux', 'mco', 'nld', 'prt', 'esp', 'swe', 'gbr', 'vgb', 'spm', 'smr', 'tca']"
+56,95,GCAM 7.1|Europe_Eastern,GCAM 7.1,"['blr', 'mda', 'ukr']"
+57,96,GCAM 7.1|Europe_Non_EU,GCAM 7.1,"['alb', 'bih', 'hrv', 'mkd', 'mne', 'tur', 'srb']"
+58,97,GCAM 7.1|European Free Trade Association,GCAM 7.1,"['isl', 'lie', 'nor', 'che']"
+59,98,GCAM 7.1|India,GCAM 7.1,['ind']
+60,99,GCAM 7.1|Indonesia,GCAM 7.1,['idn']
+61,100,GCAM 7.1|Japan,GCAM 7.1,['jpn']
+62,101,GCAM 7.1|Mexico,GCAM 7.1,['mex']
+63,102,GCAM 7.1|Middle East,GCAM 7.1,"['bhr', 'irn', 'isr', 'irq', 'jor', 'kwt', 'lbn', 'omn', 'pse', 'qat', 'sau', 'syr', 'yem', 'are']"
+64,103,GCAM 7.1|Pakistan,GCAM 7.1,['pak']
+65,104,GCAM 7.1|Russia,GCAM 7.1,['rus']
+66,105,GCAM 7.1|South Africa,GCAM 7.1,['zaf']
+67,106,GCAM 7.1|South America_Northern,GCAM 7.1,"['guf', 'guy', 'sur', 'ven']"
+68,107,GCAM 7.1|South America_Southern,GCAM 7.1,"['bol', 'chl', 'ecu', 'pry', 'per', 'ury']"
+69,108,GCAM 7.1|South Asia,GCAM 7.1,"['bgd', 'lka', 'afg', 'btn', 'mdv', 'npl']"
+70,109,GCAM 7.1|South Korea,GCAM 7.1,['kor']
+71,110,GCAM 7.1|Southeast Asia,GCAM 7.1,"['asm', 'mmr', 'slb', 'brn', 'khm', 'cok', 'fji', 'fsm', 'pyf', 'gum', 'prk', 'kir', 'lao', 'mys', 'ncl', 'niu', 'mnp', 'myt', 'nfk', 'cck', 'cxr', 'vut', 'nru', 'png', 'phl', 'syc', 'sgp', 'tha', 'tkl', 'ton', 'tuv', 'vnm', 'wsm', 'tls', 'plw', 'mhl']"
+72,111,GCAM 7.1|Taiwan,GCAM 7.1,['twn']
+73,112,GCAM 7.1|USA,GCAM 7.1,"['pri', 'usa', 'vir']"
+74,113,WITCH 6.0|Brazil,WITCH 6.0,['bra']
+75,114,WITCH 6.0|Canada,WITCH 6.0,"['can', 'spm']"
+76,115,WITCH 6.0|China,WITCH 6.0,"['chn', 'hkg', 'mac', 'twn']"
+77,116,WITCH 6.0|Europe (EU+EFTA+Balkan Countries and Turkey),WITCH 6.0,"['bgr', 'cyp', 'cze', 'est', 'hun', 'ltu', 'lva', 'pol', 'rou', 'svk', 'svn', 'mlt', 'hrv', 'aut', 'bel', 'deu', 'dnk', 'esp', 'fin', 'fra', 'gbr', 'grc', 'irl', 'ita', 'lux', 'nld', 'prt', 'swe', 'lie', 'nor', 'che', 'grl', 'isl', 'fro', 'ala', 'and', 'ggy', 'gib', 'imn', 'jey', 'mco', 'sjm', 'smr', 'vat', 'bih', 'alb', 'mkd', 'mne', 'srb']"
+78,117,WITCH 6.0|India,WITCH 6.0,['ind']
+79,118,WITCH 6.0|Indonesia,WITCH 6.0,['idn']
+80,119,WITCH 6.0|Japan and Korea,WITCH 6.0,"['jpn', 'kor', 'prk']"
+81,120,WITCH 6.0|Latin America and the Caribbean,WITCH 6.0,"['ata', 'bmu', 'sgs', 'tca', 'vgb', 'vir', 'abw', 'aia', 'arg', 'atg', 'bes', 'bhs', 'blm', 'blz', 'bol', 'brb', 'chl', 'col', 'cri', 'cub', 'cuw', 'cym', 'dma', 'dom', 'ecu', 'flk', 'glp', 'grd', 'gtm', 'guf', 'guy', 'hnd', 'hti', 'jam', 'kna', 'lca', 'maf', 'msr', 'mtq', 'nic', 'pan', 'per', 'pri', 'pry', 'slv', 'sur', 'sxm', 'tto', 'ury', 'vct', 'ven']"
+82,121,WITCH 6.0|Middle East and North Africa,WITCH 6.0,"['are', 'bhr', 'dza', 'egy', 'esh', 'irn', 'irq', 'isr', 'jor', 'kwt', 'lbn', 'lby', 'mar', 'omn', 'pse', 'qat', 'sau', 'syr', 'tun', 'yem']"
+83,122,WITCH 6.0|Mexico,WITCH 6.0,['mex']
+84,123,"WITCH 6.0|Australia, New Zealand, and Oceania islands",WITCH 6.0,"['nzl', 'aus', 'cxr', 'cok', 'hmd', 'nfk', 'niu', 'nru', 'pcn', 'tkl', 'tuv', 'umi', 'wlf', 'fji', 'png', 'fsm', 'gum', 'asm', 'tls', 'pyf', 'kir', 'mnp', 'mhl', 'ncl', 'plw', 'wsm', 'slb', 'ton', 'vut']"
+85,124,WITCH 6.0|South Asia,WITCH 6.0,"['afg', 'bgd', 'btn', 'lka', 'mdv', 'npl', 'pak']"
+86,125,WITCH 6.0|South East Asia,WITCH 6.0,"['brn', 'cck', 'khm', 'lao', 'mmr', 'mys', 'phl', 'sgp', 'tha', 'vnm']"
+87,126,WITCH 6.0|South Africa,WITCH 6.0,['zaf']
+88,127,WITCH 6.0|Sub Saharan Africa,WITCH 6.0,"['dji', 'iot', 'bvt', 'atf', 'ago', 'ben', 'bwa', 'bfa', 'bdi', 'cmr', 'cpv', 'caf', 'tcd', 'com', 'cog', 'cod', 'civ', 'gnq', 'eri', 'eth', 'gab', 'gmb', 'gha', 'gin', 'gnb', 'ken', 'lso', 'lbr', 'mdg', 'mwi', 'mli', 'mrt', 'mus', 'myt', 'moz', 'nam', 'ner', 'nga', 'reu', 'rwa', 'stp', 'sen', 'syc', 'shn', 'sle', 'som', 'ssd', 'sdn', 'swz', 'tza', 'tgo', 'uga', 'zmb', 'zwe']"
+89,128,WITCH 6.0|Non-EU Eastern European and Transition Countries,WITCH 6.0,"['mng', 'arm', 'aze', 'blr', 'geo', 'kaz', 'kgz', 'mda', 'rus', 'tjk', 'tur', 'tkm', 'ukr', 'uzb']"
+90,129,WITCH 6.0|United States of America,WITCH 6.0,['usa']
+91,130,MESSAGEix-GLOBIOM 2.1-R12|Sub-Saharan Africa,MESSAGEix-GLOBIOM 2.1-R12,"['ago', 'ben', 'cog', 'cod', 'bdi', 'cmr', 'tcd', 'com', 'caf', 'cpv', 'dji', 'gnq', 'swz', 'eri', 'eth', 'gmb', 'gab', 'gha', 'gin', 'civ', 'ken', 'lbr', 'mdg', 'mli', 'mus', 'mrt', 'moz', 'mwi', 'ner', 'nga', 'gnb', 'rwa', 'syc', 'zaf', 'lso', 'bwa', 'sen', 'sle', 'som', 'tgo', 'stp', 'tza', 'uga', 'bfa', 'nam', 'zmb', 'zwe', 'esh']"
+92,131,MESSAGEix-GLOBIOM 2.1-R12|Rest of Centrally Planned Asia,MESSAGEix-GLOBIOM 2.1-R12,"['khm', 'prk', 'lao', 'mng', 'mac', 'vnm']"
+93,132,MESSAGEix-GLOBIOM 2.1-R12|China,MESSAGEix-GLOBIOM 2.1-R12,"['chn', 'hkg']"
+94,133,MESSAGEix-GLOBIOM 2.1-R12|Eastern Europe,MESSAGEix-GLOBIOM 2.1-R12,"['alb', 'bih', 'bgr', 'est', 'cze', 'hrv', 'hun', 'lva', 'ltu', 'svk', 'mkd', 'mne', 'pol', 'rou', 'svn', 'srb']"
+95,134,MESSAGEix-GLOBIOM 2.1-R12|Former Soviet Union,MESSAGEix-GLOBIOM 2.1-R12,"['aze', 'arm', 'geo', 'kgz', 'kaz', 'blr', 'mda', 'rus', 'tjk', 'tkm', 'ukr', 'uzb']"
+96,135,MESSAGEix-GLOBIOM 2.1-R12|Latin America and the Caribbean,MESSAGEix-GLOBIOM 2.1-R12,"['atg', 'arg', 'brb', 'bmu', 'bhs', 'blz', 'bol', 'bra', 'chl', 'cym', 'col', 'cri', 'cub', 'dma', 'dom', 'ecu', 'slv', 'guf', 'flk', 'grd', 'gtm', 'guy', 'hti', 'hnd', 'jam', 'mtq', 'msr', 'mex', 'abw', 'aia', 'sur', 'nic', 'pry', 'per', 'pan', 'kna', 'lca', 'tto', 'ury', 'vct', 'ven', 'glp', 'tca']"
+97,136,MESSAGEix-GLOBIOM 2.1-R12|Middle East and North Africa,MESSAGEix-GLOBIOM 2.1-R12,"['dza', 'bhr', 'egy', 'irn', 'isr', 'irq', 'jor', 'kwt', 'lbn', 'lby', 'mar', 'omn', 'pse', 'qat', 'sau', 'sdn', 'ssd', 'syr', 'tun', 'yem', 'are']"
+98,137,MESSAGEix-GLOBIOM 2.1-R12|North America,MESSAGEix-GLOBIOM 2.1-R12,"['can', 'gum', 'umi', 'pri', 'usa', 'vir']"
+99,138,MESSAGEix-GLOBIOM 2.1-R12|Pacific OECD,MESSAGEix-GLOBIOM 2.1-R12,"['aus', 'jpn', 'nzl', 'cxr', 'hmd', 'tkl']"
+100,139,MESSAGEix-GLOBIOM 2.1-R12|Other Pacific Asia,MESSAGEix-GLOBIOM 2.1-R12,"['asm', 'mmr', 'slb', 'brn', 'cok', 'fji', 'fsm', 'pyf', 'kir', 'kor', 'mys', 'ncl', 'niu', 'mnp', 'cck', 'vut', 'nru', 'png', 'phl', 'sgp', 'tha', 'ton', 'tuv', 'wsm', 'idn', 'tls', 'plw', 'mhl', 'twn']"
+101,140,MESSAGEix-GLOBIOM 2.1-R12|South Asia,MESSAGEix-GLOBIOM 2.1-R12,"['bgd', 'lka', 'afg', 'btn', 'ind', 'mdv', 'npl', 'pak']"
+102,141,MESSAGEix-GLOBIOM 2.1-R12|Western Europe,MESSAGEix-GLOBIOM 2.1-R12,"['cyp', 'dnk', 'irl', 'aut', 'fin', 'fra', 'grl', 'deu', 'grc', 'isl', 'ita', 'lie', 'mlt', 'bel', 'fro', 'and', 'gib', 'imn', 'lux', 'mco', 'myt', 'ala', 'nfk', 'iot', 'nld', 'nor', 'prt', 'reu', 'esp', 'swe', 'che', 'tur', 'gbr', 'vgb', 'wlf', 'pcn', 'spm', 'smr', 'vat', 'sjm', 'maf', 'blm', 'ggy', 'jey', 'sgs']"
+103,142,AIM 3.0|Brazil,AIM 3.0,['bra']
+104,143,AIM 3.0|Canada,AIM 3.0,['can']
+105,144,AIM 3.0|China,AIM 3.0,"['chn', 'hkg']"
+106,145,AIM 3.0|Former USSR,AIM 3.0,"['arm', 'aze', 'blr', 'geo', 'kaz', 'kgz', 'mda', 'rus', 'tjk', 'tkm', 'ukr', 'uzb']"
+107,146,AIM 3.0|India,AIM 3.0,['ind']
+108,147,AIM 3.0|Japan,AIM 3.0,['jpn']
+109,148,AIM 3.0|Turkey,AIM 3.0,['tur']
+110,149,AIM 3.0|USA,AIM 3.0,['usa']
+111,150,AIM 3.0|Other Africa,AIM 3.0,"['ago', 'ben', 'bwa', 'bfa', 'bdi', 'cpv', 'cmr', 'caf', 'tcd', 'com', 'cog', 'civ', 'cod', 'dji', 'gnq', 'eri', 'swz', 'eth', 'gab', 'gmb', 'gha', 'gin', 'gnb', 'ken', 'lso', 'lbr', 'mdg', 'mwi', 'mli', 'mrt', 'mus', 'myt', 'moz', 'nam', 'ner', 'nga', 'rwa', 'reu', 'stp', 'sen', 'syc', 'sle', 'som', 'zaf', 'sdn', 'tza', 'tgo', 'uga', 'esh', 'zmb', 'zwe']"
+112,151,AIM 3.0|EU & UK,AIM 3.0,"['aut', 'bel', 'cyp', 'cze', 'dnk', 'est', 'fin', 'fra', 'deu', 'grc', 'hun', 'irl', 'ita', 'lva', 'ltu', 'lux', 'mlt', 'nld', 'pol', 'prt', 'svk', 'svn', 'esp', 'swe', 'gbr']"
+113,152,AIM 3.0|Rest of Europe,AIM 3.0,"['alb', 'and', 'bih', 'bgr', 'hrv', 'fro', 'gib', 'isl', 'lie', 'mco', 'mne', 'mkd', 'nor', 'rou', 'smr', 'srb', 'sjm', 'che', 'vat']"
+114,153,AIM 3.0|Rest of Latin America,AIM 3.0,"['aia', 'atg', 'arg', 'abw', 'bhs', 'brb', 'blz', 'bmu', 'bol', 'bvt', 'vgb', 'cym', 'chl', 'col', 'cri', 'cub', 'dma', 'dom', 'ecu', 'slv', 'flk', 'guf', 'grl', 'grd', 'glp', 'gtm', 'guy', 'hti', 'hnd', 'jam', 'mtq', 'mex', 'msr', 'nic', 'pan', 'pry', 'per', 'pri', 'kna', 'lca', 'spm', 'vct', 'sgs', 'sur', 'tto', 'tca', 'vir', 'ury', 'ven']"
+115,154,AIM 3.0|Middle East,AIM 3.0,"['bhr', 'irn', 'irq', 'isr', 'jor', 'kwt', 'lbn', 'omn', 'qat', 'sau', 'syr', 'are', 'yem']"
+116,155,AIM 3.0|North Africa,AIM 3.0,"['dza', 'egy', 'lby', 'mar', 'tun']"
+117,156,AIM 3.0|New Zealand and Australia,AIM 3.0,"['aus', 'nzl']"
+118,157,AIM 3.0|Rest of Asia,AIM 3.0,"['afg', 'asm', 'bgd', 'btn', 'iot', 'brn', 'cxr', 'cck', 'cok', 'fji', 'pyf', 'atf', 'gum', 'hmd', 'kir', 'mdv', 'mhl', 'fsm', 'nru', 'npl', 'ncl', 'niu', 'nfk', 'mnp', 'pak', 'plw', 'png', 'pcn', 'wsm', 'slb', 'lka', 'tkl', 'ton', 'tuv', 'umi', 'vut', 'wlf']"
+119,158,AIM 3.0|Rest of East and South East Asia,AIM 3.0,"['khm', 'idn', 'lao', 'mys', 'mng', 'mmr', 'prk', 'phl', 'sgp', 'kor', 'twn', 'tha', 'tls', 'vnm']"
+120,159,IMAGE 3.4|Brazil,IMAGE 3.4,['bra']
+121,160,IMAGE 3.4|Canada,IMAGE 3.4,['can']
+122,161,IMAGE 3.4|Central Europe,IMAGE 3.4,"['alb', 'bih', 'bgr', 'hrv', 'cyp', 'cze', 'est', 'hun', 'lva', 'ltu', 'mkd', 'pol', 'rou', 'srb', 'mne', 'svk', 'svn']"
+123,162,IMAGE 3.4|China Region,IMAGE 3.4,"['chn', 'hkg', 'mac', 'mng', 'twn']"
+124,163,IMAGE 3.4|Eastern Africa,IMAGE 3.4,"['bdi', 'com', 'dji', 'eri', 'eth', 'ken', 'mdg', 'mus', 'reu', 'rwa', 'syc', 'som', 'sdn', 'uga']"
+125,164,IMAGE 3.4|India,IMAGE 3.4,['ind']
+126,165,IMAGE 3.4|Indonesia Region,IMAGE 3.4,"['tls', 'idn', 'png']"
+127,166,IMAGE 3.4|Japan,IMAGE 3.4,['jpn']
+128,167,IMAGE 3.4|Korea Region,IMAGE 3.4,"['kor', 'prk']"
+129,168,IMAGE 3.4|Middle East,IMAGE 3.4,"['bhr', 'irn', 'irq', 'isr', 'jor', 'kwt', 'lbn', 'omn', 'pse', 'qat', 'sau', 'syr', 'are', 'yem']"
+130,169,IMAGE 3.4|Mexico,IMAGE 3.4,['mex']
+131,170,IMAGE 3.4|Northern Africa,IMAGE 3.4,"['dza', 'egy', 'lby', 'mar', 'tun', 'esh']"
+132,171,IMAGE 3.4|Oceania,IMAGE 3.4,"['asm', 'aus', 'cok', 'fji', 'pyf', 'kir', 'mhl', 'fsm', 'nru', 'ncl', 'nzl', 'niu', 'mnp', 'plw', 'pcn', 'wsm', 'slb', 'tkl', 'ton', 'tuv', 'vut', 'wlf']"
+133,172,IMAGE 3.4|Central America,IMAGE 3.4,"['aia', 'abw', 'bhs', 'brb', 'blz', 'bmu', 'cym', 'cri', 'dma', 'dom', 'slv', 'grd', 'glp', 'gtm', 'hti', 'hnd', 'jam', 'mtq', 'msr', 'nic', 'pan', 'pri', 'kna', 'lca', 'vct', 'tto', 'tca', 'vgb', 'vir']"
+134,173,IMAGE 3.4|Rest of Southern Africa,IMAGE 3.4,"['ago', 'bwa', 'lso', 'mwi', 'moz', 'nam', 'swz', 'tza', 'zmb', 'zwe']"
+135,174,IMAGE 3.4|Rest of South America,IMAGE 3.4,"['arg', 'bol', 'chl', 'col', 'ecu', 'guf', 'guy', 'pry', 'per', 'sur', 'ury', 'ven']"
+136,175,IMAGE 3.4|Rest of South Asia,IMAGE 3.4,"['afg', 'bgd', 'btn', 'mdv', 'npl', 'pak', 'lka']"
+137,176,IMAGE 3.4|Russia Region,IMAGE 3.4,"['arm', 'aze', 'geo', 'rus']"
+138,177,IMAGE 3.4|South Africa,IMAGE 3.4,['zaf']
+139,178,IMAGE 3.4|Southeastern Asia,IMAGE 3.4,"['brn', 'khm', 'lao', 'mys', 'mmr', 'phl', 'sgp', 'tha', 'vnm']"
+140,179,IMAGE 3.4|Central Asia,IMAGE 3.4,"['kaz', 'kgz', 'tjk', 'tkm', 'uzb']"
+141,180,IMAGE 3.4|Turkey,IMAGE 3.4,['tur']
+142,181,IMAGE 3.4|Ukraine Region,IMAGE 3.4,"['blr', 'mda', 'ukr']"
+143,182,IMAGE 3.4|United States,IMAGE 3.4,"['spm', 'usa']"
+144,183,IMAGE 3.4|Western Africa,IMAGE 3.4,"['ben', 'bfa', 'cmr', 'cpv', 'caf', 'tcd', 'cod', 'civ', 'gnq', 'gab', 'gmb', 'gha', 'gin', 'gnb', 'lbr', 'mli', 'mrt', 'ner', 'nga', 'stp', 'sen', 'sle', 'shn', 'tgo']"
+145,184,IMAGE 3.4|Western Europe,IMAGE 3.4,"['and', 'aut', 'bel', 'dnk', 'fro', 'fin', 'fra', 'deu', 'gib', 'grc', 'isl', 'irl', 'ita', 'lie', 'lux', 'mlt', 'mco', 'nld', 'nor', 'prt', 'smr', 'esp', 'swe', 'che', 'gbr', 'vat']"
+146,185,"REMIND-MAgPIE 3.4-4.8|Canada, Australia, New Zealand",REMIND-MAgPIE 3.4-4.8,"['aus', 'can', 'hmd', 'nzl', 'spm']"
+147,186,REMIND-MAgPIE 3.4-4.8|China and Taiwan,REMIND-MAgPIE 3.4-4.8,"['chn', 'hkg', 'mac', 'twn']"
+148,187,REMIND-MAgPIE 3.4-4.8|India,REMIND-MAgPIE 3.4-4.8,['ind']
+149,188,REMIND-MAgPIE 3.4-4.8|Japan,REMIND-MAgPIE 3.4-4.8,['jpn']
+150,189,REMIND-MAgPIE 3.4-4.8|Other Asia,REMIND-MAgPIE 3.4-4.8,"['afg', 'asm', 'bgd', 'btn', 'iot', 'brn', 'khm', 'cxr', 'cck', 'cok', 'fji', 'pyf', 'atf', 'gum', 'idn', 'kir', 'lao', 'mys', 'mdv', 'mhl', 'fsm', 'mng', 'mmr', 'nru', 'npl', 'ncl', 'niu', 'nfk', 'prk', 'mnp', 'pak', 'plw', 'png', 'phl', 'pcn', 'wsm', 'sgp', 'slb', 'kor', 'lka', 'tha', 'tls', 'tkl', 'ton', 'tuv', 'umi', 'vut', 'vnm', 'wlf']"
+151,190,REMIND-MAgPIE 3.4-4.8|Latin America and the Caribbean,REMIND-MAgPIE 3.4-4.8,"['aia', 'ata', 'atg', 'arg', 'abw', 'bhs', 'brb', 'blz', 'bmu', 'bol', 'bes', 'bvt', 'bra', 'vgb', 'cym', 'chl', 'col', 'cri', 'cub', 'cuw', 'cuw', 'dma', 'dom', 'ecu', 'slv', 'flk', 'guf', 'grd', 'glp', 'gtm', 'guy', 'hti', 'hnd', 'jam', 'mtq', 'mex', 'msr', 'nic', 'pan', 'pry', 'per', 'pri', 'blm', 'kna', 'lca', 'maf', 'vct', 'sxm', 'sgs', 'sur', 'tto', 'tca', 'vir', 'ury', 'ven']"
+152,191,REMIND-MAgPIE 3.4-4.8|Middle East and North Africa,REMIND-MAgPIE 3.4-4.8,"['dza', 'bhr', 'egy', 'irn', 'irq', 'isr', 'jor', 'kwt', 'lbn', 'lby', 'mar', 'omn', 'pse', 'qat', 'sau', 'sdn', 'syr', 'tun', 'are', 'esh', 'yem']"
+153,192,REMIND-MAgPIE 3.4-4.8|Russia and Reforming Economies,REMIND-MAgPIE 3.4-4.8,"['arm', 'aze', 'blr', 'geo', 'kaz', 'kgz', 'mda', 'rus', 'tjk', 'tkm', 'ukr', 'uzb']"
+154,193,REMIND-MAgPIE 3.4-4.8|Sub-Saharan Africa,REMIND-MAgPIE 3.4-4.8,"['ago', 'ben', 'bwa', 'bfa', 'bdi', 'cpv', 'cmr', 'caf', 'tcd', 'com', 'cog', 'civ', 'cod', 'dji', 'gnq', 'eri', 'swz', 'eth', 'gab', 'gmb', 'gha', 'gin', 'gnb', 'ken', 'lso', 'lbr', 'mdg', 'mwi', 'mli', 'mrt', 'mus', 'myt', 'moz', 'nam', 'ner', 'nga', 'rwa', 'reu', 'shn', 'stp', 'sen', 'syc', 'sle', 'som', 'zaf', 'ssd', 'tza', 'tgo', 'uga', 'zmb', 'zwe']"
+155,194,REMIND-MAgPIE 3.4-4.8|United States of America,REMIND-MAgPIE 3.4-4.8,['usa']
+156,195,REMIND-MAgPIE 3.4-4.8|EU 28,REMIND-MAgPIE 3.4-4.8,"['aut', 'bel', 'bgr', 'hrv', 'cyp', 'cze', 'dnk', 'est', 'fro', 'fin', 'fra', 'deu', 'gib', 'gib', 'grc', 'ggy', 'ggy', 'hun', 'irl', 'imn', 'ita', 'ita', 'jey', 'lva', 'ltu', 'lux', 'mlt', 'nld', 'pol', 'prt', 'rou', 'svk', 'svn', 'esp', 'swe', 'gbr', 'ala']"
+157,196,REMIND-MAgPIE 3.4-4.8|Non-EU28 Europe,REMIND-MAgPIE 3.4-4.8,"['alb', 'and', 'bih', 'grl', 'isl', 'lie', 'mco', 'mne', 'mkd', 'nor', 'smr', 'srb', 'sjm', 'che', 'tur', 'vat']"
