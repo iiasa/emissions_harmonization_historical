@@ -13,7 +13,7 @@
 # ---
 
 # %% [markdown]
-# # Calculate 
+# # Calculate
 
 # %%
 import json
@@ -21,10 +21,17 @@ from pathlib import Path
 
 import pandas as pd
 import pandas_indexing as pix
-
 from gcages.io import load_timeseries_csv
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
-from emissions_harmonization_historical.constants import COMBINED_HISTORY_ID, DATA_ROOT, FOLLOWER_SCALING_FACTORS_ID, HARMONISATION_YEAR, VELDERS_ET_AL_2022_PROCESSING_ID, WMO_2022_PROCESSING_ID
+
+from emissions_harmonization_historical.constants import (
+    COMBINED_HISTORY_ID,
+    DATA_ROOT,
+    FOLLOWER_SCALING_FACTORS_ID,
+    HARMONISATION_YEAR,
+    VELDERS_ET_AL_2022_PROCESSING_ID,
+    WMO_2022_PROCESSING_ID,
+)
 from emissions_harmonization_historical.infilling_followers import FOLLOW_LEADERS
 
 # %%
@@ -156,7 +163,7 @@ if len(full_var_set) != n_variables_in_full_scenario:
 FOLLOW_LEADERS
 
 # %%
-ar6_history.loc[pix.ismatch(variable="**4F8*")].loc[:, 2000:2050]
+ar6_history.loc[pix.ismatch(variable="**3F8*")].loc[:, 2000:2022]
 
 # %%
 PI_YEAR = 1750
@@ -181,7 +188,7 @@ for follower, leader in FOLLOW_LEADERS.items():
         #     ar6_history.loc[pix.isin(variable=[leader])][PI_YEAR].values.squeeze()
         # )
         continue
-        
+
     # if leader in history.pix.unique("variable").tolist():
     #     lead_df = history.loc[pix.isin(variable=[leader])]
     # elif leader in wmo_processed.pix.unique("variable").tolist():
@@ -189,16 +196,10 @@ for follower, leader in FOLLOW_LEADERS.items():
     # else:
     #     raise NotImplementedError(leader)
 
-    l_harmonisation_year = float(
-        lead_df[HARMONISATION_YEAR].values.squeeze()
-    )
+    l_harmonisation_year = float(lead_df[HARMONISATION_YEAR].values.squeeze())
     follow_df = ar6_history.loc[pix.isin(variable=[follower])]
-    f_0 = float(
-        follow_df[PI_YEAR].values.squeeze()
-    )
-    f_harmonisation_year = float(
-        follow_df[HARMONISATION_YEAR].values.squeeze()
-    )
+    f_0 = float(follow_df[PI_YEAR].values.squeeze())
+    f_harmonisation_year = float(follow_df[HARMONISATION_YEAR].values.squeeze())
 
     if (f_harmonisation_year - f_0) == 0.0:
         scaling_factor = 0.0
@@ -209,7 +210,7 @@ for follower, leader in FOLLOW_LEADERS.items():
     if len(l_unit) != 1:
         raise AssertionError
     l_unit = l_unit[0]
-    
+
     f_unit = follow_df.pix.unique("unit")
     if len(f_unit) != 1:
         raise AssertionError
