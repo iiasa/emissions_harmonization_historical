@@ -177,3 +177,4 @@ dmypy.json
 
 # Mac stuff
 *.DS_Store
+data/regionmapping/region_df.csv
