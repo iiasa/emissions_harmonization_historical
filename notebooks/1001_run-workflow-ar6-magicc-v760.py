@@ -27,22 +27,15 @@ import logging
 import multiprocessing
 import os
 
-import matplotlib.pyplot as plt
 import openscm_runner.adapters
-import pandas as pd
 import pandas_indexing as pix
-import pint
-import scipy.stats
-from gcages.ar6.scm_running import transform_iamc_to_openscm_runner_variable
 from gcages.database import GCDB
 from gcages.io import load_timeseries_csv
 from gcages.post_processing import PostProcessor
 from gcages.scm_running import SCMRunner, convert_openscm_runner_output_names_to_magicc_output_names
-from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 from loguru import logger
 
 from emissions_harmonization_historical.constants import (
-    COMBINED_HISTORY_ID,
     DATA_ROOT,
     SCENARIO_TIME_ID,
     WORKFLOW_ID,
@@ -97,12 +90,8 @@ infilled = infilled.pix.assign(
 
 # Deal with the HFC245 bug
 infilled = infilled.pix.assign(
-    variable=infilled.index.get_level_values("variable")
-    .str.replace("HFC245ca", "HFC245fa")
-    .values,
-    unit=infilled.index.get_level_values("unit")
-    .str.replace("HFC245ca", "HFC245fa")
-    .values,
+    variable=infilled.index.get_level_values("variable").str.replace("HFC245ca", "HFC245fa").values,
+    unit=infilled.index.get_level_values("unit").str.replace("HFC245ca", "HFC245fa").values,
 )
 
 infilled
@@ -168,7 +157,7 @@ infilled
 # )
 # scenarios_run = infilled[infilled.index.isin(selected_scenarios_idx)]
 
-scenarios_run = infilled.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model="GCAM*")]
+scenarios_run = infilled.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["AIM*", "GCAM*", "*"])]
 
 # %%
 # # To run all, just uncomment the below
@@ -205,10 +194,14 @@ scm_output_variables = (
     "Effective Radiative Forcing|N2O",
     "Effective Radiative Forcing|F-Gases",
     "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
+    "Effective Radiative Forcing|Ozone",
+    "Effective Radiative Forcing|Aviation|Cirrus",
+    "Effective Radiative Forcing|Aviation|Contrail",
+    "Effective Radiative Forcing|Aviation|H2O",
+    "Effective Radiative Forcing|Black Carbon on Snow",
     # "Effective Radiative Forcing|CFC11",
     # "Effective Radiative Forcing|CFC12",
     # "Effective Radiative Forcing|HCFC22",
-    # "Effective Radiative Forcing|Ozone",
     # "Effective Radiative Forcing|HFC125",
     # "Effective Radiative Forcing|HFC134a",
     # "Effective Radiative Forcing|HFC143a",
@@ -294,7 +287,29 @@ scm_runner = SCMRunner(
 # %%
 # If you need to re-write.
 # scm_results_db.delete()
-# scm_results_db.load_metadata()
+tmp = scm_results_db.load_metadata()
+tmp.to_frame().loc[pix.ismatch(model="AIM*")]
+# # # # Surgery
+# # import os
+# index = pd.read_csv(scm_results_db.index_file)
+# file_map = pd.read_csv(scm_results_db.file_map_file)
+# for f in (
+#     file_map.set_index("file_id")
+#     .loc[index.set_index(["model", "scenario"]).loc[pix.ismatch(model="AIM*")]["file_id"].unique()]["file_path"]
+#     .tolist()
+# ):
+#     try:
+#         os.remove(f)
+#     except FileNotFoundError:
+#         pass
+#     # print(f)
+#     file_id = file_map[file_map["file_path"] == f]["file_id"].values.squeeze()
+#     index = index[index["file_id"] != file_id]
+#     file_map = file_map[file_map["file_id"] != file_id]
+#     # break
+
+# index.to_csv(scm_results_db.index_file, index=False)
+# file_map.to_csv(scm_results_db.file_map_file, index=False)
 
 
 # %% [markdown]

@@ -22,9 +22,12 @@
 # ## Imports
 
 # %%
+import json
 import logging
 import multiprocessing
 
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 import pyam
@@ -41,8 +44,15 @@ from loguru import logger
 from emissions_harmonization_historical.constants import (
     COMBINED_HISTORY_ID,
     DATA_ROOT,
+    FOLLOWER_SCALING_FACTORS_ID,
     SCENARIO_TIME_ID,
+    WMO_2022_PROCESSING_ID,
     WORKFLOW_ID,
+)
+from emissions_harmonization_historical.harmonisation import (
+    HARMONISATION_YEAR,
+    HARMONISATION_YEAR_MISSING_SCALING_YEAR,
+    aneris_overrides,
 )
 from emissions_harmonization_historical.pre_pre_processing import pre_pre_process
 
@@ -107,6 +117,7 @@ pre_pre_processed = pre_pre_process(
     scenarios_raw_global,
     co2_ei_check_rtol=1e-3,
     raise_on_co2_ei_difference=False,
+    # see the 1000_* notebook for proper diagnosis of issues
     silent=True,
 )
 pre_pre_processed
@@ -122,7 +133,7 @@ scenarios_raw_global.loc[
 ].dropna(how="all", axis="columns")
 
 # %% [markdown]
-# ## Pre-process
+# ## Pre-process and harmonise
 
 # %%
 HISTORICAL_GLOBAL_COMPOSITE_PATH = DATA_ROOT / "global-composite" / f"cmip7_history_world_{COMBINED_HISTORY_ID}.csv"
@@ -136,158 +147,68 @@ history = strip_pint_incompatible_characters_from_units(
         out_column_type=int,
     )
 )
-history_cut = history.loc[:, 1990:2025]
-history_cut
 
 # %%
-pre_processor = PreProcessor(emissions_out=tuple(history_cut.pix.unique("variable")))
+# TODO: decide which variables exactly to use averaging with
+high_variability_variables = (
+    "Emissions|BC",
+    "Emissions|CO",
+    "Emissions|CH4",
+    # # Having looked at the data, I'm not sure I would do this for CO2 AFOLU
+    # "Emissions|CO2|AFOLU",
+    "Emissions|N2O",
+    "Emissions|NH3",
+    "Emissions|NOx",
+    "Emissions|OC",
+    "Emissions|VOC",
+)
+n_years_for_regress = 10
+
+harmonisation_values_l = []
+for variable, vdf in history.groupby("variable"):
+    if variable in high_variability_variables:
+        regress_vals = vdf.loc[
+            :,
+            HARMONISATION_YEAR - n_years_for_regress + 1 : HARMONISATION_YEAR,
+        ]
+        regress_res = scipy.stats.linregress(x=regress_vals.columns, y=regress_vals.values)
+        regressed_value = regress_res.slope * HARMONISATION_YEAR + regress_res.intercept
+
+        tmp = vdf[HARMONISATION_YEAR].copy()
+        tmp.loc[:] = regressed_value
+
+        ax = vdf.T.plot()
+        ax.scatter(HARMONISATION_YEAR, regressed_value, marker="x", color="tab:orange")
+        ax.grid(which="major")
+        ax.set_xticks(regress_vals.columns, minor=True)
+        ax.grid(which="minor")
+        plt.show()
+
+    else:
+        tmp = vdf[HARMONISATION_YEAR]
+
+    harmonisation_values_l.append(tmp)
+
+harmonisation_values = pix.concat(harmonisation_values_l)
+
+# %%
+history_harmonisation = pix.concat(
+    [history.loc[:, 2000 : HARMONISATION_YEAR - 1], harmonisation_values.to_frame()], axis="columns"
+)
+history_harmonisation
+
+# %%
+pre_processor = PreProcessor(emissions_out=tuple(history_harmonisation.pix.unique("variable")))
 
 # %%
 pre_processed = pre_processor(pre_pre_processed)
 pre_processed
 
-# %% [markdown]
-# ## Harmonise
-
-# %%
-# TODO: discuss and think through better
-harmonisation_year = 2021
-calc_scaling_year = 2015
-
-# %%
-history_values = history_cut.loc[:, calc_scaling_year:harmonisation_year].copy()
-
-# TODO: decide which variables exactly to use averaging with
-high_variability_variables = (
-    "Emissions|BC",
-    "Emissions|CO",
-    # # Having looked at the data, I'm not sure I would do this for CO2 AFOLU
-    # "Emissions|CO2|AFOLU",
-    "Emissions|OC",
-    "Emissions|VOC",
-)
-n_years_for_regress = 10
-for high_variability_variable in high_variability_variables:
-    regress_vals = history_cut.loc[
-        pix.ismatch(variable=high_variability_variable),
-        harmonisation_year - n_years_for_regress + 1 : harmonisation_year,
-    ]
-    regress_res = scipy.stats.linregress(x=regress_vals.columns, y=regress_vals.values)
-    regressed_value = regress_res.slope * harmonisation_year + regress_res.intercept
-
-    # Should somehow keep track that we've done this
-    history_values.loc[pix.ismatch(variable=high_variability_variable), harmonisation_year] = regressed_value
-
-history_values
-
-# %%
-# As at 2024-01-30, just the list from AR6.
-# We can tweak from here.
-aneris_overrides = pd.DataFrame(
-    [
-        # depending on the decision tree in aneris/method.py
-        #     {'method': 'default_aneris_tree', 'variable': 'Emissions|BC'},
-        {
-            "method": "reduce_ratio_2150_cov",
-            "variable": "Emissions|PFC",
-        },  # high historical variance (cov=16.2)
-        {
-            "method": "reduce_ratio_2150_cov",
-            "variable": "Emissions|PFC|C2F6",
-        },  # high historical variance (cov=16.2)
-        {
-            "method": "reduce_ratio_2150_cov",
-            "variable": "Emissions|PFC|C6F14",
-        },  # high historical variance (cov=15.4)
-        {
-            "method": "reduce_ratio_2150_cov",
-            "variable": "Emissions|PFC|CF4",
-        },  # high historical variance (cov=11.2)
-        {
-            "method": "reduce_ratio_2150_cov",
-            "variable": "Emissions|CO",
-        },  # high historical variance (cov=15.4)
-        {
-            "method": "reduce_ratio_2080",
-            "variable": "Emissions|CO2",
-        },  # always ratio method by choice
-        {
-            # high historical variance,
-            # but using offset method to prevent diff from increasing
-            # when going negative rapidly (cov=23.2)
-            "method": "reduce_offset_2150_cov",
-            "variable": "Emissions|CO2|AFOLU",
-        },
-        {
-            "method": "reduce_ratio_2080",  # always ratio method by choice
-            "variable": "Emissions|CO2|Energy and Industrial Processes",
-        },
-        # depending on the decision tree in aneris/method.py
-        #     {'method': 'default_aneris_tree', 'variable': 'Emissions|CH4'},
-        {
-            "method": "constant_ratio",
-            "variable": "Emissions|F-Gases",
-        },  # basket not used in infilling (sum of f-gases with low model reporting confidence)
-        {
-            "method": "constant_ratio",
-            "variable": "Emissions|HFC",
-        },  # basket not used in infilling (sum of subset of f-gases with low model reporting confidence)
-        {
-            "method": "constant_ratio",
-            "variable": "Emissions|HFC|HFC125",
-        },  # minor f-gas with low model reporting confidence
-        {
-            "method": "constant_ratio",
-            "variable": "Emissions|HFC|HFC134a",
-        },  # minor f-gas with low model reporting confidence
-        {
-            "method": "constant_ratio",
-            "variable": "Emissions|HFC|HFC143a",
-        },  # minor f-gas with low model reporting confidence
-        {
-            "method": "constant_ratio",
-            "variable": "Emissions|HFC|HFC227ea",
-        },  # minor f-gas with low model reporting confidence
-        {
-            "method": "constant_ratio",
-            "variable": "Emissions|HFC|HFC23",
-        },  # minor f-gas with low model reporting confidence
-        {
-            "method": "constant_ratio",
-            "variable": "Emissions|HFC|HFC32",
-        },  # minor f-gas with low model reporting confidence
-        {
-            "method": "constant_ratio",
-            "variable": "Emissions|HFC|HFC43-10",
-        },  # minor f-gas with low model reporting confidence
-        # depending on the decision tree in aneris/method.py
-        #     {'method': 'default_aneris_tree', 'variable': 'Emissions|N2O'},
-        # depending on the decision tree in aneris/method.py
-        #     {'method': 'default_aneris_tree', 'variable': 'Emissions|NH3'},
-        # depending on the decision tree in aneris/method.py
-        #     {'method': 'default_aneris_tree', 'variable': 'Emissions|NOx'},
-        {
-            "method": "reduce_ratio_2150_cov",
-            "variable": "Emissions|OC",
-        },  # high historical variance (cov=18.5)
-        {
-            "method": "constant_ratio",
-            "variable": "Emissions|SF6",
-        },  # minor f-gas with low model reporting confidence
-        # depending on the decision tree in aneris/method.py
-        #     {'method': 'default_aneris_tree', 'variable': 'Emissions|Sulfur'},
-        {
-            "method": "reduce_ratio_2150_cov",
-            "variable": "Emissions|VOC",
-        },  # high historical variance (cov=12.0)
-    ]
-)
-
 # %%
 harmoniser = Harmoniser(
-    historical_emissions=history_values,
-    harmonisation_year=harmonisation_year,
-    calc_scaling_year=calc_scaling_year,
+    historical_emissions=history_harmonisation,
+    harmonisation_year=HARMONISATION_YEAR,
+    calc_scaling_year=HARMONISATION_YEAR_MISSING_SCALING_YEAR,
     aneris_overrides=aneris_overrides,
     n_processes=n_processes,
     run_checks=run_checks,
@@ -299,6 +220,9 @@ harmonised
 
 # %% [markdown]
 # ## Infill
+
+# %%
+# TODO: split all this out so it is re-usable
 
 # %% [markdown]
 # ### Silicone
@@ -387,60 +311,17 @@ infilled_silicone
 # ### WMO
 
 # %%
-wmo_input_file = DATA_ROOT / "global" / "wmo-2022" / "data_raw" / "Emissions_fromWMO2022.xlsx"
-wmo_input_file
-
-# %%
-var_map = {
-    # WMO name: (gas name, variable name)
-    "CFC-11": ("CFC11", "Emissions|Montreal Gases|CFC|CFC11"),
-    "CFC-12": ("CFC12", "Emissions|Montreal Gases|CFC|CFC12"),
-    "CFC-113": ("CFC113", "Emissions|Montreal Gases|CFC|CFC113"),
-    "CFC-114": ("CFC114", "Emissions|Montreal Gases|CFC|CFC114"),
-    "CFC-115": ("CFC115", "Emissions|Montreal Gases|CFC|CFC115"),
-    "CCl4": ("CCl4", "Emissions|Montreal Gases|CCl4"),
-    "CH3CCl3": ("CH3CCl3", "Emissions|Montreal Gases|CH3CCl3"),
-    "HCFC-22": ("HCFC22", "Emissions|Montreal Gases|HCFC22"),
-    "HCFC-141b": ("HCFC141b", "Emissions|Montreal Gases|HCFC141b"),
-    "HCFC-142b": ("HCFC142b", "Emissions|Montreal Gases|HCFC142b"),
-    "halon-1211": ("Halon1211", "Emissions|Montreal Gases|Halon1211"),
-    "halon-1202": ("Halon1202", "Emissions|Montreal Gases|Halon1202"),
-    "halon-1301": ("Halon1301", "Emissions|Montreal Gases|Halon1301"),
-    "halon-2402": ("Halon2402", "Emissions|Montreal Gases|Halon2402"),
-}
-
-# %%
-wmo_raw = pd.read_excel(wmo_input_file).rename({"Unnamed: 0": "year"}, axis="columns")
-wmo_raw
-
-# %%
-# Hand woven unit conversion
-wmo_clean = (wmo_raw.set_index("year") / 1000).melt(ignore_index=False)
-wmo_clean["unit"] = wmo_clean["variable"].map({k: v[0] for k, v in var_map.items()})
-wmo_clean["unit"] = "kt " + wmo_clean["unit"] + "/yr"
-wmo_clean["variable"] = wmo_clean["variable"].map({k: v[1] for k, v in var_map.items()})
-wmo_clean["model"] = "WMO 2022"
-wmo_clean["scenario"] = "WMO 2022 projections v20250129"
-wmo_clean["region"] = "World"
-wmo_clean = wmo_clean.set_index(["variable", "unit", "model", "scenario", "region"], append=True)["value"].unstack(
-    "year"
-)
-# HACK: remove spurious last year
-wmo_clean[2100] = wmo_clean[2099]
-# HACK: remove negative values
-wmo_clean = wmo_clean.where(wmo_clean >= 0, 0.0)
-# TODO: apply some smoother
-
-wmo_clean
-
-# %%
-history_wmo = wmo_clean.loc[:, :harmonisation_year]
+wmo_2022_scenarios = load_timeseries_csv(
+    DATA_ROOT / "global" / "wmo-2022" / "processed" / f"wmo-2022_cmip7_global_{WMO_2022_PROCESSING_ID}.csv",
+    index_columns=["model", "scenario", "region", "variable", "unit"],
+    out_column_type=int,
+).loc[pix.isin(scenario="WMO 2022 projections v20250129")]
+wmo_2022_scenarios
 
 # %%
 infilled_wmo_l = []
 for model, scenario in harmonised.pix.unique(["model", "scenario"]):
-    # TODO: use same columns as harmonised once we have WMO data beyond 2100
-    tmp = wmo_clean.pix.assign(model=model, scenario=scenario).loc[:, harmonised.columns.min() :]
+    tmp = wmo_2022_scenarios.pix.assign(model=model, scenario=scenario).loc[:, harmonised.columns]
     infilled_wmo_l.append(tmp)
 
 infilled_wmo = pix.concat(infilled_wmo_l)
@@ -460,133 +341,29 @@ all_so_far = pix.concat(
 all_so_far
 
 # %%
-RCMIP_PATH = DATA_ROOT / "global/rcmip/data_raw/rcmip-emissions-annual-means-v5-1-0.csv"
-RCMIP_PATH
-
+scaling_factors_file = DATA_ROOT / "global-composite" / f"follower-scaling-factors_{FOLLOWER_SCALING_FACTORS_ID}.json"
 
 # %%
-def transform_rcmip_to_iamc_variable(v):
-    """Transform RCMIP variables to IAMC variables"""
-    res = v
+with open(scaling_factors_file) as fh:
+    scaling_factors_raw = json.load(fh)
 
-    replacements = (
-        ("F-Gases|", ""),
-        ("PFC|", ""),
-        ("HFC4310mee", "HFC43-10"),
-        ("MAGICC AFOLU", "AFOLU"),
-        ("MAGICC Fossil and Industrial", "Energy and Industrial Processes"),
-    )
-    for old, new in replacements:
-        res = res.replace(old, new)
-
-    return res
-
-
-# %%
-rcmip = pd.read_csv(RCMIP_PATH)
-rcmip_clean = rcmip.copy()
-rcmip_clean.columns = rcmip_clean.columns.str.lower()
-rcmip_clean = rcmip_clean.set_index(["model", "scenario", "region", "variable", "unit", "mip_era", "activity_id"])
-rcmip_clean.columns = rcmip_clean.columns.astype(int)
-rcmip_clean = rcmip_clean.pix.assign(
-    variable=rcmip_clean.index.get_level_values("variable").map(transform_rcmip_to_iamc_variable)
-)
-ar6_history = rcmip_clean.loc[pix.isin(mip_era=["CMIP6"], scenario=["ssp245"], region=["World"])]
-ar6_history = (
-    ar6_history.loc[
-        ~pix.ismatch(
-            variable=[
-                f"Emissions|{stub}|**" for stub in ["BC", "CH4", "CO", "N2O", "NH3", "NOx", "OC", "Sulfur", "VOC"]
-            ]
-        )
-        & ~pix.ismatch(variable=["Emissions|CO2|*|**"])
-        & ~pix.isin(variable=["Emissions|CO2"])
-    ]
-    .T.interpolate("index")
-    .T
-)
-full_var_set = ar6_history.pix.unique("variable")
-n_variables_in_full_scenario = 52
-if len(full_var_set) != n_variables_in_full_scenario:
-    raise AssertionError
-
-sorted(full_var_set)
-
-# %%
-# TODO: use Guus' data for the HFCs rather than this infilling (?)
-leftover_vars = set(full_var_set) - set(all_so_far.pix.unique("variable"))
-leftover_vars
-
-# %%
 for (model, scenario), msdf in all_so_far.groupby(["model", "scenario"]):
-    if set(full_var_set) - set(msdf.pix.unique("variable")) != leftover_vars:
-        msg = f"{model=} {scenario=}"
+    overlap = set(msdf.pix.unique("variable")).intersection(scaling_factors_raw.keys())
+    if overlap:
+        msg = f"{model=} {scenario=} {overlap=}"
         raise AssertionError(msg)
 
 # %%
-follow_leaders = {
-    "Emissions|C3F8": "Emissions|C2F6",
-    "Emissions|C4F10": "Emissions|C2F6",
-    "Emissions|C5F12": "Emissions|C2F6",
-    "Emissions|C7F16": "Emissions|C2F6",
-    "Emissions|C8F18": "Emissions|C2F6",
-    "Emissions|cC4F8": "Emissions|CF4",
-    "Emissions|SO2F2": "Emissions|CF4",
-    "Emissions|HFC|HFC236fa": "Emissions|HFC|HFC245fa",
-    "Emissions|HFC|HFC152a": "Emissions|HFC|HFC43-10",
-    "Emissions|HFC|HFC365mfc": "Emissions|HFC|HFC134a",
-    "Emissions|Montreal Gases|CH2Cl2": "Emissions|HFC|HFC134a",
-    "Emissions|Montreal Gases|CHCl3": "Emissions|C2F6",
-    "Emissions|Montreal Gases|CH3Br": "Emissions|C2F6",
-    "Emissions|Montreal Gases|CH3Cl": "Emissions|CF4",
-    "Emissions|NF3": "Emissions|SF6",
-    "Emissions|Montreal Gases|Halon1202": "Emissions|Montreal Gases|Halon1211",
-}
-if leftover_vars - set(follow_leaders.keys()):
-    raise AssertionError()
-
-# %% [markdown]
-# Have to be a bit clever with scaling to consider background/natural emissions.
-#
-# Instead of
-#
-# $$
-# f = a * l
-# $$
-# where $f$ is the follow variable, $a$ is the scaling factor and $l$ is the lead.
-#
-# We want
-# $$
-# f - f_0 = a * (l - l_0)
-# $$
-# where $f_0$ is pre-industrial emissions of the follow variable and $l_0$ is pre-industrial emissions of the lead.
-
-# %%
 infilled_leftovers_l = []
-for v in leftover_vars:
-    leader = follow_leaders[v]
-
+for follower, cfg in scaling_factors_raw.items():
+    leader = cfg["leader"]
     lead_df = all_so_far.loc[pix.isin(variable=[leader])]
 
-    # TODO: use better source for pre-industrial emissions
-    f_0 = ar6_history.loc[pix.isin(variable=[v])][1750].values.squeeze()
-    print(f"{v=} {f_0=}")
-    l_0 = ar6_history.loc[pix.isin(variable=[leader])][1750].values.squeeze()
-
-    # TODO use actual history for this
-    follow_df_history = ar6_history.loc[pix.isin(variable=[v])]
-    unit = follow_df_history.pix.unique("unit").unique().tolist()
-    if len(unit) > 1:
-        raise AssertionError(unit)
-
-    unit = unit[0]
-
-    # TODO: use actual history for this and remove the mean stuff everywhere
-    norm_factor = (lead_df - l_0)[harmonisation_year].values.mean() / (follow_df_history - f_0)[
-        harmonisation_year
-    ].values.mean()
-
-    follow_df = ((lead_df - l_0) / norm_factor + f_0).pix.assign(variable=v, unit=unit)
+    follow_df = (cfg["scaling_factor"] * (lead_df - cfg["l_0"]) + cfg["f_0"]).pix.assign(
+        variable=follower, unit=cfg["f_unit"]
+    )
+    if not np.isclose(follow_df[cfg["calculation_year"]], cfg["f_calculation_year"]).all():
+        raise AssertionError
 
     infilled_leftovers_l.append(follow_df)
 
@@ -594,58 +371,18 @@ infilled_leftovers = pix.concat(infilled_leftovers_l)
 infilled_leftovers
 
 # %%
-# TODO: clean up this yuck
-history_leftovers_l = []
-for v in leftover_vars:
-    if v in history_cut.pix.unique("variable") or v in wmo_clean.pix.unique("variable"):
-        continue
-
-    leader = follow_leaders[v]
-    if leader in history_cut.pix.unique("variable").tolist():
-        lead_df = history_cut.loc[pix.isin(variable=[leader])]
-    else:
-        lead_df = wmo_clean.loc[pix.isin(variable=[leader])]
-
-    if lead_df.empty:
-        raise AssertionError
-
-    # TODO: use better source for pre-industrial emissions
-    f_0 = ar6_history.loc[pix.isin(variable=[v])][1750].values.squeeze()
-    l_0 = ar6_history.loc[pix.isin(variable=[leader])][1750].values.squeeze()
-    print(f"{v=} {f_0=} {l_0=}")
-
-    # TODO use actual history for this
-    follow_df_infilled = infilled_leftovers.loc[pix.isin(variable=[v])]
-    unit = follow_df_infilled.pix.unique("unit").unique().tolist()
-    if len(unit) > 1:
-        raise AssertionError(unit)
-
-    unit = unit[0]
-
-    # TODO: use actual history for this and remove the mean stuff everywhere
-    norm_factor = (lead_df - l_0)[harmonisation_year].values.mean() / (follow_df_infilled - f_0)[
-        harmonisation_year
-    ].values.mean()
-
-    follow_df = ((lead_df - l_0) / norm_factor + f_0).pix.assign(variable=v, unit=unit)
-    follow_df = follow_df.loc[:, :harmonisation_year]
-
-    history_leftovers_l.append(follow_df)
-
-history_leftovers = pix.concat(history_leftovers_l)
-history_leftovers
-
-# %%
 infilled = pd.concat([all_so_far, infilled_leftovers])
-if (infilled.groupby(["model", "scenario"]).count()[2021] != len(full_var_set)).any():
+exp_n_ts = 52
+if (infilled.groupby(["model", "scenario"]).count()[2021] != exp_n_ts).any():
     raise AssertionError
 
 infilled
 
+# %% [markdown]
+# ## Save
+
 # %%
 for full_path, df in (
-    (OUTPUT_PATH / "history-wmo.csv", history_wmo),
-    (OUTPUT_PATH / "history-leftovers.csv", history_leftovers),
     (OUTPUT_PATH / "pre-pre-processed.csv", pre_pre_processed),
     (OUTPUT_PATH / "pre-processed.csv", pre_processed),
     (OUTPUT_PATH / "harmonised.csv", harmonised),

@@ -29,9 +29,7 @@ import os
 
 import matplotlib.pyplot as plt
 import openscm_runner.adapters
-import pandas as pd
 import pandas_indexing as pix
-import pint
 import scipy.stats
 from gcages.database import GCDB
 from gcages.io import load_timeseries_csv
@@ -150,7 +148,8 @@ infilled
 # )
 # scenarios_run = infilled[infilled.index.isin(selected_scenarios_idx)]
 
-scenarios_run = infilled.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model="GCAM*")]
+scenarios_run = infilled.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["AIM*", "GCAM*"])]
+scenarios_run = infilled.loc[pix.ismatch(scenario=["*Overshoot*"], model=["AIM*"])]
 
 # %%
 # # To run all, just uncomment the below
@@ -187,10 +186,17 @@ scm_output_variables = (
     "Effective Radiative Forcing|N2O",
     "Effective Radiative Forcing|F-Gases",
     "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
+    "Effective Radiative Forcing|Ozone",
+    "Effective Radiative Forcing|Aviation|Cirrus",
+    "Effective Radiative Forcing|Aviation|Contrail",
+    "Effective Radiative Forcing|Aviation|H2O",
+    "Effective Radiative Forcing|Black Carbon on Snow",
+    # 'Effective Radiative Forcing|CH4 Oxidation Stratospheric',
+    "CH4OXSTRATH2O_ERF",
+    "Effective Radiative Forcing|Land-use Change",
     # "Effective Radiative Forcing|CFC11",
     # "Effective Radiative Forcing|CFC12",
     # "Effective Radiative Forcing|HCFC22",
-    # "Effective Radiative Forcing|Ozone",
     # "Effective Radiative Forcing|HFC125",
     # "Effective Radiative Forcing|HFC134a",
     # "Effective Radiative Forcing|HFC143a",
@@ -276,7 +282,7 @@ scm_runner = SCMRunner(
 # %%
 # If you need to re-write.
 # scm_results_db.delete()
-# scm_results_db.load_metadata()
+# scm_results_db.load_metadata().pix.unique(["model", "scenario"])
 
 
 # %% [markdown]
@@ -290,8 +296,6 @@ MAGICC_FORCE_START_YEAR = 2015
 
 # %%
 HISTORICAL_GLOBAL_COMPOSITE_PATH = DATA_ROOT / "global-composite" / f"cmip7_history_world_{COMBINED_HISTORY_ID}.csv"
-
-# %%
 history = strip_pint_incompatible_characters_from_units(
     load_timeseries_csv(
         HISTORICAL_GLOBAL_COMPOSITE_PATH,
@@ -299,10 +303,14 @@ history = strip_pint_incompatible_characters_from_units(
         out_column_type=int,
     )
 )
+
+# %%
+# Smooth out OC to avoid the weird kick in aerosol emissions
 for v in ["Emissions|OC"]:
     loc = pix.isin(variable=[v])
-    cols = range(2011, 2021 + 1)
+    cols = range(2012, 2021 + 1)
     tmp = history.loc[loc, cols].dropna(axis="columns")
+    display(tmp.shape)  # noqa: F821
     ax = tmp.T.plot()
     linreg = scipy.stats.linregress(x=tmp.columns, y=tmp.values)
     history.loc[loc, tmp.columns] = linreg.intercept + linreg.slope * tmp.columns
@@ -310,23 +318,10 @@ for v in ["Emissions|OC"]:
     history.loc[loc, :].T.plot(ax=ax)
     plt.show()
 
-history
+# history
 
 # %%
-history_wmo = load_timeseries_csv(
-    INPUT_PATH / "history-wmo.csv",
-    index_columns=["model", "scenario", "region", "variable", "unit"],
-    out_column_type=int,
-)
-history_leftovers = load_timeseries_csv(
-    INPUT_PATH / "history-leftovers.csv",
-    index_columns=["model", "scenario", "region", "variable", "unit"],
-    out_column_type=int,
-)
-
-history_cut = pix.concat([history, history_wmo, history_leftovers]).loc[
-    :, MAGICC_FORCE_START_YEAR : scenarios_run.columns.min() - 1
-]
+history_cut = history.loc[:, MAGICC_FORCE_START_YEAR : scenarios_run.columns.min() - 1]
 if history_cut.isnull().any().any():
     raise AssertionError
 
@@ -356,6 +351,9 @@ scenarios_run
 # %%
 scm_results = scm_runner(scenarios_run, batch_size_scenarios=batch_size_scenarios)
 scm_results
+
+# %%
+scm_results.pix.unique("variable")
 
 # %% [markdown]
 # ## Post-process
