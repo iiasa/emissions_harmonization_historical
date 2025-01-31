@@ -12,6 +12,12 @@
 #     name: python3
 # ---
 
+# %% [markdown]
+# # IAMC Region aggregation
+
+# %% [markdown]
+# ## Imports
+
 # %%
 from pathlib import Path
 
