@@ -27,7 +27,6 @@ import logging
 import multiprocessing
 import os
 
-import matplotlib.pyplot as plt
 import openscm_runner.adapters
 import pandas_indexing as pix
 import scipy.stats
@@ -152,8 +151,8 @@ scenarios_run = infilled.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"],
 scenarios_run = infilled.loc[pix.ismatch(scenario=["*Overshoot*"], model=["AIM*"])]
 
 # %%
-# # To run all, just uncomment the below
-# scenarios_run = infilled
+# To run all, just uncomment the below
+scenarios_run = infilled
 
 # %%
 scenarios_run.pix.unique(["model", "scenario"]).to_frame(index=False)
@@ -239,6 +238,11 @@ scm_results_db = GCDB(OUTPUT_PATH / "db")
 scm_results_db
 
 # %%
+# If you need to re-write.
+# scm_results_db.delete()
+# scm_results_db.load_metadata().pix.unique(["model", "scenario"])
+
+# %%
 with open(magicc_prob_distribution_path) as fh:
     cfgs_raw = json.load(fh)
 
@@ -279,12 +283,6 @@ scm_runner = SCMRunner(
 )
 
 
-# %%
-# If you need to re-write.
-# scm_results_db.delete()
-# scm_results_db.load_metadata().pix.unique(["model", "scenario"])
-
-
 # %% [markdown]
 # Add in data from the end of MAGICC's internal historical emissions.
 
@@ -310,13 +308,13 @@ for v in ["Emissions|OC"]:
     loc = pix.isin(variable=[v])
     cols = range(2012, 2021 + 1)
     tmp = history.loc[loc, cols].dropna(axis="columns")
-    display(tmp.shape)  # noqa: F821
+    # print(tmp.shape)
     ax = tmp.T.plot()
     linreg = scipy.stats.linregress(x=tmp.columns, y=tmp.values)
     history.loc[loc, tmp.columns] = linreg.intercept + linreg.slope * tmp.columns
 
     history.loc[loc, :].T.plot(ax=ax)
-    plt.show()
+    # plt.show()
 
 # history
 

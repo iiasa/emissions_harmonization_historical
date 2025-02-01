@@ -160,8 +160,8 @@ infilled
 scenarios_run = infilled.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["AIM*", "GCAM*", "*"])]
 
 # %%
-# # To run all, just uncomment the below
-# scenarios_run = infilled
+# To run all, just uncomment the below
+scenarios_run = infilled
 
 # %%
 scenarios_run.pix.unique(["model", "scenario"]).to_frame(index=False)
@@ -244,6 +244,33 @@ scm_results_db = GCDB(OUTPUT_PATH / "db")
 scm_results_db
 
 # %%
+# # If you need to re-write.
+# # scm_results_db.delete()
+# tmp = scm_results_db.load_metadata()
+# tmp.to_frame().loc[pix.ismatch(model="AIM*")]
+# # # # # Surgery
+# # # import os
+# # index = pd.read_csv(scm_results_db.index_file)
+# # file_map = pd.read_csv(scm_results_db.file_map_file)
+# # for f in (
+# #     file_map.set_index("file_id")
+# #     .loc[index.set_index(["model", "scenario"]).loc[pix.ismatch(model="AIM*")]["file_id"].unique()]["file_path"]
+# #     .tolist()
+# # ):
+# #     try:
+# #         os.remove(f)
+# #     except FileNotFoundError:
+# #         pass
+# #     # print(f)
+# #     file_id = file_map[file_map["file_path"] == f]["file_id"].values.squeeze()
+# #     index = index[index["file_id"] != file_id]
+# #     file_map = file_map[file_map["file_id"] != file_id]
+# #     # break
+
+# # index.to_csv(scm_results_db.index_file, index=False)
+# # file_map.to_csv(scm_results_db.file_map_file, index=False)
+
+# %%
 with open(magicc_prob_distribution_path) as fh:
     cfgs_raw = json.load(fh)
 
@@ -282,34 +309,6 @@ scm_runner = SCMRunner(
     run_checks=False,  # TODO: turn on
     n_processes=n_processes,
 )
-
-
-# %%
-# If you need to re-write.
-# scm_results_db.delete()
-tmp = scm_results_db.load_metadata()
-tmp.to_frame().loc[pix.ismatch(model="AIM*")]
-# # # # Surgery
-# # import os
-# index = pd.read_csv(scm_results_db.index_file)
-# file_map = pd.read_csv(scm_results_db.file_map_file)
-# for f in (
-#     file_map.set_index("file_id")
-#     .loc[index.set_index(["model", "scenario"]).loc[pix.ismatch(model="AIM*")]["file_id"].unique()]["file_path"]
-#     .tolist()
-# ):
-#     try:
-#         os.remove(f)
-#     except FileNotFoundError:
-#         pass
-#     # print(f)
-#     file_id = file_map[file_map["file_path"] == f]["file_id"].values.squeeze()
-#     index = index[index["file_id"] != file_id]
-#     file_map = file_map[file_map["file_id"] != file_id]
-#     # break
-
-# index.to_csv(scm_results_db.index_file, index=False)
-# file_map.to_csv(scm_results_db.file_map_file, index=False)
 
 
 # %% [markdown]

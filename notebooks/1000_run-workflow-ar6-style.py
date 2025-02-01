@@ -15,7 +15,8 @@
 # %% [markdown]
 # # Run workflow - AR6-style
 #
-# Run the climate assessment workflow exactly as it was run in AR6.
+# Run the climate assessment workflow as it was run in AR6
+# (except for pre-processing fixes which make no sense to leave out).
 
 # %% [markdown]
 # ## Imports
@@ -143,7 +144,7 @@ scm_results_db = GCDB(OUTPUT_PATH_MAGICC / "db")
 scm_results_db
 
 # %%
-# If you need to re-write.
+# # If you need to re-write.
 # scm_results_db.delete()
 
 # %% [markdown]
