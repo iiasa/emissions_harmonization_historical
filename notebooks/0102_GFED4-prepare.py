@@ -67,9 +67,7 @@ gfed_grid_template = Path(
     gfed_data_aux_folder, "BC-em-openburning_input4MIPs_emissions_CMIP_REMIND-MAGPIE-SSP5-34-OS-V1_gn_201501-210012.nc"
 )  # for country-level grid emissions reporting template
 
-gfed_processed_output_file = DATA_ROOT / Path(
-    "national", "gfed", "processed", f"gfed_cmip7_national_{GFED_PROCESSING_ID}.csv"
-)
+gfed_processed_output_file = DATA_ROOT / Path("national", "gfed", "processed", f"gfed_cmip7_{GFED_PROCESSING_ID}.csv")
 
 gfed_processed_output_file_national = DATA_ROOT / Path(
     "national", "gfed", "processed", f"gfed_cmip7_national_{GFED_PROCESSING_ID}.csv"

@@ -29,7 +29,6 @@ import os
 
 import openscm_runner.adapters
 import pandas_indexing as pix
-import scipy.stats
 from gcages.database import GCDB
 from gcages.io import load_timeseries_csv
 from gcages.post_processing import PostProcessor
@@ -147,11 +146,11 @@ infilled
 # )
 # scenarios_run = infilled[infilled.index.isin(selected_scenarios_idx)]
 
-scenarios_run = infilled.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["AIM*", "GCAM*"])]
+scenarios_run = infilled.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["*", "AIM*", "GCAM*"])]
 
 # %%
-# To run all, just uncomment the below
-scenarios_run = infilled
+# # To run all, just uncomment the below
+# scenarios_run = infilled
 
 # %%
 scenarios_run.pix.unique(["model", "scenario"]).to_frame(index=False)
@@ -302,20 +301,20 @@ history = strip_pint_incompatible_characters_from_units(
 )
 
 # %%
-# Smooth out OC to avoid the weird kick in aerosol emissions
-for v in ["Emissions|OC"]:
-    loc = pix.isin(variable=[v])
-    cols = range(2012, 2021 + 1)
-    tmp = history.loc[loc, cols].dropna(axis="columns")
-    # print(tmp.shape)
-    ax = tmp.T.plot()
-    linreg = scipy.stats.linregress(x=tmp.columns, y=tmp.values)
-    history.loc[loc, tmp.columns] = linreg.intercept + linreg.slope * tmp.columns
+# # Smooth out OC to avoid the weird kick in aerosol emissions
+# for v in ["Emissions|OC"]:
+#     loc = pix.isin(variable=[v])
+#     cols = range(2012, 2021 + 1)
+#     tmp = history.loc[loc, cols].dropna(axis="columns")
+#     # print(tmp.shape)
+#     ax = tmp.T.plot()
+#     linreg = scipy.stats.linregress(x=tmp.columns, y=tmp.values)
+#     history.loc[loc, tmp.columns] = linreg.intercept + linreg.slope * tmp.columns
 
-    history.loc[loc, :].T.plot(ax=ax)
-    # plt.show()
+#     history.loc[loc, :].T.plot(ax=ax)
+#     # plt.show()
 
-# history
+# # history
 
 # %%
 history_cut = history.loc[:, MAGICC_FORCE_START_YEAR : scenarios_run.columns.min() - 1]

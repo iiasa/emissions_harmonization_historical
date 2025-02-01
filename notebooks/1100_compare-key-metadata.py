@@ -199,9 +199,9 @@ for compare_col, prefix in (
 ):
     for label, workflow_new, workflow_base in (
         ("delta_total", f"updated-workflow_{magicc_v76_version_label}", "ar6-workflow_magiccv7.5.3"),
-        ("delta_magicc_update", f"ar6-workflow_{magicc_v76_version_label}", "ar6-workflow_magiccv7.5.3"),
+        ("delta_magicc_update_ar6_workflow", f"ar6-workflow_{magicc_v76_version_label}", "ar6-workflow_magiccv7.5.3"),
         (
-            "delta_magicc_update_updated_workflow",
+            "delta_magicc_update",
             f"updated-workflow_{magicc_v76_version_label}",
             "updated-workflow_magiccv7.5.3",
         ),
@@ -231,6 +231,56 @@ swarm_kwargs = dict(dodge=True)
 pdf = deltas.melt(ignore_index=False).reset_index()
 pdf["scenario_group"] = pdf["scenario"].apply(get_scenario_group)
 
+fig, ax = plt.subplots(figsize=(12, 8))
+
+pkwargs = dict(
+    data=pdf[pdf["variable"].isin(["peak_warming_delta_total", "2100_warming_delta_total"])],
+    y="value",
+    x="scenario_group",
+    order=scenario_group_order,
+    hue="variable",
+    ax=ax,
+)
+sns.boxplot(**pkwargs, **box_kwargs)
+sns.swarmplot(**pkwargs, **swarm_kwargs)
+
+sns.move_legend(ax, loc="center left", bbox_to_anchor=(1.05, 0.5))
+
+ax.axhline(0.0, color="tab:gray", zorder=1.2)
+
+# %%
+pdf = deltas.melt(ignore_index=False).reset_index()
+pdf["scenario_group"] = pdf["scenario"].apply(get_scenario_group)
+
+fig, ax = plt.subplots(figsize=(12, 8))
+
+pkwargs = dict(
+    data=pdf[
+        pdf["variable"].isin(
+            [
+                "peak_warming_delta_total",
+                "peak_warming_delta_magicc_update",
+                "peak_warming_delta_other_updates",
+                "2100_warming_delta_total",
+                "2100_warming_delta_magicc_update",
+                "2100_warming_delta_other_updates",
+            ]
+        )
+    ],
+    y="value",
+    x="scenario_group",
+    order=scenario_group_order,
+    hue="variable",
+    ax=ax,
+)
+sns.boxplot(**pkwargs, **box_kwargs)
+sns.swarmplot(**pkwargs, **swarm_kwargs)
+
+sns.move_legend(ax, loc="center left", bbox_to_anchor=(1.05, 0.5))
+
+ax.axhline(0.0, color="tab:gray", zorder=1.2)
+
+# %%
 fig, ax = plt.subplots(figsize=(12, 8))
 
 pkwargs = dict(
@@ -290,5 +340,3 @@ for start, title in (
 
     # ax.grid()
     fig.suptitle(title)
-
-# %%
