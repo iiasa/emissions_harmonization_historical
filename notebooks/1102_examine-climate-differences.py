@@ -410,9 +410,9 @@ variables_to_plot = zn_custom
 workflow_base = "ar6-workflow_magiccv7.5.3"
 workflow_updated = "updated-workflow_magiccv7.5.3"
 
-# # Isolate out changes not due to MAGICC updates
-# workflow_base = f"ar6-workflow_{magicc_v76_version_label}"
-# workflow_updated = f"updated-workflow_{magicc_v76_version_label}"
+# Isolate out changes not due to MAGICC updates
+workflow_base = f"ar6-workflow_{magicc_v76_version_label}"
+workflow_updated = f"updated-workflow_{magicc_v76_version_label}"
 
 # # Isolate out changes due to MAGICC updates
 # workflow_base = "ar6-workflow_magiccv7.5.3"
@@ -483,7 +483,8 @@ for model in models:
 tmp = pdf[~pdf["workflow"].str.startswith("history")].drop(["climate_model", "percentile"], axis="columns")
 tmp = tmp.set_index(tmp.columns.difference(["value"]).tolist()).unstack("workflow")
 diff = tmp[("value", workflow_updated)] - tmp[("value", workflow_base)]
-pdf_diff = diff.to_frame("value").reset_index()
+pdf_diff = diff.to_frame("value").round(6).reset_index()
+# pdf_diff = diff.to_frame("value").reset_index()
 
 fg = sns.relplot(
     data=pdf_diff,
