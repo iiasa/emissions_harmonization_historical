@@ -24,6 +24,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 import pandas_indexing as pix
+import pyam
 import seaborn as sns
 from gcages.io import load_timeseries_csv
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
@@ -160,8 +161,13 @@ def load_stage(  # noqa: PLR0913
         )
 
     for label, out_dir, strip_out_ar6_prefix, transform_variables in to_load:
+        fto_load = out_dir / out_file_name
+        if not fto_load.exists():
+            print(f"Does not exist: {fto_load=}")
+            continue
+
         tmp = load_timeseries_csv(
-            out_dir / out_file_name,
+            fto_load,
             index_columns=list(index_columns),
             out_column_type=int,
         ).pix.assign(workflow=label)
@@ -315,6 +321,7 @@ zn_custom = [
     # 'Atmospheric Concentrations|N2O',
     "Effective Radiative Forcing",
     #    ###
+    "Effective Radiative Forcing|Anthropogenic",
     "Effective Radiative Forcing|Aerosols",
     "Effective Radiative Forcing|Aerosols|Direct Effect",
     "Emissions|BC",
@@ -324,7 +331,6 @@ zn_custom = [
     "Emissions|Sulfur",
     "Effective Radiative Forcing|Aerosols|Direct Effect|SOx",
     "Effective Radiative Forcing|Aerosols|Indirect Effect",
-    "Effective Radiative Forcing|Anthropogenic",
     "Emissions|CH4",
     "Effective Radiative Forcing|CH4",
     "Emissions|CO2|AFOLU",
@@ -333,6 +339,16 @@ zn_custom = [
     "Effective Radiative Forcing|F-Gases",
     "Effective Radiative Forcing|Greenhouse Gases",
     "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
+    "Emissions|Montreal Gases|CFC|CFC11",
+    # 'Emissions|Montreal Gases|CFC|CFC113',
+    # 'Emissions|Montreal Gases|CFC|CFC114',
+    # 'Emissions|Montreal Gases|CFC|CFC115',
+    "Emissions|Montreal Gases|CFC|CFC12",
+    "Effective Radiative Forcing|Ozone",
+    "Effective Radiative Forcing|Aviation|Cirrus",
+    "Effective Radiative Forcing|Aviation|Contrail",
+    "Effective Radiative Forcing|Aviation|H2O",
+    "Effective Radiative Forcing|Black Carbon on Snow",
     "Emissions|N2O",
     "Effective Radiative Forcing|N2O",
     #    ###
@@ -394,9 +410,9 @@ variables_to_plot = zn_custom
 workflow_base = "ar6-workflow_magiccv7.5.3"
 workflow_updated = "updated-workflow_magiccv7.5.3"
 
-# Isolate out changes not due to MAGICC updates
-workflow_base = f"ar6-workflow_{magicc_v76_version_label}"
-workflow_updated = f"updated-workflow_{magicc_v76_version_label}"
+# # Isolate out changes not due to MAGICC updates
+# workflow_base = f"ar6-workflow_{magicc_v76_version_label}"
+# workflow_updated = f"updated-workflow_{magicc_v76_version_label}"
 
 # # Isolate out changes due to MAGICC updates
 # workflow_base = "ar6-workflow_magiccv7.5.3"
@@ -407,8 +423,11 @@ workflow_updated = f"updated-workflow_{magicc_v76_version_label}"
 # workflow_updated = f"updated-workflow_{magicc_v76_version_label}"
 
 models = ["*"]
-models = ["AIM*"]
-# models = ["GCAM*"]
+# models = ["AIM*"]
+models = ["GCAM*"]
+# models = ["MESSAGEix-GLOBIOM*"]
+# models = ["WITCH*"]
+# models = ["REMIND*"]
 for model in models:
     pdf = pd.concat(
         [
@@ -485,5 +504,41 @@ for ax in fg.axes.flatten():
 
 fg.figure.suptitle(model, y=1.01)
 plt.show()
+
+# %%
+pdf_diff[pdf_diff["variable"] == "Assessed Surface Air Temperature Change"].groupby(["model-scenario"])[
+    "value"
+].max().sort_values(ascending=False).iloc[:30]
+
+# %%
+highest_delta = (
+    pdf_diff[pdf_diff["variable"] == "Assessed Surface Air Temperature Change"]
+    .groupby(["model-scenario"])["value"]
+    .max()
+    .idxmax()
+)
+pyam_df = pyam.IamDataFrame(
+    pdf_diff[pdf_diff["model-scenario"] == highest_delta]
+    .loc[
+        pdf_diff["variable"].isin(
+            [
+                "Effective Radiative Forcing|Aerosols",
+                "Effective Radiative Forcing|Black Carbon on Snow",
+                "Effective Radiative Forcing|CH4",
+                "Effective Radiative Forcing|CO2",
+                "Effective Radiative Forcing|F-Gases",
+                "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
+                "Effective Radiative Forcing|N2O",
+                "Effective Radiative Forcing|Ozone",
+            ]
+        )
+    ]
+    .pivot_table(values="value", columns="year", index=["model", "scenario", "region", "variable", "unit"])
+)
+pyam_df
+
+# %%
+ax = pyam_df.plot.stack(stack="variable", total=True)
+ax.grid()
 
 # %%

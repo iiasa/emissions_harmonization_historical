@@ -100,7 +100,12 @@ def load_labelled_metadata(
         ("updated-workflow_magiccv7.5.3", updated_workflow_magicc_v753_output_dir),
         (f"updated-workflow_{magicc_v76_version_label}", updated_workflow_magicc_v76_output_dir),
     ):
-        tmp = pd.read_csv(out_dir / "metadata.csv").set_index(["model", "scenario"]).pix.assign(workflow=label)
+        fto_load = out_dir / "metadata.csv"
+        if not fto_load.exists():
+            print(f"Does not exist: {fto_load=}")
+            continue
+
+        tmp = pd.read_csv(fto_load).set_index(["model", "scenario"]).pix.assign(workflow=label)
         metadata_l.append(tmp)
 
     metadata = pix.concat(metadata_l)
@@ -179,7 +184,9 @@ disp.sort_index().loc[
 
 # %%
 metadata_by_workflow = metadata.stack().unstack("workflow").unstack()
-# metadata_by_workflow
+metadata_by_workflow.loc[:, (slice(None), "Peak warming 33.0")].sort_values(
+    ("ar6-workflow_magiccv7.5.3", "Peak warming 33.0")
+).iloc[:30, :]
 
 # %%
 metadata.pix.unique("workflow")
@@ -237,6 +244,8 @@ pkwargs = dict(
 sns.boxplot(**pkwargs, **box_kwargs)
 sns.swarmplot(**pkwargs, **swarm_kwargs)
 
+sns.move_legend(ax, loc="center left", bbox_to_anchor=(1.05, 0.5))
+
 ax.axhline(0.0, color="tab:gray", zorder=1.2)
 
 # %%
@@ -281,3 +290,5 @@ for start, title in (
 
     # ax.grid()
     fig.suptitle(title)
+
+# %%
