@@ -105,6 +105,10 @@ if CEDS_SOURCE == CEDSOption.Zenodo_2024_07_08:
 else:
     raise NotImplementedError(CEDS_SOURCE)
 
+
+if ceds.index.duplicated().any():
+    raise AssertionError
+
 ceds
 
 # %%
@@ -119,6 +123,9 @@ if BIOMASS_BURNING_SOURCE == BiomassBurningOption.GFED4_1s:
     )
 else:
     raise NotImplementedError(BIOMASS_BURNING_SOURCE)
+
+if biomass_burning.index.duplicated().any():
+    raise AssertionError
 
 biomass_burning
 
@@ -171,6 +178,12 @@ ceds_co2
 # %%
 biomass_burning_world = biomass_burning.loc[pix.isin(region=["World"])]
 biomass_burning_world
+
+# %%
+biomass_burning_world
+
+# %%
+biomass_burning_world.loc[pix.ismatch(variable="Emissions|OC|*")]
 
 # %%
 biomass_burning_sum = (
@@ -390,6 +403,9 @@ if len(full_var_set) != n_variables_in_full_scenario:
     raise AssertionError
 
 # %%
+global_composite.loc[pix.isin(variable="Emissions|BC"), 1997]
+
+# %%
 tmp = pix.concat(
     [
         global_composite,
@@ -398,7 +414,7 @@ tmp = pix.concat(
 ).loc[:, 1900:2025]
 pdf = tmp.melt(ignore_index=False, var_name="year").reset_index()
 
-sns.relplot(
+fg = sns.relplot(
     data=pdf,
     x="year",
     y="value",
@@ -406,10 +422,14 @@ sns.relplot(
     style="scenario",
     col="variable",
     col_wrap=3,
+    col_order=sorted(pdf["variable"].unique()),
     facet_kws=dict(sharey=False),
     kind="line",
     alpha=0.5,
 )
+
+for ax in fg.figure.axes:
+    ax.set_ylim(0)
 
 # %%
 combined_processed_output_file_world_only.parent.mkdir(exist_ok=True, parents=True)

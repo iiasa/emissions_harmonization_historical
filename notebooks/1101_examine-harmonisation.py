@@ -304,7 +304,7 @@ zn_custom = [
     # 'Emissions|CF4',
     "Emissions|CH4",
     # 'Emissions|CO',
-    # 'Emissions|CO2|AFOLU',
+    "Emissions|CO2|AFOLU",
     "Emissions|CO2|Energy and Industrial Processes",
     # # 'Emissions|HFC|HFC125',
     # 'Emissions|HFC|HFC134a',
@@ -349,6 +349,15 @@ zn_custom = [
 
 # %%
 variables_to_plot = zn_custom
+
+# %%
+ax = (
+    pix.concat([ar6_history.pix.assign(mip_era="CMIP6"), history_cut.pix.assign(mip_era="CMIP7")])
+    .loc[pix.isin(variable="Emissions|BC"), 1997:2023]
+    .T.plot()
+)
+ax.set_ylim(ymin=0, ymax=10)
+ax.grid()
 
 # %%
 model = "*"

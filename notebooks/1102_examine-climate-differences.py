@@ -63,7 +63,7 @@ updated_workflow_magicc_v76_output_dir
 magicc_v76_version_label = "magicc-v7.6.0a3"
 
 # %% [markdown]
-# ## Look at metadata
+# ## Helpers
 
 # %%
 scenario_group_order = [
@@ -126,6 +126,36 @@ def transform_ar6_workflow_output_to_iamc_variable(v):
             res = res.replace(old, new)
 
     return res
+
+
+# %%
+def load_labelled_metadata(
+    ar6_workflow_magicc_v753_output_dir: Path,
+    ar6_workflow_magicc_v76_output_dir: Path,
+    updated_workflow_magicc_v753_output_dir: Path,
+    updated_workflow_magicc_v76_output_dir: Path,
+    magicc_v76_version_label: str,
+) -> pd.DataFrame:
+    """
+    Load metadata with labels
+    """
+    metadata_l = []
+    for label, out_dir in (
+        ("ar6-workflow_magiccv7.5.3", ar6_workflow_magicc_v753_output_dir),
+        (f"ar6-workflow_{magicc_v76_version_label}", ar6_workflow_magicc_v76_output_dir),
+        ("updated-workflow_magiccv7.5.3", updated_workflow_magicc_v753_output_dir),
+        (f"updated-workflow_{magicc_v76_version_label}", updated_workflow_magicc_v76_output_dir),
+    ):
+        fto_load = out_dir / "metadata.csv"
+        if not fto_load.exists():
+            print(f"Does not exist: {fto_load=}")
+            continue
+
+        tmp = pd.read_csv(fto_load).set_index(["model", "scenario"]).pix.assign(workflow=label)
+        metadata_l.append(tmp)
+
+    metadata = pix.concat(metadata_l)
+    return metadata
 
 
 # %%
@@ -241,7 +271,7 @@ history = strip_pint_incompatible_characters_from_units(
 history_cut = history.loc[:, 1990:2025]
 # Interpolate
 history_cut = history_cut.T.interpolate("index", limit_area="inside").T
-history_cut
+# history_cut
 
 # %%
 RCMIP_PATH = DATA_ROOT / "global/rcmip/data_raw/rcmip-emissions-annual-means-v5-1-0.csv"
@@ -269,10 +299,20 @@ def load_ar6_history(rcmip_path: Path) -> pd.DataFrame:
 
 # %%
 ar6_history = load_ar6_history(RCMIP_PATH)
-ar6_history
+# ar6_history
 
 # %% [markdown]
 # ## Load
+
+# %%
+metadata = load_labelled_metadata(
+    ar6_workflow_magicc_v753_output_dir=ar6_workflow_magicc_v753_output_dir,
+    ar6_workflow_magicc_v76_output_dir=ar6_workflow_magicc_v76_output_dir,
+    updated_workflow_magicc_v753_output_dir=updated_workflow_magicc_v753_output_dir,
+    updated_workflow_magicc_v76_output_dir=updated_workflow_magicc_v76_output_dir,
+    magicc_v76_version_label=magicc_v76_version_label,
+)
+metadata
 
 # %%
 scm_effective = load_stage(
@@ -407,10 +447,6 @@ variables_to_plot = zn_custom
 
 # %%
 # Isolate out changes not due to MAGICC updates
-workflow_base = "ar6-workflow_magiccv7.5.3"
-workflow_updated = "updated-workflow_magiccv7.5.3"
-
-# Isolate out changes not due to MAGICC updates
 workflow_base = f"ar6-workflow_{magicc_v76_version_label}"
 workflow_updated = f"updated-workflow_{magicc_v76_version_label}"
 
@@ -418,13 +454,17 @@ workflow_updated = f"updated-workflow_{magicc_v76_version_label}"
 # workflow_base = "ar6-workflow_magiccv7.5.3"
 # workflow_updated = f"ar6-workflow_{magicc_v76_version_label}"
 
-# # Isolate out changes due to MAGICC updates
+# # Sensitivity case to isolate out changes not due to MAGICC updates
+# workflow_base = "ar6-workflow_magiccv7.5.3"
+# workflow_updated = "updated-workflow_magiccv7.5.3"
+
+# # Sensitivity case to isolate out changes due to MAGICC updates
 # workflow_base = "updated-workflow_magiccv7.5.3"
 # workflow_updated = f"updated-workflow_{magicc_v76_version_label}"
 
 models = ["*"]
-# models = ["AIM*"]
-models = ["GCAM*"]
+models = ["AIM*"]
+# models = ["GCAM*"]
 # models = ["MESSAGEix-GLOBIOM*"]
 # models = ["WITCH*"]
 # models = ["REMIND*"]
@@ -506,40 +546,102 @@ for ax in fg.axes.flatten():
 fg.figure.suptitle(model, y=1.01)
 plt.show()
 
-# %%
-pdf_diff[pdf_diff["variable"] == "Assessed Surface Air Temperature Change"].groupby(["model-scenario"])[
-    "value"
-].max().sort_values(ascending=False).iloc[:30]
+# %% [markdown]
+# ## Plots of drivers of change for each model
 
 # %%
-highest_delta = (
-    pdf_diff[pdf_diff["variable"] == "Assessed Surface Air Temperature Change"]
-    .groupby(["model-scenario"])["value"]
-    .max()
-    .idxmax()
+# Total changes
+workflow_base = "ar6-workflow_magiccv7.5.3"
+workflow_updated = f"updated-workflow_{magicc_v76_version_label}"
+
+# %%
+percentile = 50.0
+plot_years = range(2010, 2100 + 1)
+forcing_breakdown_to_plot = [
+    # "Effective Radiative Forcing|Aerosols",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|BC",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|OC",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|SOx",
+    "Effective Radiative Forcing|Aerosols|Indirect Effect",
+    "Effective Radiative Forcing|Black Carbon on Snow",
+    "Effective Radiative Forcing|CH4",
+    "Effective Radiative Forcing|CO2",
+    "Effective Radiative Forcing|F-Gases",
+    "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
+    "Effective Radiative Forcing|N2O",
+    "Effective Radiative Forcing|Ozone",
+]
+
+# %%
+ctdrop = ["climate_model"]
+unstacked = (
+    climate_percentiles.loc[pix.isin(variable=forcing_breakdown_to_plot, percentile=percentile), plot_years]
+    .unstack("workflow")
+    .swaplevel(0, 1, axis=1)
+    .reset_index("climate_model", drop=True)
 )
-pyam_df = pyam.IamDataFrame(
-    pdf_diff[pdf_diff["model-scenario"] == highest_delta]
-    .loc[
-        pdf_diff["variable"].isin(
-            [
-                "Effective Radiative Forcing|Aerosols",
-                "Effective Radiative Forcing|Black Carbon on Snow",
-                "Effective Radiative Forcing|CH4",
-                "Effective Radiative Forcing|CO2",
-                "Effective Radiative Forcing|F-Gases",
-                "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
-                "Effective Radiative Forcing|N2O",
-                "Effective Radiative Forcing|Ozone",
-            ]
+# I have no idea why it's necessary to drop the nulls within the subtraction
+diff = (
+    (unstacked[workflow_updated].dropna(how="all") - unstacked[workflow_base].dropna(how="all"))
+    .dropna(how="all")
+    .pix.assign(workflow=f"{workflow_updated} - {workflow_base}")
+    .round(6)
+)
+# diff
+
+# %%
+col_wrap = 3
+
+for model, mdf in diff.groupby("model"):
+    scenario_groups = [v for v in scenario_group_order if v in mdf.pix.unique("scenario_group")]
+
+    scenario_l = []
+    for sg in scenario_groups:
+        scenario_l.extend(sorted(mdf.loc[pix.isin(scenario_group=sg)].pix.unique("scenario")))
+
+    mosaic = []
+    for i in range(0, len(scenario_l), col_wrap):
+        if i + col_wrap <= len(scenario_l):
+            mosaic.append(scenario_l[i : i + col_wrap])
+        else:
+            filler = col_wrap - len(scenario_l) % col_wrap
+            tmp = [*scenario_l[i:], *(["."] * filler)]
+            mosaic.append(tmp)
+
+    fig, axes = plt.subplot_mosaic(
+        mosaic=mosaic,
+        figsize=(16, 4 * len(mosaic)),
+    )
+
+    for i, (scenario, sdf) in enumerate(mdf.groupby("scenario")):
+        metadata_ms = metadata.loc[pix.isin(model=model, scenario=scenario)]
+
+        ax = axes[scenario]
+        pdf = pyam.IamDataFrame(sdf)
+        pdf.plot.stack(
+            stack="variable",
+            title=None,
+            total=True,
+            ax=ax,
+            # TODO: update to a colour map with more levels
+            legend=scenario == scenario_l[col_wrap - 1],
         )
-    ]
-    .pivot_table(values="value", columns="year", index=["model", "scenario", "region", "variable", "unit"])
-)
-pyam_df
+        ax.grid()
 
-# %%
-ax = pyam_df.plot.stack(stack="variable", total=True)
-ax.grid()
+        lines = [f"**{scenario}**"]
+        for prefix, col in (
+            ("Median peak warming", "Peak warming 50.0"),
+            ("Median 2100 warming", "EOC warming 50.0"),
+            ("33rd peak warming", "Peak warming 33.0"),
+        ):
+            lines.append(f"*{prefix}*")
+            for workflow in [workflow_base, workflow_updated]:
+                val = float(metadata_ms.loc[pix.isin(workflow=workflow), col].values.squeeze())
+                lines.append(f"- {workflow}: {val:3.2f}")
 
-# %%
+        title = "\n".join(lines)
+        ax.set_title(title, horizontalalignment="left", loc="left", fontsize="small")
+
+    fig.suptitle(f"{model=}", y=1.02)
+    fig.tight_layout()
+    plt.show()
