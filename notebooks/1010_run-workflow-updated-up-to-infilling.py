@@ -37,7 +37,6 @@ import tqdm.autonotebook as tqdman
 from gcages.harmonisation import Harmoniser
 from gcages.infilling import Infiller
 from gcages.io import load_timeseries_csv
-from gcages.pre_processing import PreProcessor
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 from loguru import logger
 
@@ -55,7 +54,7 @@ from emissions_harmonization_historical.harmonisation import (
     aneris_overrides,
 )
 from emissions_harmonization_historical.io import load_global_scenario_data
-from emissions_harmonization_historical.pre_pre_processing import pre_pre_process
+from emissions_harmonization_historical.workflow import run_workflow_up_to_infilling
 
 # %%
 # Disable logging to avoid a million messages.
@@ -86,30 +85,19 @@ scenarios_raw_global = load_global_scenario_data(
 ).loc[:, :2100]  # TODO: drop 2100 end once we have usable scenario data post-2100
 
 # %% [markdown]
-# ### Hacky pre-processing
+# ## Pre-process
 
 # %%
-pre_pre_processed = pre_pre_process(
+tmp = run_workflow_up_to_infilling(
     scenarios_raw_global,
-    co2_ei_check_rtol=1e-3,
-    raise_on_co2_ei_difference=False,
-    # see the 1000_* notebook for proper diagnosis of issues
-    silent=True,
+    n_processes=n_processes,
+    run_checks=False,  # TODO: implement
 )
-pre_pre_processed
-
-# %%
-scenarios_raw_global.loc[
-    pix.isin(model="IMAGE 3.4", scenario="SSP1 - Low Emissions") & pix.ismatch(variable="**CO2|*")
-].dropna(how="all", axis="columns")
-
-# %%
-scenarios_raw_global.loc[
-    pix.isin(model="WITCH 6.0", scenario="SSP5 - High Emissions") & pix.ismatch(variable="**CO2|*")
-].dropna(how="all", axis="columns")
+pre_processed = tmp.pre_processed_emissions
+pre_processed
 
 # %% [markdown]
-# ## Pre-process and harmonise
+# ## Harmonise
 
 # %%
 HISTORICAL_GLOBAL_COMPOSITE_PATH = DATA_ROOT / "global-composite" / f"cmip7_history_world_{COMBINED_HISTORY_ID}.csv"
@@ -172,13 +160,6 @@ history_harmonisation = pix.concat(
     [history.loc[:, 2000 : HARMONISATION_YEAR - 1], harmonisation_values.to_frame()], axis="columns"
 )
 history_harmonisation
-
-# %%
-pre_processor = PreProcessor(emissions_out=tuple(history_harmonisation.pix.unique("variable")))
-
-# %%
-pre_processed = pre_processor(pre_pre_processed)
-pre_processed
 
 # %%
 harmoniser = Harmoniser(
@@ -355,7 +336,7 @@ if (infilled.groupby(["model", "scenario"]).count()[2021] != exp_n_ts).any():
 infilled
 
 # %%
-regress_file = OUTPUT_PATH / "infilled.csv"
+regress_file = DATA_ROOT / "climate-assessment-workflow/output/0010_20250127-140714_updated-workflow" / "infilled.csv"
 regress = load_timeseries_csv(
     regress_file,
     index_columns=infilled.index.names,
@@ -377,7 +358,6 @@ assert False, "stop"
 
 # %%
 for full_path, df in (
-    (OUTPUT_PATH / "pre-pre-processed.csv", pre_pre_processed),
     (OUTPUT_PATH / "pre-processed.csv", pre_processed),
     (OUTPUT_PATH / "harmonised.csv", harmonised),
     (OUTPUT_PATH / "infilled.csv", infilled),

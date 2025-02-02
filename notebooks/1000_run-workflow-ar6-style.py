@@ -41,7 +41,7 @@ from emissions_harmonization_historical.constants import (
     WORKFLOW_ID,
 )
 from emissions_harmonization_historical.io import load_global_scenario_data
-from emissions_harmonization_historical.pre_pre_processing import pre_pre_process
+from emissions_harmonization_historical.pre_processing import AR7FTPreProcessor
 
 # %%
 # Disable logging to avoid a million messages.
@@ -221,55 +221,11 @@ for (model, variable), mdf in reporting_issues.groupby(["model", "variable"]):
     # print(differences_ts)
 
 # %%
-pre_pre_processed = pre_pre_process(
-    scenarios_raw_global,
-    co2_ei_check_rtol=1e-3,
-    raise_on_co2_ei_difference=False,
-    silent=True,
-)
-pre_pre_processed
+pre_processed = AR7FTPreProcessor.from_default_config()(scenarios_raw_global)
+pre_processed
 
 # %% [markdown]
 # ### Down-select scenarios
-
-# %%
-# # Randomly select some scenarios
-# # (this is how I generated the hard-coded values in the next cell).
-# base = pre_pre_processed.pix.unique(["model", "scenario"]).to_frame(index=False)
-# base["scenario_group"] = base["scenario"].apply(lambda x: x.split("-")[-1].split("_")[0].strip())
-
-# selected_scenarios_l = []
-# selected_models = []
-# for scenario_group, sdf in base.groupby("scenario_group"):
-#     options = sdf.index.values.tolist()
-#     random.shuffle(options)
-
-#     n_selected = 0
-#     for option_loc in options:
-#         selected_model = sdf.loc[option_loc, :].model
-#         if selected_model not in selected_models:
-#             selected_scenarios_l.append(sdf.loc[option_loc, :])
-#             selected_models.append(selected_model)
-#             n_selected += 1
-#             if n_selected >= 2:
-#                 break
-
-#     else:
-#         if n_selected >= 1:
-#             selected_scenarios_l.append(sdf.loc[option_loc, :])
-#             selected_models.append(selected_model)
-#         else:
-#             selected_scenarios_l.append(sdf.loc[option_loc, :])
-#             selected_models.append(selected_model)
-
-#             option_loc = options[-2]
-#             selected_model = sdf.loc[option_loc, :].model
-#             selected_scenarios_l.append(sdf.loc[option_loc, :])
-#             selected_models.append(selected_model)
-
-# selected_scenarios = pd.concat(selected_scenarios_l, axis="columns").T
-# selected_scenarios_idx = selected_scenarios.set_index(["model", "scenario"]).index
-# selected_scenarios
 
 # %%
 selected_scenarios_idx = pd.MultiIndex.from_tuples(
@@ -287,13 +243,13 @@ selected_scenarios_idx = pd.MultiIndex.from_tuples(
     ),
     name=["model", "scenario"],
 )
-scenarios_run = pre_pre_processed[pre_pre_processed.index.isin(selected_scenarios_idx)]
+scenarios_run = pre_processed[pre_processed.index.isin(selected_scenarios_idx)]
 
-scenarios_run = pre_pre_processed.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["GCAM*", "AIM*", "*"])]
+scenarios_run = pre_processed.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["GCAM*", "AIM*", "*"])]
 
 # %%
 # To run all, just uncomment the below
-scenarios_run = pre_pre_processed
+scenarios_run = pre_processed
 
 # %%
 scenarios_run.pix.unique(["model", "scenario"]).to_frame(index=False)
@@ -309,9 +265,6 @@ res = run_ar6_workflow(
     n_processes=n_processes,
     run_checks=False,  # TODO: turn this back on
 )
-
-# %%
-res.post_processed_scenario_metadata.value_counts().sort_index()
 
 # %%
 post_processor = PostProcessor(
@@ -344,7 +297,6 @@ post_processed_updated.metadata.groupby(["model"])["category"].value_counts().so
 # %%
 for full_path, df in (
     (OUTPUT_PATH_MAGICC / "metadata.csv", post_processed_updated.metadata),
-    (OUTPUT_PATH / "pre-pre-processed.csv", pre_pre_processed),
     (OUTPUT_PATH / "pre-processed.csv", res.pre_processed_emissions),
     (OUTPUT_PATH / "harmonised.csv", res.harmonised_emissions),
     (OUTPUT_PATH / "infilled.csv", res.infilled_emissions),
