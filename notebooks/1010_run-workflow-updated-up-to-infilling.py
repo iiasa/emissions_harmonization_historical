@@ -54,6 +54,7 @@ from emissions_harmonization_historical.harmonisation import (
     HARMONISATION_YEAR_MISSING_SCALING_YEAR,
     aneris_overrides,
 )
+from emissions_harmonization_historical.io import load_global_scenario_data
 from emissions_harmonization_historical.pre_pre_processing import pre_pre_process
 
 # %%
@@ -78,36 +79,11 @@ run_checks = False  # TODO: turn on
 # ## Load scenario data
 
 # %%
-SCENARIO_PATH = DATA_ROOT / "scenarios" / "data_raw"
-SCENARIO_PATH
-
-# %%
-scenario_files = tuple(SCENARIO_PATH.glob(f"{SCENARIO_TIME_ID}__scenarios-scenariomip__*.csv"))
-if not scenario_files:
-    msg = f"Check your scenario ID. {list(SCENARIO_PATH.glob('*.csv'))=}"
-    raise AssertionError(msg)
-
-scenario_files[:5]
-
-# %%
-scenarios_raw = pix.concat(
-    [
-        load_timeseries_csv(
-            f,
-            index_columns=["model", "scenario", "region", "variable", "unit"],
-            out_column_type=int,
-        )
-        for f in tqdman.tqdm(scenario_files)
-    ]
-).sort_index(axis="columns")
-
-scenarios_raw_global = scenarios_raw.loc[
-    pix.ismatch(region="World"),
-    # TODO: drop this once we have usable scenario data post 2100
-    :2100,
-]
-
-scenarios_raw_global
+scenarios_raw_global = load_global_scenario_data(
+    scenario_path=DATA_ROOT / "scenarios" / "data_raw",
+    scenario_time_id=SCENARIO_TIME_ID,
+    progress=True,
+).loc[:, :2100]  # TODO: drop 2100 end once we have usable scenario data post-2100
 
 # %% [markdown]
 # ### Hacky pre-processing

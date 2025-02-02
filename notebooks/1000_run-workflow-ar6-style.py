@@ -29,10 +29,8 @@ import os
 import pandas as pd
 import pandas_indexing as pix
 import pyam
-import tqdm.autonotebook as tqdman
 from gcages.ar6 import run_ar6_workflow
 from gcages.database import GCDB
-from gcages.io import load_timeseries_csv
 from gcages.post_processing import PostProcessor
 from loguru import logger
 from nomenclature import DataStructureDefinition
@@ -42,6 +40,7 @@ from emissions_harmonization_historical.constants import (
     SCENARIO_TIME_ID,
     WORKFLOW_ID,
 )
+from emissions_harmonization_historical.io import load_global_scenario_data
 from emissions_harmonization_historical.pre_pre_processing import pre_pre_process
 
 # %%
@@ -149,32 +148,11 @@ scm_results_db
 # ## Load scenario data
 
 # %%
-scenario_files = tuple(SCENARIO_PATH.glob(f"{SCENARIO_TIME_ID}__scenarios-scenariomip__*.csv"))
-if not scenario_files:
-    msg = f"Check your scenario ID. {list(SCENARIO_PATH.glob('*.csv'))=}"
-    raise AssertionError(msg)
-
-scenario_files[:5]
-
-# %%
-scenarios_raw = pix.concat(
-    [
-        load_timeseries_csv(
-            f,
-            index_columns=["model", "scenario", "region", "variable", "unit"],
-            out_column_type=int,
-        )
-        for f in tqdman.tqdm(scenario_files)
-    ]
-).sort_index(axis="columns")
-
-scenarios_raw_global = scenarios_raw.loc[
-    pix.ismatch(region="World"),
-    # TODO: drop this once we have usable scenario data post 2100
-    :2100,
-]
-
-scenarios_raw_global
+scenarios_raw_global = load_global_scenario_data(
+    scenario_path=DATA_ROOT / "scenarios" / "data_raw",
+    scenario_time_id=SCENARIO_TIME_ID,
+    progress=True,
+).loc[:, :2100]  # TODO: drop 2100 end once we have usable scenario data post-2100
 
 # %% [markdown]
 # ### Hacky pre-processing
