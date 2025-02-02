@@ -424,5 +424,3 @@ for variable, vdf in (
     plt.show()
 
     # break
-
-# %%

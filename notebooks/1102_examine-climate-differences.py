@@ -463,7 +463,7 @@ workflow_updated = f"updated-workflow_{magicc_v76_version_label}"
 
 models = ["*"]
 models = ["AIM*"]
-# models = ["GCAM*"]
+models = ["GCAM*"]
 # models = ["MESSAGEix-GLOBIOM*"]
 # models = ["WITCH*"]
 models = ["REMIND*"]
@@ -544,5 +544,3 @@ for ax in fg.axes.flatten():
 
 fg.figure.suptitle(model, y=1.01)
 plt.show()
-
-# %%

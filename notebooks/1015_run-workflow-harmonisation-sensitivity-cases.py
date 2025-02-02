@@ -182,7 +182,7 @@ for model, mdf in scenarios_raw_global.groupby("model"):
         # break
 
 mod_scens = pd.MultiIndex.from_tuples(mod_scens_l, names=("model", "scenario"))
-mod_scens = mod_scens[2:4]
+# mod_scens = mod_scens[2:4]
 mod_scens.to_frame(index=False)
 
 # %% [markdown]
@@ -191,9 +191,6 @@ mod_scens.to_frame(index=False)
 # %%
 tmp = pix.concat(
     [
-        # workflow_res_up_to_infilling_default.pre_processed_emissions.pix.assign(stage="pre-processed", workflow="default"),
-        # workflow_res_up_to_infilling_default.harmonised_emissions.pix.assign(stage="harmonised", workflow="default"),
-        # workflow_res_up_to_infilling_default.infilled_emissions.pix.assign(stage="infilled", workflow="default"),
         *[
             v
             for key, wr in workflow_up_to_infilling_res_d.items()
@@ -208,38 +205,8 @@ tmp = pix.concat(
 tmp = multi_index_lookup(tmp, mod_scens)
 sns_df = tmp.melt(ignore_index=False, var_name="year").reset_index()
 sns_df["ms"] = sns_df["model"] + sns_df["scenario"]
+# Can plot with this if needed
 sns_df
-
-# %%
-# for model, mdf in tqdm(sns_df.groupby("model")):
-#     fg = sns.relplot(
-#         data=mdf,
-#         x="year",
-#         y="value",
-#         col="variable",
-#         col_wrap=3,
-#         col_order=sorted(mdf["variable"].unique()),
-#         hue="workflow",
-#         style="stage",
-#         dashes={
-#             "pre-processed": (3, 3),
-#             "infilled": (1, 1),
-#             "harmonised": "",
-#         },
-#         units="ms",
-#         estimator=None,
-#         facet_kws=dict(sharey=False),
-#         kind="line",
-#         alpha=0.7,
-#     )
-#     for ax in fg.figure.axes:
-#         ax.grid()
-#         if "CO2" not in ax.get_title():
-#             ax.set_ylim(ymin=0)
-
-#     fg.figure.suptitle(model, y=1.01)
-#     plt.show()
-#     # break
 
 # %%
 scm_results_d = {}
@@ -270,6 +237,7 @@ scm_results_d.keys()
 # %%
 for key, out_path in OUTPUT_PATHS.items():
     for full_path, df in (
+        (out_path / "pre-processed.csv", workflow_up_to_infilling_res_d[key].pre_processed_emissions),
         (out_path / "harmonised.csv", workflow_up_to_infilling_res_d[key].harmonised_emissions),
         (out_path / "infilled.csv", workflow_up_to_infilling_res_d[key].infilled_emissions),
         # (out_path / "complete_scenarios.csv", complete_scenarios),
@@ -281,3 +249,5 @@ for key, out_path in OUTPUT_PATHS.items():
         print(f"Wrote {full_path}")
         print()
     print()
+
+# %%
