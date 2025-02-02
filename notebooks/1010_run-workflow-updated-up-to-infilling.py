@@ -26,12 +26,10 @@ import json
 import logging
 import multiprocessing
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 import pyam
-import scipy.stats
 import silicone.database_crunchers
 import tqdm.autonotebook as tqdman
 from gcages.harmonisation import Harmoniser
@@ -44,6 +42,7 @@ from emissions_harmonization_historical.constants import (
     COMBINED_HISTORY_ID,
     DATA_ROOT,
     FOLLOWER_SCALING_FACTORS_ID,
+    HARMONISATION_VALUES_ID,
     SCENARIO_TIME_ID,
     WMO_2022_PROCESSING_ID,
     WORKFLOW_ID,
@@ -100,70 +99,22 @@ pre_processed
 # ## Harmonise
 
 # %%
-HISTORICAL_GLOBAL_COMPOSITE_PATH = DATA_ROOT / "global-composite" / f"cmip7_history_world_{COMBINED_HISTORY_ID}.csv"
-HISTORICAL_GLOBAL_COMPOSITE_PATH
-
-# %%
+history_path = (
+    DATA_ROOT
+    / "global-composite"
+    / f"cmip7-harmonisation-history_world_{COMBINED_HISTORY_ID}_{HARMONISATION_VALUES_ID}.csv"
+)
 history = strip_pint_incompatible_characters_from_units(
     load_timeseries_csv(
-        HISTORICAL_GLOBAL_COMPOSITE_PATH,
+        history_path,
         index_columns=["model", "scenario", "region", "variable", "unit"],
         out_column_type=int,
     )
 )
 
 # %%
-# TODO: decide which variables exactly to use averaging with
-high_variability_variables = (
-    "Emissions|BC",
-    "Emissions|CO",
-    "Emissions|CH4",
-    # # Having looked at the data, I'm not sure I would do this for CO2 AFOLU
-    # "Emissions|CO2|AFOLU",
-    "Emissions|N2O",
-    "Emissions|NH3",
-    "Emissions|NOx",
-    "Emissions|OC",
-    "Emissions|VOC",
-)
-n_years_for_regress = 10
-
-harmonisation_values_l = []
-for variable, vdf in history.groupby("variable"):
-    if variable in high_variability_variables:
-        regress_vals = vdf.loc[
-            :,
-            HARMONISATION_YEAR - n_years_for_regress + 1 : HARMONISATION_YEAR,
-        ]
-        regress_res = scipy.stats.linregress(x=regress_vals.columns, y=regress_vals.values)
-        regressed_value = regress_res.slope * HARMONISATION_YEAR + regress_res.intercept
-
-        tmp = vdf[HARMONISATION_YEAR].copy()
-        tmp.loc[:] = regressed_value
-
-        ax = vdf.T.plot()
-        ax.scatter(HARMONISATION_YEAR, regressed_value, marker="x", color="tab:orange")
-        ax.grid(which="major")
-        ax.set_xticks(regress_vals.columns, minor=True)
-        ax.grid(which="minor")
-        plt.show()
-
-    else:
-        tmp = vdf[HARMONISATION_YEAR]
-
-    harmonisation_values_l.append(tmp)
-
-harmonisation_values = pix.concat(harmonisation_values_l)
-
-# %%
-history_harmonisation = pix.concat(
-    [history.loc[:, 2000 : HARMONISATION_YEAR - 1], harmonisation_values.to_frame()], axis="columns"
-)
-history_harmonisation
-
-# %%
 harmoniser = Harmoniser(
-    historical_emissions=history_harmonisation,
+    historical_emissions=history,
     harmonisation_year=HARMONISATION_YEAR,
     calc_scaling_year=HARMONISATION_YEAR_MISSING_SCALING_YEAR,
     aneris_overrides=aneris_overrides,

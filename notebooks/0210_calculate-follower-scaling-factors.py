@@ -13,7 +13,7 @@
 # ---
 
 # %% [markdown]
-# # Calculate
+# # Calculate follower scaling factors
 
 # %%
 import json
