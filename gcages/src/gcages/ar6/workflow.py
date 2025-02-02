@@ -34,8 +34,13 @@ class AR6WorkflowRunResult:
     """The harmonised emissions"""
 
     infilled_emissions: pd.DataFrame
+    """The infilled emissions"""
+
+    complete_scenarios: pd.DataFrame
     """
-    The infilled emissions, i.e. the complete set of emissions needed to run the SCMs
+    The complete scenarios
+
+    I.e. scenarios with the complete set of emissions needed to run the SCMs.
     """
 
     scm_results_raw: pd.DataFrame
