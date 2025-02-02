@@ -191,8 +191,10 @@ def test_save_overwrite_force(tmpdir, db_format):
     # As a helper, check we've got the number of files we expect.
     # This is testing implementation, so could be removed in future.
     # Expect to have the index file plus the new file, but not the original file.
-    db_files = list(db.db_dir.glob("*.csv"))
-    assert set([f.name for f in db_files]) == {"1.csv", "index.csv", "filemap.csv"}
+    db_files = list(db.db_dir.glob(f"*.{db_format}"))
+    assert set([f.name for f in db_files]) == set(
+        f"{prefix}.{db_format}" for prefix in ["1", "index", "filemap"]
+    )
 
     # Check that the data was overwritten with new data
     try:
@@ -234,12 +236,10 @@ def test_save_overwrite_force_half_overlap(tmpdir, db_format):
     # As a helper, check we've got the number of files we expect.
     # This is testing implementation, so could be removed in future.
     # Expect to have the index file plus the file map file plus written file.
-    db_files = list(db.db_dir.glob("*.csv"))
-    assert set([f.name for f in db_files]) == {
-        "0.csv",
-        "index.csv",
-        "filemap.csv",
-    }
+    db_files = list(db.db_dir.glob(f"*.{db_format}"))
+    assert set([f.name for f in db_files]) == set(
+        f"{prefix}.{db_format}" for prefix in ["0", "index", "filemap"]
+    )
 
     # Make sure that our data saved correctly
     db_metadata = db.load_metadata()
@@ -263,13 +263,10 @@ def test_save_overwrite_force_half_overlap(tmpdir, db_format):
     # plus the re-written data file
     # (to handle the need to split the original data so we can keep only what we need),
     # but not the original file.
-    db_files = list(db.db_dir.glob("*.csv"))
-    assert set([f.name for f in db_files]) == {
-        "1.csv",
-        "2.csv",
-        "index.csv",
-        "filemap.csv",
-    }
+    db_files = list(db.db_dir.glob(f"*.{db_format}"))
+    assert set([f.name for f in db_files]) == set(
+        f"{prefix}.{db_format}" for prefix in ["1", "2", "index", "filemap"]
+    )
 
     # Check that the data was overwritten with new data
     overlap_idx = original.index.isin(original_overwrite.index)
@@ -515,7 +512,7 @@ def test_regroup(tmpdir, db_format):
 
     pd.testing.assert_frame_equal(db.load(out_columns_type=float), all_dat)
     # Testing implementation but ok as a helper for now
-    assert len(list(db.db_dir.glob("*.csv"))) == 3
+    assert len(list(db.db_dir.glob(f"*.{db_format}"))) == 3
 
     for new_grouping in (
         ["scenario"],
@@ -530,6 +527,6 @@ def test_regroup(tmpdir, db_format):
         )
         # Testing implementation but ok as a helper for now
         assert (
-            len(list(db.db_dir.glob("*.csv")))
+            len(list(db.db_dir.glob(f"*.{db_format}")))
             == 2 + all_dat.pix.unique(new_grouping).shape[0]
         )
