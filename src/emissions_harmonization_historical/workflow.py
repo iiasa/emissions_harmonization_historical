@@ -10,9 +10,11 @@ import multiprocessing
 from pathlib import Path
 
 import pandas as pd
+import pandas_indexing as pix
 from attrs import define
 
 from emissions_harmonization_historical.harmonisation import AR7FTHarmoniser
+from emissions_harmonization_historical.infilling import AR7FTInfiller
 from emissions_harmonization_historical.pre_processing import AR7FTPreProcessor
 
 
@@ -29,10 +31,13 @@ class AR7FTWorkflowUpToInfillingRunResult:
     harmonised_emissions: pd.DataFrame
     """The harmonised emissions"""
 
-    # infilled_emissions: pd.DataFrame
-    # """
-    # The infilled emissions, i.e. the complete set of emissions needed to run the SCMs
-    # """
+    infilled_emissions: pd.DataFrame
+    """The infilled emissions"""
+
+    complete_scenarios: pd.DataFrame
+    """
+    The complete scenarios, i.e. scenarios with the complete set of emissions needed to run the SCMs
+    """
 
 
 @define
@@ -61,8 +66,8 @@ def run_workflow_up_to_infilling(  # noqa: PLR0913
     run_checks: bool = True,
     pre_processor: AR7FTPreProcessor | None = None,
     harmoniser: AR7FTHarmoniser | None = None,
+    infiller: AR7FTInfiller | None = None,
     data_root: Path | None = None,
-    # infiller: Infiller | None = None,
     n_processes: int = multiprocessing.cpu_count(),
 ) -> AR7FTWorkflowUpToInfillingRunResult:
     """
@@ -91,6 +96,18 @@ def run_workflow_up_to_infilling(  # noqa: PLR0913
         If not supplied, we use the default
         `AR7FTHarmoniser.from_default_config`.
 
+    infiller
+        Infiller to use.
+
+        If not supplied, we use the default
+        `AR7FTInfiller.from_default_config`.
+
+    data_root
+        Root data path
+
+    n_processes
+        Number of parallel processes to use throughout
+
     Returns
     -------
     :
@@ -105,18 +122,22 @@ def run_workflow_up_to_infilling(  # noqa: PLR0913
 
         harmoniser = AR7FTHarmoniser.from_default_config(data_root=data_root, n_processes=n_processes)
 
-    # if infiller is None:
-    #     infiller = Infiller()
-
     pre_processed = pre_processor(input_emissions)
     harmonised = harmoniser(pre_processed)
-    # infilled = infiller(harmonised)
+
+    if infiller is None:
+        infiller = AR7FTInfiller.from_default_config(harmonised=harmonised, data_root=data_root)
+
+    infilled = infiller(harmonised)
+
+    complete_scenarios = pix.concat([harmonised, infilled])
 
     res = AR7FTWorkflowUpToInfillingRunResult(
         input_emissions=input_emissions,
         pre_processed_emissions=pre_processed,
         harmonised_emissions=harmonised,
-        # infilled_emissions=infilled,
+        infilled_emissions=infilled,
+        complete_scenarios=complete_scenarios,
     )
 
     return res
