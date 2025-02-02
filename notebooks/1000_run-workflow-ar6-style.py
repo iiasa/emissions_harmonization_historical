@@ -341,6 +341,7 @@ for full_path, df in (
     (OUTPUT_PATH / "pre-processed.csv", res.pre_processed_emissions),
     (OUTPUT_PATH / "harmonised.csv", res.harmonised_emissions),
     (OUTPUT_PATH / "infilled.csv", res.infilled_emissions),
+    (OUTPUT_PATH / "complete_scenarios.csv", res.complete_scenarios),
     (OUTPUT_PATH_MAGICC / "scm-effective-emissions.csv", res.infilled_emissions),
     (OUTPUT_PATH_MAGICC / "timeseries-percentiles.csv", post_processed_updated.timeseries_percentiles),
     # Don't write this, already in the database

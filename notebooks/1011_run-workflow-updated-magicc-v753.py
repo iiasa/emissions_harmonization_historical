@@ -75,57 +75,18 @@ OUTPUT_PATH = INPUT_PATH / f"magicc-{magicc_expected_version.replace('.', '-')}_
 OUTPUT_PATH
 
 # %% [markdown]
-# ## Load infilled data
+# ## Load complete scenario data
 
 # %%
-infilled = load_timeseries_csv(
-    INPUT_PATH / "infilled.csv",
+complete_scenarios = load_timeseries_csv(
+    INPUT_PATH / "complete_scenarios.csv",
     index_columns=["model", "scenario", "region", "variable", "unit"],
     out_column_type=int,
 )
-infilled
+complete_scenarios
 
 # %% [markdown]
 # ## Down-select scenarios
-
-# %%
-# # Randomly select some scenarios
-# # (this is how I generated the hard-coded values in the next cell).
-# base = infilled.pix.unique(["model", "scenario"]).to_frame(index=False)
-# base["scenario_group"] = base["scenario"].apply(lambda x: x.split("-")[-1].split("_")[0].strip())
-
-# selected_scenarios_l = []
-# selected_models = []
-# for scenario_group, sdf in base.groupby("scenario_group"):
-#     options = sdf.index.values.tolist()
-#     random.shuffle(options)
-
-#     n_selected = 0
-#     for option_loc in options:
-#         selected_model = sdf.loc[option_loc, :].model
-#         if selected_model not in selected_models:
-#             selected_scenarios_l.append(sdf.loc[option_loc, :])
-#             selected_models.append(selected_model)
-#             n_selected += 1
-#             if n_selected >= 2:
-#                 break
-
-#     else:
-#         if n_selected >= 1:
-#             selected_scenarios_l.append(sdf.loc[option_loc, :])
-#             selected_models.append(selected_model)
-#         else:
-#             selected_scenarios_l.append(sdf.loc[option_loc, :])
-#             selected_models.append(selected_model)
-
-#             option_loc = options[-2]
-#             selected_model = sdf.loc[option_loc, :].model
-#             selected_scenarios_l.append(sdf.loc[option_loc, :])
-#             selected_models.append(selected_model)
-
-# selected_scenarios = pd.concat(selected_scenarios_l, axis="columns").T
-# selected_scenarios_idx = selected_scenarios.set_index(["model", "scenario"]).index
-# selected_scenarios
 
 # %%
 # selected_scenarios_idx = pd.MultiIndex.from_tuples(
@@ -144,13 +105,16 @@ infilled
 #     ),
 #     name=["model", "scenario"],
 # )
-# scenarios_run = infilled[infilled.index.isin(selected_scenarios_idx)]
+# scenarios_run = complete_scenarios[complete_scenarios.index.isin(selected_scenarios_idx)]
 
-scenarios_run = infilled.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["*", "AIM*", "GCAM*"])]
+scenarios_run = complete_scenarios.loc[
+    pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["*", "AIM*", "GCAM*"])
+]
+scenarios_run = complete_scenarios.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["GCAM*"])]
 
 # %%
 # To run all, just uncomment the below
-scenarios_run = infilled
+scenarios_run = complete_scenarios
 
 # %%
 scenarios_run.pix.unique(["model", "scenario"]).to_frame(index=False)
@@ -299,22 +263,6 @@ history = strip_pint_incompatible_characters_from_units(
         out_column_type=int,
     )
 )
-
-# %%
-# # Smooth out OC to avoid the weird kick in aerosol emissions
-# for v in ["Emissions|OC"]:
-#     loc = pix.isin(variable=[v])
-#     cols = range(2012, 2021 + 1)
-#     tmp = history.loc[loc, cols].dropna(axis="columns")
-#     # print(tmp.shape)
-#     ax = tmp.T.plot()
-#     linreg = scipy.stats.linregress(x=tmp.columns, y=tmp.values)
-#     history.loc[loc, tmp.columns] = linreg.intercept + linreg.slope * tmp.columns
-
-#     history.loc[loc, :].T.plot(ax=ax)
-#     # plt.show()
-
-# # history
 
 # %%
 history_cut = history.loc[:, MAGICC_FORCE_START_YEAR : scenarios_run.columns.min() - 1]
