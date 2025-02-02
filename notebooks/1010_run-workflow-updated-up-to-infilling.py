@@ -32,26 +32,18 @@ import pandas_indexing as pix
 import pyam
 import silicone.database_crunchers
 import tqdm.autonotebook as tqdman
-from gcages.harmonisation import Harmoniser
 from gcages.infilling import Infiller
 from gcages.io import load_timeseries_csv
-from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 from loguru import logger
 
 from emissions_harmonization_historical.constants import (
-    COMBINED_HISTORY_ID,
     DATA_ROOT,
     FOLLOWER_SCALING_FACTORS_ID,
-    HARMONISATION_VALUES_ID,
     SCENARIO_TIME_ID,
     WMO_2022_PROCESSING_ID,
     WORKFLOW_ID,
 )
-from emissions_harmonization_historical.harmonisation import (
-    HARMONISATION_YEAR,
-    HARMONISATION_YEAR_MISSING_SCALING_YEAR,
-    aneris_overrides,
-)
+from emissions_harmonization_historical.harmonisation import AR7FTHarmoniser
 from emissions_harmonization_historical.io import load_global_scenario_data
 from emissions_harmonization_historical.workflow import run_workflow_up_to_infilling
 
@@ -99,30 +91,7 @@ pre_processed
 # ## Harmonise
 
 # %%
-history_path = (
-    DATA_ROOT
-    / "global-composite"
-    / f"cmip7-harmonisation-history_world_{COMBINED_HISTORY_ID}_{HARMONISATION_VALUES_ID}.csv"
-)
-history = strip_pint_incompatible_characters_from_units(
-    load_timeseries_csv(
-        history_path,
-        index_columns=["model", "scenario", "region", "variable", "unit"],
-        out_column_type=int,
-    )
-)
-
-# %%
-harmoniser = Harmoniser(
-    historical_emissions=history,
-    harmonisation_year=HARMONISATION_YEAR,
-    calc_scaling_year=HARMONISATION_YEAR_MISSING_SCALING_YEAR,
-    aneris_overrides=aneris_overrides,
-    n_processes=n_processes,
-    run_checks=run_checks,
-)
-
-# %%
+harmoniser = AR7FTHarmoniser.from_default_config(data_root=DATA_ROOT)
 harmonised = harmoniser(pre_processed)
 harmonised
 
