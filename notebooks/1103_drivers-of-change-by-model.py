@@ -391,5 +391,3 @@ for model, mdf in diff.groupby("model"):
     fig.suptitle(f"{model=}", y=1.02)
     fig.tight_layout()
     plt.show()
-
-# %%

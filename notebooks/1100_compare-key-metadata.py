@@ -22,6 +22,7 @@
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 import seaborn as sns
@@ -143,7 +144,7 @@ for our_column, db_column in (
 ):
     print(f"{our_column=}")
     our_res = metadata.loc[pix.isin(workflow=["ar6-workflow_magiccv7.5.3"])][our_column].droplevel("workflow")
-    display(
+    display(  # noqa: F821
         (our_res - multi_index_lookup(db_meta[db_column], our_res.index)).abs().sort_values(ascending=False).iloc[:30]
     )
 
@@ -151,7 +152,15 @@ for our_column, db_column in (
 # ## Number of scenarios in each category
 
 # %%
+workflow_map = {
+    "ar6-workflow_magiccv7.5.3": "AR6",
+    "ar6-workflow_magicc-v7.6.0a3": "AR6_updated-MAGICC",
+    # 'updated-workflow_magiccv7.5.3': "AR7FT_AR6-MAGICC",
+    "updated-workflow_magicc-v7.6.0a3": "AR7FT",
+}
 tmp = metadata.pix.assign(scenario_group=metadata.index.get_level_values("scenario").map(get_scenario_group))
+tmp = tmp.pix.assign(workflow=metadata.index.get_level_values("workflow").map(workflow_map))
+
 disp = (
     tmp.groupby(["scenario_group", "workflow"])["category"]
     .value_counts()
@@ -162,21 +171,73 @@ disp = (
     )
     .drop(("n_scenarios", "All"), axis="columns")
 )
+disp.groupby("category").sum().drop("")
+
+# %%
 disp.sort_index().loc[
     [
         *[v for v in scenario_group_order if v in disp.index.get_level_values("scenario_group")],
         "All",
     ],
+    (["n_scenarios"], list(workflow_map.values())),
+    # [("n_scenarios",), tuple(workflow_map.values())],
 ]
+
+# %% [markdown]
+# ## Plots of warming
+
+# %%
+palette = {
+    "AR6": "tab:orange",
+    "AR6_updated-MAGICC": "tab:purple",
+    "AR7FT_AR6-MAGICC": "tab:olive",
+    "AR7FT": "tab:blue",
+}
+variables = ["Peak warming 33.0", "Peak warming 50.0", "EOC warming 50.0"]
+box_kwargs = dict(saturation=0.6)
+
+fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(8, 9))
+for variable, axes_row in zip(variables, axes):
+    sns_df = metadata[[variable]].melt(ignore_index=False).reset_index()
+    sns_df["scenario_group"] = sns_df["scenario"].apply(get_scenario_group)
+    sns_df["workflow"] = sns_df["workflow"].map(workflow_map)
+
+    for i, (ax, sgs) in enumerate(zip(axes_row, [["VLLO", "VLHO", "L"], ["ML", "M", "H"]])):
+        pkwargs = dict(
+            data=sns_df[sns_df["scenario_group"].isin(sgs)],
+            y="value",
+            x="scenario_group",
+            order=[s for s in scenario_group_order if s in sgs],
+            hue="workflow",
+            palette=palette,
+            ax=ax,
+        )
+
+        sns.boxplot(**pkwargs, **box_kwargs)
+
+        # sns.move_legend(ax, loc="center left", bbox_to_anchor=(1.05, 0.5))
+
+        ax.set_yticks(np.arange(1.0, ax.get_ylim()[1], 0.5))
+
+        ax.grid()
+        ax.set_title(variable)
+
+fig.tight_layout()
+
+# %%
+metadata_by_workflow = metadata.copy()
+metadata_by_workflow = metadata_by_workflow.pix.assign(
+    workflow=metadata_by_workflow.index.get_level_values("workflow").map(workflow_map)
+)
+metadata_by_workflow = metadata_by_workflow[~metadata_by_workflow.index.get_level_values("workflow").isnull()]
+metadata_by_workflow = metadata_by_workflow.stack().unstack("workflow").unstack()
+metadata_by_workflow.loc[:, (slice(None), "Peak warming 33.0")].sort_values(("AR7FT", "Peak warming 33.0")).iloc[
+    :13, :
+].astype(float).round(2)
 
 # %%
 metadata_by_workflow = metadata.stack().unstack("workflow").unstack()
-metadata_by_workflow.loc[:, (slice(None), "Peak warming 33.0")].sort_values(
-    ("ar6-workflow_magiccv7.5.3", "Peak warming 33.0")
-).iloc[:30, :]
-
-# %%
-metadata.pix.unique("workflow")
+metadata_by_workflow
 
 # %%
 deltas_l = []
@@ -221,6 +282,67 @@ pdf["scenario_group"] = pdf["scenario"].apply(get_scenario_group)
 fig, ax = plt.subplots(figsize=(12, 8))
 
 pkwargs = dict(
+    data=pdf[
+        pdf["variable"].isin(
+            [
+                "peak_warming_delta_magicc_update",
+                "2100_warming_delta_magicc_update",
+            ]
+        )
+    ],
+    y="value",
+    x="scenario_group",
+    order=scenario_group_order,
+    hue="variable",
+    ax=ax,
+)
+sns.boxplot(**pkwargs, **box_kwargs)
+sns.swarmplot(**pkwargs, **swarm_kwargs)
+
+sns.move_legend(ax, loc="center left", bbox_to_anchor=(1.05, 0.5))
+
+ax.axhline(0.0, color="tab:gray", zorder=1.2)
+ax.grid()
+
+# %%
+pdf = deltas.melt(ignore_index=False).reset_index()
+pdf["scenario_group"] = pdf["scenario"].apply(get_scenario_group)
+tmp = (
+    metadata["Peak warming 50.0"].loc[pix.isin(workflow="ar6-workflow_magiccv7.5.3")].reset_index("workflow", drop=True)
+)
+tmp.name = "peak_warming_ar6"
+pdf = pd.concat([pdf.set_index(["model", "scenario"]), tmp], axis="columns").reset_index()
+
+fig, ax = plt.subplots(figsize=(12, 8))
+
+sns.scatterplot(
+    data=pdf[
+        pdf["variable"].isin(
+            [
+                "peak_warming_delta_magicc_update",
+                "2100_warming_delta_magicc_update",
+            ]
+        )
+    ],
+    x="peak_warming_ar6",
+    y="value",
+    hue="variable",
+    alpha=0.5,
+    ax=ax,
+)
+
+sns.move_legend(ax, loc="center left", bbox_to_anchor=(1.05, 0.5))
+
+ax.axhline(0.0, color="tab:gray", zorder=1.2)
+ax.grid()
+
+# %%
+pdf = deltas.melt(ignore_index=False).reset_index()
+pdf["scenario_group"] = pdf["scenario"].apply(get_scenario_group)
+
+fig, ax = plt.subplots(figsize=(12, 8))
+
+pkwargs = dict(
     data=pdf[pdf["variable"].isin(["peak_warming_delta_total", "2100_warming_delta_total"])],
     y="value",
     x="scenario_group",
@@ -246,10 +368,10 @@ pkwargs = dict(
         pdf["variable"].isin(
             [
                 "peak_warming_delta_total",
-                "peak_warming_delta_magicc_update",
+                # "peak_warming_delta_magicc_update",
                 "peak_warming_delta_other_updates",
                 "2100_warming_delta_total",
-                "2100_warming_delta_magicc_update",
+                # "2100_warming_delta_magicc_update",
                 "2100_warming_delta_other_updates",
             ]
         )
@@ -303,7 +425,7 @@ for start, title in (
     pdf = start.to_frame().reset_index()
     pdf["scenario_group"] = pdf["scenario"].apply(get_scenario_group)
 
-    fig, ax = plt.subplots(figsize=(20, 8))
+    fig, ax = plt.subplots(figsize=(16, 6))
 
     pkwargs = dict(
         data=pdf,
@@ -323,7 +445,7 @@ for start, title in (
 
     ax.axhline(0.0, color="tab:gray")
 
-    plt.xticks(rotation=90)
+    plt.xticks(rotation=60)
 
     # ax.grid()
     fig.suptitle(title)
