@@ -73,70 +73,31 @@ OUTPUT_PATH = INPUT_PATH / f"magicc-{magicc_expected_version.replace('.', '-')}_
 OUTPUT_PATH
 
 # %% [markdown]
-# ## Load infilled data
+# ## Load complete scenario data
 
 # %%
-infilled = load_timeseries_csv(
-    INPUT_PATH / "infilled.csv",
+complete_scenarios = load_timeseries_csv(
+    INPUT_PATH / "complete_scenarios.csv",
     index_columns=["model", "scenario", "region", "variable", "unit"],
     out_column_type=int,
 )
 # Strip prefix
-infilled = infilled.pix.assign(
-    variable=infilled.index.get_level_values("variable").map(
+complete_scenarios = complete_scenarios.pix.assign(
+    variable=complete_scenarios.index.get_level_values("variable").map(
         lambda x: x.replace("AR6 climate diagnostics|Infilled|", "")
     )
 )
 
 # Deal with the HFC245 bug
-infilled = infilled.pix.assign(
-    variable=infilled.index.get_level_values("variable").str.replace("HFC245ca", "HFC245fa").values,
-    unit=infilled.index.get_level_values("unit").str.replace("HFC245ca", "HFC245fa").values,
+complete_scenarios = complete_scenarios.pix.assign(
+    variable=complete_scenarios.index.get_level_values("variable").str.replace("HFC245ca", "HFC245fa").values,
+    unit=complete_scenarios.index.get_level_values("unit").str.replace("HFC245ca", "HFC245fa").values,
 )
 
-infilled
+complete_scenarios
 
 # %% [markdown]
 # ## Down-select scenarios
-
-# %%
-# # Randomly select some scenarios
-# # (this is how I generated the hard-coded values in the next cell).
-# base = infilled.pix.unique(["model", "scenario"]).to_frame(index=False)
-# base["scenario_group"] = base["scenario"].apply(lambda x: x.split("-")[-1].split("_")[0].strip())
-
-# selected_scenarios_l = []
-# selected_models = []
-# for scenario_group, sdf in base.groupby("scenario_group"):
-#     options = sdf.index.values.tolist()
-#     random.shuffle(options)
-
-#     n_selected = 0
-#     for option_loc in options:
-#         selected_model = sdf.loc[option_loc, :].model
-#         if selected_model not in selected_models:
-#             selected_scenarios_l.append(sdf.loc[option_loc, :])
-#             selected_models.append(selected_model)
-#             n_selected += 1
-#             if n_selected >= 2:
-#                 break
-
-#     else:
-#         if n_selected >= 1:
-#             selected_scenarios_l.append(sdf.loc[option_loc, :])
-#             selected_models.append(selected_model)
-#         else:
-#             selected_scenarios_l.append(sdf.loc[option_loc, :])
-#             selected_models.append(selected_model)
-
-#             option_loc = options[-2]
-#             selected_model = sdf.loc[option_loc, :].model
-#             selected_scenarios_l.append(sdf.loc[option_loc, :])
-#             selected_models.append(selected_model)
-
-# selected_scenarios = pd.concat(selected_scenarios_l, axis="columns").T
-# selected_scenarios_idx = selected_scenarios.set_index(["model", "scenario"]).index
-# selected_scenarios
 
 # %%
 # selected_scenarios_idx = pd.MultiIndex.from_tuples(
@@ -155,13 +116,15 @@ infilled
 #     ),
 #     name=["model", "scenario"],
 # )
-# scenarios_run = infilled[infilled.index.isin(selected_scenarios_idx)]
+# scenarios_run = complete_scenarios[complete_scenarios.index.isin(selected_scenarios_idx)]
 
-scenarios_run = infilled.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["AIM*", "GCAM*", "*"])]
+scenarios_run = complete_scenarios.loc[
+    pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["AIM*", "GCAM*", "*"])
+]
 
 # %%
 # To run all, just uncomment the below
-scenarios_run = infilled
+scenarios_run = complete_scenarios
 
 # %%
 scenarios_run.pix.unique(["model", "scenario"]).to_frame(index=False)
@@ -242,33 +205,6 @@ out_dynamic_vars = [
 # %%
 scm_results_db = GCDB(OUTPUT_PATH / "db")
 scm_results_db
-
-# %%
-# # If you need to re-write.
-# # scm_results_db.delete()
-# tmp = scm_results_db.load_metadata()
-# tmp.to_frame().loc[pix.ismatch(model="AIM*")]
-# # # # # Surgery
-# # # import os
-# # index = pd.read_csv(scm_results_db.index_file)
-# # file_map = pd.read_csv(scm_results_db.file_map_file)
-# # for f in (
-# #     file_map.set_index("file_id")
-# #     .loc[index.set_index(["model", "scenario"]).loc[pix.ismatch(model="AIM*")]["file_id"].unique()]["file_path"]
-# #     .tolist()
-# # ):
-# #     try:
-# #         os.remove(f)
-# #     except FileNotFoundError:
-# #         pass
-# #     # print(f)
-# #     file_id = file_map[file_map["file_path"] == f]["file_id"].values.squeeze()
-# #     index = index[index["file_id"] != file_id]
-# #     file_map = file_map[file_map["file_id"] != file_id]
-# #     # break
-
-# # index.to_csv(scm_results_db.index_file, index=False)
-# # file_map.to_csv(scm_results_db.file_map_file, index=False)
 
 # %%
 with open(magicc_prob_distribution_path) as fh:

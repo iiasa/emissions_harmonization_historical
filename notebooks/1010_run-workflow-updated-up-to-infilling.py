@@ -25,7 +25,6 @@
 import logging
 import multiprocessing
 
-from gcages.io import load_timeseries_csv
 from loguru import logger
 
 from emissions_harmonization_historical.constants import (
@@ -78,14 +77,6 @@ pre_processed = workflow_res.pre_processed_emissions
 harmonised = workflow_res.harmonised_emissions
 infilled = workflow_res.infilled_emissions
 complete_scenarios = workflow_res.complete_scenarios
-
-# %%
-regress_file = DATA_ROOT / "climate-assessment-workflow/output/0010_20250127-140714_updated-workflow" / "infilled.csv"
-regress = load_timeseries_csv(
-    regress_file,
-    index_columns=infilled.index.names,
-    out_column_type=int,
-)
 
 # %% [markdown]
 # ## Save
