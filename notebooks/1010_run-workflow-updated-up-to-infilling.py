@@ -43,6 +43,7 @@ from emissions_harmonization_historical.constants import (
     WMO_2022_PROCESSING_ID,
     WORKFLOW_ID,
 )
+from emissions_harmonization_historical.harmonisation import AR7FTHarmoniser
 from emissions_harmonization_historical.io import load_global_scenario_data
 from emissions_harmonization_historical.workflow import run_workflow_up_to_infilling
 
@@ -87,165 +88,12 @@ workflow_res = run_workflow_up_to_infilling(
 pre_processed = workflow_res.pre_processed_emissions
 harmonised = workflow_res.harmonised_emissions
 
-# %% [markdown]
-# ## Infill
+# %%
+from emissions_harmonization_historical.infilling import AR7FTInfiller
 
 # %%
-# TODO: split all this out so it is re-usable
-
-# %% [markdown]
-# ### Silicone
-
-# %%
-all_iam_variables = harmonised.pix.unique("variable")
-sorted(all_iam_variables)
-
-# %%
-variables_to_infill_l = []
-for (model, scenario), msdf in harmonised.groupby(["model", "scenario"]):
-    to_infill = all_iam_variables.difference(msdf.pix.unique("variable"))
-    variables_to_infill_l.extend(to_infill.tolist())
-
-variables_to_infill = set(variables_to_infill_l)
-variables_to_infill
-
-# %%
-# TODO: think some of these through a bit more
-lead_vars_crunchers = {
-    "Emissions|BC": (
-        "Emissions|CO2|Energy and Industrial Processes",
-        silicone.database_crunchers.QuantileRollingWindows,
-    ),
-    "Emissions|C2F6": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
-    "Emissions|C6F14": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
-    "Emissions|CF4": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
-    "Emissions|CO": (
-        "Emissions|CO2|Energy and Industrial Processes",
-        silicone.database_crunchers.QuantileRollingWindows,
-    ),
-    "Emissions|HFC|HFC125": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
-    "Emissions|HFC|HFC134a": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
-    "Emissions|HFC|HFC143a": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
-    "Emissions|HFC|HFC227ea": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
-    "Emissions|HFC|HFC23": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
-    "Emissions|HFC|HFC245fa": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
-    "Emissions|HFC|HFC32": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
-    "Emissions|HFC|HFC43-10": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
-    "Emissions|NH3": (
-        "Emissions|CO2|Energy and Industrial Processes",
-        silicone.database_crunchers.QuantileRollingWindows,
-    ),
-    "Emissions|NOx": (
-        "Emissions|CO2|Energy and Industrial Processes",
-        silicone.database_crunchers.QuantileRollingWindows,
-    ),
-    "Emissions|OC": (
-        "Emissions|CO2|Energy and Industrial Processes",
-        silicone.database_crunchers.QuantileRollingWindows,
-    ),
-    "Emissions|SF6": ("Emissions|CO2|Energy and Industrial Processes", silicone.database_crunchers.RMSClosest),
-    "Emissions|Sulfur": (
-        "Emissions|CO2|Energy and Industrial Processes",
-        silicone.database_crunchers.QuantileRollingWindows,
-    ),
-    "Emissions|VOC": (
-        "Emissions|CO2|Energy and Industrial Processes",
-        silicone.database_crunchers.QuantileRollingWindows,
-    ),
-}
-
-# %%
-infillers = {}
-for v_infill in tqdman.tqdm(variables_to_infill):
-    leader, cruncher = lead_vars_crunchers[v_infill]
-
-    v_infill_db = harmonised.loc[pix.isin(variable=[v_infill, leader])]
-    infillers[v_infill] = cruncher(pyam.IamDataFrame(v_infill_db)).derive_relationship(
-        variable_follower=v_infill,
-        variable_leaders=[leader],
-    )
-
-# %%
-infiller_silicone = Infiller(
-    infillers=infillers,
-    run_checks=False,  # TODO: turn back on
-    n_processes=1,  # multi-processing not happy with local functions
-)
-
-# %%
-infilled_silicone = infiller_silicone(harmonised)
-infilled_silicone
-
-# %% [markdown]
-# ### WMO
-
-# %%
-wmo_2022_scenarios = load_timeseries_csv(
-    DATA_ROOT / "global" / "wmo-2022" / "processed" / f"wmo-2022_cmip7_global_{WMO_2022_PROCESSING_ID}.csv",
-    index_columns=["model", "scenario", "region", "variable", "unit"],
-    out_column_type=int,
-).loc[pix.isin(scenario="WMO 2022 projections v20250129")]
-wmo_2022_scenarios
-
-# %%
-infilled_wmo_l = []
-for model, scenario in harmonised.pix.unique(["model", "scenario"]):
-    tmp = wmo_2022_scenarios.pix.assign(model=model, scenario=scenario).loc[:, harmonised.columns]
-    infilled_wmo_l.append(tmp)
-
-infilled_wmo = pix.concat(infilled_wmo_l)
-infilled_wmo
-
-# %% [markdown]
-# ### Leftovers
-
-# %%
-all_so_far = pix.concat(
-    [
-        harmonised,
-        infilled_silicone,
-        infilled_wmo,
-    ]
-)
-all_so_far
-
-# %%
-scaling_factors_file = DATA_ROOT / "global-composite" / f"follower-scaling-factors_{FOLLOWER_SCALING_FACTORS_ID}.json"
-
-# %%
-with open(scaling_factors_file) as fh:
-    scaling_factors_raw = json.load(fh)
-
-for (model, scenario), msdf in all_so_far.groupby(["model", "scenario"]):
-    overlap = set(msdf.pix.unique("variable")).intersection(scaling_factors_raw.keys())
-    if overlap:
-        msg = f"{model=} {scenario=} {overlap=}"
-        raise AssertionError(msg)
-
-# %%
-infilled_leftovers_l = []
-for follower, cfg in scaling_factors_raw.items():
-    leader = cfg["leader"]
-    lead_df = all_so_far.loc[pix.isin(variable=[leader])]
-
-    follow_df = (cfg["scaling_factor"] * (lead_df - cfg["l_0"]) + cfg["f_0"]).pix.assign(
-        variable=follower, unit=cfg["f_unit"]
-    )
-    if not np.isclose(follow_df[cfg["calculation_year"]], cfg["f_calculation_year"]).all():
-        raise AssertionError
-
-    infilled_leftovers_l.append(follow_df)
-
-infilled_leftovers = pix.concat(infilled_leftovers_l)
-infilled_leftovers
-
-# %%
-infilled = pd.concat([all_so_far, infilled_leftovers])
-exp_n_ts = 52
-if (infilled.groupby(["model", "scenario"]).count()[2021] != exp_n_ts).any():
-    raise AssertionError
-
-infilled
+infilled = AR7FTInfiller.from_default_config(data_root=DATA_ROOT, harmonised=harmonised)(harmonised)
+full_scenarios = pix.concat([harmonised, infilled])
 
 # %%
 regress_file = DATA_ROOT / "climate-assessment-workflow/output/0010_20250127-140714_updated-workflow" / "infilled.csv"
@@ -256,10 +104,10 @@ regress = load_timeseries_csv(
 )
 
 # %%
-pd.testing.assert_frame_equal(
-    infilled,
+from gcages.testing import assert_frame_equal
+assert_frame_equal(
+    full_scenarios,
     regress,
-    check_like=True,
 )
 
 # %%
