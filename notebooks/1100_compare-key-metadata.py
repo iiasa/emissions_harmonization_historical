@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.4
+#       jupytext_version: 1.16.6
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -36,9 +36,13 @@ from emissions_harmonization_historical.constants import DATA_ROOT, SCENARIO_TIM
 ar6_workflow_output_dir = (
     DATA_ROOT / "climate-assessment-workflow" / "output" / f"{WORKFLOW_ID}_{SCENARIO_TIME_ID}_ar6-workflow"
 )
+ar6_workflow_output_dir
+
+# %%
 updated_workflow_output_dir = (
     DATA_ROOT / "climate-assessment-workflow" / "output" / f"{WORKFLOW_ID}_{SCENARIO_TIME_ID}_updated-workflow"
 )
+updated_workflow_output_dir
 
 # %%
 ar6_workflow_magicc_v753_output_dir = ar6_workflow_output_dir / "magicc-ar6"
@@ -129,9 +133,8 @@ metadata = load_labelled_metadata(
 
 # %%
 db_meta_file = DATA_ROOT / "scenarios" / "data_raw" / f"{SCENARIO_TIME_ID}_all-meta.csv"
-db_meta_file = DATA_ROOT / "scenarios" / "data_raw" / "20250131-125121_all-meta.csv"
 db_meta = pd.read_csv(db_meta_file).set_index(["model", "scenario"])
-db_meta
+# db_meta
 
 # %%
 for our_column, db_column in (
@@ -140,7 +143,9 @@ for our_column, db_column in (
 ):
     print(f"{our_column=}")
     our_res = metadata.loc[pix.isin(workflow=["ar6-workflow_magiccv7.5.3"])][our_column].droplevel("workflow")
-    display((our_res - multi_index_lookup(db_meta[db_column], our_res.index)).sort_values())  # noqa: F821
+    display(
+        (our_res - multi_index_lookup(db_meta[db_column], our_res.index)).abs().sort_values(ascending=False).iloc[:30]
+    )
 
 # %% [markdown]
 # ## Number of scenarios in each category
@@ -157,24 +162,6 @@ disp = (
     )
     .drop(("n_scenarios", "All"), axis="columns")
 )
-# # Surely there is an easier way to do this
-# disp_l = []
-# for category, cdf in disp.groupby("category"):
-#     if category == "All":
-#         all_df = cdf
-
-#     else:
-#         disp_l.append(
-#             cdf.loc[
-#                 (
-#                     slice(None),
-#                     [v for v in scenario_group_order if v in cdf.index.get_level_values("scenario_group").values],
-#                 ),
-#                 :,
-#             ]
-#         )
-
-# disp = pd.concat([*disp_l, all_df])
 disp.sort_index().loc[
     [
         *[v for v in scenario_group_order if v in disp.index.get_level_values("scenario_group")],

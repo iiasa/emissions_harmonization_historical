@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.4
+#       jupytext_version: 1.16.6
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -286,7 +286,8 @@ selected_scenarios_idx = pd.MultiIndex.from_tuples(
 )
 scenarios_run = pre_processed[pre_processed.index.isin(selected_scenarios_idx)]
 
-scenarios_run = pre_processed.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["GCAM*", "AIM*", "*"])]
+# scenarios_run = pre_processed.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["GCAM*", "AIM*", "*"])]
+# scenarios_run = pre_processed.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["GCAM*"])]
 
 # %%
 # To run all, just uncomment the line below
