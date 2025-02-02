@@ -64,6 +64,8 @@ class GCDBDataFormat(StrEnum):
 
     CSV = auto()
     Feather = auto()
+    # HDF5 = auto()
+    # netCDF = auto()
 
 
 @define
@@ -89,12 +91,18 @@ class GCDB:
         if self.format == GCDBDataFormat.CSV:
             return self.db_dir / "index.csv"
 
+        if self.format == GCDBDataFormat.Feather:
+            return self.db_dir / "index.feather"
+
         raise NotImplementedError(self.format)
 
     @property
     def file_map_file(self) -> Path:
         if self.format == GCDBDataFormat.CSV:
             return self.db_dir / "filemap.csv"
+
+        if self.format == GCDBDataFormat.Feather:
+            return self.db_dir / "filemap.feather"
 
         raise NotImplementedError(self.format)
 
@@ -115,11 +123,20 @@ class GCDB:
             lock_context_manager = self.index_file_lock.acquire()
 
         with lock_context_manager:
-            for f in self.db_dir.glob("*.csv"):
-                os.remove(f)
+            if self.format == GCDBDataFormat.CSV:
+                for f in self.db_dir.glob("*.csv"):
+                    os.remove(f)
+
+            else:
+                raise NotImplementedError(self.format)
 
     def get_new_data_file_path(self, file_id: int) -> Path:
-        file_path = self.db_dir / f"{file_id}.csv"
+        if self.format == GCDBDataFormat.CSV:
+            file_path = self.db_dir / f"{file_id}.csv"
+
+        else:
+            raise NotImplementedError(self.format)
+
         if file_path.exists():
             raise FileExistsError(file_path)
 
@@ -155,7 +172,17 @@ class GCDB:
             return res
 
         with lock_context_manager:
-            index = pd.MultiIndex.from_frame(pd.read_csv(self.index_file)).to_frame()
+            if self.format == GCDBDataFormat.CSV:
+                index_raw = pd.read_csv(self.index_file)
+
+            else:
+                raise NotImplementedError(self.format)
+
+            # Don't need to copy as index_raw is only used internally.
+            # The different name is just to help understand the order of operations.
+            index = index_raw
+            index.index = pd.MultiIndex.from_frame(index_raw)
+
             file_map = pd.read_csv(self.file_map_file, index_col="file_id")["file_path"]
 
             index_to_load = idx_obj(index)
@@ -166,7 +193,11 @@ class GCDB:
 
                 files_to_load = tqdman.tqdm(files_to_load)
 
-            data_l = [pd.read_csv(f) for f in files_to_load]
+            if self.format == GCDBDataFormat.CSV:
+                data_l = [pd.read_csv(f) for f in files_to_load]
+
+            else:
+                raise NotImplementedError(self.format)
 
         loaded = pix.concat(data_l).set_index(index.index.droplevel("file_id").names)
 
@@ -188,7 +219,10 @@ class GCDB:
             lock_context_manager = self.index_file_lock.acquire()
 
         with lock_context_manager:
-            db_index = pd.read_csv(self.index_file)
+            if self.format == GCDBDataFormat.CSV:
+                db_index = pd.read_csv(self.index_file)
+            else:
+                raise NotImplementedError(self.format)
 
         res = pd.MultiIndex.from_frame(db_index).droplevel("file_id")
         return res
@@ -233,11 +267,18 @@ class GCDB:
 
         with lock_context_manager:
             if self.index_file.exists():
-                index_db = pd.read_csv(self.index_file)
+                if self.format == GCDBDataFormat.CSV:
+                    index_db = pd.read_csv(self.index_file)
+                else:
+                    raise NotImplementedError(self.format)
+
                 metadata = pd.MultiIndex.from_frame(index_db).droplevel("file_id")
-                file_map = pd.read_csv(self.file_map_file, index_col="file_id")[
-                    "file_path"
-                ]
+                if self.format == GCDBDataFormat.CSV:
+                    file_map = pd.read_csv(self.file_map_file, index_col="file_id")[
+                        "file_path"
+                    ]
+                else:
+                    raise NotImplementedError(self.format)
 
                 already_in_db = multi_index_lookup(data, metadata)
                 if not already_in_db.empty and not allow_overwrite:
@@ -276,9 +317,13 @@ class GCDB:
                 file_map = pd.Series({file_id: data_file_path}, name="file_path")
                 file_map.index.name = "file_id"
 
-            index.to_csv(self.index_file, index=False)
-            file_map.to_csv(self.file_map_file)
-            data.to_csv(data_file_path)
+            if self.format == GCDBDataFormat.CSV:
+                index.to_csv(self.index_file, index=False)
+                file_map.to_csv(self.file_map_file)
+                data.to_csv(data_file_path)
+
+            else:
+                raise NotImplementedError(self.format)
 
 
 def _update_index_for_overwrite(
@@ -312,9 +357,13 @@ def _update_index_for_overwrite(
         file_ids_out = file_ids_existing.copy()
         for ofid in file_ids_overlap:
             file = file_map_out.pop(ofid)
-            overlap_file_data = pd.read_csv(file).set_index(
-                file_ids_existing.index.names
-            )
+            if db.format == GCDBDataFormat.CSV:
+                overlap_file_data = pd.read_csv(file).set_index(
+                    file_ids_existing.index.names
+                )
+
+            else:
+                raise NotImplementedError(db.format)
 
             data_not_being_overwritten = overlap_file_data.loc[
                 ~multi_index_match(overlap_file_data, data_to_write.index)
@@ -328,8 +377,13 @@ def _update_index_for_overwrite(
                 file_id=data_not_being_overwritten_file_id
             )
 
-            # Re-write the data we want to keep
-            data_not_being_overwritten.to_csv(data_not_being_overwritten_file_path)
+            if db.format == GCDBDataFormat.CSV:
+                # Re-write the data we want to keep
+                data_not_being_overwritten.to_csv(data_not_being_overwritten_file_path)
+
+            else:
+                raise NotImplementedError(db.format)
+
             # Update the file map (already popped the old file above)
             file_map_out[data_not_being_overwritten_file_id] = (
                 data_not_being_overwritten_file_path
