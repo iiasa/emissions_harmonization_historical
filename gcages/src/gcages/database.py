@@ -371,14 +371,18 @@ class GCDB:
             elif self.format == GCDBDataFormat.Feather:
                 index.to_feather(self.index_file)
 
-                # Feather doesn't support writing indexes,
-                # see https://pandas.pydata.org/docs/user_guide/io.html#feather.
-                # Feather doesn't support Path types
+                # Feather doesn't support
+                # (see https://pandas.pydata.org/docs/user_guide/io.html#feather):
+                # - writing indexes
                 file_map_write = file_map.reset_index()
+                # - writing non-native types (e.g. Path)
                 file_map_write["file_path"] = file_map_write["file_path"].astype(str)
                 file_map_write.to_feather(self.file_map_file)
 
+                # - writing indexes
                 data_write = data.reset_index()
+                # - mixed column types
+                data_write.columns = data_write.columns.astype(str)
                 data_write.to_feather(data_file_path)
 
             else:
