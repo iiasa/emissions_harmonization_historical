@@ -7,6 +7,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pandas as pd
+import pandas_indexing as pix
 from attrs import define
 
 from gcages.ar6.harmonisation import AR6Harmoniser
@@ -147,7 +148,10 @@ def run_ar6_workflow(  # noqa: PLR0913
     pre_processed = pre_processor(input_emissions)
     harmonised = harmoniser(pre_processed)
     infilled = infiller(harmonised)
-    scm_results = scm_runner(infilled, batch_size_scenarios=batch_size_scenarios)
+    complete_scenarios = pix.concat([harmonised, infilled])
+    scm_results = scm_runner(
+        complete_scenarios, batch_size_scenarios=batch_size_scenarios
+    )
     post_processed_timeseries, post_processed_metadata = post_processor(scm_results)
 
     res = AR6WorkflowRunResult(
@@ -155,6 +159,7 @@ def run_ar6_workflow(  # noqa: PLR0913
         pre_processed_emissions=pre_processed,
         harmonised_emissions=harmonised,
         infilled_emissions=infilled,
+        complete_scenarios=complete_scenarios,
         scm_results_raw=scm_results,
         post_processed_timeseries=post_processed_timeseries,
         post_processed_scenario_metadata=post_processed_metadata,
