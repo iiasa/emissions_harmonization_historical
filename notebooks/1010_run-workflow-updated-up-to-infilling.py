@@ -378,6 +378,24 @@ if (infilled.groupby(["model", "scenario"]).count()[2021] != exp_n_ts).any():
 
 infilled
 
+# %%
+regress_file = OUTPUT_PATH / "infilled.csv"
+regress = load_timeseries_csv(
+    regress_file,
+    index_columns=infilled.index.names,
+    out_column_type=int,
+)
+
+# %%
+pd.testing.assert_frame_equal(
+    infilled,
+    regress,
+    check_like=True,
+)
+
+# %%
+assert False, "stop"
+
 # %% [markdown]
 # ## Save
 
