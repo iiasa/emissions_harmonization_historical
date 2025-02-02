@@ -64,7 +64,13 @@ class GCDBDataFormat(StrEnum):
 
     CSV = auto()
     Feather = auto()
+    # Other options to consider:
+    #
+    # HDF5: https://pandas.pydata.org/docs/user_guide/io.html#hdf5-pytables
     # HDF5 = auto()
+    #
+    # Writing our own custom netCDF back-end
+    # (Major pro: easier to write a self-contained file)
     # netCDF = auto()
 
 
