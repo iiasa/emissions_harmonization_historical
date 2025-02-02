@@ -7,7 +7,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pandas as pd
-import pandas_indexing as pix
 from attrs import define
 
 from gcages.ar6.harmonisation import AR6Harmoniser
@@ -148,7 +147,9 @@ def run_ar6_workflow(  # noqa: PLR0913
     pre_processed = pre_processor(input_emissions)
     harmonised = harmoniser(pre_processed)
     infilled = infiller(harmonised)
-    complete_scenarios = pix.concat([harmonised, infilled])
+    # In AR6, complete is the same as infilled.
+    # This is unhelpful for later analysis, but it is what it is.
+    complete_scenarios = infilled
     scm_results = scm_runner(
         complete_scenarios, batch_size_scenarios=batch_size_scenarios
     )
