@@ -9,6 +9,7 @@ from __future__ import annotations
 import contextlib
 import os
 from contextlib import nullcontext
+from enum import StrEnum, auto
 from pathlib import Path
 
 import filelock
@@ -58,6 +59,13 @@ class EmptyDBError(ValueError):
         super().__init__(error_msg)
 
 
+class GCDBDataFormat(StrEnum):
+    """Options for the data format to use with `GCDB`"""
+
+    CSV = auto()
+    Feather = auto()
+
+
 @define
 class GCDB:
     """
@@ -71,13 +79,24 @@ class GCDB:
     Both the index and the data files will be written in this directory.
     """
 
+    format: GCDBDataFormat = GCDBDataFormat.Feather
+    """
+    Format to use for saving the data
+    """
+
     @property
     def index_file(self) -> Path:
-        return self.db_dir / "index.csv"
+        if self.format == GCDBDataFormat.CSV:
+            return self.db_dir / "index.csv"
+
+        raise NotImplementedError(self.format)
 
     @property
     def file_map_file(self) -> Path:
-        return self.db_dir / "filemap.csv"
+        if self.format == GCDBDataFormat.CSV:
+            return self.db_dir / "filemap.csv"
+
+        raise NotImplementedError(self.format)
 
     @property
     def index_file_lock_path(self) -> Path:

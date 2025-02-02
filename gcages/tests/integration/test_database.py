@@ -16,7 +16,7 @@ import pandas as pd
 import pandas_indexing as pix
 import pytest
 
-from gcages.database import GCDB, AlreadyInDBError, EmptyDBError
+from gcages.database import GCDB, AlreadyInDBError, EmptyDBError, GCDBDataFormat
 
 
 def create_test_df(
@@ -63,16 +63,26 @@ def create_test_df(
     return df
 
 
-def test_save_and_load(tmpdir):
+@pytest.mark.parametrize(
+    "format", (pytest.param(format, id=str(format)) for format in GCDBDataFormat)
+)
+def test_save_and_load(format, tmpdir):
     start = create_test_df(
-        n_scenarios=10,
-        n_variables=1,
-        n_runs=3,
-        timepoints=np.array([2010.0, 2020.0, 2025.0, 2030.0]),
+        n_scenarios=20,
+        n_variables=15,
+        n_runs=60,
+        # n_scenarios=90,
+        # n_variables=15,
+        # n_runs=600,
+        timepoints=np.arange(1750, 2100),
+        # n_scenarios=10,
+        # n_variables=1,
+        # n_runs=3,
+        # timepoints=np.array([2010.0, 2020.0, 2025.0, 2030.0]),
         units="Mt",
     )
 
-    db = GCDB(tmpdir)
+    db = GCDB(tmpdir, format=format)
 
     db.save(start)
 
@@ -82,7 +92,7 @@ def test_save_and_load(tmpdir):
         start.index, metadata_compare, exact="equiv", check_order=False
     )
 
-    loaded = db.load(out_columns_type=float)
+    loaded = db.load(out_columns_type=int)
 
     pd.testing.assert_frame_equal(start, loaded)
 
@@ -133,7 +143,8 @@ def test_save_overwrite_error(tmpdir):
     to_save = pix.concat([dup, cdf(units="km")])
 
     error_msg = re.escape(
-        f"The following rows are already in the database:\n{dup.index.to_frame(index=False)}"
+        "The following rows are already in the database:\n"
+        f"{dup.index.to_frame(index=False)}"
     )
     with pytest.raises(AlreadyInDBError, match=error_msg):
         db.save(to_save)
