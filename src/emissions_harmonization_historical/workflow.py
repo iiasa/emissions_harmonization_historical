@@ -8,14 +8,13 @@ from __future__ import annotations
 
 import pandas as pd
 from attrs import define
-from gcages.ar6.harmonisation import Harmoniser
-from gcages.ar6.infilling import Infiller
-from gcages.ar6.pre_processing import PreProcessor
+
+from emissions_harmonization_historical.pre_processing import AR7FTPreProcessor
 
 
 @define
-class WorkflowUpToInfillingRunResult:
-    """Results of running the workflow up to the end of infilling"""
+class AR7FTWorkflowUpToInfillingRunResult:
+    """Results of running the AR7 fast-track workflow up to the end of infilling"""
 
     input_emissions: pd.DataFrame
     """The input emissions"""
@@ -33,8 +32,8 @@ class WorkflowUpToInfillingRunResult:
 
 
 @define
-class WorkflowSCMRunResult:
-    """Results of running an SCM as part of the workflow"""
+class AR7FTWorkflowSCMRunResult:
+    """Results of running an SCM as part of the AR7 fast-track workflow"""
 
     scm_results_raw: pd.DataFrame
     """
@@ -52,15 +51,15 @@ class WorkflowSCMRunResult:
     """
 
 
-def run_workflow_up_to_infilling(  # noqa: PLR0913
+def run_workflow_up_to_infilling(
     input_emissions: pd.DataFrame,
     *,
     n_processes: int = 1,
     run_checks: bool = True,
-    pre_processor: PreProcessor | None = None,
-    harmoniser: Harmoniser | None = None,
-    infiller: Infiller | None = None,
-) -> WorkflowUpToInfillingRunResult:
+    pre_processor: AR7FTPreProcessor | None = None,
+    # harmoniser: Harmoniser | None = None,
+    # infiller: Infiller | None = None,
+) -> AR7FTWorkflowUpToInfillingRunResult:
     """
     Run the workflow up to the end of infilling
 
@@ -75,13 +74,19 @@ def run_workflow_up_to_infilling(  # noqa: PLR0913
     run_checks
         Whether to run the checks at each stage or not.
 
+    pre_processor
+        Pre-processor to use.
+
+        If not supplied, we use the default
+        `emissions_harmonization_historical.pre_processor.AR7FTPreProcessor`.
+
     Returns
     -------
     :
         Results of running the workflow up to the end of infilling.
     """
     if pre_processor is None:
-        pre_processor = PreProcessor()
+        pre_processor = AR7FTPreProcessor.from_default_config()
 
     # if harmoniser is None:
     #     harmoniser = Harmoniser()
@@ -89,18 +94,11 @@ def run_workflow_up_to_infilling(  # noqa: PLR0913
     # if infiller is None:
     #     infiller = Infiller()
 
-    pre_processor = PreProcessor.from_ar6_like_config(run_checks=run_checks, n_processes=n_processes)
-    # harmoniser = Harmoniser.from_ar6_like_config(run_checks=run_checks, n_processes=n_processes)
-    # infiller = Infiller.from_ar6_like_config(
-    #     run_checks=run_checks,
-    #     n_processes=n_processes,
-    # )
-
     pre_processed = pre_processor(input_emissions)
     # harmonised = harmoniser(pre_processed)
     # infilled = infiller(harmonised)
 
-    res = WorkflowUpToInfillingRunResult(
+    res = AR7FTWorkflowUpToInfillingRunResult(
         input_emissions=input_emissions,
         pre_processed_emissions=pre_processed,
         # harmonised_emissions=harmonised,
