@@ -211,7 +211,7 @@ class GCDB:
             if progress:
                 import tqdm.auto as tqdm
 
-                files_to_load = tqdm.tqdm(files_to_load)
+                files_to_load = tqdm.tqdm(files_to_load, desc="Files to load")
 
             if self.format == GCDBDataFormat.CSV:
                 data_l = [pd.read_csv(f) for f in files_to_load]

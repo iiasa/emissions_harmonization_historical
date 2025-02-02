@@ -4,7 +4,6 @@ Tools for running simple climate models (SCMs)
 
 from __future__ import annotations
 
-import json
 import multiprocessing
 import os
 import tempfile
@@ -19,7 +18,7 @@ import pandas as pd
 import pandas_indexing as pix
 import pymagicc.definitions
 import scmdata
-import tqdm.autonotebook as tqdman
+import tqdm.auto
 from attrs import define, field
 
 from gcages.database import GCDB, EmptyDBError
@@ -129,7 +128,7 @@ def run_scm(  # noqa: PLR0913
         scenarios = scenarios.sort_index(axis="columns").T.interpolate("index").T
 
     mod_scens_to_run = scenarios.pix.unique(["model", "scenario"])
-    for climate_model, cfg in tqdman.tqdm(
+    for climate_model, cfg in tqdm.auto.tqdm(
         climate_models_cfgs.items(), desc="Climate models"
     ):
         if climate_model == "MAGICC7":
@@ -156,7 +155,7 @@ def run_scm(  # noqa: PLR0913
                     multi_index_lookup(scenarios, mod_scens_to_run[start:stop])
                 )
 
-        for scenario_batch in tqdman.tqdm(scenario_batches, desc="Scenario batch"):
+        for scenario_batch in tqdm.auto.tqdm(scenario_batches, desc="Scenario batch"):
             if force_rerun:
                 run_all = True
 
@@ -214,10 +213,14 @@ def run_scm(  # noqa: PLR0913
                 # Chop out regional results
                 batch_res = batch_res.loc[pix.isin(region=["World"])]
 
-            for _, df in batch_res.groupby(["model", "scenario", "variable", "region"]):
+            for _, df in tqdm.auto.tqdm(
+                batch_res.groupby(["model", "scenario", "variable", "region"]),
+                desc="Saving SCM results for the batch",
+                leave=False,
+            ):
                 db_use.save(df)
 
-    res = db_use.load(mod_scens_to_run)
+    res = db_use.load(mod_scens_to_run, progress=True)
 
     if db is None:
         db_use.delete()

@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.4
+#       jupytext_version: 1.16.6
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -303,6 +303,7 @@ scm_results.pix.unique("variable")
 # ## Post-process
 
 # %%
+# TODO: move this into workflow.py
 post_processor = PostProcessor(
     gsat_variable_name="Surface Air Temperature Change",
     gsat_in_line_with_assessment_variable_name="Assessed Surface Air Temperature Change",
@@ -320,12 +321,6 @@ post_processed.metadata.sort_values(["category", "Peak warming 33.0"])
 
 # %%
 post_processed.metadata.groupby(["model"])["category"].value_counts().sort_index()
-
-# %%
-metadata_out = OUTPUT_PATH / "metadata.csv"
-metadata_out.parent.mkdir(exist_ok=True, parents=True)
-post_processed.metadata.to_csv(metadata_out)
-metadata_out
 
 # %%
 for out_file, df in (

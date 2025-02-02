@@ -26,6 +26,27 @@ Year to scale if the harmonisation year is missing from a submission
 """
 
 
+def load_default_history(data_root: Path) -> pd.DataFrame:
+    """Load default emissions history"""
+    from emissions_harmonization_historical.constants import COMBINED_HISTORY_ID, HARMONISATION_VALUES_ID
+
+    history_path = (
+        data_root
+        / "global-composite"
+        / f"cmip7-harmonisation-history_world_{COMBINED_HISTORY_ID}_{HARMONISATION_VALUES_ID}.csv"
+    )
+
+    history = strip_pint_incompatible_characters_from_units(
+        load_timeseries_csv(
+            history_path,
+            index_columns=["model", "scenario", "region", "variable", "unit"],
+            out_column_type=int,
+        )
+    )
+
+    return history
+
+
 @define
 class AR7FTHarmoniser:
     """
@@ -125,21 +146,7 @@ class AR7FTHarmoniser:
         """
         Initialise from default, hard-coded configuration
         """
-        from emissions_harmonization_historical.constants import COMBINED_HISTORY_ID, HARMONISATION_VALUES_ID
-
-        history_path = (
-            data_root
-            / "global-composite"
-            / f"cmip7-harmonisation-history_world_{COMBINED_HISTORY_ID}_{HARMONISATION_VALUES_ID}.csv"
-        )
-
-        history = strip_pint_incompatible_characters_from_units(
-            load_timeseries_csv(
-                history_path,
-                index_columns=["model", "scenario", "region", "variable", "unit"],
-                out_column_type=int,
-            )
-        )
+        history = load_default_history(data_root=data_root)
 
         # As at 2024-01-30, just the list from AR6.
         # We can tweak from here.

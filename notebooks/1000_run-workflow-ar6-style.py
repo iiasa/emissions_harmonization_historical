@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.4
+#       jupytext_version: 1.16.6
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -228,24 +228,25 @@ pre_processed
 # ### Down-select scenarios
 
 # %%
-selected_scenarios_idx = pd.MultiIndex.from_tuples(
-    (
-        ("MESSAGEix-GLOBIOM 2.1-M-R12", "SSP5 - High Emissions"),
-        ("IMAGE 3.4", "SSP5 - High Emissions"),
-        ("AIM 3.0", "SSP2 - Medium-Low Emissions"),
-        ("WITCH 6.0", "SSP2 - Low Emissions"),
-        ("REMIND-MAgPIE 3.4-4.8", "SSP2 - Low Overshoot_b"),
-        ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP5 - Low Overshoot"),
-        ("COFFEE 1.5", "SSP2 - Medium Emissions"),
-        ("GCAM 7.1 scenarioMIP", "SSP2 - Medium Emissions"),
-        ("IMAGE 3.4", "SSP2 - Very Low Emissions"),
-        ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP1 - Very Low Emissions"),
-    ),
-    name=["model", "scenario"],
-)
-scenarios_run = pre_processed[pre_processed.index.isin(selected_scenarios_idx)]
+# selected_scenarios_idx = pd.MultiIndex.from_tuples(
+#     (
+#         ("MESSAGEix-GLOBIOM 2.1-M-R12", "SSP5 - High Emissions"),
+#         ("IMAGE 3.4", "SSP5 - High Emissions"),
+#         ("AIM 3.0", "SSP2 - Medium-Low Emissions"),
+#         ("WITCH 6.0", "SSP2 - Low Emissions"),
+#         ("REMIND-MAgPIE 3.4-4.8", "SSP2 - Low Overshoot_b"),
+#         ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP5 - Low Overshoot"),
+#         ("COFFEE 1.5", "SSP2 - Medium Emissions"),
+#         ("GCAM 7.1 scenarioMIP", "SSP2 - Medium Emissions"),
+#         ("IMAGE 3.4", "SSP2 - Very Low Emissions"),
+#         ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP1 - Very Low Emissions"),
+#     ),
+#     name=["model", "scenario"],
+# )
+# scenarios_run = pre_processed[pre_processed.index.isin(selected_scenarios_idx)]
 
-scenarios_run = pre_processed.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["GCAM*", "AIM*", "*"])]
+# scenarios_run = pre_processed.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["GCAM*", "AIM*", "*"])]
+# scenarios_run = pre_processed.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["GCAM*"])]
 
 # %%
 # To run all, just uncomment the below
