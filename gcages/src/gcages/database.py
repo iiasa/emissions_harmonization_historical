@@ -117,6 +117,7 @@ class GCDB:
     def delete(
         self,
         *,
+        progress: bool = False,
         lock_context_manager: contextlib.AbstractContextManager | None = None,
     ) -> None:
         if lock_context_manager is None:
@@ -124,15 +125,28 @@ class GCDB:
 
         with lock_context_manager:
             if self.format == GCDBDataFormat.CSV:
-                for f in self.db_dir.glob("*.csv"):
-                    os.remove(f)
+                to_remove = self.db_dir.glob("*.csv")
+
+            elif self.format == GCDBDataFormat.Feather:
+                to_remove = self.db_dir.glob("*.feather")
 
             else:
                 raise NotImplementedError(self.format)
 
+            if progress:
+                import tqdm.auto as tqdm
+
+                to_remove = tqdm.auto.tqdm(to_remove, desc="DB files")
+
+            for f in to_remove:
+                os.remove(f)
+
     def get_new_data_file_path(self, file_id: int) -> Path:
         if self.format == GCDBDataFormat.CSV:
             file_path = self.db_dir / f"{file_id}.csv"
+
+        elif self.format == GCDBDataFormat.Feather:
+            file_path = self.db_dir / f"{file_id}.feather"
 
         else:
             raise NotImplementedError(self.format)
@@ -174,7 +188,8 @@ class GCDB:
         with lock_context_manager:
             if self.format == GCDBDataFormat.CSV:
                 index_raw = pd.read_csv(self.index_file)
-
+            elif self.format == GCDBDataFormat.Feather:
+                index_raw = pd.read_feather(self.index_file)
             else:
                 raise NotImplementedError(self.format)
 
@@ -182,19 +197,21 @@ class GCDB:
             # The different name is just to help understand the order of operations.
             index = index_raw
             index.index = pd.MultiIndex.from_frame(index_raw)
-
-            file_map = pd.read_csv(self.file_map_file, index_col="file_id")["file_path"]
+            file_map = self.load_file_map(lock_context_manager=nullcontext())
 
             index_to_load = idx_obj(index)
-            files_to_load = file_map[index_to_load["file_id"].unique()]
+            files_to_load = file_map[index_to_load["file_id"].unique()].map(Path)
 
             if progress:
-                import tqdm.autonotebook as tqdman
+                import tqdm.auto as tqdm
 
-                files_to_load = tqdman.tqdm(files_to_load)
+                files_to_load = tqdm.tqdm(files_to_load)
 
             if self.format == GCDBDataFormat.CSV:
                 data_l = [pd.read_csv(f) for f in files_to_load]
+
+            elif self.format == GCDBDataFormat.Feather:
+                data_l = [pd.read_feather(f) for f in files_to_load]
 
             else:
                 raise NotImplementedError(self.format)
@@ -206,6 +223,30 @@ class GCDB:
             res.columns = res.columns.astype(out_columns_type)
 
         return res
+
+    def load_file_map(
+        self,
+        *,
+        lock_context_manager: contextlib.AbstractContextManager | None = None,
+    ) -> pd.MultiIndex:
+        if not self.index_file.exists():
+            raise EmptyDBError(self)
+
+        if lock_context_manager is None:
+            lock_context_manager = self.index_file_lock.acquire()
+
+        with lock_context_manager:
+            if self.format == GCDBDataFormat.CSV:
+                file_map = pd.read_csv(self.file_map_file, index_col="file_id")[
+                    "file_path"
+                ]
+            elif self.format == GCDBDataFormat.Feather:
+                file_map_raw = pd.read_feather(self.file_map_file)
+                file_map = file_map_raw.set_index("file_id")["file_path"]
+            else:
+                raise NotImplementedError(self.format)
+
+        return file_map
 
     def load_metadata(
         self,
@@ -221,6 +262,8 @@ class GCDB:
         with lock_context_manager:
             if self.format == GCDBDataFormat.CSV:
                 db_index = pd.read_csv(self.index_file)
+            elif self.format == GCDBDataFormat.Feather:
+                db_index = pd.read_feather(self.index_file)
             else:
                 raise NotImplementedError(self.format)
 
@@ -244,9 +287,9 @@ class GCDB:
 
             grouper = all_dat.groupby(new_groups)
             if progress:
-                import tqdm.autonotebook as tqdman
+                import tqdm.auto as tqdm
 
-                grouper = tqdman.tqdm(grouper)
+                grouper = tqdm.tqdm(grouper)
 
             for _, df in grouper:
                 self.save(df, allow_overwrite=True, lock_context_manager=nullcontext())
@@ -269,16 +312,13 @@ class GCDB:
             if self.index_file.exists():
                 if self.format == GCDBDataFormat.CSV:
                     index_db = pd.read_csv(self.index_file)
+                elif self.format == GCDBDataFormat.Feather:
+                    index_db = pd.read_feather(self.index_file)
                 else:
                     raise NotImplementedError(self.format)
 
                 metadata = pd.MultiIndex.from_frame(index_db).droplevel("file_id")
-                if self.format == GCDBDataFormat.CSV:
-                    file_map = pd.read_csv(self.file_map_file, index_col="file_id")[
-                        "file_path"
-                    ]
-                else:
-                    raise NotImplementedError(self.format)
+                file_map = self.load_file_map(lock_context_manager=nullcontext())
 
                 already_in_db = multi_index_lookup(data, metadata)
                 if not already_in_db.empty and not allow_overwrite:
@@ -322,6 +362,19 @@ class GCDB:
                 file_map.to_csv(self.file_map_file)
                 data.to_csv(data_file_path)
 
+            elif self.format == GCDBDataFormat.Feather:
+                index.to_feather(self.index_file)
+
+                # Feather doesn't support writing indexes,
+                # see https://pandas.pydata.org/docs/user_guide/io.html#feather.
+                # Feather doesn't support Path types
+                file_map_write = file_map.reset_index()
+                file_map_write["file_path"] = file_map_write["file_path"].astype(str)
+                file_map_write.to_feather(self.file_map_file)
+
+                data_write = data.reset_index()
+                data_write.to_feather(data_file_path)
+
             else:
                 raise NotImplementedError(self.format)
 
@@ -358,12 +411,17 @@ def _update_index_for_overwrite(
         for ofid in file_ids_overlap:
             file = file_map_out.pop(ofid)
             if db.format == GCDBDataFormat.CSV:
-                overlap_file_data = pd.read_csv(file).set_index(
-                    file_ids_existing.index.names
-                )
+                overlap_file_data_raw = pd.read_csv(file)
+
+            elif db.format == GCDBDataFormat.Feather:
+                overlap_file_data_raw = pd.read_feather(file)
 
             else:
                 raise NotImplementedError(db.format)
+
+            overlap_file_data = overlap_file_data_raw.set_index(
+                file_ids_existing.index.names
+            )
 
             data_not_being_overwritten = overlap_file_data.loc[
                 ~multi_index_match(overlap_file_data, data_to_write.index)
@@ -377,9 +435,15 @@ def _update_index_for_overwrite(
                 file_id=data_not_being_overwritten_file_id
             )
 
+            # Re-write the data we want to keep
             if db.format == GCDBDataFormat.CSV:
-                # Re-write the data we want to keep
                 data_not_being_overwritten.to_csv(data_not_being_overwritten_file_path)
+
+            elif db.format == GCDBDataFormat.Feather:
+                # Feather doesn't support writing indexes,
+                # see https://pandas.pydata.org/docs/user_guide/io.html#feather.
+                data_to_write = data_not_being_overwritten.reset_index()
+                data_to_write.to_feather(data_not_being_overwritten_file_path)
 
             else:
                 raise NotImplementedError(db.format)
