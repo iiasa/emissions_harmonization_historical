@@ -1,7 +1,8 @@
 """
-Pre-processing before our more standard pre-processing.
+Pre-processing configuration and related things for the updated workflow
 
-We might blend this in in future, let's see.
+This sets our defaults.
+Individual notebooks can then override them as needed.
 """
 
 from __future__ import annotations
