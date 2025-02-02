@@ -43,7 +43,6 @@ from emissions_harmonization_historical.constants import (
     WMO_2022_PROCESSING_ID,
     WORKFLOW_ID,
 )
-from emissions_harmonization_historical.harmonisation import AR7FTHarmoniser
 from emissions_harmonization_historical.io import load_global_scenario_data
 from emissions_harmonization_historical.workflow import run_workflow_up_to_infilling
 
@@ -76,24 +75,17 @@ scenarios_raw_global = load_global_scenario_data(
 ).loc[:, :2100]  # TODO: drop 2100 end once we have usable scenario data post-2100
 
 # %% [markdown]
-# ## Pre-process
+# ## Run workflow
 
 # %%
-tmp = run_workflow_up_to_infilling(
+workflow_res = run_workflow_up_to_infilling(
     scenarios_raw_global,
     n_processes=n_processes,
     run_checks=False,  # TODO: implement
+    data_root=DATA_ROOT,
 )
-pre_processed = tmp.pre_processed_emissions
-pre_processed
-
-# %% [markdown]
-# ## Harmonise
-
-# %%
-harmoniser = AR7FTHarmoniser.from_default_config(data_root=DATA_ROOT)
-harmonised = harmoniser(pre_processed)
-harmonised
+pre_processed = workflow_res.pre_processed_emissions
+harmonised = workflow_res.harmonised_emissions
 
 # %% [markdown]
 # ## Infill
