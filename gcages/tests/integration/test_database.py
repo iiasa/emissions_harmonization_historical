@@ -63,10 +63,14 @@ def create_test_df(
     return df
 
 
-@pytest.mark.parametrize(
-    "format", (pytest.param(format, id=str(format)) for format in GCDBDataFormat)
+db_formats = pytest.mark.parametrize(
+    "db_format",
+    tuple(pytest.param(db_format, id=str(db_format)) for db_format in GCDBDataFormat),
 )
-def test_save_and_load(format, tmpdir):
+
+
+@db_formats
+def test_save_and_load(db_format, tmpdir):
     start = create_test_df(
         n_scenarios=20,
         n_variables=15,
@@ -82,7 +86,7 @@ def test_save_and_load(format, tmpdir):
         units="Mt",
     )
 
-    db = GCDB(tmpdir, format=format)
+    db = GCDB(tmpdir, format=db_format)
 
     db.save(start)
 
@@ -92,13 +96,14 @@ def test_save_and_load(format, tmpdir):
         start.index, metadata_compare, exact="equiv", check_order=False
     )
 
-    loaded = db.load(out_columns_type=int)
+    loaded = db.load(out_columns_type=int, progress=True)
 
     pd.testing.assert_frame_equal(start, loaded)
 
 
-def test_save_multiple_and_load(tmpdir):
-    db = GCDB(tmpdir)
+@db_formats
+def test_save_multiple_and_load(tmpdir, db_format):
+    db = GCDB(tmpdir, format=db_format)
 
     all_saved_l = []
     for units in ["Mt", "Gt", "Tt"]:
@@ -126,8 +131,9 @@ def test_save_multiple_and_load(tmpdir):
     pd.testing.assert_frame_equal(all_saved, loaded)
 
 
-def test_save_overwrite_error(tmpdir):
-    db = GCDB(tmpdir)
+@db_formats
+def test_save_overwrite_error(tmpdir, db_format):
+    db = GCDB(tmpdir, format=db_format)
 
     cdf = partial(
         create_test_df,
@@ -150,8 +156,9 @@ def test_save_overwrite_error(tmpdir):
         db.save(to_save)
 
 
-def test_save_overwrite_force(tmpdir):
-    db = GCDB(Path(tmpdir))
+@db_formats
+def test_save_overwrite_force(tmpdir, db_format):
+    db = GCDB(Path(tmpdir), format=db_format)
 
     cdf = partial(
         create_test_df,
@@ -209,8 +216,9 @@ def test_save_overwrite_force(tmpdir):
     pd.testing.assert_frame_equal(updated, loaded)
 
 
-def test_save_overwrite_force_half_overlap(tmpdir):
-    db = GCDB(Path(tmpdir))
+@db_formats
+def test_save_overwrite_force_half_overlap(tmpdir, db_format):
+    db = GCDB(Path(tmpdir), format=db_format)
 
     cdf = partial(
         create_test_df,
@@ -309,8 +317,9 @@ def test_save_overwrite_force_half_overlap(tmpdir):
         ),
     ),
 )
-def test_locking(tmpdir, meth, args):
-    db = GCDB(Path(tmpdir))
+@db_formats
+def test_locking(tmpdir, meth, args, db_format):
+    db = GCDB(Path(tmpdir), format=db_format)
 
     # Put some data in the db so there's something to lock
     db.save(
@@ -344,8 +353,9 @@ def test_locking(tmpdir, meth, args):
         getattr(db, meth)(lock_context_manager=nullcontext(), *args)
 
 
-def test_load_with_loc(tmpdir):
-    db = GCDB(tmpdir)
+@db_formats
+def test_load_with_loc(tmpdir, db_format):
+    db = GCDB(tmpdir, format=db_format)
 
     full_db = create_test_df(
         n_scenarios=10,
@@ -373,8 +383,9 @@ def test_load_with_loc(tmpdir):
         pd.testing.assert_frame_equal(loaded, exp)
 
 
-def test_load_with_index_all(tmpdir):
-    db = GCDB(tmpdir)
+@db_formats
+def test_load_with_index_all(tmpdir, db_format):
+    db = GCDB(tmpdir, format=db_format)
 
     full_db = create_test_df(
         n_scenarios=10,
@@ -399,8 +410,9 @@ def test_load_with_index_all(tmpdir):
     "slice",
     (slice(None, None, None), slice(None, 3, None), slice(2, 4, None), slice(1, 15, 2)),
 )
-def test_load_with_index_slice(tmpdir, slice):
-    db = GCDB(tmpdir)
+@db_formats
+def test_load_with_index_slice(tmpdir, slice, db_format):
+    db = GCDB(tmpdir, format=db_format)
 
     full_db = create_test_df(
         n_scenarios=10,
@@ -432,8 +444,9 @@ def test_load_with_index_slice(tmpdir, slice):
         pytest.param(["run", "variable"], id="multi_level_out_of_order_not_first"),
     ),
 )
-def test_load_with_pix_unique_levels(tmpdir, levels):
-    db = GCDB(tmpdir)
+@db_formats
+def test_load_with_pix_unique_levels(tmpdir, levels, db_format):
+    db = GCDB(tmpdir, format=db_format)
 
     full_db = create_test_df(
         n_scenarios=10,
@@ -461,8 +474,9 @@ def test_load_with_pix_unique_levels(tmpdir, levels):
     pd.testing.assert_frame_equal(loaded, exp)
 
 
-def test_deletion(tmpdir):
-    db = GCDB(Path(tmpdir))
+@db_formats
+def test_deletion(tmpdir, db_format):
+    db = GCDB(Path(tmpdir), format=db_format)
 
     db.save(
         create_test_df(
@@ -485,8 +499,9 @@ def test_deletion(tmpdir):
         db.load()
 
 
-def test_regroup(tmpdir):
-    db = GCDB(Path(tmpdir))
+@db_formats
+def test_regroup(tmpdir, db_format):
+    db = GCDB(Path(tmpdir), format=db_format)
 
     all_dat = create_test_df(
         n_scenarios=10,
@@ -507,7 +522,7 @@ def test_regroup(tmpdir):
         ["scenario", "variable"],
         ["variable", "run"],
     ):
-        db.regroup(new_grouping)
+        db.regroup(new_grouping, progress=True)
 
         # Make sure data unchanged
         pd.testing.assert_frame_equal(
