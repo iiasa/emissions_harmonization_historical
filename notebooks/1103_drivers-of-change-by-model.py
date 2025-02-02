@@ -13,7 +13,7 @@
 # ---
 
 # %% [markdown]
-# # Examine climate differences
+# # Examine drivers of change by model
 
 # %% [markdown]
 # ## Imports
@@ -24,11 +24,10 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 import pandas_indexing as pix
-import seaborn as sns
+import pyam
 from gcages.io import load_timeseries_csv
-from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
-from emissions_harmonization_historical.constants import COMBINED_HISTORY_ID, DATA_ROOT, SCENARIO_TIME_ID, WORKFLOW_ID
+from emissions_harmonization_historical.constants import DATA_ROOT, SCENARIO_TIME_ID, WORKFLOW_ID
 
 # %% [markdown]
 # ## Define some constants
@@ -238,68 +237,6 @@ def get_sns_df(indf):
     return out
 
 
-# %%
-def transform_rcmip_to_iamc_variable(v):
-    """Transform RCMIP variables to IAMC variables"""
-    res = v
-
-    replacements = (
-        ("F-Gases|", ""),
-        ("PFC|", ""),
-        ("HFC4310mee", "HFC43-10"),
-        ("MAGICC AFOLU", "AFOLU"),
-        ("MAGICC Fossil and Industrial", "Energy and Industrial Processes"),
-    )
-    for old, new in replacements:
-        res = res.replace(old, new)
-
-    return res
-
-
-# %%
-HISTORICAL_GLOBAL_COMPOSITE_PATH = DATA_ROOT / "global-composite" / f"cmip7_history_world_{COMBINED_HISTORY_ID}.csv"
-
-# %%
-history = strip_pint_incompatible_characters_from_units(
-    load_timeseries_csv(
-        HISTORICAL_GLOBAL_COMPOSITE_PATH,
-        index_columns=["model", "scenario", "region", "variable", "unit"],
-        out_column_type=int,
-    )
-)
-history_cut = history.loc[:, 1990:2025]
-# Interpolate
-history_cut = history_cut.T.interpolate("index", limit_area="inside").T
-# history_cut
-
-# %%
-RCMIP_PATH = DATA_ROOT / "global/rcmip/data_raw/rcmip-emissions-annual-means-v5-1-0.csv"
-
-
-# %%
-def load_ar6_history(rcmip_path: Path) -> pd.DataFrame:
-    """Load the AR6 history data"""
-    rcmip = pd.read_csv(RCMIP_PATH)
-    rcmip_clean = rcmip.copy()
-    rcmip_clean.columns = rcmip_clean.columns.str.lower()
-    rcmip_clean = rcmip_clean.set_index(["model", "scenario", "region", "variable", "unit", "mip_era", "activity_id"])
-    rcmip_clean.columns = rcmip_clean.columns.astype(int)
-    rcmip_clean = rcmip_clean.pix.assign(
-        variable=rcmip_clean.index.get_level_values("variable").map(transform_rcmip_to_iamc_variable)
-    )
-    ar6_history = (
-        rcmip_clean.loc[pix.ismatch(mip_era="CMIP6") & pix.ismatch(scenario="historical") & pix.ismatch(region="World")]
-        .reset_index(["mip_era", "activity_id"], drop=True)
-        .dropna(how="all", axis="columns")
-    )
-
-    return ar6_history
-
-
-# %%
-ar6_history = load_ar6_history(RCMIP_PATH)
-# ar6_history
-
 # %% [markdown]
 # ## Load
 
@@ -348,201 +285,111 @@ climate_percentiles = load_stage(
 )
 climate_percentiles.pix.unique("workflow")
 
-# %%
-all_variables = sorted(scm_effective.pix.unique("variable").union(climate_percentiles.pix.unique("variable")))
-# all_variables
+# %% [markdown]
+# ## Plots of drivers of change for each model
 
 # %%
-zn_custom = [
-    "Assessed Surface Air Temperature Change",
-    # 'Atmospheric Concentrations|CH4',
-    # 'Atmospheric Concentrations|CO2',
-    # 'Atmospheric Concentrations|N2O',
-    "Effective Radiative Forcing",
-    #    ###
-    "Effective Radiative Forcing|Anthropogenic",
-    "Effective Radiative Forcing|Aerosols",
-    "Effective Radiative Forcing|Aerosols|Direct Effect",
-    "Emissions|BC",
+# Total changes
+workflow_base = "ar6-workflow_magiccv7.5.3"
+workflow_updated = f"updated-workflow_{magicc_v76_version_label}"
+# workflow_updated = f"ar6-workflow_{magicc_v76_version_label}"
+# workflow_updated = "updated-workflow_magiccv7.5.3"
+
+# %%
+percentile = 50.0
+plot_years = range(2010, 2100 + 1)
+forcing_breakdown_to_plot = [
+    # "Effective Radiative Forcing|Aerosols",
     "Effective Radiative Forcing|Aerosols|Direct Effect|BC",
-    "Emissions|OC",
     "Effective Radiative Forcing|Aerosols|Direct Effect|OC",
-    "Emissions|Sulfur",
     "Effective Radiative Forcing|Aerosols|Direct Effect|SOx",
     "Effective Radiative Forcing|Aerosols|Indirect Effect",
-    "Emissions|CH4",
+    "Effective Radiative Forcing|Black Carbon on Snow",
     "Effective Radiative Forcing|CH4",
-    "Emissions|CO2|AFOLU",
-    "Emissions|CO2|Energy and Industrial Processes",
     "Effective Radiative Forcing|CO2",
     "Effective Radiative Forcing|F-Gases",
-    "Effective Radiative Forcing|Greenhouse Gases",
     "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
-    "Emissions|Montreal Gases|CFC|CFC11",
-    # 'Emissions|Montreal Gases|CFC|CFC113',
-    # 'Emissions|Montreal Gases|CFC|CFC114',
-    # 'Emissions|Montreal Gases|CFC|CFC115',
-    "Emissions|Montreal Gases|CFC|CFC12",
-    "Effective Radiative Forcing|Ozone",
-    "Effective Radiative Forcing|Aviation|Cirrus",
-    "Effective Radiative Forcing|Aviation|Contrail",
-    "Effective Radiative Forcing|Aviation|H2O",
-    "Effective Radiative Forcing|Black Carbon on Snow",
-    "Emissions|N2O",
     "Effective Radiative Forcing|N2O",
-    #    ###
-    # 'Emissions|C2F6',
-    # 'Emissions|C3F8',
-    # 'Emissions|C4F10',
-    # 'Emissions|C5F12',
-    # 'Emissions|C6F14',
-    # 'Emissions|C7F16',
-    # 'Emissions|C8F18',
-    # 'Emissions|CF4',
-    # 'Emissions|CH4',
-    # 'Emissions|CO',
-    # 'Emissions|HFC|HFC125',
-    # 'Emissions|HFC|HFC134a',
-    # 'Emissions|HFC|HFC143a',
-    # 'Emissions|HFC|HFC152a',
-    # 'Emissions|HFC|HFC227ea',
-    # 'Emissions|HFC|HFC23',
-    # 'Emissions|HFC|HFC236fa',
-    # 'Emissions|HFC|HFC245fa',
-    # 'Emissions|HFC|HFC32',
-    # 'Emissions|HFC|HFC365mfc',
-    # 'Emissions|HFC|HFC43-10',
-    # 'Emissions|Montreal Gases|CCl4',
-    # 'Emissions|Montreal Gases|CFC|CFC11',
-    # 'Emissions|Montreal Gases|CFC|CFC113',
-    # 'Emissions|Montreal Gases|CFC|CFC114',
-    # 'Emissions|Montreal Gases|CFC|CFC115',
-    # 'Emissions|Montreal Gases|CFC|CFC12',
-    # 'Emissions|Montreal Gases|CH2Cl2',
-    # 'Emissions|Montreal Gases|CH3Br',
-    # 'Emissions|Montreal Gases|CH3CCl3',
-    # 'Emissions|Montreal Gases|CH3Cl',
-    # 'Emissions|Montreal Gases|CHCl3',
-    # 'Emissions|Montreal Gases|HCFC141b',
-    # 'Emissions|Montreal Gases|HCFC142b',
-    # 'Emissions|Montreal Gases|HCFC22',
-    # 'Emissions|Montreal Gases|Halon1202',
-    # 'Emissions|Montreal Gases|Halon1211',
-    # 'Emissions|Montreal Gases|Halon1301',
-    # 'Emissions|Montreal Gases|Halon2402',
-    # 'Emissions|NF3',
-    # 'Emissions|NH3',
-    # 'Emissions|NOx',
-    # 'Emissions|SF6',
-    # 'Emissions|SO2F2',
-    # 'Emissions|VOC',
-    # 'Emissions|cC4F8',
-    # 'Raw Surface Temperature (GSAT)',
-    # 'Surface Air Temperature Change'
+    "Effective Radiative Forcing|Ozone",
 ]
 
 # %%
-variables_to_plot = zn_custom
+ctdrop = ["climate_model"]
+unstacked = (
+    climate_percentiles.loc[pix.isin(variable=forcing_breakdown_to_plot, percentile=percentile), plot_years]
+    .unstack("workflow")
+    .swaplevel(0, 1, axis=1)
+    .reset_index("climate_model", drop=True)
+)
+# I have no idea why it's necessary to drop the nulls within the subtraction
+diff = (
+    (unstacked[workflow_updated].dropna(how="all") - unstacked[workflow_base].dropna(how="all"))
+    .dropna(how="all")
+    .pix.assign(workflow=f"{workflow_updated} - {workflow_base}")
+    .round(6)
+)
+# diff
 
 # %%
-# Isolate out changes not due to MAGICC updates
-workflow_base = f"ar6-workflow_{magicc_v76_version_label}"
-workflow_updated = f"updated-workflow_{magicc_v76_version_label}"
+col_wrap = 3
 
-# # Isolate out changes due to MAGICC updates
-# workflow_base = "ar6-workflow_magiccv7.5.3"
-# workflow_updated = f"ar6-workflow_{magicc_v76_version_label}"
+for model, mdf in diff.groupby("model"):
+    scenario_groups = [v for v in scenario_group_order if v in mdf.pix.unique("scenario_group")]
 
-# # Sensitivity case to isolate out changes not due to MAGICC updates
-# workflow_base = "ar6-workflow_magiccv7.5.3"
-# workflow_updated = "updated-workflow_magiccv7.5.3"
+    scenario_l = []
+    for sg in scenario_groups:
+        scenario_l.extend(sorted(mdf.loc[pix.isin(scenario_group=sg)].pix.unique("scenario")))
 
-# # Sensitivity case to isolate out changes due to MAGICC updates
-# workflow_base = "updated-workflow_magiccv7.5.3"
-# workflow_updated = f"updated-workflow_{magicc_v76_version_label}"
+    if len(scenario_l) < col_wrap:
+        mosaic = [scenario_l]
+    else:
+        mosaic = []
+        for i in range(0, len(scenario_l), col_wrap):
+            if i + col_wrap <= len(scenario_l):
+                mosaic.append(scenario_l[i : i + col_wrap])
+            else:
+                filler = col_wrap - len(scenario_l) % col_wrap
+                tmp = [*scenario_l[i:], *(["."] * filler)]
+                mosaic.append(tmp)
 
-models = ["*"]
-models = ["AIM*"]
-# models = ["GCAM*"]
-# models = ["MESSAGEix-GLOBIOM*"]
-# models = ["WITCH*"]
-models = ["REMIND*"]
-for model in models:
-    pdf = pd.concat(
-        [
-            get_sns_df(history_cut.loc[pix.isin(variable=variables_to_plot)].pix.assign(workflow="history")),
-            get_sns_df(ar6_history.loc[pix.isin(variable=variables_to_plot)].pix.assign(workflow="history-ar6")),
-            get_sns_df(
-                scm_effective.loc[
-                    pix.isin(variable=variables_to_plot, workflow=[workflow_base, workflow_updated])
-                    & pix.ismatch(model=model)
-                ]
-            ),
-            get_sns_df(
-                climate_percentiles.loc[
-                    pix.isin(variable=variables_to_plot, percentile=50.0, workflow=[workflow_base, workflow_updated])
-                    & pix.ismatch(model=model)
-                ]
-            ),
-        ]
+    fig, axes = plt.subplot_mosaic(
+        mosaic=mosaic,
+        figsize=(16, 4 * len(mosaic)),
     )
-    pdf = pdf[pdf["year"].isin(range(2012, 2100 + 1))]
+    scenarios_end_of_col = [v[-1] for v in mosaic]
 
-    pdf["model-scenario"] = pdf["model"] + " - " + pdf["scenario"]
-    fg = sns.relplot(
-        data=pdf,
-        x="year",
-        y="value",
-        hue="model-scenario",
-        style="workflow",
-        dashes={
-            workflow_base: (3, 3),
-            workflow_updated: "",
-            "history": "",
-            "history-ar6": (3, 1),
-        },
-        col="variable",
-        col_wrap=3,
-        col_order=variables_to_plot,
-        facet_kws=dict(sharey=False),
-        kind="line",
-    )
-    for ax in fg.axes.flatten():
-        # if "CO2" not in ax.get_title():
-        #     ax.set_ylim(ymin=0)
+    for i, (scenario, sdf) in enumerate(mdf.groupby("scenario")):
+        metadata_ms = metadata.loc[pix.isin(model=model, scenario=scenario)]
 
+        ax = axes[scenario]
+        pdf = pyam.IamDataFrame(sdf)
+        legend = scenario in scenarios_end_of_col
+        pdf.plot.stack(
+            stack="variable",
+            title=None,
+            total=True,
+            ax=ax,
+            legend=legend,
+            cmap="tab20",
+        )
         ax.grid()
 
-    fg.figure.suptitle(model, y=1.01)
+        lines = [f"**{scenario}**"]
+        for prefix, col in (
+            ("Median peak warming", "Peak warming 50.0"),
+            ("Median 2100 warming", "EOC warming 50.0"),
+            ("33rd peak warming", "Peak warming 33.0"),
+        ):
+            lines.append(f"*{prefix}*")
+            for workflow in [workflow_base, workflow_updated]:
+                val = float(metadata_ms.loc[pix.isin(workflow=workflow), col].values.squeeze())
+                lines.append(f"- {workflow}: {val:3.2f}")
+
+        title = "\n".join(lines)
+        ax.set_title(title, horizontalalignment="left", loc="left", fontsize="small")
+
+    fig.suptitle(f"{model=}", y=1.02)
+    fig.tight_layout()
     plt.show()
-
-    # break
-
-# %%
-tmp = pdf[~pdf["workflow"].str.startswith("history")].drop(["climate_model", "percentile"], axis="columns")
-tmp = tmp.set_index(tmp.columns.difference(["value"]).tolist()).unstack("workflow")
-diff = tmp[("value", workflow_updated)] - tmp[("value", workflow_base)]
-pdf_diff = diff.to_frame("value").round(6).reset_index()
-# pdf_diff = diff.to_frame("value").reset_index()
-
-fg = sns.relplot(
-    data=pdf_diff,
-    x="year",
-    y="value",
-    hue="model-scenario",
-    col="variable",
-    col_wrap=3,
-    col_order=variables_to_plot,
-    facet_kws=dict(sharey=False),
-    kind="line",
-)
-for ax in fg.axes.flatten():
-    # if "CO2" not in ax.get_title():
-    #     ax.set_ylim(ymin=0)
-
-    ax.grid()
-
-fg.figure.suptitle(model, y=1.01)
-plt.show()
 
 # %%
