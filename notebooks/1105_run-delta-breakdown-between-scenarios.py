@@ -72,10 +72,7 @@ if openscm_runner.adapters.MAGICC7.get_version() != magicc_expected_version:
     raise AssertionError(openscm_runner.adapters.MAGICC7.get_version())
 
 # %%
-OUTPUT_PATH = (
-    INPUT_PATH
-    / f"magicc-{magicc_expected_version.replace('.', '-')}_{magicc_prob_distribution_path.stem}_scenario-delta-breakdown"
-)
+OUTPUT_PATH = INPUT_PATH / f"magicc-{magicc_expected_version.replace('.', '-')}_{magicc_prob_distribution_path.stem}_scenario-delta-breakdown"
 OUTPUT_PATH
 
 # %% [markdown]
@@ -94,7 +91,9 @@ complete_scenarios
 
 # %%
 base = pd.MultiIndex.from_tuples(
-    (("REMIND-MAgPIE 3.4-4.8", "SSP1 - Very Low Emissions"),),
+    (
+        ("REMIND-MAgPIE 3.4-4.8", "SSP1 - Very Low Emissions"),
+    ),
     name=["model", "scenario"],
 )
 base
@@ -124,17 +123,12 @@ to_attribute = [
     ("BC OC Sulfur", ["Emissions|BC", "Emissions|OC", "Emissions|Sulfur"]),
     ("NH3 NOx CO VOCs", ["Emissions|NH3", "Emissions|NOx", "Emissions|CO", "Emissions|VOC"]),
     ("Montreal gases", [v for v in base_scen.pix.unique("variable") if "Montreal" in v]),
-    (
-        "HFCs PFCs SF6 NF3 SO2F2",
-        [
-            *[v for v in base_scen.pix.unique("variable") if "HFC" in v],
-            "Emissions|CF4",
-            *[v for v in base_scen.pix.unique("variable") if re.match(r"Emissions\|c?C\d*F\d*", v)],
-            "Emissions|SF6",
-            "Emissions|NF3",
-            "Emissions|SO2F2",
-        ],
-    ),
+    ("HFCs PFCs SF6 NF3 SO2F2", [
+        *[v for v in base_scen.pix.unique("variable") if "HFC" in v], 
+        "Emissions|CF4",
+        *[v for v in base_scen.pix.unique("variable") if re.match("Emissions\|c?C\d*F\d*", v)], 
+        "Emissions|SF6", "Emissions|NF3", "Emissions|SO2F2",
+    ]),
 ]
 to_attribute
 
@@ -144,7 +138,7 @@ for v in to_attribute:
     missing = set(v[1]).difference(not_attributed)
     if missing:
         raise AssertionError(missing)
-
+        
     not_attributed = not_attributed - set(v[1])
 
 if not_attributed:
@@ -157,20 +151,20 @@ for i in range(others.size):
     for label, emms in to_attribute:
         model = other_idx[0][other_idx.names.index("model")]
         scenario = other_idx[0][other_idx.names.index("scenario")]
-
+        
         other_idx = others[[i]]
         variable_loc = pix.isin(variable=emms)
         start = multi_index_lookup(complete_scenarios, other_idx).loc[~variable_loc]
         replace = base_scen.loc[variable_loc]
         to_run_tmp = pix.concat([start, replace]).pix.assign(
-            model=f"{model} -- {scenario} --- {base_model} -- {base_scenario}",
-            # model=f"{model} {scenario} - {base_model} {base_scenario}".replace(".", "_").replace(" ", "_"),
+            model=f"{model} -- {scenario} --- {base_model} -- {base_scenario}", 
+            # model=f"{model} {scenario} - {base_model} {base_scenario}".replace(".", "_").replace(" ", "_"), 
             scenario=label,
         )
         exp_n_ts = 52
         if to_run_tmp.shape[0] != exp_n_ts:
             raise AssertionError
-
+        
         to_run_l.append(to_run_tmp)
 
 to_run = pix.concat(to_run_l)
@@ -378,47 +372,35 @@ post_processed.metadata.sort_values(["category", "Peak warming 33.0"])
 
 # %%
 md_split = post_processed.metadata.copy()
-md_split = md_split.pix.extract(
-    model="{original_model} -- {original_scenario} --- {replacement_model} -- {replacement_scenario}"
-)
-md_split = md_split.pix.format(
-    original="{original_model} - {original_scenario}", replacement="{replacement_model} - {replacement_scenario}"
-)
+md_split = md_split.pix.extract(model="{original_model} -- {original_scenario} --- {replacement_model} -- {replacement_scenario}")
+md_split = md_split.pix.format(original="{original_model} - {original_scenario}", replacement="{replacement_model} - {replacement_scenario}")
 md_split = md_split.pix.format(component="{scenario}", drop=True)
 md_split
 
 # %%
-md_normal_workflow_all = pd.read_csv(
-    INPUT_PATH / "magicc-v7-6-0a3_magicc-ar7-fast-track-drawnset-v0-3-0" / "metadata.csv"
-).set_index(["model", "scenario"])
-md_normal_workflow_all.index = md_normal_workflow_all.index.rename(
-    {"model": "original_model", "scenario": "original_scenario"}
-)
-md_normal_workflow = multi_index_lookup(
-    md_normal_workflow_all,
-    md_split.index.droplevel(md_split.index.names.difference(md_normal_workflow_all.index.names)).drop_duplicates(),
-)
+md_normal_workflow_all = pd.read_csv(INPUT_PATH / "magicc-v7-6-0a3_magicc-ar7-fast-track-drawnset-v0-3-0" / "metadata.csv").set_index(["model", "scenario"])
+md_normal_workflow_all.index = md_normal_workflow_all.index.rename({"model": "original_model", "scenario": "original_scenario"})
+md_normal_workflow = multi_index_lookup(md_normal_workflow_all, md_split.index.droplevel(md_split.index.names.difference(md_normal_workflow_all.index.names)).drop_duplicates())
+md_normal_workflow
+
+# %%
 md_normal_workflow
 
 # %%
 columns = ["Peak warming 50.0"]
-deltas = md_base[columns].subtract(md_split[columns], axis="rows")
+deltas = md_normal_workflow[columns].subtract(md_split[columns], axis="rows")
 deltas
 
 # %%
-deltas_components_total = (
-    deltas.groupby(deltas.index.names.difference(["component"])).sum().pix.assign(component="total")
-)
+deltas_components_total = deltas.groupby(deltas.index.names.difference(["component"])).sum().pix.assign(component="total")
 deltas_components_total
 
 # %%
-md_base_base = multi_index_lookup(
-    md_base_all, base.rename({"model": "original_model", "scenario": "original_scenario"})
-)
-md_base_base
+md_base = multi_index_lookup(md_normal_workflow_all, base.rename({"model": "original_model", "scenario": "original_scenario"}))
+md_base
 
 # %%
-deltas_total = md_base[columns] - md_base_base.iloc[0, :][columns]
+deltas_total = md_normal_workflow[columns] - md_base.iloc[0, :][columns]
 deltas_total
 
 # %%
@@ -440,11 +422,11 @@ legend_order = [
     "CO2 Fossil",
     "CO2 AFOLU",
     "CH4",
-    "N2O",
-    "BC OC Sulfur",
-    "NH3 NOx CO VOCs",
-    "Montreal gases",
-    "HFCs PFCs SF6 NF3 SO2F2",
+    'N2O',
+    'BC OC Sulfur',
+    'NH3 NOx CO VOCs',
+    'Montreal gases',
+    'HFCs PFCs SF6 NF3 SO2F2',
     "residual",
 ]
 palette = {
@@ -453,15 +435,13 @@ palette = {
     "CH4": "tab:orange",
     "N2O": "darkgreen",
     "BC OC Sulfur": "tab:gray",
-    "NH3 NOx CO VOCs": "tab:olive",
+    'NH3 NOx CO VOCs': "tab:olive",
     "Montreal gases": "tab:blue",
-    "HFCs PFCs SF6 NF3 SO2F2": "tab:purple",
+    'HFCs PFCs SF6 NF3 SO2F2': "tab:purple",
     "residual": "k",
 }
 bar_width = 0.8
-x_ticks = [
-    f"{model}\n{scenario}" for (model, scenario), _ in deltas_total.groupby(["original_model", "original_scenario"])
-]
+x_ticks = [f"{model}\n{scenario}" for (model, scenario), _ in deltas_total.groupby(["original_model", "original_scenario"])]
 locs = {label: i + 0.5 for i, label in enumerate(x_ticks)}
 
 for i, (label, loc) in enumerate(locs.items()):
@@ -469,7 +449,7 @@ for i, (label, loc) in enumerate(locs.items()):
     ax.plot(
         [i + (0.5 - bar_width / 2), i + 1 - (0.5 - bar_width / 2)],
         [deltas_total.loc[(model, scenario)], deltas_total.loc[(model, scenario)]],
-        label="Total" if i < 1 else None,
+        label="Total" if i<1 else None,
         color="pink",
         # linestyle="--",
         zorder=3.0,
@@ -482,7 +462,7 @@ for i, (label, loc) in enumerate(locs.items()):
     negative_components = deltas_bar[deltas_bar < 0.0][value_to_plot].dropna().sort_values(ascending=False)
     positive_components = deltas_bar[deltas_bar >= 0.0][value_to_plot].dropna().sort_values(ascending=False)
     negative_sum = negative_components.sum()
-
+    
     bottom = negative_sum
     for r in range(negative_components.size):
         neg_row = negative_components.iloc[r]
@@ -496,7 +476,7 @@ for i, (label, loc) in enumerate(locs.items()):
             label=component if i < 1 else None,
         )
         bottom -= neg_row
-
+        
     for r in range(positive_components.size):
         pos_row = positive_components.iloc[r]
         component = positive_components.index.get_level_values("component")[r]
@@ -519,13 +499,6 @@ ax.axhline(0.0, color="tab:gray")
 
 handles, labels = plt.gca().get_legend_handles_labels()
 new_order = [labels.index(v) for v in legend_order]
-ax.legend(
-    [handles[idx] for idx in new_order],
-    [labels[idx] for idx in new_order],
-    loc="center left",
-    bbox_to_anchor=(1.05, 0.5),
-)
+ax.legend([handles[idx] for idx in new_order], [labels[idx] for idx in new_order], loc="center left", bbox_to_anchor=(1.05, 0.5))
 
 plt.show()
-
-# %%
