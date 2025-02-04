@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.4
+#       jupytext_version: 1.16.6
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -430,6 +430,9 @@ fg = sns.relplot(
 
 for ax in fg.figure.axes:
     ax.set_ylim(0)
+
+# %%
+assert False, "Update file ID"
 
 # %%
 combined_processed_output_file_world_only.parent.mkdir(exist_ok=True, parents=True)
