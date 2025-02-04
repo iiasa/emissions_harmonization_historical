@@ -461,6 +461,82 @@ db_incl_wu_meta = pix.concat(
 db_incl_wu_meta
 
 # %% [markdown]
+# ## ZN
+
+# %%
+metadata_updated[["Peak warming 50.0", "EOC warming 50.0"]]
+fig, ax = plt.subplots()
+ax.scatter(
+    metadata_updated["Peak warming 50.0"],
+    metadata_updated["EOC warming 50.0"],
+)
+ax.set_xlim([1.5, 2.0])
+ax.set_ylim([1.0, 1.6])
+ax.set_xlabel("Peak warming")
+ax.set_ylabel("EOC warming")
+
+# %%
+variables = [
+    "Emissions|CO2|Energy and Industrial Processes",
+    "Emissions|CO2|AFOLU",
+    "Emissions|CH4",
+    "Emissions|GHG|AR6GWP100",
+    "Effective Radiative Forcing|Aerosols",
+    "Assessed Surface Air Temperature Change",
+]
+years = range(2020, 2100 + 1)
+
+match_criteria = metadata_updated[metadata_updated["category"] == "C2"]
+
+sns_df = db_incl_wu_meta.loc[pix.isin(variable=variables)].loc[:, years].melt(ignore_index=False, var_name="year")
+
+sns_df["id_model"] = sns_df.index.get_level_values("model")
+sns_df.loc[~multi_index_match(sns_df, match_criteria.index), "id_model"] = "Other"
+sns_df["id_scenario"] = sns_df.index.get_level_values("scenario")
+sns_df.loc[~multi_index_match(sns_df, match_criteria.index), "id_scenario"] = "Other"
+sns_df = sns_df.reset_index()
+sns_df["run"] = sns_df["model"] + sns_df["scenario"]
+sns_df["option"] = ~(sns_df["id_model"] == "Other")
+
+dashes = {k: (3, 3) for k in sns_df["id_model"].unique()}
+# dashes["REMIND-MAgPIE 3.4-4.8"] = ""
+# dashes["AIM 3.0"] = (1, 1)
+
+fg = sns.relplot(
+    data=sns_df,
+    x="year",
+    y="value",
+    style="id_model",
+    dashes=dashes,
+    hue="id_scenario",
+    col="variable",
+    col_wrap=3,
+    col_order=variables,
+    units="run",
+    estimator=None,
+    kind="line",
+    alpha=0.7,
+    zorder=3.0,
+    facet_kws=dict(sharey=False),
+    size="option",
+    sizes={True: 3, False: 0.5},
+)
+
+
+for ax in fg.axes:
+    ax.grid()
+    if "Temperature" in ax.get_title():
+        ax.set_ylim(ymax=2.2)
+    if "CO2|Energy" in ax.get_title():
+        ax.set_ylim(ymax=45000)
+    if "CH4" in ax.get_title():
+        ax.set_ylim(ymax=500)
+
+plt.show()
+
+match_criteria
+
+# %% [markdown]
 # ## A
 
 # %%

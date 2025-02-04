@@ -293,7 +293,7 @@ harmonised
 all_variables = harmonised.pix.unique("variable")
 # sorted(all_variables)
 zn_custom = [
-    # 'Emissions|BC',
+    "Emissions|BC",
     # 'Emissions|C2F6',
     # # 'Emissions|C3F8',
     # # 'Emissions|C4F10',
@@ -302,10 +302,10 @@ zn_custom = [
     # # 'Emissions|C7F16',
     # # 'Emissions|C8F18',
     # 'Emissions|CF4',
-    "Emissions|CH4",
-    # 'Emissions|CO',
-    "Emissions|CO2|AFOLU",
-    "Emissions|CO2|Energy and Industrial Processes",
+    # "Emissions|CH4",
+    # # 'Emissions|CO',
+    # "Emissions|CO2|AFOLU",
+    # "Emissions|CO2|Energy and Industrial Processes",
     # # 'Emissions|HFC|HFC125',
     # 'Emissions|HFC|HFC134a',
     # # 'Emissions|HFC|HFC143a',
@@ -337,12 +337,12 @@ zn_custom = [
     # # 'Emissions|Montreal Gases|Halon2402',
     # 'Emissions|N2O',
     # 'Emissions|NF3',
-    # 'Emissions|NH3',
-    # 'Emissions|NOx',
+    "Emissions|NH3",
+    "Emissions|NOx",
     "Emissions|OC",
     # 'Emissions|SF6',
     # # 'Emissions|SO2F2',
-    # 'Emissions|Sulfur',
+    "Emissions|Sulfur",
     # 'Emissions|VOC',
     # # 'Emissions|cC4F8',
 ]
@@ -363,6 +363,7 @@ ax.grid()
 model = "*"
 model = "AIM*"
 model = "GCAM*"
+model = "REMIND*"
 for variable, vdf in (
     harmonised.pix.assign(stage="harmonised").loc[pix.isin(variable=variables_to_plot)].groupby("variable")
 ):
@@ -372,10 +373,10 @@ for variable, vdf in (
             [
                 ar6_history.loc[pix.isin(variable=variable)]
                 .pix.assign(workflow_stage="history-ar6", scenario_group=scenario_group)
-                .loc[:, 1990:],
+                .loc[:, :],
                 history_cut.loc[pix.isin(variable=variable)]
                 .pix.assign(workflow_stage="history", scenario_group=scenario_group)
-                .loc[:, 1990:],
+                .loc[:, :],
             ]
         )
         scenario_group_history = get_sns_df(pd.concat(scenario_group_history_l))
@@ -424,3 +425,129 @@ for variable, vdf in (
     plt.show()
 
     # break
+
+# %%
+model = "*"
+model = "AIM*"
+model = "GCAM*"
+model = "REMIND*"
+for variable, vdf in (
+    harmonised.pix.assign(stage="harmonised").loc[pix.isin(variable=variables_to_plot)].groupby("variable")
+):
+    scenario_group_history_l = []
+    for scenario_group in vdf.pix.unique("scenario_group"):
+        scenario_group_history_l.extend(
+            [
+                ar6_history.loc[pix.isin(variable=variable)]
+                .pix.assign(workflow_stage="history-ar6", scenario_group=scenario_group)
+                .loc[:, :],
+                history_cut.loc[pix.isin(variable=variable)]
+                .pix.assign(workflow_stage="history", scenario_group=scenario_group)
+                .loc[:, :],
+            ]
+        )
+        scenario_group_history = get_sns_df(pd.concat(scenario_group_history_l))
+
+    pdf = pd.concat(
+        [
+            scenario_group_history,
+            get_sns_df(vdf.loc[pix.ismatch(model=model)].pix.format(workflow_stage="{workflow} - harmonised")),
+            get_sns_df(
+                pre_processed.loc[pix.ismatch(variable=variable, model=model)].pix.format(
+                    workflow_stage="{workflow} - pre-processed"
+                )
+            ),
+        ]
+    )
+
+    fg = sns.relplot(
+        data=pdf,
+        x="year",
+        y="value",
+        hue="scenario",
+        units="model",
+        estimator=None,
+        style="workflow_stage",
+        dashes={
+            "history": "",
+            "updated-workflow - harmonised": "",
+            "updated-workflow - pre-processed": (3, 3),
+            "history-ar6": (3, 1),
+            "ar6-workflow - harmonised": (3, 1),
+            "ar6-workflow - pre-processed": (1, 1),
+        },
+        col="scenario_group",
+        col_wrap=3,
+        col_order=scenario_group_order,
+        facet_kws=dict(sharey=True),
+        kind="line",
+        alpha=0.7,
+    )
+    for ax in fg.axes.flatten():
+        ax.grid()
+        if "CO2" not in variable:
+            ax.set_ylim(ymin=0)
+
+    fg.figure.suptitle(f"{variable} | {model=}", y=1.02)
+    plt.show()
+
+    # break
+
+# %%
+ar6_history_non_zero_start = (
+    ar6_history[ar6_history[1750] > 0.0]
+    .loc[pix.isin(variable=harmonised.pix.unique("variable"))]
+    .pix.assign(scenario="history-ar6")
+)
+
+has_issues = []
+for variable, vdf in ar6_history_non_zero_start.groupby("variable"):
+    if "CO2" in variable:
+        continue
+
+    history_cut_incl = (
+        history_cut.loc[pix.isin(variable=variable)]
+        .pix.assign(workflow_stage="history", scenario_group=scenario_group)
+        .loc[:, :]
+    )
+    history_cut_incl
+    for model, mdf in harmonised.loc[pix.isin(variable=variable, workflow="updated-workflow")].groupby("model"):
+        to_plot = mdf[(mdf < vdf[1750].values.squeeze()).any(axis="columns")]
+        if to_plot.empty:
+            continue
+
+        pdf = get_sns_df(
+            pix.concat(
+                [
+                    vdf,
+                    history_cut_incl.reset_index(["scenario_group", "workflow_stage"], drop=True),
+                    to_plot.reset_index(["scenario_group", "workflow"], drop=True),
+                ]
+            )
+        )
+        fg = sns.relplot(
+            data=pdf,
+            x="year",
+            y="value",
+            hue="scenario",
+            units="model",
+            facet_kws=dict(sharey=True),
+            kind="line",
+            alpha=0.7,
+        )
+        for ax in fg.axes.flatten():
+            ax.grid()
+            if "CO2" not in variable:
+                ax.set_ylim(ymin=0)
+
+        fg.figure.suptitle(f"{variable} | {model=}", y=1.02)
+        plt.show()
+        # for model, scenario in to_plot.pix.unique(["model", "scenario"]):
+        #     has_issues.append((model, scenario, variable))
+        for model in to_plot.pix.unique(["model"]):
+            has_issues.append((model, variable))
+
+has_issues
+
+# %%
+sorted(has_issues, key=lambda v: v[0])
