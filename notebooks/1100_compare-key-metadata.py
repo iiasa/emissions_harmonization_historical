@@ -152,15 +152,35 @@ for our_column, db_column in (
 # ## Number of scenarios in each category
 
 # %%
+fair_v2_2_2_2021_harm_calib_metadata = pd.read_csv(DATA_ROOT / "20250204_categorization-chris.csv").drop(
+    "Unnamed: 0", axis="columns"
+)
+fair_v2_2_2_2021_harm_calib_metadata["workflow"] = "updated-workflow_fair-v2.2.2"
+fair_v2_2_2_2021_harm_calib_metadata = fair_v2_2_2_2021_harm_calib_metadata.set_index(["model", "scenario", "workflow"])
+fair_v2_2_2_2021_harm_calib_metadata = fair_v2_2_2_2021_harm_calib_metadata.rename(
+    {
+        "peak_warming_p33": "Peak warming 33.0",
+        "peak_warming_p50": "Peak warming 50.0",
+        "peak_warming_p67": "Peak warming 67.0",
+        "2100_warming_p50": "EOC warming 50.0",
+    },
+    axis="columns",
+)
+fair_v2_2_2_2021_harm_calib_metadata
+
+# %%
 workflow_map = {
     "ar6-workflow_magiccv7.5.3": "AR6",
     "ar6-workflow_magicc-v7.6.0a3": "AR6_updated-MAGICC",
     # 'updated-workflow_magiccv7.5.3': "AR7FT_AR6-MAGICC",
-    "updated-workflow_magicc-v7.6.0a3": "AR7FT",
+    "updated-workflow_magicc-v7.6.0a3": "AR7FT-MAGICCv7.6.0a3",
+    "updated-workflow_fair-v2.2.2": "AR7FT-FaIRv2.2.2",
 }
-tmp = metadata.pix.assign(scenario_group=metadata.index.get_level_values("scenario").map(get_scenario_group))
-tmp = tmp.pix.assign(workflow=metadata.index.get_level_values("workflow").map(workflow_map))
+tmp = pix.concat([metadata, fair_v2_2_2_2021_harm_calib_metadata])
+tmp = tmp.pix.assign(scenario_group=tmp.index.get_level_values("scenario").map(get_scenario_group))
+tmp = tmp.pix.assign(workflow=tmp.index.get_level_values("workflow").map(workflow_map))
 
+col_show_order = ["AR6", "AR6_updated-MAGICC", "AR7FT-FaIRv2.2.2", "AR7FT-MAGICCv7.6.0a3"]
 disp = (
     tmp.groupby(["scenario_group", "workflow"])["category"]
     .value_counts()
@@ -171,7 +191,7 @@ disp = (
     )
     .drop(("n_scenarios", "All"), axis="columns")
 )
-disp.groupby("category").sum().drop("")
+disp.groupby("category").sum().drop("").loc[:, (["n_scenarios"], col_show_order)]
 
 # %%
 disp.sort_index().loc[
@@ -181,7 +201,7 @@ disp.sort_index().loc[
     ],
     (["n_scenarios"], list(workflow_map.values())),
     # [("n_scenarios",), tuple(workflow_map.values())],
-]
+].loc[:, (["n_scenarios"], col_show_order)]
 
 # %% [markdown]
 # ## Plots of warming
@@ -191,14 +211,17 @@ palette = {
     "AR6": "tab:orange",
     "AR6_updated-MAGICC": "tab:purple",
     "AR7FT_AR6-MAGICC": "tab:olive",
-    "AR7FT": "tab:blue",
+    "AR7FT-MAGICCv7.6.0a3": "tab:blue",
+    "AR7FT-FaIRv2.2.2": "tab:green",
 }
 variables = ["Peak warming 33.0", "Peak warming 50.0", "EOC warming 50.0"]
 box_kwargs = dict(saturation=0.6)
 
 fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(8, 9))
 for variable, axes_row in zip(variables, axes):
-    sns_df = metadata[[variable]].melt(ignore_index=False).reset_index()
+    sns_df = (
+        pix.concat([metadata, fair_v2_2_2_2021_harm_calib_metadata])[[variable]].melt(ignore_index=False).reset_index()
+    )
     sns_df["scenario_group"] = sns_df["scenario"].apply(get_scenario_group)
     sns_df["workflow"] = sns_df["workflow"].map(workflow_map)
 
@@ -225,15 +248,15 @@ for variable, axes_row in zip(variables, axes):
 fig.tight_layout()
 
 # %%
-metadata_by_workflow = metadata.copy()
+metadata_by_workflow = pix.concat([metadata, fair_v2_2_2_2021_harm_calib_metadata]).copy()
 metadata_by_workflow = metadata_by_workflow.pix.assign(
     workflow=metadata_by_workflow.index.get_level_values("workflow").map(workflow_map)
 )
 metadata_by_workflow = metadata_by_workflow[~metadata_by_workflow.index.get_level_values("workflow").isnull()]
 metadata_by_workflow = metadata_by_workflow.stack().unstack("workflow").unstack()
-metadata_by_workflow.loc[:, (slice(None), "Peak warming 33.0")].sort_values(("AR7FT", "Peak warming 33.0")).iloc[
-    :13, :
-].astype(float).round(2)
+metadata_by_workflow.loc[:, (slice(None), "Peak warming 33.0")].sort_values(
+    ("AR7FT-MAGICCv7.6.0a3", "Peak warming 33.0")
+).iloc[:13,].loc[:, col_show_order].astype(float).round(2)
 
 # %%
 metadata_by_workflow = metadata.stack().unstack("workflow").unstack()
