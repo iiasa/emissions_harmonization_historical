@@ -148,6 +148,17 @@ combined_processed_output_file
 # ### Create CEDS-BB4CMIP composite
 
 # %%
+# Note that, for now, we use the BB4CMIP data here
+# because it goes back to 1750,
+# irrespective of what we do above.
+
+# %%
+bb4cmip_global = load_csv(
+    DATA_ROOT / "national/gfed-bb4cmip/processed" / f"gfed-bb4cmip_cmip7_global_{GFED_PROCESSING_ID}.csv"
+)
+bb4cmip_global
+
+# %%
 ceds_world = ceds.loc[pix.isin(region=["World"])]
 ceds_world
 
@@ -176,22 +187,8 @@ ceds_co2 = ceds_co2.rename(index=lambda x: x.replace(f"|{ceds_iteration}", ""))
 ceds_co2
 
 # %%
-biomass_burning_world = biomass_burning.loc[pix.isin(region=["World"])]
-biomass_burning_world
-
-# %%
-biomass_burning_world
-
-# %%
-biomass_burning_world.loc[pix.ismatch(variable="Emissions|OC|*")]
-
-# %%
 biomass_burning_sum = (
-    biomass_burning_world.pix.extract(variable="Emissions|{species}|{sector}", dropna=False)
-    .groupby([*(set(biomass_burning_world.index.names) - {"variable"}), "species"])
-    .sum()
-    .pix.format(variable="Emissions|{species}", drop=True)
-    .pix.format(variable="{variable}|{model}", drop=False)
+    bb4cmip_global
     # Use CO2 AFOLU from GCB
     .loc[~pix.ismatch(variable="Emissions|CO2|**")]
 )
@@ -430,9 +427,6 @@ fg = sns.relplot(
 
 for ax in fg.figure.axes:
     ax.set_ylim(0)
-
-# %%
-assert False, "Update file ID"
 
 # %%
 combined_processed_output_file_world_only.parent.mkdir(exist_ok=True, parents=True)
