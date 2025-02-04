@@ -29,6 +29,8 @@ import matplotlib.pyplot as plt
 import openscm_runner.adapters
 import pandas as pd
 import pandas_indexing as pix
+import pyam
+import seaborn as sns
 from gcages.database import GCDB
 from gcages.io import load_timeseries_csv
 from gcages.pandas_helpers import multi_index_lookup
@@ -51,6 +53,27 @@ logger.disable("gcages")
 
 # %% [markdown]
 # ## General set up
+
+# %%
+base_model = "REMIND-MAgPIE 3.4-4.8"
+base_scenario = "SSP1 - Very Low Emissions"
+
+# %%
+base = pd.MultiIndex.from_tuples(
+    ((base_model, base_scenario),),
+    name=["model", "scenario"],
+)
+base
+
+# %%
+others = pd.MultiIndex.from_tuples(
+    (
+        ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Overshoot"),
+        ("IMAGE 3.4", "SSP1 - Low Emissions"),
+    ),
+    name=["model", "scenario"],
+)
+others
 
 # %%
 n_processes = multiprocessing.cpu_count()
@@ -79,6 +102,79 @@ OUTPUT_PATH = (
 OUTPUT_PATH
 
 # %% [markdown]
+# ## Have a look at ERF differences
+
+# %%
+forcing_breakdown_to_plot = [
+    # "Effective Radiative Forcing|Aerosols",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|BC",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|OC",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|SOx",
+    "Effective Radiative Forcing|Aerosols|Indirect Effect",
+    "Effective Radiative Forcing|Black Carbon on Snow",
+    "Effective Radiative Forcing|CH4",
+    "Effective Radiative Forcing|CO2",
+    "Effective Radiative Forcing|F-Gases",
+    "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
+    "Effective Radiative Forcing|N2O",
+    "Effective Radiative Forcing|Ozone",
+]
+
+# %%
+normal_workflow_db = GCDB(INPUT_PATH / "magicc-v7-6-0a3_magicc-ar7-fast-track-drawnset-v0-3-0" / "db")
+erfs = normal_workflow_db.load(
+    pix.isin(variable=forcing_breakdown_to_plot)
+    & pix.isin(model=[*base.to_frame()["model"], *others.to_frame()["model"]])
+    & pix.isin(scenario=[*base.to_frame()["scenario"], *others.to_frame()["scenario"]]),
+    progress=True,
+    out_columns_type=int,
+)
+erfs = multi_index_lookup(erfs, others.join(base, how="outer"))
+erfs
+
+# %%
+base_loc = pix.isin(scenario=base.to_frame()["scenario"], model=base.to_frame()["model"])
+erfs_deltas = erfs[~base_loc] - erfs[base_loc].reset_index(["model", "scenario"], drop=True)
+erfs_deltas_median = erfs_deltas.groupby(erfs_deltas.index.names.difference(["run_id"])).median()
+
+# %%
+plot_years = range(2000, 2100 + 1)
+for (model, scenario), msdf in erfs_deltas_median.groupby(["model", "scenario"]):
+    ax = pyam.IamDataFrame(msdf.loc[:, plot_years]).plot.stack(
+        stack="variable",
+        title=None,
+        total=True,
+        # ax=ax,
+        # legend=legend,
+        cmap="tab20",
+    )
+    ax.set_title(f"{model} {scenario}\nrel. to\n{base_model} {base_scenario}")
+    ax.axhline(0.0, color="k")
+    plt.show()
+
+# %%
+plt_years = [2030, 2040, 2050, 2060]
+pdf = erfs_deltas[plt_years].melt(ignore_index=False, var_name="year").reset_index()
+pdf["variable"] = pdf["variable"].str.replace("Effective Radiative Forcing|", "")
+
+for (model, scenario), msdf in pdf.groupby(["model", "scenario"]):
+    fig, ax = plt.subplots(figsize=(12, 5))
+    sns.boxplot(
+        data=msdf,
+        y="value",
+        x="variable",
+        hue="year",
+        # hue="variable",
+        # x="year",
+    )
+    ax.set_xticks(ax.get_xticks())
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
+    ax.legend(loc="center left", bbox_to_anchor=(1.05, 0.5))
+    ax.set_title(f"{model} {scenario}\nrel. to\n{base_model} {base_scenario}")
+    ax.axhline(0.0, color="tab:gray", zorder=1.2)
+    plt.show()
+
+# %% [markdown]
 # ## Load complete scenario data
 
 # %%
@@ -93,23 +189,6 @@ complete_scenarios
 # ## Calculate breakdown scenario runs
 
 # %%
-base = pd.MultiIndex.from_tuples(
-    (("REMIND-MAgPIE 3.4-4.8", "SSP1 - Very Low Emissions"),),
-    name=["model", "scenario"],
-)
-base
-
-# %%
-others = pd.MultiIndex.from_tuples(
-    (
-        ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Overshoot"),
-        ("IMAGE 3.4", "SSP1 - Low Emissions"),
-    ),
-    name=["model", "scenario"],
-)
-others
-
-# %%
 base_scen = multi_index_lookup(complete_scenarios, base)
 base_model = base.pix.unique("model")[0]
 base_scenario = base.pix.unique("scenario")[0]
@@ -121,7 +200,9 @@ to_attribute = [
     ("CO2 AFOLU", ["Emissions|CO2|AFOLU"]),
     ("CH4", ["Emissions|CH4"]),
     ("N2O", ["Emissions|N2O"]),
-    ("BC OC Sulfur", ["Emissions|BC", "Emissions|OC", "Emissions|Sulfur"]),
+    ("BC", ["Emissions|BC"]),
+    ("OC", ["Emissions|OC"]),
+    ("Sulfur", ["Emissions|Sulfur"]),
     ("NH3 NOx CO VOCs", ["Emissions|NH3", "Emissions|NOx", "Emissions|CO", "Emissions|VOC"]),
     ("Montreal gases", [v for v in base_scen.pix.unique("variable") if "Montreal" in v]),
     (
@@ -373,156 +454,70 @@ post_processed = post_processor(scm_results)
 post_processed.metadata.sort_values(["category", "Peak warming 33.0"])
 
 # %%
-md_split = post_processed.metadata.copy()
-md_split = md_split.pix.extract(
-    model="{original_model} -- {original_scenario} --- {replacement_model} -- {replacement_scenario}"
-)
-md_split = md_split.pix.format(
-    original="{original_model} - {original_scenario}", replacement="{replacement_model} - {replacement_scenario}"
-)
-md_split = md_split.pix.format(component="{scenario}", drop=True)
-md_split
+gsat_out_runs_raw = post_processed.timeseries
 
 # %%
-md_normal_workflow_all = pd.read_csv(
-    INPUT_PATH / "magicc-v7-6-0a3_magicc-ar7-fast-track-drawnset-v0-3-0" / "metadata.csv"
-).set_index(["model", "scenario"])
-md_normal_workflow_all.index = md_normal_workflow_all.index.rename(
-    {"model": "original_model", "scenario": "original_scenario"}
+gsat_out_normal_workflow = normal_workflow_db.load(
+    pix.isin(variable="Surface Air Temperature Change")
+    & pix.isin(model=[*base.to_frame()["model"], *others.to_frame()["model"]])
+    & pix.isin(scenario=[*base.to_frame()["scenario"], *others.to_frame()["scenario"]]),
+    progress=True,
+    out_columns_type=int,
 )
-md_normal_workflow = multi_index_lookup(
-    md_normal_workflow_all,
-    md_split.index.droplevel(md_split.index.names.difference(md_normal_workflow_all.index.names)).drop_duplicates(),
-)
-md_normal_workflow
+gsat_out_normal_workflow = multi_index_lookup(gsat_out_normal_workflow, others.join(base, how="outer"))
+gsat_out_normal_workflow = post_processor(gsat_out_normal_workflow).timeseries
+# gsat_out_normal_workflow
 
 # %%
-md_normal_workflow
-
-# %%
-columns = ["Peak warming 50.0"]
-deltas = md_normal_workflow[columns].subtract(md_split[columns], axis="rows")
-deltas
-
-# %%
-deltas_components_total = (
-    deltas.groupby(deltas.index.names.difference(["component"])).sum().pix.assign(component="total")
-)
-deltas_components_total
-
-# %%
-md_base = multi_index_lookup(
-    md_normal_workflow_all, base.rename({"model": "original_model", "scenario": "original_scenario"})
-)
-md_base
-
-# %%
-deltas_total = md_normal_workflow[columns] - md_base.iloc[0, :][columns]
+deltas_total = multi_index_lookup(gsat_out_normal_workflow, others) - multi_index_lookup(
+    gsat_out_normal_workflow, base
+).reset_index(["model", "scenario"], drop=True)
 deltas_total
 
 # %%
-deltas_residual = (deltas_total - deltas_components_total).pix.assign(component="residual")
-deltas_residual
-
-# %%
-deltas_closed_sum = pix.concat([deltas, deltas_residual])
-deltas_closed_sum.groupby(deltas.index.names.difference(["component"])).sum()
-
-# %%
-# sorted(deltas_closed_sum.pix.unique("component"))
-
-# %%
-fig, ax = plt.subplots(figsize=(16, 4))
-
-legend_order = [
-    "Total",
-    "CO2 Fossil",
-    "CO2 AFOLU",
-    "CH4",
-    "N2O",
-    "BC OC Sulfur",
-    "NH3 NOx CO VOCs",
-    "Montreal gases",
-    "HFCs PFCs SF6 NF3 SO2F2",
-    "residual",
-]
-palette = {
-    "CO2 Fossil": "tab:red",
-    "CO2 AFOLU": "tab:green",
-    "CH4": "tab:orange",
-    "N2O": "darkgreen",
-    "BC OC Sulfur": "tab:gray",
-    "NH3 NOx CO VOCs": "tab:olive",
-    "Montreal gases": "tab:blue",
-    "HFCs PFCs SF6 NF3 SO2F2": "tab:purple",
-    "residual": "k",
-}
-bar_width = 0.8
-x_ticks = [
-    f"{model}\n{scenario}" for (model, scenario), _ in deltas_total.groupby(["original_model", "original_scenario"])
-]
-locs = {label: i + 0.5 for i, label in enumerate(x_ticks)}
-
-for i, (label, loc) in enumerate(locs.items()):
-    model, scenario = label.split("\n")
-    ax.plot(
-        [i + (0.5 - bar_width / 2), i + 1 - (0.5 - bar_width / 2)],
-        [deltas_total.loc[(model, scenario)], deltas_total.loc[(model, scenario)]],
-        label="Total" if i < 1 else None,
-        color="pink",
-        # linestyle="--",
-        zorder=3.0,
-        linewidth=2.0,
-    )
-
-    value_to_plot = "Peak warming 50.0"
-
-    deltas_bar = deltas_closed_sum.loc[pix.isin(original_model=model, original_scenario=scenario)]
-    negative_components = deltas_bar[deltas_bar < 0.0][value_to_plot].dropna().sort_values(ascending=False)
-    positive_components = deltas_bar[deltas_bar >= 0.0][value_to_plot].dropna().sort_values(ascending=False)
-    negative_sum = negative_components.sum()
-
-    bottom = negative_sum
-    for r in range(negative_components.size):
-        neg_row = negative_components.iloc[r]
-        component = negative_components.index.get_level_values("component")[r]
-        ax.bar(
-            loc,
-            -neg_row,
-            width=bar_width,
-            bottom=bottom,
-            color=palette[component],
-            label=component if i < 1 else None,
-        )
-        bottom -= neg_row
-
-    for r in range(positive_components.size):
-        pos_row = positive_components.iloc[r]
-        component = positive_components.index.get_level_values("component")[r]
-        ax.bar(
-            loc,
-            pos_row,
-            bottom=bottom,
-            color=palette[component],
-            label=component if i < 1 else None,
-        )
-        bottom += pos_row
-
-ax.set_xticks(list(locs.values()))
-ax.set_xticklabels(x_ticks, rotation=0)
-base_model = base[0][base.names.index("model")]
-base_scenario = base[0][base.names.index("scenario")]
-ax.set_title(f"Relative to\n{base_model}\n{base_scenario}")
-ax.axhline(0.0, color="tab:gray")
-
-
-handles, labels = plt.gca().get_legend_handles_labels()
-new_order = [labels.index(v) for v in legend_order]
-ax.legend(
-    [handles[idx] for idx in new_order],
-    [labels[idx] for idx in new_order],
-    loc="center left",
-    bbox_to_anchor=(1.05, 0.5),
+gsat_out_runs = gsat_out_runs_raw.pix.format(component="{scenario}").pix.extract(
+    model="{model} -- {scenario} --- {model_base} -- {scenario_base}"
 )
+deltas_components = -1 * (gsat_out_runs - multi_index_lookup(gsat_out_normal_workflow, others))
+# deltas_components
 
-plt.show()
+# %%
+deltas_components_total = deltas_components.groupby(deltas_components.index.names.difference(["component"])).sum()
+# deltas_components_total
+
+# %%
+deltas_residual = (deltas_total - deltas_components_total).pix.assign(component="residual")
+# deltas_residual
+
+# %%
+deltas_all_components = pix.concat([deltas_residual, deltas_components])
+# Sanity check
+pd.testing.assert_frame_equal(
+    deltas_total,
+    deltas_all_components.groupby(deltas_components.index.names.difference(["component"]))
+    .sum()
+    .reset_index(["model_base", "scenario_base"], drop=True),
+    check_like=True,
+)
+# deltas_all_components
+
+# %%
+deltas_all_components_median = deltas_all_components.groupby(
+    deltas_all_components.index.names.difference(["run_id"])
+).median()
+# deltas_all_components_median
+
+# %%
+plot_years = range(2000, 2100 + 1)
+for (model, scenario), msdf in deltas_all_components_median.groupby(["model", "scenario"]):
+    ax = pyam.IamDataFrame(msdf.loc[:, plot_years]).plot.stack(
+        stack="component",
+        title=None,
+        total=True,
+        # ax=ax,
+        # legend=legend,
+        cmap="tab20",
+    )
+    ax.set_title(f"{model} {scenario}\nrel. to\n{base_model} {base_scenario}")
+    ax.axhline(0.0, color="k")
+    plt.show()

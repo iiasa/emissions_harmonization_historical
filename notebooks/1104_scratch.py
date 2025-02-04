@@ -488,6 +488,7 @@ sns_df["option"] = ~(sns_df["id_model"] == "Other")
 
 dashes = {k: (3, 3) for k in sns_df["id_model"].unique()}
 dashes["REMIND-MAgPIE 3.4-4.8"] = ""
+dashes["AIM 3.0"] = (1, 1)
 
 fg = sns.relplot(
     data=sns_df,
@@ -670,6 +671,9 @@ match_criteria_idx = selection
 
 # %%
 variables = [
+    "Emissions|BC",
+    "Emissions|OC",
+    "Emissions|Sulfur",
     "Emissions|CO2|Energy and Industrial Processes",
     "Emissions|CO2|AFOLU",
     "Emissions|CH4",
@@ -679,11 +683,11 @@ variables = [
 ]
 variables = [
     *variables,
-    *[
-        v
-        for v in db_incl_wu_meta.loc[pix.ismatch(variable="Emissions|**")].pix.unique("variable")
-        if v not in variables
-    ],
+    # *[
+    #     v
+    #     for v in db_incl_wu_meta.loc[pix.ismatch(variable="Emissions|**")].pix.unique("variable")
+    #     if v not in variables
+    # ],
 ]
 years = range(2020, 2100 + 1)
 
