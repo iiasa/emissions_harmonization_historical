@@ -21,7 +21,6 @@
 # ## Imports
 
 # %%
-
 import matplotlib.pyplot as plt
 import pandas_indexing as pix
 import scipy.stats
@@ -88,7 +87,7 @@ for variable, vdf in history.groupby("variable"):
         tmp = vdf[HARMONISATION_YEAR].copy()
         tmp.loc[:] = regressed_value
 
-        ax = vdf.T.plot()
+        ax = vdf.loc[:, 1990:].T.plot()
         ax.scatter(HARMONISATION_YEAR, regressed_value, marker="x", color="tab:orange")
         ax.grid(which="major")
         ax.set_xticks(regress_vals.columns, minor=True)
