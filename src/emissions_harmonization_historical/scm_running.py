@@ -25,6 +25,64 @@ from gcages.scm_running import (
 )
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
+SCM_OUTPUT_VARIABLES_DEFAULT: tuple[str, ...] = (
+    # GSAT
+    "Surface Air Temperature Change",
+    # # GMST
+    # "Surface Air Ocean Blended Temperature Change",
+    # ERFs
+    "Effective Radiative Forcing",
+    "Effective Radiative Forcing|Anthropogenic",
+    "Effective Radiative Forcing|Aerosols",
+    "Effective Radiative Forcing|Aerosols|Direct Effect",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|BC",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|OC",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|SOx",
+    "Effective Radiative Forcing|Aerosols|Indirect Effect",
+    "Effective Radiative Forcing|Greenhouse Gases",
+    "Effective Radiative Forcing|CO2",
+    "Effective Radiative Forcing|CH4",
+    "Effective Radiative Forcing|N2O",
+    "Effective Radiative Forcing|F-Gases",
+    "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
+    "Effective Radiative Forcing|Ozone",
+    "Effective Radiative Forcing|Aviation|Cirrus",
+    "Effective Radiative Forcing|Aviation|Contrail",
+    "Effective Radiative Forcing|Aviation|H2O",
+    "Effective Radiative Forcing|Black Carbon on Snow",
+    # 'Effective Radiative Forcing|CH4 Oxidation Stratospheric',
+    "CH4OXSTRATH2O_ERF",
+    "Effective Radiative Forcing|Land-use Change",
+    # "Effective Radiative Forcing|CFC11",
+    # "Effective Radiative Forcing|CFC12",
+    # "Effective Radiative Forcing|HCFC22",
+    # "Effective Radiative Forcing|HFC125",
+    # "Effective Radiative Forcing|HFC134a",
+    # "Effective Radiative Forcing|HFC143a",
+    # "Effective Radiative Forcing|HFC227ea",
+    # "Effective Radiative Forcing|HFC23",
+    # "Effective Radiative Forcing|HFC245fa",
+    # "Effective Radiative Forcing|HFC32",
+    # "Effective Radiative Forcing|HFC4310mee",
+    # "Effective Radiative Forcing|CF4",
+    # "Effective Radiative Forcing|C6F14",
+    # "Effective Radiative Forcing|C2F6",
+    # "Effective Radiative Forcing|SF6",
+    # # Heat uptake
+    # "Heat Uptake",
+    # "Heat Uptake|Ocean",
+    # Atmospheric concentrations
+    "Atmospheric Concentrations|CO2",
+    "Atmospheric Concentrations|CH4",
+    "Atmospheric Concentrations|N2O",
+    # # Carbon cycle
+    # "Net Atmosphere to Land Flux|CO2",
+    # "Net Atmosphere to Ocean Flux|CO2",
+    # # permafrost
+    # "Net Land to Atmosphere Flux|CO2|Earth System Feedbacks|Permafrost",
+    # "Net Land to Atmosphere Flux|CH4|Earth System Feedbacks|Permafrost",
+)
+
 
 @define
 class AR7FTSCMRunner:
@@ -144,12 +202,14 @@ class AR7FTSCMRunner:
         return out
 
     @classmethod
-    def from_default_config(
+    def from_default_config(  # noqa: PLR0913
         cls,
         magicc_exe_path: Path,
         magicc_prob_distribution_path: Path,
         output_path: Path,
         n_processes: int = multiprocessing.cpu_count(),
+        endyear: int = 2100,
+        scm_output_variables: tuple[str, ...] = SCM_OUTPUT_VARIABLES_DEFAULT,
     ) -> AR7FTSCMRunner:
         """
         Initialise from default, hard-coded configuration
@@ -166,69 +226,34 @@ class AR7FTSCMRunner:
             # `openssl dgst -sha256 magicc/magicc-v7.6.0a3/configs/magicc-ar7-fast-track-drawnset-v0-3-0.json`
             raise AssertionError
 
+        return cls.from_executable_info(
+            magicc_exe_path=magicc_exe_path,
+            magicc_prob_distribution_path=magicc_prob_distribution_path,
+            output_path=output_path,
+            n_processes=n_processes,
+            endyear=endyear,
+            scm_output_variables=scm_output_variables,
+        )
+
+    @classmethod
+    def from_executable_info(  # noqa: PLR0913
+        cls,
+        magicc_exe_path: Path,
+        magicc_prob_distribution_path: Path,
+        output_path: Path,
+        n_processes: int = multiprocessing.cpu_count(),
+        endyear: int = 2100,
+        scm_output_variables: tuple[str, ...] = SCM_OUTPUT_VARIABLES_DEFAULT,
+    ) -> AR7FTSCMRunner:
+        """
+        Initialise just from executable info, using defaults otherwise
+        """
+        os.environ["MAGICC_EXECUTABLE_7"] = str(magicc_exe_path)
+
         with open(magicc_prob_distribution_path) as fh:
             cfgs_raw = json.load(fh)
 
-        scm_output_variables = (
-            # GSAT
-            "Surface Air Temperature Change",
-            # # GMST
-            # "Surface Air Ocean Blended Temperature Change",
-            # ERFs
-            "Effective Radiative Forcing",
-            "Effective Radiative Forcing|Anthropogenic",
-            "Effective Radiative Forcing|Aerosols",
-            "Effective Radiative Forcing|Aerosols|Direct Effect",
-            "Effective Radiative Forcing|Aerosols|Direct Effect|BC",
-            "Effective Radiative Forcing|Aerosols|Direct Effect|OC",
-            "Effective Radiative Forcing|Aerosols|Direct Effect|SOx",
-            "Effective Radiative Forcing|Aerosols|Indirect Effect",
-            "Effective Radiative Forcing|Greenhouse Gases",
-            "Effective Radiative Forcing|CO2",
-            "Effective Radiative Forcing|CH4",
-            "Effective Radiative Forcing|N2O",
-            "Effective Radiative Forcing|F-Gases",
-            "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
-            "Effective Radiative Forcing|Ozone",
-            "Effective Radiative Forcing|Aviation|Cirrus",
-            "Effective Radiative Forcing|Aviation|Contrail",
-            "Effective Radiative Forcing|Aviation|H2O",
-            "Effective Radiative Forcing|Black Carbon on Snow",
-            # 'Effective Radiative Forcing|CH4 Oxidation Stratospheric',
-            "CH4OXSTRATH2O_ERF",
-            "Effective Radiative Forcing|Land-use Change",
-            # "Effective Radiative Forcing|CFC11",
-            # "Effective Radiative Forcing|CFC12",
-            # "Effective Radiative Forcing|HCFC22",
-            # "Effective Radiative Forcing|HFC125",
-            # "Effective Radiative Forcing|HFC134a",
-            # "Effective Radiative Forcing|HFC143a",
-            # "Effective Radiative Forcing|HFC227ea",
-            # "Effective Radiative Forcing|HFC23",
-            # "Effective Radiative Forcing|HFC245fa",
-            # "Effective Radiative Forcing|HFC32",
-            # "Effective Radiative Forcing|HFC4310mee",
-            # "Effective Radiative Forcing|CF4",
-            # "Effective Radiative Forcing|C6F14",
-            # "Effective Radiative Forcing|C2F6",
-            # "Effective Radiative Forcing|SF6",
-            # # Heat uptake
-            # "Heat Uptake",
-            # "Heat Uptake|Ocean",
-            # Atmospheric concentrations
-            "Atmospheric Concentrations|CO2",
-            "Atmospheric Concentrations|CH4",
-            "Atmospheric Concentrations|N2O",
-            # # Carbon cycle
-            # "Net Atmosphere to Land Flux|CO2",
-            # "Net Atmosphere to Ocean Flux|CO2",
-            # # permafrost
-            # "Net Land to Atmosphere Flux|CO2|Earth System Feedbacks|Permafrost",
-            # "Net Land to Atmosphere Flux|CH4|Earth System Feedbacks|Permafrost",
-        )
-
         startyear = 1750
-        endyear = 2100
         out_dynamic_vars = [
             f"DAT_{v}" for v in convert_openscm_runner_output_names_to_magicc_output_names(scm_output_variables)
         ]
