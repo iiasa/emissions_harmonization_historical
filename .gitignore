@@ -14,8 +14,13 @@ data/global/wmo-2022/processed
 data/combined-processed-output
 data/global-composite
 
+# Raw scenario data
+data/scenarios/data
 # MAGICC stuff
 magicc
+
+# Raw ESGF data
+data/global/esgf
 
 # Raw WMO data
 data/global/wmo-2022/data_raw

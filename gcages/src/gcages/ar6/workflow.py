@@ -34,8 +34,13 @@ class AR6WorkflowRunResult:
     """The harmonised emissions"""
 
     infilled_emissions: pd.DataFrame
+    """The infilled emissions"""
+
+    complete_scenarios: pd.DataFrame
     """
-    The infilled emissions, i.e. the complete set of emissions needed to run the SCMs
+    The complete scenarios
+
+    I.e. scenarios with the complete set of emissions needed to run the SCMs.
     """
 
     scm_results_raw: pd.DataFrame
@@ -142,7 +147,12 @@ def run_ar6_workflow(  # noqa: PLR0913
     pre_processed = pre_processor(input_emissions)
     harmonised = harmoniser(pre_processed)
     infilled = infiller(harmonised)
-    scm_results = scm_runner(infilled, batch_size_scenarios=batch_size_scenarios)
+    # In AR6, complete is the same as infilled.
+    # This is unhelpful for later analysis, but it is what it is.
+    complete_scenarios = infilled
+    scm_results = scm_runner(
+        complete_scenarios, batch_size_scenarios=batch_size_scenarios
+    )
     post_processed_timeseries, post_processed_metadata = post_processor(scm_results)
 
     res = AR6WorkflowRunResult(
@@ -150,6 +160,7 @@ def run_ar6_workflow(  # noqa: PLR0913
         pre_processed_emissions=pre_processed,
         harmonised_emissions=harmonised,
         infilled_emissions=infilled,
+        complete_scenarios=complete_scenarios,
         scm_results_raw=scm_results,
         post_processed_timeseries=post_processed_timeseries,
         post_processed_scenario_metadata=post_processed_metadata,

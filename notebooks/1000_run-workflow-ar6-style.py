@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.4
+#       jupytext_version: 1.16.6
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -15,7 +15,8 @@
 # %% [markdown]
 # # Run workflow - AR6-style
 #
-# Run the climate assessment workflow exactly as it was run in AR6.
+# Run the climate assessment workflow as it was run in AR6
+# (except for pre-processing fixes which make no sense to leave out).
 
 # %% [markdown]
 # ## Imports
@@ -25,21 +26,24 @@ import logging
 import multiprocessing
 import os
 import platform
-import random
 
 import pandas as pd
 import pandas_indexing as pix
-import tqdm.autonotebook as tqdman
+import pyam
 from gcages.ar6 import run_ar6_workflow
-from gcages.ar6.post_processing import get_temperatures_in_line_with_assessment
 from gcages.database import GCDB
-from gcages.io import load_timeseries_csv
 from loguru import logger
+from nomenclature import DataStructureDefinition
 
 from emissions_harmonization_historical.constants import (
     DATA_ROOT,
     SCENARIO_TIME_ID,
+    WORKFLOW_ID,
 )
+from emissions_harmonization_historical.io import load_global_scenario_data
+from emissions_harmonization_historical.post_processing import AR7FTPostProcessor
+from emissions_harmonization_historical.pre_processing import AR7FTPreProcessor
+from emissions_harmonization_historical.scm_running import SCM_OUTPUT_VARIABLES_DEFAULT
 
 # %%
 # Disable logging to avoid a million messages.
@@ -54,10 +58,15 @@ SCENARIO_PATH = DATA_ROOT / "scenarios" / "data_raw"
 SCENARIO_PATH
 
 # %%
-scm_output_variables = ("Surface Air Temperature Change",)
+OUTPUT_PATH = DATA_ROOT / "climate-assessment-workflow" / "output" / f"{WORKFLOW_ID}_{SCENARIO_TIME_ID}_ar6-workflow"
+OUTPUT_PATH_MAGICC = OUTPUT_PATH / "magicc-ar6"
+OUTPUT_PATH_MAGICC
 
 # %%
-batch_size_scenarios = 5
+scm_output_variables = SCM_OUTPUT_VARIABLES_DEFAULT
+
+# %%
+batch_size_scenarios = 15
 n_processes = multiprocessing.cpu_count()
 # n_processes = 1
 
@@ -71,149 +80,131 @@ if platform.system() == "Darwin":
     else:
         raise NotImplementedError(platform.processor())
 elif platform.system() == "Windows":
-        magicc_exe = "magicc.exe"
+    magicc_exe = "magicc.exe"
 else:
     raise NotImplementedError(platform.system())
 
 magicc_exe_path = DATA_ROOT.parents[0] / "magicc" / "magicc-v7.5.3" / "bin" / magicc_exe
 magicc_prob_distribution_path = DATA_ROOT.parents[0] / "magicc" / "magicc-v7.5.3" / "configs" / "600-member.json"
-scm_results_db = GCDB(
-    DATA_ROOT / "climate-assessment-workflow" / "scm-output" / "ar6-workflow-magicc" / SCENARIO_TIME_ID
-)
+scm_results_db = GCDB(OUTPUT_PATH_MAGICC / "db")
+scm_results_db
 
 # %%
-# If you need to re-write.
+# # If you need to re-write.
 # scm_results_db.delete()
 
 # %% [markdown]
 # ## Load scenario data
 
 # %%
-scenario_files = tuple(SCENARIO_PATH.glob(f"{SCENARIO_TIME_ID}__scenarios-scenariomip__*.csv"))
-if not scenario_files:
-    msg = f"Check your scenario ID. {list(SCENARIO_PATH.glob('*.csv'))=}"
-    raise AssertionError(msg)
-
-scenario_files[:5]
-
-# %%
-scenarios_raw = pix.concat(
-    [
-        load_timeseries_csv(
-            f,
-            index_columns=["model", "scenario", "region", "variable", "unit"],
-            out_column_type=int,
-        )
-        for f in tqdman.tqdm(scenario_files)
-    ]
-).sort_index(axis="columns")
-
-scenarios_raw_global = scenarios_raw.loc[
-    pix.ismatch(region="World"),
-    # TODO: drop this once we have usable scenario data post 2100
-    :2100,
-]
-
-scenarios_raw_global
+scenarios_raw_global = load_global_scenario_data(
+    scenario_path=DATA_ROOT / "scenarios" / "data_raw",
+    scenario_time_id=SCENARIO_TIME_ID,
+    progress=True,
+).loc[:, :2100]  # TODO: drop 2100 end once we have usable scenario data post-2100
 
 # %% [markdown]
 # ### Hacky pre-processing
 
-# %%
-# TODO: move this somewhere clearer,
-# probably as a pre-processing check.
+# %% [markdown]
+# ### Use common definitions to check aggregation issues
 
 # %%
-pre_pre_processed_l = []
-all_nan_or_zero_l = []
-for (model, scenario), msdf in scenarios_raw_global.groupby(["model", "scenario"]):
-    if "Emissions|CO2|Energy and Industrial Processes" not in msdf.pix.unique("variable"):
-        print(
-            f"Excluding {model=} {scenario=} because there are no CO2 fossil emissions."
-            # f"\nAvailable variables: {sorted(msdf.pix.unique('variable').tolist())}.\n"
+dsd = DataStructureDefinition(DATA_ROOT / ".." / ".." / "common-definitions" / "definitions")
+
+# %%
+dsd.variable["Emissions|CO2|Energy"].check_aggregate = True
+dsd.variable["Emissions|CO2|Industrial Processes"].check_aggregate = True
+dsd.variable["Emissions|CO2|Energy and Industrial Processes"].check_aggregate = True
+dsd.variable["Emissions|CO2|AFOLU"].check_aggregate = True
+dsd.variable["Emissions|CO2"].check_aggregate = True
+
+# %%
+pyam_df = pyam.IamDataFrame(scenarios_raw_global)
+pyam_df
+
+# %%
+reporting_issues = (
+    dsd.check_aggregate(pyam_df)
+    .loc[~pix.isin(model=["MESSAGEix-GLOBIOM 2.1-M-R12"])]
+    .pix.unique(["model", "scenario", "variable"])
+    .to_frame(index=False)
+)
+
+# %%
+reporting_issues.drop("scenario", axis="columns").drop_duplicates().sort_values("model")
+
+# %%
+for (model, variable), mdf in reporting_issues.groupby(["model", "variable"]):
+    print(f"Reporting  issues for {model} {variable}")
+
+    if variable == "Emissions|CO2|Energy and Industrial Processes":
+        component_vars = dsd.variable[variable].components
+
+    else:
+        component_vars = sorted(
+            scenarios_raw_global.loc[pix.ismatch(model=model, variable=f"{variable}|*")].pix.unique("variable")
         )
-        continue
 
-    all_nan_or_zero = (msdf.isnull() | (msdf == 0.0)).all(axis=1)
-    if all_nan_or_zero.any():
-        all_nan_or_zero_l.append(msdf[all_nan_or_zero])
+    print(f"{component_vars=}")
 
-    msdf_use = msdf[~all_nan_or_zero]
+    exp_component_vars = dsd.variable[variable].components
+    if exp_component_vars is None:
+        print("No expected component variables")
 
-    pre_pre_processed_l.append(msdf_use)
+    else:
+        variables_not_in_exp_component_variables = set(component_vars).difference(set(exp_component_vars))
+        print(f"{variables_not_in_exp_component_variables=}")
 
-all_nan_or_zero = pix.concat(all_nan_or_zero_l)
-pre_pre_processed = pix.concat(pre_pre_processed_l)
-pre_pre_processed
+        components_handled_by_nomenclature = set(exp_component_vars).intersection(set(component_vars))
+        print(f"{components_handled_by_nomenclature=}")
+
+    differences_ts = (
+        dsd.check_aggregate(pyam.IamDataFrame(pyam_df.filter(model=model)))
+        .loc[pix.isin(variable=variable)]
+        .melt(ignore_index=False)
+        .set_index("variable", append=True)
+        .unstack("year")
+    )
+    display(differences_ts)  # noqa:F821
+    # print(differences_ts)
 
 # %%
-all_nan_or_zero.index.to_frame(index=False).groupby(["model"])["scenario"].value_counts().sort_values()
+pre_processed = AR7FTPreProcessor.from_default_config()(scenarios_raw_global)
+pre_processed
 
 # %% [markdown]
 # ### Down-select scenarios
 
 # %%
-# Randomly select some scenarios
-# (this is how I generated the hard-coded values in the next cell).
-base = pre_pre_processed.pix.unique(["model", "scenario"]).to_frame(index=False)
-base["scenario_group"] = base["scenario"].apply(lambda x: x.split("-")[-1].split("_")[0].strip())
-
-selected_scenarios_l = []
-selected_models = []
-for scenario_group, sdf in base.groupby("scenario_group"):
-    options = sdf.index.values.tolist()
-    random.shuffle(options)
-
-    n_selected = 0
-    for option_loc in options:
-        selected_model = sdf.loc[option_loc, :].model
-        if selected_model not in selected_models:
-            selected_scenarios_l.append(sdf.loc[option_loc, :])
-            selected_models.append(selected_model)
-            n_selected += 1
-            if n_selected >= 2:  # noqa: PLR2004
-                break
-
-    else:
-        if n_selected >= 1:
-            selected_scenarios_l.append(sdf.loc[option_loc, :])
-            selected_models.append(selected_model)
-        else:
-            selected_scenarios_l.append(sdf.loc[option_loc, :])
-            selected_models.append(selected_model)
-
-            option_loc = options[-2]
-            selected_model = sdf.loc[option_loc, :].model
-            selected_scenarios_l.append(sdf.loc[option_loc, :])
-            selected_models.append(selected_model)
-
-selected_scenarios = pd.concat(selected_scenarios_l, axis="columns").T
-selected_scenarios_idx = selected_scenarios.set_index(["model", "scenario"]).index
-selected_scenarios
-
-# %%
 selected_scenarios_idx = pd.MultiIndex.from_tuples(
     (
-        ("MESSAGEix-GLOBIOM 2.1-M-R12", "SSP5 - High Emissions"),
-        ("IMAGE 3.4", "SSP5 - High Emissions"),
-        ("AIM 3.0", "SSP2 - Medium-Low Emissions"),
-        ("WITCH 6.0", "SSP2 - Low Emissions"),
-        ("REMIND-MAgPIE 3.4-4.8", "SSP2 - Low Overshoot_b"),
-        ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP5 - Low Overshoot"),
-        ("COFFEE 1.5", "SSP2 - Medium Emissions"),
-        ("GCAM 7.1 scenarioMIP", "SSP2 - Medium Emissions"),
-        ("IMAGE 3.4", "SSP2 - Very Low Emissions"),
-        ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP1 - Very Low Emissions"),
+        # ("AIM 3.0",	"SSP1 - Very Low Emissions"),
+        # ("MESSAGEix-GLOBIOM 2.1-M-R12", "SSP5 - High Emissions"),
+        # ("IMAGE 3.4", "SSP5 - High Emissions"),
+        # ("AIM 3.0", "SSP2 - Medium-Low Emissions"),
+        # ("WITCH 6.0", "SSP2 - Low Emissions"),
+        # ("REMIND-MAgPIE 3.4-4.8", "SSP2 - Low Overshoot_b"),
+        # ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP5 - Low Overshoot"),
+        # ("COFFEE 1.5", "SSP2 - Medium Emissions"),
+        # ("GCAM 7.1 scenarioMIP", "SSP2 - Medium Emissions"),
+        # ("IMAGE 3.4", "SSP2 - Very Low Emissions"),
+        # ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP1 - Very Low Emissions"),
+        ###
+        ("REMIND-MAgPIE 3.4-4.8", "SSP1 - Very Low Emissions"),
+        ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Overshoot"),
+        ("IMAGE 3.4", "SSP1 - Low Emissions"),
     ),
     name=["model", "scenario"],
 )
-scenarios_run = pre_pre_processed[pre_pre_processed.index.isin(selected_scenarios_idx)]
+scenarios_run = pre_processed[pre_processed.index.isin(selected_scenarios_idx)]
 
-# scenarios_run = pre_pre_processed.loc[pix.ismatch(scenario="*Very Low*")]
+# scenarios_run = pre_processed.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["GCAM*", "AIM*", "*"])]
+# scenarios_run = pre_processed.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["GCAM*"])]
 
 # %%
-# To run all, just uncomment the line below
-# scenarios_run = pre_pre_processed
+# # To run all, just uncomment the below
+# scenarios_run = pre_processed
 
 # %%
 scenarios_run.pix.unique(["model", "scenario"]).to_frame(index=False)
@@ -231,55 +222,42 @@ res = run_ar6_workflow(
 )
 
 # %%
-res.post_processed_scenario_metadata
+post_processor = AR7FTPostProcessor.from_default_config()
+post_processor.gsat_variable_name = "AR6 climate diagnostics|Raw Surface Temperature (GSAT)"
 
 # %%
-# TODO: add this to the workflow's output
-temperature_match_historical_assessment = get_temperatures_in_line_with_assessment(
-    res.scm_results_raw.loc[pix.isin(variable=["AR6 climate diagnostics|Raw Surface Temperature (GSAT)"])],
-    assessment_median=0.85,
-    assessment_time_period=range(1995, 2014 + 1),
-    assessment_pre_industrial_period=range(1850, 1900 + 1),
-).pix.assign(variable="AR6 climate diagnostics|Surface Temperature (GSAT)")
-
-temperature_match_historical_assessment
+post_processed_updated = post_processor(res.scm_results_raw)
+# post_processed_updated.metadata
 
 # %%
-peak_warming_quantiles = (
-    temperature_match_historical_assessment.max(axis="columns")
-    .groupby(["model", "scenario"])
-    .quantile([0.05, 0.17, 0.33, 0.5, 0.67, 0.83, 0.95])
-    .unstack()
-    .sort_values(by=0.33)
+pd.testing.assert_series_equal(
+    post_processed_updated.metadata["category"],
+    res.post_processed_scenario_metadata["category"],
 )
-peak_warming_quantiles
 
 # %%
-eoc_warming_quantiles = (
-    temperature_match_historical_assessment[2100]
-    .groupby(["model", "scenario"])
-    .quantile([0.05, 0.17, 0.5, 0.83, 0.95])
-    .unstack()
-    .sort_values(by=0.5)
-)
-eoc_warming_quantiles
+post_processed_updated.metadata.sort_values(["category", "Peak warming 33.0"])
 
 # %%
-category_join = res.post_processed_scenario_metadata
-peak_warming_quantiles_join = peak_warming_quantiles[[0.33, 0.5, 0.67]].copy().round(3)
-peak_warming_quantiles_join.columns = peak_warming_quantiles_join.columns.map(lambda x: f"Peak {x * 100:.1f}th")
-
-eoc_quantiles_join = eoc_warming_quantiles[[0.5]].copy().round(3)
-eoc_quantiles_join.columns = eoc_quantiles_join.columns.map(lambda x: f"2100 {x * 100:.1f}th")
-
-pd.concat(
-    [
-        category_join,
-        peak_warming_quantiles_join,
-        eoc_quantiles_join,
-    ],
-    axis="columns",
-).sort_values(["category", "Peak 50.0th"])
+post_processed_updated.metadata.groupby(["model"])["category"].value_counts().sort_index()
 
 # %%
-category_join.groupby(["model"]).value_counts().sort_index()
+for full_path, df in (
+    (OUTPUT_PATH_MAGICC / "metadata.csv", post_processed_updated.metadata),
+    (OUTPUT_PATH / "pre-processed.csv", res.pre_processed_emissions),
+    (OUTPUT_PATH / "harmonised.csv", res.harmonised_emissions),
+    (OUTPUT_PATH / "infilled.csv", res.infilled_emissions),
+    (OUTPUT_PATH / "complete_scenarios.csv", res.complete_scenarios),
+    (OUTPUT_PATH_MAGICC / "scm-effective-emissions.csv", res.infilled_emissions),
+    (OUTPUT_PATH_MAGICC / "timeseries-percentiles.csv", post_processed_updated.timeseries_percentiles),
+    # Don't write this, already in the database
+    # ("scm-results.csv", res.scm_results_raw),
+    # Can write this, but not using yet so just leave out at the moment
+    # because it's slow to write.
+    # ("post-processed-timeseries.csv", post_processed_updated.timeseries),
+):
+    print(f"Writing {full_path}")
+    full_path.parent.mkdir(exist_ok=True, parents=True)
+    df.to_csv(full_path)
+    print(f"Wrote {full_path}")
+    print()

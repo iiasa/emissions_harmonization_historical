@@ -13,7 +13,7 @@ from multiprocessing.context import BaseContext
 from typing import Callable, TypeVar
 
 import pandas as pd
-import tqdm
+import tqdm.auto
 from loguru import logger
 from typing_extensions import Concatenate, ParamSpec
 
@@ -109,7 +109,7 @@ def run_parallel(
         logger.debug("Running serially")
         res = [
             func_to_call(inv, *args, **kwargs)
-            for inv in tqdm.tqdm(iterable_input, desc=input_desc)
+            for inv in tqdm.auto.tqdm(iterable_input, desc=input_desc)
         ]
 
     else:
@@ -130,14 +130,14 @@ def run_parallel(
                     *args,
                     **kwargs,
                 )
-                for inv in tqdm.tqdm(
+                for inv in tqdm.auto.tqdm(
                     iterable_input, desc=f"Submitting {input_desc} to queue"
                 )
             ]
 
             res = [
                 future.result()
-                for future in tqdm.tqdm(
+                for future in tqdm.auto.tqdm(
                     concurrent.futures.as_completed(futures),
                     desc="Retrieving parallel results",
                     total=len(futures),

@@ -1,2 +1,3 @@
-# Ignore the download scenarios, they should be grabbed from the database
+# Ignore the downloaded scenarios, they should be grabbed from the database
+*all-meta*.csv
 *__scenarios-scenariomip__*.csv

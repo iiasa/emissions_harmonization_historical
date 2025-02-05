@@ -5,12 +5,18 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.4
+#       jupytext_version: 1.16.6
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
+
+# %% [markdown]
+# # Prepare GFED BB4CMIP
+#
+# Prepare GFED data as submitted to
+# [ESGF](https://aims2.llnl.gov/search?project=input4MIPs&activeFacets=%7B%22mip_era%22%3A%22CMIP6Plus%22%2C%22institution_id%22%3A%22DRES%22%7D).
 
 # %%
 from collections import defaultdict
@@ -267,5 +273,3 @@ for species, species_info in tqdm(species_data.items(), desc="Species"):
     print(f"Wrote {gfed_temp_file_country}")
 
     # break
-
-# %%

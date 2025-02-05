@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.4
+#       jupytext_version: 1.16.6
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -13,8 +13,13 @@
 # ---
 
 # %% [markdown]
+# # Post-process prepared GFED BB4CMIP data
+#
 # The 0103 script dumped the files into separate CSVs; here we combine and make consistenct with other emissions files
 # and IAMC format
+
+# %% [markdown]
+# ## Imports
 
 # %%
 import pandas as pd
@@ -79,7 +84,11 @@ df_reordered = df_sorted.set_index(["model", "scenario", "region", "variable", "
 
 # %%
 df_renamed = df_reordered.rename(
-    index={"Emissions|SO2|Biomass Burning": "Emissions|Sulfur|Biomass Burning"}, level="variable"
+    index={
+        "Emissions|SO2|Biomass Burning": "Emissions|Sulfur|Biomass Burning",
+        "Emissions|NMVOC|Biomass Burning": "Emissions|VOC|Biomass Burning",
+    },
+    level="variable",
 )
 df_renamed
 
@@ -97,7 +106,7 @@ df_renamed_desired_units = pix.units.convert_unit(
 )
 df_renamed_desired_units = pix.units.convert_unit(
     df_renamed_desired_units,
-    {"Mt N2O/yr": "kt N2O/yr"},
+    {"Mt N2O/yr": "kt N2O/yr", "Mt NMVOC/yr": "Mt VOC/yr"},
 )
 
 # %%
@@ -126,6 +135,9 @@ national_sums_checker = (
 )
 national_sums_checker.columns = national_sums_checker.columns.astype(int)
 national_sums_checker
+
+# %%
+out_global
 
 # %%
 pd.testing.assert_frame_equal(out_global, national_sums_checker, check_like=True)

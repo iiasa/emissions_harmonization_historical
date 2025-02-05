@@ -16,7 +16,7 @@ import pandas as pd
 import pandas_indexing as pix
 import pytest
 
-from gcages.database import GCDB, AlreadyInDBError, EmptyDBError
+from gcages.database import GCDB, AlreadyInDBError, EmptyDBError, GCDBDataFormat
 
 
 def create_test_df(
@@ -63,16 +63,30 @@ def create_test_df(
     return df
 
 
-def test_save_and_load(tmpdir):
+db_formats = pytest.mark.parametrize(
+    "db_format",
+    tuple(pytest.param(db_format, id=str(db_format)) for db_format in GCDBDataFormat),
+)
+
+
+@db_formats
+def test_save_and_load(db_format, tmpdir):
     start = create_test_df(
-        n_scenarios=10,
-        n_variables=1,
-        n_runs=3,
-        timepoints=np.array([2010.0, 2020.0, 2025.0, 2030.0]),
+        n_scenarios=20,
+        n_variables=15,
+        n_runs=60,
+        # n_scenarios=90,
+        # n_variables=15,
+        # n_runs=600,
+        timepoints=np.arange(1750, 2100),
+        # n_scenarios=10,
+        # n_variables=1,
+        # n_runs=3,
+        # timepoints=np.array([2010.0, 2020.0, 2025.0, 2030.0]),
         units="Mt",
     )
 
-    db = GCDB(tmpdir)
+    db = GCDB(tmpdir, format=db_format)
 
     db.save(start)
 
@@ -82,13 +96,14 @@ def test_save_and_load(tmpdir):
         start.index, metadata_compare, exact="equiv", check_order=False
     )
 
-    loaded = db.load(out_columns_type=float)
+    loaded = db.load(out_columns_type=int, progress=True)
 
     pd.testing.assert_frame_equal(start, loaded)
 
 
-def test_save_multiple_and_load(tmpdir):
-    db = GCDB(tmpdir)
+@db_formats
+def test_save_multiple_and_load(tmpdir, db_format):
+    db = GCDB(tmpdir, format=db_format)
 
     all_saved_l = []
     for units in ["Mt", "Gt", "Tt"]:
@@ -116,8 +131,9 @@ def test_save_multiple_and_load(tmpdir):
     pd.testing.assert_frame_equal(all_saved, loaded)
 
 
-def test_save_overwrite_error(tmpdir):
-    db = GCDB(tmpdir)
+@db_formats
+def test_save_overwrite_error(tmpdir, db_format):
+    db = GCDB(tmpdir, format=db_format)
 
     cdf = partial(
         create_test_df,
@@ -133,14 +149,16 @@ def test_save_overwrite_error(tmpdir):
     to_save = pix.concat([dup, cdf(units="km")])
 
     error_msg = re.escape(
-        f"The following rows are already in the database:\n{dup.index.to_frame(index=False)}"
+        "The following rows are already in the database:\n"
+        f"{dup.index.to_frame(index=False)}"
     )
     with pytest.raises(AlreadyInDBError, match=error_msg):
         db.save(to_save)
 
 
-def test_save_overwrite_force(tmpdir):
-    db = GCDB(Path(tmpdir))
+@db_formats
+def test_save_overwrite_force(tmpdir, db_format):
+    db = GCDB(Path(tmpdir), format=db_format)
 
     cdf = partial(
         create_test_df,
@@ -173,8 +191,10 @@ def test_save_overwrite_force(tmpdir):
     # As a helper, check we've got the number of files we expect.
     # This is testing implementation, so could be removed in future.
     # Expect to have the index file plus the new file, but not the original file.
-    db_files = list(db.db_dir.glob("*.csv"))
-    assert set([f.name for f in db_files]) == {"1.csv", "index.csv", "filemap.csv"}
+    db_files = list(db.db_dir.glob(f"*.{db_format}"))
+    assert set([f.name for f in db_files]) == set(
+        f"{prefix}.{db_format}" for prefix in ["1", "index", "filemap"]
+    )
 
     # Check that the data was overwritten with new data
     try:
@@ -198,8 +218,9 @@ def test_save_overwrite_force(tmpdir):
     pd.testing.assert_frame_equal(updated, loaded)
 
 
-def test_save_overwrite_force_half_overlap(tmpdir):
-    db = GCDB(Path(tmpdir))
+@db_formats
+def test_save_overwrite_force_half_overlap(tmpdir, db_format):
+    db = GCDB(Path(tmpdir), format=db_format)
 
     cdf = partial(
         create_test_df,
@@ -215,12 +236,10 @@ def test_save_overwrite_force_half_overlap(tmpdir):
     # As a helper, check we've got the number of files we expect.
     # This is testing implementation, so could be removed in future.
     # Expect to have the index file plus the file map file plus written file.
-    db_files = list(db.db_dir.glob("*.csv"))
-    assert set([f.name for f in db_files]) == {
-        "0.csv",
-        "index.csv",
-        "filemap.csv",
-    }
+    db_files = list(db.db_dir.glob(f"*.{db_format}"))
+    assert set([f.name for f in db_files]) == set(
+        f"{prefix}.{db_format}" for prefix in ["0", "index", "filemap"]
+    )
 
     # Make sure that our data saved correctly
     db_metadata = db.load_metadata()
@@ -244,13 +263,10 @@ def test_save_overwrite_force_half_overlap(tmpdir):
     # plus the re-written data file
     # (to handle the need to split the original data so we can keep only what we need),
     # but not the original file.
-    db_files = list(db.db_dir.glob("*.csv"))
-    assert set([f.name for f in db_files]) == {
-        "1.csv",
-        "2.csv",
-        "index.csv",
-        "filemap.csv",
-    }
+    db_files = list(db.db_dir.glob(f"*.{db_format}"))
+    assert set([f.name for f in db_files]) == set(
+        f"{prefix}.{db_format}" for prefix in ["1", "2", "index", "filemap"]
+    )
 
     # Check that the data was overwritten with new data
     overlap_idx = original.index.isin(original_overwrite.index)
@@ -298,8 +314,9 @@ def test_save_overwrite_force_half_overlap(tmpdir):
         ),
     ),
 )
-def test_locking(tmpdir, meth, args):
-    db = GCDB(Path(tmpdir))
+@db_formats
+def test_locking(tmpdir, meth, args, db_format):
+    db = GCDB(Path(tmpdir), format=db_format)
 
     # Put some data in the db so there's something to lock
     db.save(
@@ -333,8 +350,9 @@ def test_locking(tmpdir, meth, args):
         getattr(db, meth)(lock_context_manager=nullcontext(), *args)
 
 
-def test_load_with_loc(tmpdir):
-    db = GCDB(tmpdir)
+@db_formats
+def test_load_with_loc(tmpdir, db_format):
+    db = GCDB(tmpdir, format=db_format)
 
     full_db = create_test_df(
         n_scenarios=10,
@@ -362,8 +380,9 @@ def test_load_with_loc(tmpdir):
         pd.testing.assert_frame_equal(loaded, exp)
 
 
-def test_load_with_index_all(tmpdir):
-    db = GCDB(tmpdir)
+@db_formats
+def test_load_with_index_all(tmpdir, db_format):
+    db = GCDB(tmpdir, format=db_format)
 
     full_db = create_test_df(
         n_scenarios=10,
@@ -388,8 +407,9 @@ def test_load_with_index_all(tmpdir):
     "slice",
     (slice(None, None, None), slice(None, 3, None), slice(2, 4, None), slice(1, 15, 2)),
 )
-def test_load_with_index_slice(tmpdir, slice):
-    db = GCDB(tmpdir)
+@db_formats
+def test_load_with_index_slice(tmpdir, slice, db_format):
+    db = GCDB(tmpdir, format=db_format)
 
     full_db = create_test_df(
         n_scenarios=10,
@@ -421,8 +441,9 @@ def test_load_with_index_slice(tmpdir, slice):
         pytest.param(["run", "variable"], id="multi_level_out_of_order_not_first"),
     ),
 )
-def test_load_with_pix_unique_levels(tmpdir, levels):
-    db = GCDB(tmpdir)
+@db_formats
+def test_load_with_pix_unique_levels(tmpdir, levels, db_format):
+    db = GCDB(tmpdir, format=db_format)
 
     full_db = create_test_df(
         n_scenarios=10,
@@ -450,8 +471,9 @@ def test_load_with_pix_unique_levels(tmpdir, levels):
     pd.testing.assert_frame_equal(loaded, exp)
 
 
-def test_deletion(tmpdir):
-    db = GCDB(Path(tmpdir))
+@db_formats
+def test_deletion(tmpdir, db_format):
+    db = GCDB(Path(tmpdir), format=db_format)
 
     db.save(
         create_test_df(
@@ -474,8 +496,9 @@ def test_deletion(tmpdir):
         db.load()
 
 
-def test_regroup(tmpdir):
-    db = GCDB(Path(tmpdir))
+@db_formats
+def test_regroup(tmpdir, db_format):
+    db = GCDB(Path(tmpdir), format=db_format)
 
     all_dat = create_test_df(
         n_scenarios=10,
@@ -489,14 +512,14 @@ def test_regroup(tmpdir):
 
     pd.testing.assert_frame_equal(db.load(out_columns_type=float), all_dat)
     # Testing implementation but ok as a helper for now
-    assert len(list(db.db_dir.glob("*.csv"))) == 3
+    assert len(list(db.db_dir.glob(f"*.{db_format}"))) == 3
 
     for new_grouping in (
         ["scenario"],
         ["scenario", "variable"],
         ["variable", "run"],
     ):
-        db.regroup(new_grouping)
+        db.regroup(new_grouping, progress=True)
 
         # Make sure data unchanged
         pd.testing.assert_frame_equal(
@@ -504,6 +527,6 @@ def test_regroup(tmpdir):
         )
         # Testing implementation but ok as a helper for now
         assert (
-            len(list(db.db_dir.glob("*.csv")))
+            len(list(db.db_dir.glob(f"*.{db_format}")))
             == 2 + all_dat.pix.unique(new_grouping).shape[0]
         )

@@ -64,10 +64,7 @@ def infill_scenario(
     infilled_l = []
     for v_to_infill in to_infill:
         infiller = infillers[v_to_infill]
-        tmp = infiller(pyam.IamDataFrame(indf)).timeseries()
-        # The fact that this is needed suggests there's a bug in silicone
-        tmp = tmp.loc[:, indf.dropna(axis="columns", how="all").columns]
-        infilled_l.append(tmp)
+        infilled_l.append(infiller(indf))
 
     infilled = pix.concat(infilled_l).sort_index(axis="columns")
 
