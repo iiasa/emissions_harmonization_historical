@@ -33,7 +33,6 @@ import pandas_indexing as pix
 import pyam
 from gcages.ar6 import run_ar6_workflow
 from gcages.database import GCDB
-from gcages.post_processing import PostProcessor
 from loguru import logger
 from nomenclature import DataStructureDefinition
 
@@ -43,7 +42,9 @@ from emissions_harmonization_historical.constants import (
     WORKFLOW_ID,
 )
 from emissions_harmonization_historical.io import load_global_scenario_data
+from emissions_harmonization_historical.post_processing import AR7FTPostProcessor
 from emissions_harmonization_historical.pre_processing import AR7FTPreProcessor
+from emissions_harmonization_historical.scm_running import SCM_OUTPUT_VARIABLES_DEFAULT
 
 # %%
 # Disable logging to avoid a million messages.
@@ -63,60 +64,7 @@ OUTPUT_PATH_MAGICC = OUTPUT_PATH / "magicc-ar6"
 OUTPUT_PATH_MAGICC
 
 # %%
-scm_output_variables = (
-    # GSAT
-    "Surface Air Temperature Change",
-    # # GMST
-    # "Surface Air Ocean Blended Temperature Change",
-    # ERFs
-    "Effective Radiative Forcing",
-    "Effective Radiative Forcing|Anthropogenic",
-    "Effective Radiative Forcing|Aerosols",
-    "Effective Radiative Forcing|Aerosols|Direct Effect",
-    "Effective Radiative Forcing|Aerosols|Direct Effect|BC",
-    "Effective Radiative Forcing|Aerosols|Direct Effect|OC",
-    "Effective Radiative Forcing|Aerosols|Direct Effect|SOx",
-    "Effective Radiative Forcing|Aerosols|Indirect Effect",
-    "Effective Radiative Forcing|Greenhouse Gases",
-    "Effective Radiative Forcing|CO2",
-    "Effective Radiative Forcing|CH4",
-    "Effective Radiative Forcing|N2O",
-    "Effective Radiative Forcing|F-Gases",
-    "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
-    "Effective Radiative Forcing|Ozone",
-    "Effective Radiative Forcing|Aviation|Cirrus",
-    "Effective Radiative Forcing|Aviation|Contrail",
-    "Effective Radiative Forcing|Aviation|H2O",
-    "Effective Radiative Forcing|Black Carbon on Snow",
-    # "Effective Radiative Forcing|CFC11",
-    # "Effective Radiative Forcing|CFC12",
-    # "Effective Radiative Forcing|HCFC22",
-    # "Effective Radiative Forcing|HFC125",
-    # "Effective Radiative Forcing|HFC134a",
-    # "Effective Radiative Forcing|HFC143a",
-    # "Effective Radiative Forcing|HFC227ea",
-    # "Effective Radiative Forcing|HFC23",
-    # "Effective Radiative Forcing|HFC245fa",
-    # "Effective Radiative Forcing|HFC32",
-    # "Effective Radiative Forcing|HFC4310mee",
-    # "Effective Radiative Forcing|CF4",
-    # "Effective Radiative Forcing|C6F14",
-    # "Effective Radiative Forcing|C2F6",
-    # "Effective Radiative Forcing|SF6",
-    # # Heat uptake
-    # "Heat Uptake",
-    # "Heat Uptake|Ocean",
-    # Atmospheric concentrations
-    "Atmospheric Concentrations|CO2",
-    "Atmospheric Concentrations|CH4",
-    "Atmospheric Concentrations|N2O",
-    # # Carbon cycle
-    # "Net Atmosphere to Land Flux|CO2",
-    # "Net Atmosphere to Ocean Flux|CO2",
-    # # permafrost
-    # "Net Land to Atmosphere Flux|CO2|Earth System Feedbacks|Permafrost",
-    # "Net Land to Atmosphere Flux|CH4|Earth System Feedbacks|Permafrost",
-)
+scm_output_variables = SCM_OUTPUT_VARIABLES_DEFAULT
 
 # %%
 batch_size_scenarios = 15
@@ -309,16 +257,8 @@ res = run_ar6_workflow(
 )
 
 # %%
-post_processor = PostProcessor(
-    gsat_variable_name="AR6 climate diagnostics|Raw Surface Temperature (GSAT)",
-    gsat_in_line_with_assessment_variable_name="Assessed Surface Air Temperature Change",
-    gsat_assessment_median=0.85,
-    gsat_assessment_time_period=range(1995, 2014 + 1),
-    gsat_assessment_pre_industrial_period=range(1850, 1900 + 1),
-    percentiles_to_calculate=(0.05, 0.33, 0.5, 0.67, 0.95),
-    exceedance_global_warming_levels=(1.5, 2.0, 2.5),
-    run_checks=False,
-)
+post_processor = AR7FTPostProcessor.from_default_config()
+post_processor.gsat_variable_name = "AR6 climate diagnostics|Raw Surface Temperature (GSAT)"
 
 # %%
 post_processed_updated = post_processor(res.scm_results_raw)

@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.4
+#       jupytext_version: 1.16.6
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -33,7 +33,6 @@ import tqdm.autonotebook as tqdman
 from gcages.ar6 import run_ar6_workflow
 from gcages.database import GCDB
 from gcages.io import load_timeseries_csv
-from gcages.post_processing import PostProcessor
 from loguru import logger
 
 from emissions_harmonization_historical.constants import (
@@ -41,6 +40,7 @@ from emissions_harmonization_historical.constants import (
     SCENARIO_TIME_ID,
     WORKFLOW_ID,
 )
+from emissions_harmonization_historical.post_processing import AR7FTPostProcessor
 
 # %%
 # Disable logging to avoid a million messages.
@@ -216,16 +216,8 @@ res = run_ar6_workflow(
 res.post_processed_scenario_metadata.value_counts().sort_index()
 
 # %%
-post_processor = PostProcessor(
-    gsat_variable_name="AR6 climate diagnostics|Raw Surface Temperature (GSAT)",
-    gsat_in_line_with_assessment_variable_name="Assessed Surface Air Temperature Change",
-    gsat_assessment_median=0.85,
-    gsat_assessment_time_period=range(1995, 2014 + 1),
-    gsat_assessment_pre_industrial_period=range(1850, 1900 + 1),
-    percentiles_to_calculate=(0.05, 0.33, 0.5, 0.67, 0.95),
-    exceedance_global_warming_levels=(1.5, 2.0, 2.5),
-    run_checks=False,
-)
+post_processor = AR7FTPostProcessor.from_default_config()
+post_processor.gsat_variable_name = "AR6 climate diagnostics|Raw Surface Temperature (GSAT)"
 
 # %%
 post_processed_updated = post_processor(res.scm_results_raw)
