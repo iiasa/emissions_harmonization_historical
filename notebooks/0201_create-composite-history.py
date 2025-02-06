@@ -432,3 +432,5 @@ for ax in fg.figure.axes:
 combined_processed_output_file_world_only.parent.mkdir(exist_ok=True, parents=True)
 global_composite.to_csv(combined_processed_output_file_world_only)
 combined_processed_output_file_world_only
+
+# %%

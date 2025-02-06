@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.4
+#       jupytext_version: 1.16.6
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -199,7 +199,9 @@ out_pi_vars = [
     "Emissions|SF6",
 ]
 pi_year = 1750
-for emissions_var in tqdman.tqdm(sorted([*out_ts_vars, *out_pi_vars])):
+for emissions_var in tqdman.tqdm(sorted(list(set([*out_ts_vars, *out_pi_vars])))):
+    # converting to set then back to list removes duplicates
+    print(emissions_var)
     if "HFC" in emissions_var and emissions_var not in out_pi_vars:
         # Use Guus' data instead
         continue
@@ -335,3 +337,5 @@ with open(OUT_PATH_PI_EMMS, "w") as fh:
     json.dump(background_emissions_d, fh, indent=2)
 
 OUT_PATH_PI_EMMS
+
+# %%
