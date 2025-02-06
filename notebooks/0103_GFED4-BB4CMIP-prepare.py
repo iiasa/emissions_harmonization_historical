@@ -273,3 +273,5 @@ for species, species_info in tqdm(species_data.items(), desc="Species"):
     print(f"Wrote {gfed_temp_file_country}")
 
     # break
+
+# %%
