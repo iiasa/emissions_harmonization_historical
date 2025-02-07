@@ -69,20 +69,26 @@ db_formats = pytest.mark.parametrize(
 )
 
 
+@pytest.mark.parametrize(
+    "n_scenarios, n_variables, n_runs",
+    (
+        pytest.param(2, 3, 4, id="small"),
+        pytest.param(20, 15, 60, id="medium"),
+        pytest.param(20, 15, 600, id="large"),
+        # Blows some integer limit
+        # pytest.param(100, 15, 600, id="x-large"),
+    ),
+)
 @db_formats
-def test_save_and_load(db_format, tmpdir):
+def test_save_and_load(n_scenarios, n_variables, n_runs, db_format, tmpdir):
+    if db_format == GCDBDataFormat.CSV and (n_scenarios * n_variables * n_runs) > 25000:
+        pytest.skip("Too slow")
+
     start = create_test_df(
-        n_scenarios=20,
-        n_variables=15,
-        n_runs=60,
-        # n_scenarios=90,
-        # n_variables=15,
-        # n_runs=600,
+        n_scenarios=n_scenarios,
+        n_variables=n_variables,
+        n_runs=n_runs,
         timepoints=np.arange(1750, 2100),
-        # n_scenarios=10,
-        # n_variables=1,
-        # n_runs=3,
-        # timepoints=np.array([2010.0, 2020.0, 2025.0, 2030.0]),
         units="Mt",
     )
 
