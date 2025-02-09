@@ -1026,6 +1026,7 @@ all-dev = [
     { name = "pandocfilters" },
     { name = "parso" },
     { name = "pathspec" },
+    { name = "pint-xarray" },
     { name = "pip" },
     { name = "platformdirs" },
     { name = "pluggy" },
@@ -1226,6 +1227,7 @@ tests = [
     { name = "coverage" },
     { name = "iniconfig" },
     { name = "packaging" },
+    { name = "pint-xarray" },
     { name = "pluggy" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -1349,6 +1351,7 @@ all-dev = [
     { name = "pandocfilters", specifier = "==1.5.1" },
     { name = "parso", specifier = "==0.8.4" },
     { name = "pathspec", specifier = "==0.12.1" },
+    { name = "pint-xarray", specifier = ">=0.4" },
     { name = "pip", specifier = "==24.3.1" },
     { name = "platformdirs", specifier = "==4.3.6" },
     { name = "pluggy", specifier = "==1.5.0" },
@@ -1549,6 +1552,7 @@ tests = [
     { name = "coverage", specifier = "==7.6.10" },
     { name = "iniconfig", specifier = "==2.0.0" },
     { name = "packaging", specifier = "==24.2" },
+    { name = "pint-xarray", specifier = ">=0.4" },
     { name = "pluggy", specifier = "==1.5.0" },
     { name = "pytest", specifier = "==8.3.4" },
     { name = "pytest-cov", specifier = "==6.0.0" },
@@ -3435,6 +3439,22 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/3e/d4/1623f45236859c88d196c5f7307b675f59e17a7a7d7a70114dba4a422af2/pint_pandas-0.7.1.tar.gz", hash = "sha256:f1106215a682593f535a89696688fec88a6fac3b32ffa9fe94c307e252bcb588", size = 60693 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/97/19/5af93cae70c2e42f3ac568906f8f3909174450bdbf4d70ec420e1daef816/Pint_Pandas-0.7.1-py3-none-any.whl", hash = "sha256:785312752eba35cbc55f4fa788c9f3d315839157d94254c5c79b91c5690ba11e", size = 28675 },
+]
+
+[[package]]
+name = "pint-xarray"
+version = "0.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy", version = "2.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "numpy", version = "2.2.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "pint" },
+    { name = "xarray", version = "2024.7.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "xarray", version = "2025.1.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/31/97/f2ee67b46ac14073b58e5245946f615cbd2875ea7713405ba960471edef3/pint_xarray-0.4.tar.gz", hash = "sha256:b6b737a9c46dfb14a8598c27a71100496994c9d79dab61fd77f0d2685ae7065e", size = 47835 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b0/5c/9b205b9acd844c758cb013f22fa9576a043ec9d1819c237030dc29ef3744/pint_xarray-0.4-py3-none-any.whl", hash = "sha256:dcbbd6e6257817828b5cf7915254a8031d7a1e94df110218d280f3a1b956d4f5", size = 32677 },
 ]
 
 [[package]]

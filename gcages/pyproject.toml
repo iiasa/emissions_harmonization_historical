@@ -248,6 +248,7 @@ tests-full = [
 tests = [
     {include-group = "tests-min"},
     {include-group = "tests-full"},
+    "pint-xarray>=0.4",
 ]
 all-dev = [
     {include-group = "dev"},
