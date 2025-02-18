@@ -280,6 +280,7 @@ out_ts_vars = [
     "Emissions|C6F14",
     "Emissions|C7F16",
     "Emissions|C8F18",
+    "Emissions|cC4F8",
     "Emissions|HFC|HFC23",
     "Emissions|HFC|HFC32",
     "Emissions|HFC|HFC125",
