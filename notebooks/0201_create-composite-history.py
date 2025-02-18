@@ -39,6 +39,7 @@ from emissions_harmonization_historical.constants import (
     GCB_PROCESSING_ID,
     GFED_PROCESSING_ID,
     HISTORY_SCENARIO_NAME,
+    PRIMAP_HIST_PROCESSING_ID,
     VELDERS_ET_AL_2022_PROCESSING_ID,
     WMO_2022_PROCESSING_ID,
 )
@@ -145,12 +146,21 @@ combined_processed_output_file
 # ## Process global data
 
 # %% [markdown]
-# ### Create CEDS-BB4CMIP composite
+# ### Create PRIMAP-CEDS-BB4CMIP composite
 
 # %%
 # Note that, for now, we use the BB4CMIP data here
 # because it goes back to 1750,
 # irrespective of what we do above.
+
+# CS edit #1: add PRIMAP for CH4 and N2O for 1750-1969.
+# CS edit #2: use atmospheric inversions to fill species before the obs (WMO/Velders etc)
+
+# %%
+primap_global = load_csv(
+    DATA_ROOT / "national/primap-hist/processed" / f"primap-hist-tp_cmip7_global_{PRIMAP_HIST_PROCESSING_ID}.csv"
+)
+primap_global
 
 # %%
 bb4cmip_global = load_csv(
@@ -195,12 +205,27 @@ biomass_burning_sum = (
 biomass_burning_sum
 
 # %%
-ceds_biomass_burning_composite = (
+primap_ch4 = primap_global.loc[pix.ismatch(variable="Emissions|CH4|Fossil, industrial and agriculture"), 1750:1969]
+# primap_ch4 = primap_ch4.rename(index=lambda x: x.replace(f"|Fossil, industrial and agriculture", ""))
+primap_ch4
+
+# %%
+primap_n2o = primap_global.loc[pix.ismatch(variable="Emissions|N2O|Fossil, industrial and agriculture"), 1750:1969]
+# primap_n2o = primap_n2o.rename(index=lambda x: x.replace(f"|Fossil, industrial and agriculture", ""))
+primap_n2o
+
+# %%
+biomass_burning_sum
+
+# %%
+primap_ceds_biomass_burning_composite = (
     pix.concat(
         [
             # Keep CEDS CO2 separate
             ceds_sum.loc[~pix.ismatch(variable="Emissions|CO2**")],
             biomass_burning_sum,
+            primap_ch4,
+            primap_n2o,
         ]
     )
     .pix.extract(variable="Emissions|{species}|{source}")
@@ -209,7 +234,7 @@ ceds_biomass_burning_composite = (
     .sum(min_count=2)  # will give weird output if any units differ
     .pix.format(variable="Emissions|{species}", drop=True)
 )
-ceds_biomass_burning_composite
+primap_ceds_biomass_burning_composite
 
 # %% [markdown]
 # ### Create our global composite
@@ -257,17 +282,127 @@ cmip_inversions = load_csv(
     DATA_ROOT / "global" / "esgf" / "CR-CMIP-0-4-0" / f"inverse_emissions_{CMIP_CONCENTRATION_INVERSION_ID}.csv"
 ).pix.assign(scenario=HISTORY_SCENARIO_NAME)
 
+# %% [markdown]
+# ## Fill in with inversions
+#
+# I'm not smart enough to do this in a non-hacky way, so do it in a hacky way
+
+# %%
+hfc23 = pix.concat(
+    [
+        cmip_inversions.loc[pix.isin(variable=["Emissions|HFC|HFC23"]), 1750:1974],
+        adam_et_al_2024.loc[pix.isin(variable=["Emissions|HFC|HFC23"]), 1975:],
+    ]
+).sum()  # .pix.format(variable="Emissions|HFC|HFC23", drop=True)
+# adam_et_al_2024.loc[:, 1750:2023] = hfc23
+
+
+# %%
+hfc23
+
+# %%
+adam_et_al_2024_composite = pd.DataFrame(hfc23).T
+adam_et_al_2024_composite.index = adam_et_al_2024.index
+adam_et_al_2024_composite.rename(index={"Adam et al., 2024": "Adam et al., 2024+CR-CMIP"}, inplace=True)
+adam_et_al_2024_composite
+
+# %%
+other_hfcs = {}
+for gas in [
+    "HFC125",
+    "HFC134a",
+    "HFC143a",
+    "HFC152a",
+    "HFC227ea",
+    "HFC236fa",
+    "HFC245fa",
+    "HFC32",
+    "HFC365mfc",
+    "HFC43-10",
+]:
+    other_hfcs[f"Emissions|HFC|{gas}"] = (
+        pix.concat(
+            [
+                cmip_inversions.loc[pix.isin(variable=[f"Emissions|HFC|{gas}"]), 1750:1989],
+                velders_et_al_2022.loc[pix.isin(variable=[f"Emissions|HFC|{gas}"]), 1990:],
+            ]
+        )
+    ).sum()
+
+# %%
+other_hfcs_composite = pd.DataFrame(other_hfcs).T.sort_index()
+other_hfcs_composite.index = velders_et_al_2022.sort_values(by="variable").index
+other_hfcs_composite.rename(index={"Velders et al., 2022": "Velders et al., 2022+CR-CMIP"}, inplace=True)
+other_hfcs_composite
+
+# %%
+cmip_inversions.loc[pix.isin(variable=["Emissions|Montreal Gases|CCl4"]), 1750:1972]
+
+# %%
+montreals = {}
+for gas in [
+    "CCl4",
+    "CFC|CFC11",
+    "CFC|CFC113",
+    "CFC|CFC114",
+    "CFC|CFC115",
+    "CFC|CFC12",
+    "CH3CCl3",
+    "HCFC141b",
+    "HCFC142b",
+    "HCFC22",
+    "Halon1202",
+    "Halon1211",
+    "Halon1301",
+    "Halon2402",
+]:
+    montreals[gas] = (
+        pix.concat(
+            [
+                cmip_inversions.loc[pix.isin(variable=[f"Emissions|Montreal Gases|{gas}"]), 1750:1972],
+                wmo_2022.loc[pix.isin(variable=[f"Emissions|Montreal Gases|{gas}"]), 1973:],
+            ]
+        )
+    ).sum()
+
+# %%
+wmo_2022.loc[pix.isin(model=["WMO 2022 AGAGE inversions"])].sort_values(by="variable").index
+wmo_2022.loc[pix.isin(model=["WMO 2022"])].sort_values(by="variable").index
+
+# %%
+montreals_composite = pd.DataFrame(montreals).T.sort_index()
+montreals_composite.index = wmo_2022.loc[pix.isin(model=["WMO 2022"])].sort_values(by="variable").index
+montreals_composite.rename(index={"WMO 2022": "WMO 2022+CR-CMIP"}, inplace=True)
+
+# %%
+llfgs = {}
+for gas in ["C2F6", "CF4", "SF6"]:
+    llfgs[gas] = (
+        pix.concat(
+            [
+                cmip_inversions.loc[pix.isin(variable=[f"Emissions|{gas}"]), 1750:1972],
+                wmo_2022.loc[pix.isin(variable=[f"Emissions|{gas}"]), 1973:],
+            ]
+        )
+    ).sum()
+
+# %%
+llfgs_composite = pd.DataFrame(llfgs).T.sort_index()
+llfgs_composite.index = wmo_2022.loc[pix.isin(model=["WMO 2022 AGAGE inversions"])].sort_values(by="variable").index
+llfgs_composite.rename(index={"WMO 2022 AGAGE inversions": "WMO 2022 AGAGE inversions+CR-CMIP"}, inplace=True)
+
 # %%
 all_sources = pix.concat(
     [
-        adam_et_al_2024,
-        ceds_biomass_burning_composite,
+        adam_et_al_2024_composite,
+        primap_ceds_biomass_burning_composite,
         ceds_co2,
         cmip_inversions,
         edgar,
         gcb_afolu,
-        velders_et_al_2022,
-        wmo_2022,
+        montreals_composite,
+        llfgs_composite,
+        other_hfcs_composite,
     ]
 )
 all_sources
@@ -276,10 +411,13 @@ all_sources
 wmo_2022.pix.unique(["model", "variable"]).to_frame(index=False)
 
 # %%
+wmo_2022
+
+# %%
 global_variable_sources = {
     "Emissions|BC": "CEDS-BB4CMIP",
-    "Emissions|CF4": "WMO 2022 AGAGE inversions",
-    "Emissions|C2F6": "WMO 2022 AGAGE inversions",
+    "Emissions|CF4": "WMO 2022 AGAGE inversions+CR-CMIP",
+    "Emissions|C2F6": "WMO 2022 AGAGE inversions+CR-CMIP",
     "Emissions|C3F8": "CR-CMIP-0-4-0-inverse-smooth",
     "Emissions|cC4F8": "CR-CMIP-0-4-0-inverse-smooth",
     "Emissions|C4F10": "CR-CMIP-0-4-0-inverse-smooth",
@@ -291,41 +429,41 @@ global_variable_sources = {
     "Emissions|CO": "CEDS-BB4CMIP",
     "Emissions|CO2|AFOLU": "Global Carbon Budget",
     "Emissions|CO2|Energy and Industrial Processes": ceds_iteration,
-    "Emissions|HFC|HFC125": "Velders et al., 2022",
-    "Emissions|HFC|HFC134a": "Velders et al., 2022",
-    "Emissions|HFC|HFC143a": "Velders et al., 2022",
-    "Emissions|HFC|HFC152a": "Velders et al., 2022",
-    "Emissions|HFC|HFC227ea": "Velders et al., 2022",
-    "Emissions|HFC|HFC23": "Adam et al., 2024",
-    "Emissions|HFC|HFC236fa": "Velders et al., 2022",
-    "Emissions|HFC|HFC245fa": "Velders et al., 2022",
-    "Emissions|HFC|HFC32": "Velders et al., 2022",
-    "Emissions|HFC|HFC365mfc": "Velders et al., 2022",
-    "Emissions|HFC|HFC43-10": "Velders et al., 2022",
-    "Emissions|Montreal Gases|CCl4": "WMO 2022",
-    "Emissions|Montreal Gases|CFC|CFC11": "WMO 2022",
-    "Emissions|Montreal Gases|CFC|CFC113": "WMO 2022",
-    "Emissions|Montreal Gases|CFC|CFC114": "WMO 2022",
-    "Emissions|Montreal Gases|CFC|CFC115": "WMO 2022",
-    "Emissions|Montreal Gases|CFC|CFC12": "WMO 2022",
+    "Emissions|HFC|HFC125": "Velders et al., 2022+CR-CMIP",
+    "Emissions|HFC|HFC134a": "Velders et al., 2022+CR-CMIP",
+    "Emissions|HFC|HFC143a": "Velders et al., 2022+CR-CMIP",
+    "Emissions|HFC|HFC152a": "Velders et al., 2022+CR-CMIP",
+    "Emissions|HFC|HFC227ea": "Velders et al., 2022+CR-CMIP",
+    "Emissions|HFC|HFC23": "Adam et al., 2024+CR-CMIP",
+    "Emissions|HFC|HFC236fa": "Velders et al., 2022+CR-CMIP",
+    "Emissions|HFC|HFC245fa": "Velders et al., 2022+CR-CMIP",
+    "Emissions|HFC|HFC32": "Velders et al., 2022+CR-CMIP",
+    "Emissions|HFC|HFC365mfc": "Velders et al., 2022+CR-CMIP",
+    "Emissions|HFC|HFC43-10": "Velders et al., 2022+CR-CMIP",
+    "Emissions|Montreal Gases|CCl4": "WMO 2022+CR-CMIP",
+    "Emissions|Montreal Gases|CFC|CFC11": "WMO 2022+CR-CMIP",
+    "Emissions|Montreal Gases|CFC|CFC113": "WMO 2022+CR-CMIP",
+    "Emissions|Montreal Gases|CFC|CFC114": "WMO 2022+CR-CMIP",
+    "Emissions|Montreal Gases|CFC|CFC115": "WMO 2022+CR-CMIP",
+    "Emissions|Montreal Gases|CFC|CFC12": "WMO 2022+CR-CMIP",
     "Emissions|Montreal Gases|CH2Cl2": "CR-CMIP-0-4-0-inverse-smooth",
     "Emissions|Montreal Gases|CH3Br": "CR-CMIP-0-4-0-inverse-smooth",
-    "Emissions|Montreal Gases|CH3CCl3": "WMO 2022",
+    "Emissions|Montreal Gases|CH3CCl3": "WMO 2022+CR-CMIP",
     "Emissions|Montreal Gases|CH3Cl": "CR-CMIP-0-4-0-inverse-smooth",
     "Emissions|Montreal Gases|CHCl3": "CR-CMIP-0-4-0-inverse-smooth",
-    "Emissions|Montreal Gases|HCFC141b": "WMO 2022",
-    "Emissions|Montreal Gases|HCFC142b": "WMO 2022",
-    "Emissions|Montreal Gases|HCFC22": "WMO 2022",
-    "Emissions|Montreal Gases|Halon1202": "WMO 2022",
-    "Emissions|Montreal Gases|Halon1211": "WMO 2022",
-    "Emissions|Montreal Gases|Halon1301": "WMO 2022",
-    "Emissions|Montreal Gases|Halon2402": "WMO 2022",
+    "Emissions|Montreal Gases|HCFC141b": "WMO 2022+CR-CMIP",
+    "Emissions|Montreal Gases|HCFC142b": "WMO 2022+CR-CMIP",
+    "Emissions|Montreal Gases|HCFC22": "WMO 2022+CR-CMIP",
+    "Emissions|Montreal Gases|Halon1202": "WMO 2022+CR-CMIP",
+    "Emissions|Montreal Gases|Halon1211": "WMO 2022+CR-CMIP",
+    "Emissions|Montreal Gases|Halon1301": "WMO 2022+CR-CMIP",
+    "Emissions|Montreal Gases|Halon2402": "WMO 2022+CR-CMIP",
     "Emissions|N2O": "CEDS-BB4CMIP",
     "Emissions|NF3": "CR-CMIP-0-4-0-inverse-smooth",
     "Emissions|NH3": "CEDS-BB4CMIP",
     "Emissions|NOx": "CEDS-BB4CMIP",
     "Emissions|OC": "CEDS-BB4CMIP",
-    "Emissions|SF6": "WMO 2022 AGAGE inversions",
+    "Emissions|SF6": "WMO 2022 AGAGE inversions+CR-CMIP",
     "Emissions|SO2F2": "CR-CMIP-0-4-0-inverse-smooth",
     "Emissions|Sulfur": "CEDS-BB4CMIP",
     "Emissions|VOC": "CEDS-BB4CMIP",

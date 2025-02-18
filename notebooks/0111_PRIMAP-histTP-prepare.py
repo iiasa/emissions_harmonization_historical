@@ -63,21 +63,24 @@ ch4 = (
 )
 
 # %%
-n2o = (
-    primap.loc[
-        (primap.entity == "N2O")
-        & (primap["scenario (PRIMAP-hist)"] == "HISTTP")
-        & (primap["area (ISO3)"] == "EARTH")
-        & (primap["category (IPCC2006_PRIMAP)"] == "M.0.EL"),
-        "1750":,
-    ].values.squeeze()
-    / 1000
-)
+n2o = primap.loc[
+    (primap.entity == "N2O")
+    & (primap["scenario (PRIMAP-hist)"] == "HISTTP")
+    & (primap["area (ISO3)"] == "EARTH")
+    & (primap["category (IPCC2006_PRIMAP)"] == "M.0.EL"),
+    "1750":,
+].values.squeeze()
 
 # %%
 indices = [
     ("PRIMAP-HistTP", "historical", "World", "Emissions|CH4|Fossil, industrial and agriculture", "Mt CH4/yr"),
-    ("PRIMAP-HistTP", "historical", "World", "Emissions|N2O|Fossil, industrial and agriculture", "Mt N2O/yr"),
+    (
+        "PRIMAP-HistTP",
+        "historical",
+        "World",
+        "Emissions|N2O|Fossil, industrial and agriculture",
+        "kt N2O/yr",
+    ),  # keep it daft
 ]
 
 # %%
