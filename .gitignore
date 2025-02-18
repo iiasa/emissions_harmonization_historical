@@ -7,6 +7,7 @@ data/national/ceds/processed
 data/national/gfed/processed
 data/national/gfed-bb4cmip/processed
 data/national/cams/processed
+data/national/primap-hist/processed
 data/global/adam-et-al-2024/processed
 data/global/edgar/processed/
 data/global/gcb/processed
