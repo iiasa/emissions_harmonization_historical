@@ -45,6 +45,9 @@ data/national/gfed-bb4cmip/data_raw
 # CAMS data
 data/national/cams/data_raw/
 
+# PRIMAP-hist data
+data/national/primap-hist/data_raw
+
 # pixi stuff
 .pixi
 
