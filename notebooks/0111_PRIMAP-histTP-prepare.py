@@ -76,8 +76,8 @@ n2o = (
 
 # %%
 indices = [
-    ("PRIMAP-HistTP", "historical", "World", "Emissions|CH4", "Mt CH4/yr"),
-    ("PRIMAP-HistTP", "historical", "World", "Emissions|N2O", "Mt N2O/yr"),
+    ("PRIMAP-HistTP", "historical", "World", "Emissions|CH4|Fossil, industrial and agriculture", "Mt CH4/yr"),
+    ("PRIMAP-HistTP", "historical", "World", "Emissions|N2O|Fossil, industrial and agriculture", "Mt N2O/yr"),
 ]
 
 # %%
