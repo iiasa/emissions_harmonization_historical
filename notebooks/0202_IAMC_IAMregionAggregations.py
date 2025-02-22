@@ -60,6 +60,11 @@ cmip7_history
 
 # %%
 region_mapping = pd.read_csv(region_mapping_file)
+
+# drop REMIND 3.1 region definitions and overwrite region_df.csv accordingly
+region_mapping = region_mapping[region_mapping["model"]!="REMIND 3.1"]
+region_mapping.to_csv(region_file)
+
 region_mapping = region_mapping.rename(columns={"name": "model_region", "hierarchy": "model", "iso3": "iso_list"})
 region_mapping = region_mapping[["model_region", "model", "iso_list"]]
 region_mapping = region_mapping.dropna(
