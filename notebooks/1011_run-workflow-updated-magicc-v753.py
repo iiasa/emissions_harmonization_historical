@@ -25,6 +25,7 @@
 import logging
 import multiprocessing
 import os
+import platform
 
 import openscm_runner.adapters
 import pandas as pd
@@ -49,7 +50,7 @@ logger.disable("gcages")
 
 # %%
 n_processes = multiprocessing.cpu_count()
-run_checks = False  # TODO: turn on
+# run_checks = False  # TODO: turn on
 
 # %%
 INPUT_PATH = DATA_ROOT / "climate-assessment-workflow" / "output" / f"{WORKFLOW_ID}_{SCENARIO_TIME_ID}_updated-workflow"
@@ -57,9 +58,20 @@ INPUT_PATH = DATA_ROOT / "climate-assessment-workflow" / "output" / f"{WORKFLOW_
 # %%
 # Needed for 7.5.3 on a mac
 os.environ["DYLD_LIBRARY_PATH"] = "/opt/homebrew/opt/gfortran/lib/gcc/current/"
-magicc_exe_path = DATA_ROOT.parents[0] / "magicc" / "magicc-v7.5.3" / "bin" / "magicc-darwin-arm64"
-magicc_expected_version = "v7.5.3"
+if platform.system() == "Darwin":
+    if platform.processor() == "arm":
+        magicc_exe = "magicc-darwin-arm64"
+    else:
+        raise NotImplementedError(platform.processor())
+elif platform.system() == "Windows":
+    magicc_exe = "magicc.exe"
+else:
+    raise NotImplementedError(platform.system())
+
+magicc_exe_path = DATA_ROOT.parents[0] / "magicc" / "magicc-v7.5.3" / "bin" / magicc_exe
 magicc_prob_distribution_path = DATA_ROOT.parents[0] / "magicc" / "magicc-v7.5.3" / "configs" / "600-member.json"
+
+magicc_expected_version = "v7.5.3"
 
 # %%
 os.environ["MAGICC_EXECUTABLE_7"] = str(magicc_exe_path)

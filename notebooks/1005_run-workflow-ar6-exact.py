@@ -257,7 +257,6 @@ for full_path, df in (
 
 # %%
 db_meta_file = DATA_ROOT / "scenarios" / "data_raw" / f"{SCENARIO_TIME_ID}_all-meta.csv"
-db_meta_file = DATA_ROOT / "scenarios" / "data_raw" / "20250131-125121_all-meta.csv"
 db_meta = pd.read_csv(db_meta_file).set_index(["model", "scenario"])
 db_meta
 

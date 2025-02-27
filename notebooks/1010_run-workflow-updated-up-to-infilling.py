@@ -51,7 +51,6 @@ OUTPUT_PATH
 
 # %%
 n_processes = multiprocessing.cpu_count()
-run_checks = False  # TODO: turn on
 
 # %% [markdown]
 # ## Load scenario data

@@ -120,7 +120,7 @@ for r in [
     "IMAGE 3.4|Rest of South America",
     "MESSAGEix-GLOBIOM 2.1-R12|Pacific OECD",
     "REMIND-MAgPIE 3.4-4.8|Latin America and the Caribbean",
-    "WITCH 6.0|United States of America",
+    "WITCH 6.0|United States",
 ]:
     # derive test region from aggregated dataframe
     test_df = history_for_all_iamc_regions[history_for_all_iamc_regions["region"] == r]
