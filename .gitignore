@@ -6,6 +6,8 @@ data/climate-assessment-workflow
 data/national/ceds/processed
 data/national/gfed/processed
 data/national/gfed-bb4cmip/processed
+data/national/cams/processed
+data/national/primap-hist/processed
 data/global/adam-et-al-2024/processed
 data/global/edgar/processed/
 data/global/gcb/processed
@@ -40,6 +42,12 @@ data/national/ceds/data_raw
 # GFED data
 data/national/gfed/data_raw
 data/national/gfed-bb4cmip/data_raw
+
+# CAMS data
+data/national/cams/data_raw/
+
+# PRIMAP-hist data
+data/national/primap-hist/data_raw
 
 # pixi stuff
 .pixi
