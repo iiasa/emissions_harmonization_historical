@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.4
+#       jupytext_version: 1.16.6
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -242,3 +242,5 @@ iso_present
 # %%
 iso_present.to_csv(iamc_commondefinitions_regions_history_missing_iso, index=False)
 iamc_commondefinitions_regions_history_missing_iso
+
+# %%
