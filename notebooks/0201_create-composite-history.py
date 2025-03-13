@@ -253,6 +253,7 @@ wmo_2022 = load_csv(
 wmo_2022
 
 # %%
+# To create these, run notebook "0110_cmip-conc-inversions"
 cmip_inversions = load_csv(
     DATA_ROOT / "global" / "esgf" / "CR-CMIP-0-4-0" / f"inverse_emissions_{CMIP_CONCENTRATION_INVERSION_ID}.csv"
 ).pix.assign(scenario=HISTORY_SCENARIO_NAME)
