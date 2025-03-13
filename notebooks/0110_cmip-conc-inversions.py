@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.4
+#       jupytext_version: 1.16.6
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -199,7 +199,7 @@ out_pi_vars = [
     "Emissions|SF6",
 ]
 pi_year = 1750
-for emissions_var in tqdman.tqdm(sorted([*out_ts_vars, *out_pi_vars])):
+for emissions_var in tqdman.tqdm(sorted({*out_ts_vars, *out_pi_vars})):
     if "HFC" in emissions_var and emissions_var not in out_pi_vars:
         # Use Guus' data instead
         continue
