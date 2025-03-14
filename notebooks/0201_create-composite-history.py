@@ -210,12 +210,19 @@ biomass_burning_sum = (
 biomass_burning_sum
 
 # %%
-primap_ch4 = primap_global.loc[pix.ismatch(variable="Emissions|CH4|Fossil, industrial and agriculture"), 1750:1969]
+use_primap_years = range(1750, 1969 + 1)
+
+# %%
+primap_ch4 = primap_global.loc[
+    pix.ismatch(variable="Emissions|CH4|Fossil, industrial and agriculture"), use_primap_years
+]
 # primap_ch4 = primap_ch4.rename(index=lambda x: x.replace(f"|Fossil, industrial and agriculture", ""))
 primap_ch4
 
 # %%
-primap_n2o = primap_global.loc[pix.ismatch(variable="Emissions|N2O|Fossil, industrial and agriculture"), 1750:1969]
+primap_n2o = primap_global.loc[
+    pix.ismatch(variable="Emissions|N2O|Fossil, industrial and agriculture"), use_primap_years
+]
 # primap_n2o = primap_n2o.rename(index=lambda x: x.replace(f"|Fossil, industrial and agriculture", ""))
 primap_n2o
 
@@ -289,11 +296,11 @@ plt.plot(np.arange(len(ceds_primap_n2o_ratio)), n2oreg.intercept + n2oreg.slope 
 
 # %%
 primap_ch4_scaled = primap_ch4.copy()
-primap_ch4_scaled.loc[:, 1750:1969] = primap_ch4.loc[:, 1750:1969] * ch4_primap_sf
+primap_ch4_scaled.loc[:, 1750:1969] = primap_ch4.loc[:, use_primap_years] * ch4_primap_sf
 
 # %%
 primap_n2o_scaled = primap_n2o.copy()
-primap_n2o_scaled.loc[:, 1750:1969] = primap_n2o.loc[:, 1750:1969] * n2o_primap_sf
+primap_n2o_scaled.loc[:, 1750:1969] = primap_n2o.loc[:, use_primap_years] * n2o_primap_sf
 
 # %%
 primap_ceds_biomass_burning_composite = (
@@ -539,5 +546,3 @@ for ax in fg.figure.axes:
 combined_processed_output_file_world_only.parent.mkdir(exist_ok=True, parents=True)
 global_composite.to_csv(combined_processed_output_file_world_only)
 combined_processed_output_file_world_only
-
-# %%
