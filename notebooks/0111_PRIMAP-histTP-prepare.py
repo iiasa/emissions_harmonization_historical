@@ -21,7 +21,6 @@
 # import external packages and functions
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 
 from emissions_harmonization_historical.constants import (
@@ -51,48 +50,55 @@ primap = pd.read_csv(primap_input_file)
 primap
 
 # %%
-ch4 = (
-    primap.loc[
-        (primap.entity == "CH4")
-        & (primap["scenario (PRIMAP-hist)"] == "HISTTP")
-        & (primap["area (ISO3)"] == "EARTH")
-        & (primap["category (IPCC2006_PRIMAP)"] == "M.0.EL"),
-        "1750":,
-    ].values.squeeze()
-    / 1000
-)
+ch4 = primap.loc[
+    (primap.entity == "CH4")
+    & (primap.unit == "CH4 * gigagram / a")  # converted with 1000 below
+    & (primap["scenario (PRIMAP-hist)"] == "HISTTP")
+    & (primap["area (ISO3)"] == "EARTH")
+    & (primap["category (IPCC2006_PRIMAP)"] == "M.0.EL"),
+]
+ch4
 
 # %%
 n2o = primap.loc[
     (primap.entity == "N2O")
+    & (primap.unit == "N2O * gigagram / a")
     & (primap["scenario (PRIMAP-hist)"] == "HISTTP")
     & (primap["area (ISO3)"] == "EARTH")
     & (primap["category (IPCC2006_PRIMAP)"] == "M.0.EL"),
-    "1750":,
-].values.squeeze()
-
-# %%
-indices = [
-    ("PRIMAP-HistTP", "historical", "World", "Emissions|CH4|Fossil, industrial and agriculture", "Mt CH4/yr"),
-    (
-        "PRIMAP-HistTP",
-        "historical",
-        "World",
-        "Emissions|N2O|Fossil, industrial and agriculture",
-        "kt N2O/yr",
-    ),  # keep it daft
 ]
+n2o
 
 # %%
-index = pd.MultiIndex.from_tuples(indices, names=["model", "scenario", "region", "variable", "unit"])
+primap_out = pd.concat([ch4, n2o])
+primap_out["model"] = "PRIMAP-HistTP"
+primap_out["scenario"] = "historical"
+primap_out["region"] = "World"
+primap_out["variable"] = "Emissions|" + primap_out["entity"] + "|Fossil, industrial and agriculture"
+primap_out["unit"] = primap_out["unit"].map(
+    {
+        "CH4 * gigagram / a": "kt CH4/yr",
+        "N2O * gigagram / a": "kt N2O/yr",
+    }
+)
+primap_out = primap_out.set_index(["model", "scenario", "region", "variable", "unit"])
+primap_out = primap_out.drop(
+    ["source", "scenario (PRIMAP-hist)", "provenance", "area (ISO3)", "entity", "category (IPCC2006_PRIMAP)"],
+    axis="columns",
+)
 
-# %%
-primap_out = pd.DataFrame([ch4, n2o], index=index, columns=np.arange(1750, 2024))
+ch4_loc = primap_out.index.get_level_values("variable").str.startswith("Emissions|CH4")
+primap_out.loc[ch4_loc, :] /= 1000
 
-# %%
+primap_out = primap_out.reset_index("unit")
+ch4_loc = primap_out.index.get_level_values("variable").str.startswith("Emissions|CH4")
+assert primap_out.loc[ch4_loc, "unit"].values.tolist() == ["kt CH4/yr"]
+primap_out.loc[ch4_loc, "unit"] = "Mt CH4/yr"  # divided by 1000 above
+primap_out = primap_out.set_index("unit", append=True)
+
 primap_out
 
 # %%
+primap_processed_output_file.parent.mkdir(exist_ok=True, parents=True)
 primap_out.to_csv(primap_processed_output_file)
-
-# %%
+primap_processed_output_file
