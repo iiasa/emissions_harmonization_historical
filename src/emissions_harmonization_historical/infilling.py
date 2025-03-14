@@ -24,6 +24,27 @@ from gcages.io import load_timeseries_csv
 from gcages.parallelisation import run_parallel
 
 
+def load_default_infiller_db(data_root: Path) -> pd.DataFrame:
+    """Load default infiller db"""
+    from emissions_harmonization_historical.constants import HARMONISATION_ID, SCENARIO_TIME_ID, WORKFLOW_ID
+
+    default_infiller_db_path = (
+        data_root
+        / "climate-assessment-workflow"
+        / "input"
+        / f"{WORKFLOW_ID}_{SCENARIO_TIME_ID}_updated-workflow"
+        / f"{WORKFLOW_ID}_{SCENARIO_TIME_ID}_{HARMONISATION_ID}_infilling-database.csv"
+    )
+
+    infiller_db = load_timeseries_csv(
+        default_infiller_db_path,
+        index_columns=["model", "scenario", "region", "variable", "unit"],
+        out_column_type=int,
+    )
+
+    return infiller_db
+
+
 def wrap_silicone_infiller(
     infiller: Callable[[pyam.IamDataFrame], pyam.IamDataFrame],
 ) -> Callable[[pd.DataFrame], pd.DataFrame]:
@@ -221,11 +242,13 @@ class AR7FTInfiller:
         return infilled
 
     @classmethod
-    def from_default_config(cls, harmonised: pd.DataFrame, data_root: Path) -> AR7FTInfiller:
+    def from_default_config(cls, data_root: Path) -> AR7FTInfiller:
         """
         Initialise from default, hard-coded configuration
         """
         from emissions_harmonization_historical.constants import FOLLOWER_SCALING_FACTORS_ID, WMO_2022_PROCESSING_ID
+
+        infiller_db = load_default_infiller_db(data_root=data_root)
 
         # TODO: think some of these through a bit more
         lead_vars_crunchers = {
@@ -298,9 +321,9 @@ class AR7FTInfiller:
             ),
         }
 
-        all_iam_variables = harmonised.pix.unique("variable")
+        all_iam_variables = infiller_db.pix.unique("variable")
         variables_to_infill_l = []
-        for (model, scenario), msdf in harmonised.groupby(["model", "scenario"]):
+        for (model, scenario), msdf in infiller_db.groupby(["model", "scenario"]):
             to_infill = all_iam_variables.difference(msdf.pix.unique("variable"))
             variables_to_infill_l.extend(to_infill.tolist())
 
@@ -314,7 +337,7 @@ class AR7FTInfiller:
             # if we update the harmonisation, we also update the infilling DB
             # and therefore the infilling.
             # This is a choice, rather than being the only solution/option.
-            v_infill_db = harmonised.loc[pix.isin(variable=[v_infill, leader])]
+            v_infill_db = infiller_db.loc[pix.isin(variable=[v_infill, leader])]
             infillers_silicone[v_infill] = wrap_silicone_infiller(
                 cruncher(pyam.IamDataFrame(v_infill_db)).derive_relationship(
                     variable_follower=v_infill,
@@ -326,7 +349,7 @@ class AR7FTInfiller:
             data_root / "global" / "wmo-2022" / "processed" / f"wmo-2022_cmip7_global_{WMO_2022_PROCESSING_ID}.csv",
             index_columns=["model", "scenario", "region", "variable", "unit"],
             out_column_type=int,
-        ).loc[pix.isin(scenario="WMO 2022 projections v20250129"), harmonised.columns]
+        ).loc[pix.isin(scenario="WMO 2022 projections v20250129"), infiller_db.columns]
 
         infillers_wmo = {}
         for wmo_var in wmo_2022_scenarios.pix.unique("variable"):

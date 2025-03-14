@@ -17,6 +17,9 @@
 #
 # Run the climate assessment workflow with our updated processing
 # up to the end of infilling.
+#
+# Make sure that you have run `0301_create-infilling-database`
+# to generate the infilling database before running this.
 
 # %% [markdown]
 # ## Imports
