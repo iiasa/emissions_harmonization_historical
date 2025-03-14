@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.4
+#       jupytext_version: 1.16.6
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -24,7 +24,7 @@ import pandas_indexing as pix
 import xarray as xr
 from pandas_indexing import set_openscm_registry_as_default
 
-from emissions_harmonization_historical.constants import DATA_ROOT
+from emissions_harmonization_historical.constants import CAMS_PROCESSING_ID, DATA_ROOT
 
 # set unit registry
 ur = set_openscm_registry_as_default()
@@ -39,8 +39,8 @@ cams_data_folder = DATA_ROOT / Path("national", "cams", "data_raw")
 cams_country_temp_file = DATA_ROOT / Path("national", "cams", "processed", "cams_country_temporaryfile.csv")
 cams_world_temp_file = DATA_ROOT / Path("national", "cams", "processed", "cams_world_temporaryfile.csv")
 
-cams_country_proc_file = DATA_ROOT / Path("national", "cams", "processed", "cams_country.csv")
-cams_world_proc_file = DATA_ROOT / Path("national", "cams", "processed", "cams_world.csv")
+cams_country_proc_file = DATA_ROOT / Path("national", "cams", "processed", f"cams_country_{CAMS_PROCESSING_ID}.csv")
+cams_world_proc_file = DATA_ROOT / Path("national", "cams", "processed", f"cams_world_{CAMS_PROCESSING_ID}.csv")
 
 # use the iso mask from gfed
 isomask = Path(gfed_data_aux_folder, "iso_mask.nc")
