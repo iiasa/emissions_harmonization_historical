@@ -17,9 +17,6 @@
 #
 # Here we create our composite history timeseries,
 # based on the various inputs we have.
-#
-# CS: create a version that has complete (if estimated)
-# emissions for 1750-2024 for use in fair.
 
 # %% [markdown]
 # ## Imports
