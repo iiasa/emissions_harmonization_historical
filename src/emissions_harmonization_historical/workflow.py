@@ -143,7 +143,7 @@ def run_workflow_up_to_infilling(  # noqa: PLR0913
     harmonised = harmoniser(pre_processed)
 
     if infiller is None:
-        infiller = AR7FTInfiller.from_default_config(harmonised=harmonised, data_root=data_root)
+        infiller = AR7FTInfiller.from_default_config(data_root=data_root)
 
     infilled = infiller(harmonised)
 
@@ -163,6 +163,12 @@ def run_workflow_up_to_infilling(  # noqa: PLR0913
 def add_in_data_from_historical(
     scenarios: pd.DataFrame, history: pd.DataFrame, include_historical_data_after: int
 ) -> pd.DataFrame:
+    """
+    Add in data from the historical experiment
+
+    This is needed to ensure that MAGICC actually follows
+    the desired trajectory from 2015 onwards.
+    """
     history_cut = history.loc[:, include_historical_data_after : scenarios.columns.min() - 1]
     if history_cut.isnull().any().any():
         raise AssertionError
@@ -199,6 +205,9 @@ def run_magicc_and_post_processing(  # noqa: PLR0913
     batch_size_scenarios: int = 10,
     include_historical_data_after: int = 2015,  # End of MAGICC's internal historical emissions
 ) -> AR7FTMAGICCRunResult:
+    """
+    Run MAGICC and post-processing
+    """
     if post_processor is None:
         post_processor = AR7FTPostProcessor.from_default_config()
 

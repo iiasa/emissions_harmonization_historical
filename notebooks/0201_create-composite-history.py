@@ -39,6 +39,7 @@ from emissions_harmonization_historical.constants import (
     GCB_PROCESSING_ID,
     GFED_PROCESSING_ID,
     HISTORY_SCENARIO_NAME,
+    PRIMAP_HIST_PROCESSING_ID,
     VELDERS_ET_AL_2022_PROCESSING_ID,
     WMO_2022_PROCESSING_ID,
 )
@@ -82,6 +83,8 @@ BIOMASS_BURNING_SOURCE = BiomassBurningOption.GFED4_1s
 BIOMASS_BURNING_SOURCE
 
 # %%
+# CS: why are there two output files here?
+
 combined_processed_output_file = DATA_ROOT / Path(
     "combined-processed-output", f"cmip7_history_{COMBINED_HISTORY_ID}.csv"
 )
@@ -145,12 +148,21 @@ combined_processed_output_file
 # ## Process global data
 
 # %% [markdown]
-# ### Create CEDS-BB4CMIP composite
+# ### Create PRIMAP-CEDS-BB4CMIP composite
 
 # %%
 # Note that, for now, we use the BB4CMIP data here
 # because it goes back to 1750,
 # irrespective of what we do above.
+
+# CS edit #1: add PRIMAP for CH4 and N2O for 1750-1969.
+# CS edit #2: use atmospheric inversions to fill species before the obs (WMO/Velders etc)
+
+# %%
+primap_global = load_csv(
+    DATA_ROOT / "national/primap-hist/processed" / f"primap-hist-tp_cmip7_global_{PRIMAP_HIST_PROCESSING_ID}.csv"
+)
+primap_global
 
 # %%
 bb4cmip_global = load_csv(
@@ -195,12 +207,27 @@ biomass_burning_sum = (
 biomass_burning_sum
 
 # %%
-ceds_biomass_burning_composite = (
+primap_ch4 = primap_global.loc[pix.ismatch(variable="Emissions|CH4|Fossil, industrial and agriculture"), 1750:1969]
+# primap_ch4 = primap_ch4.rename(index=lambda x: x.replace(f"|Fossil, industrial and agriculture", ""))
+primap_ch4
+
+# %%
+primap_n2o = primap_global.loc[pix.ismatch(variable="Emissions|N2O|Fossil, industrial and agriculture"), 1750:1969]
+# primap_n2o = primap_n2o.rename(index=lambda x: x.replace(f"|Fossil, industrial and agriculture", ""))
+primap_n2o
+
+# %%
+biomass_burning_sum
+
+# %%
+primap_ceds_biomass_burning_composite = (
     pix.concat(
         [
             # Keep CEDS CO2 separate
             ceds_sum.loc[~pix.ismatch(variable="Emissions|CO2**")],
             biomass_burning_sum,
+            primap_ch4,
+            primap_n2o,
         ]
     )
     .pix.extract(variable="Emissions|{species}|{source}")
@@ -209,7 +236,7 @@ ceds_biomass_burning_composite = (
     .sum(min_count=2)  # will give weird output if any units differ
     .pix.format(variable="Emissions|{species}", drop=True)
 )
-ceds_biomass_burning_composite
+primap_ceds_biomass_burning_composite
 
 # %% [markdown]
 # ### Create our global composite
@@ -262,7 +289,7 @@ cmip_inversions = load_csv(
 all_sources = pix.concat(
     [
         adam_et_al_2024,
-        ceds_biomass_burning_composite,
+        primap_ceds_biomass_burning_composite,
         ceds_co2,
         cmip_inversions,
         edgar,
@@ -275,6 +302,9 @@ all_sources
 
 # %%
 wmo_2022.pix.unique(["model", "variable"]).to_frame(index=False)
+
+# %%
+wmo_2022
 
 # %%
 global_variable_sources = {
@@ -433,3 +463,5 @@ for ax in fg.figure.axes:
 combined_processed_output_file_world_only.parent.mkdir(exist_ok=True, parents=True)
 global_composite.to_csv(combined_processed_output_file_world_only)
 combined_processed_output_file_world_only
+
+# %%
