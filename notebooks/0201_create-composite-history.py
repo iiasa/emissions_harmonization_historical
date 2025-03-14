@@ -231,7 +231,7 @@ primap_ceds_biomass_burning_composite = (
         ]
     )
     .pix.extract(variable="Emissions|{species}|{source}")
-    .pix.assign(model="CEDS-BB4CMIP")
+    .pix.assign(model="CEDS-BB4CMIP-PRIMAP")
     .groupby([*(set(ceds_sum.index.names) - {"variable"}), "species"])
     .sum(min_count=2)  # will give weird output if any units differ
     .pix.format(variable="Emissions|{species}", drop=True)
@@ -282,7 +282,7 @@ wmo_2022
 # %%
 # To create these, run notebook "0110_cmip-conc-inversions"
 cmip_inversions = load_csv(
-    DATA_ROOT / "global" / "esgf" / "CR-CMIP-0-4-0" / f"inverse_emissions_{CMIP_CONCENTRATION_INVERSION_ID}.csv"
+    DATA_ROOT / "global" / "esgf" / "CR-CMIP-1-0-0" / f"inverse_emissions_{CMIP_CONCENTRATION_INVERSION_ID}.csv"
 ).pix.assign(scenario=HISTORY_SCENARIO_NAME)
 
 # %%
@@ -308,18 +308,18 @@ wmo_2022
 
 # %%
 global_variable_sources = {
-    "Emissions|BC": "CEDS-BB4CMIP",
+    "Emissions|BC": "CEDS-BB4CMIP-PRIMAP",
     "Emissions|CF4": "WMO 2022 AGAGE inversions",
     "Emissions|C2F6": "WMO 2022 AGAGE inversions",
-    "Emissions|C3F8": "CR-CMIP-0-4-0-inverse-smooth",
-    "Emissions|cC4F8": "CR-CMIP-0-4-0-inverse-smooth",
-    "Emissions|C4F10": "CR-CMIP-0-4-0-inverse-smooth",
-    "Emissions|C5F12": "CR-CMIP-0-4-0-inverse-smooth",
-    "Emissions|C7F16": "CR-CMIP-0-4-0-inverse-smooth",
-    "Emissions|C8F18": "CR-CMIP-0-4-0-inverse-smooth",
-    "Emissions|C6F14": "CR-CMIP-0-4-0-inverse-smooth",
-    "Emissions|CH4": "CEDS-BB4CMIP",
-    "Emissions|CO": "CEDS-BB4CMIP",
+    "Emissions|C3F8": "CR-CMIP-1-0-0-inverse-smooth",
+    "Emissions|cC4F8": "CR-CMIP-1-0-0-inverse-smooth",
+    "Emissions|C4F10": "CR-CMIP-1-0-0-inverse-smooth",
+    "Emissions|C5F12": "CR-CMIP-1-0-0-inverse-smooth",
+    "Emissions|C7F16": "CR-CMIP-1-0-0-inverse-smooth",
+    "Emissions|C8F18": "CR-CMIP-1-0-0-inverse-smooth",
+    "Emissions|C6F14": "CR-CMIP-1-0-0-inverse-smooth",
+    "Emissions|CH4": "CEDS-BB4CMIP-PRIMAP",
+    "Emissions|CO": "CEDS-BB4CMIP-PRIMAP",
     "Emissions|CO2|AFOLU": "Global Carbon Budget",
     "Emissions|CO2|Energy and Industrial Processes": ceds_iteration,
     "Emissions|HFC|HFC125": "Velders et al., 2022",
@@ -339,11 +339,11 @@ global_variable_sources = {
     "Emissions|Montreal Gases|CFC|CFC114": "WMO 2022",
     "Emissions|Montreal Gases|CFC|CFC115": "WMO 2022",
     "Emissions|Montreal Gases|CFC|CFC12": "WMO 2022",
-    "Emissions|Montreal Gases|CH2Cl2": "CR-CMIP-0-4-0-inverse-smooth",
-    "Emissions|Montreal Gases|CH3Br": "CR-CMIP-0-4-0-inverse-smooth",
+    "Emissions|Montreal Gases|CH2Cl2": "CR-CMIP-1-0-0-inverse-smooth",
+    "Emissions|Montreal Gases|CH3Br": "CR-CMIP-1-0-0-inverse-smooth",
     "Emissions|Montreal Gases|CH3CCl3": "WMO 2022",
-    "Emissions|Montreal Gases|CH3Cl": "CR-CMIP-0-4-0-inverse-smooth",
-    "Emissions|Montreal Gases|CHCl3": "CR-CMIP-0-4-0-inverse-smooth",
+    "Emissions|Montreal Gases|CH3Cl": "CR-CMIP-1-0-0-inverse-smooth",
+    "Emissions|Montreal Gases|CHCl3": "CR-CMIP-1-0-0-inverse-smooth",
     "Emissions|Montreal Gases|HCFC141b": "WMO 2022",
     "Emissions|Montreal Gases|HCFC142b": "WMO 2022",
     "Emissions|Montreal Gases|HCFC22": "WMO 2022",
@@ -351,15 +351,15 @@ global_variable_sources = {
     "Emissions|Montreal Gases|Halon1211": "WMO 2022",
     "Emissions|Montreal Gases|Halon1301": "WMO 2022",
     "Emissions|Montreal Gases|Halon2402": "WMO 2022",
-    "Emissions|N2O": "CEDS-BB4CMIP",
-    "Emissions|NF3": "CR-CMIP-0-4-0-inverse-smooth",
-    "Emissions|NH3": "CEDS-BB4CMIP",
-    "Emissions|NOx": "CEDS-BB4CMIP",
-    "Emissions|OC": "CEDS-BB4CMIP",
+    "Emissions|N2O": "CEDS-BB4CMIP-PRIMAP",
+    "Emissions|NF3": "CR-CMIP-1-0-0-inverse-smooth",
+    "Emissions|NH3": "CEDS-BB4CMIP-PRIMAP",
+    "Emissions|NOx": "CEDS-BB4CMIP-PRIMAP",
+    "Emissions|OC": "CEDS-BB4CMIP-PRIMAP",
     "Emissions|SF6": "WMO 2022 AGAGE inversions",
-    "Emissions|SO2F2": "CR-CMIP-0-4-0-inverse-smooth",
-    "Emissions|Sulfur": "CEDS-BB4CMIP",
-    "Emissions|VOC": "CEDS-BB4CMIP",
+    "Emissions|SO2F2": "CR-CMIP-1-0-0-inverse-smooth",
+    "Emissions|Sulfur": "CEDS-BB4CMIP-PRIMAP",
+    "Emissions|VOC": "CEDS-BB4CMIP-PRIMAP",
 }
 
 # %%
@@ -463,5 +463,3 @@ for ax in fg.figure.axes:
 combined_processed_output_file_world_only.parent.mkdir(exist_ok=True, parents=True)
 global_composite.to_csv(combined_processed_output_file_world_only)
 combined_processed_output_file_world_only
-
-# %%
