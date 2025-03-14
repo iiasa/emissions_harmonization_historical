@@ -1,5 +1,14 @@
 """
 Constants for use in our notebooks
+
+These are just a way of avoiding overwriting and identifying data
+as we update our different processing steps.
+If you update the way something is done
+and want to avoid overwriting your old data,
+just update the ID in here
+(because then the data will be written to a different file).
+There are much more sophisticated ways this could be done,
+but they also require more effort :)
 """
 
 from pathlib import Path
@@ -28,7 +37,6 @@ CMIP_CONCENTRATION_INVERSION_ID = "0011"
 COMBINED_HISTORY_ID = "0020"
 
 PRIMAP_HIST_PROCESSING_ID = "0001"
-# what does this code actually mean?
 
 IAMC_REGION_PROCESSING_ID = "0020"
 
