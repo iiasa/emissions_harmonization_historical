@@ -102,3 +102,5 @@ primap_out
 primap_processed_output_file.parent.mkdir(exist_ok=True, parents=True)
 primap_out.to_csv(primap_processed_output_file)
 primap_processed_output_file
+
+# %%
