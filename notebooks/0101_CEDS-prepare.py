@@ -43,7 +43,7 @@ pix.units.set_openscm_registry_as_default()
 # Set paths
 
 # %%
-ceds_release = "2024_07_08"
+ceds_release = "_2025_03_11"
 ceds_data_folder = DATA_ROOT / Path("national", "ceds", "data_raw")
 ceds_sector_mapping_file = DATA_ROOT / Path("national", "ceds", "data_aux", "sector_mapping.xlsx")
 ceds_processed_output_file_national = DATA_ROOT / Path(

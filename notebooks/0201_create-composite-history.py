@@ -65,7 +65,7 @@ class CEDSOption(StrEnum):
 
 
 # %%
-CEDS_SOURCE = CEDSOption.Zenodo_2024_07_08
+CEDS_SOURCE = CEDSOption.Drive_2025_03_11
 CEDS_SOURCE
 
 
@@ -93,7 +93,7 @@ combined_processed_output_file_world_only = DATA_ROOT / Path(
 # ## Process national data
 
 # %%
-if CEDS_SOURCE == CEDSOption.Zenodo_2024_07_08:
+if CEDS_SOURCE in [CEDSOption.Zenodo_2024_07_08, CEDSOption.Drive_2025_03_11]:
     ceds = pix.concat(
         [
             load_csv(
