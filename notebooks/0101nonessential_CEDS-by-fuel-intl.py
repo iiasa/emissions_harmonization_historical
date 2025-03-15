@@ -43,7 +43,7 @@ pix.units.set_openscm_registry_as_default()
 # Set paths
 
 # %%
-ceds_release = "2024_07_08"
+ceds_release = "_2025_03_11"
 ceds_data_folder = DATA_ROOT / Path("national", "ceds", "data_raw", "global_with_fuel_information")
 ceds_sector_mapping_file = DATA_ROOT / Path("national", "ceds", "data_aux", "sector_mapping.xlsx")
 ceds_processed_output_file_global = DATA_ROOT / Path(
@@ -189,3 +189,5 @@ out_global = ceds_reformatted_iamc.loc[pix.isin(region="World")]  # only the add
 ceds_processed_output_file_global.parent.mkdir(exist_ok=True, parents=True)
 out_global.to_csv(ceds_processed_output_file_global)
 ceds_processed_output_file_global
+
+# %%
