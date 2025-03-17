@@ -25,9 +25,12 @@
 from enum import StrEnum, auto
 from pathlib import Path
 
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 import seaborn as sns
+from scipy.stats import linregress
 
 from emissions_harmonization_historical.constants import (
     ADAM_ET_AL_2024_PROCESSING_ID,
@@ -207,17 +210,97 @@ biomass_burning_sum = (
 biomass_burning_sum
 
 # %%
-primap_ch4 = primap_global.loc[pix.ismatch(variable="Emissions|CH4|Fossil, industrial and agriculture"), 1750:1969]
+use_primap_years = range(1750, 1969 + 1)
+
+# %%
+primap_ch4 = primap_global.loc[
+    pix.ismatch(variable="Emissions|CH4|Fossil, industrial and agriculture"), use_primap_years
+]
 # primap_ch4 = primap_ch4.rename(index=lambda x: x.replace(f"|Fossil, industrial and agriculture", ""))
 primap_ch4
 
 # %%
-primap_n2o = primap_global.loc[pix.ismatch(variable="Emissions|N2O|Fossil, industrial and agriculture"), 1750:1969]
+primap_n2o = primap_global.loc[
+    pix.ismatch(variable="Emissions|N2O|Fossil, industrial and agriculture"), use_primap_years
+]
 # primap_n2o = primap_n2o.rename(index=lambda x: x.replace(f"|Fossil, industrial and agriculture", ""))
 primap_n2o
 
 # %%
 biomass_burning_sum
+
+# %% [markdown]
+# ### Comparison of CEDS and PRIMAP-Hist-TP
+
+# %%
+tmp = pix.concat(
+    [
+        ceds_sum.rename(index=lambda x: x.replace("Emissions|CH4|CEDSv2024_07_08", "CH4")).loc[
+            pix.isin(variable=["CH4"])
+        ],
+        primap_global.rename(index=lambda x: x.replace("Emissions|CH4|Fossil, industrial and agriculture", "CH4")).loc[
+            pix.isin(variable=["CH4"])
+        ],
+        ceds_sum.rename(index=lambda x: x.replace("Emissions|N2O|CEDSv2024_07_08", "N2O")).loc[
+            pix.isin(variable=["N2O"])
+        ],
+        primap_global.rename(index=lambda x: x.replace("Emissions|N2O|Fossil, industrial and agriculture", "N2O")).loc[
+            pix.isin(variable=["N2O"])
+        ],
+    ]
+).loc[:, 1900:2025]
+pdf = tmp.melt(ignore_index=False, var_name="year").reset_index()
+
+fg = sns.relplot(
+    data=pdf,
+    x="year",
+    y="value",
+    hue="model",
+    style="scenario",
+    col="variable",
+    col_wrap=2,
+    col_order=sorted(pdf["variable"].unique()),
+    facet_kws=dict(sharey=False),
+    kind="line",
+    alpha=0.5,
+)
+
+for ax in fg.figure.axes:
+    ax.set_ylim(0)
+
+# %% [markdown]
+# #### time varying ratios of the difference between the datasets
+
+# %% [markdown]
+# proposed solution: take a linear regression and apply the intercept to scale PRIMAP emissions before 1970
+
+# %%
+ceds_primap_ch4_ratio = (
+    tmp.loc[pix.isin(variable=["CH4"], model=["CEDSv2024_07_08"]), 1970:2022].values.squeeze()
+    / tmp.loc[pix.isin(variable=["CH4"], model=["PRIMAP-HistTP"]), 1970:2022].values.squeeze()
+)
+plt.plot(ceds_primap_ch4_ratio)
+ch4reg = linregress(np.arange(len(ceds_primap_ch4_ratio)), ceds_primap_ch4_ratio)
+ch4_primap_sf = ch4reg.intercept
+plt.plot(np.arange(len(ceds_primap_ch4_ratio)), ch4reg.intercept + ch4reg.slope * np.arange(len(ceds_primap_ch4_ratio)))
+
+# %%
+ceds_primap_n2o_ratio = (
+    tmp.loc[pix.isin(variable=["N2O"], model=["CEDSv2024_07_08"]), 1970:2022].values.squeeze()
+    / tmp.loc[pix.isin(variable=["N2O"], model=["PRIMAP-HistTP"]), 1970:2022].values.squeeze()
+)
+plt.plot(ceds_primap_n2o_ratio)
+n2oreg = linregress(np.arange(len(ceds_primap_n2o_ratio)), ceds_primap_n2o_ratio)
+n2o_primap_sf = n2oreg.intercept
+plt.plot(np.arange(len(ceds_primap_n2o_ratio)), n2oreg.intercept + n2oreg.slope * np.arange(len(ceds_primap_n2o_ratio)))
+
+# %%
+primap_ch4_scaled = primap_ch4.copy()
+primap_ch4_scaled.loc[:, 1750:1969] = primap_ch4.loc[:, use_primap_years] * ch4_primap_sf
+
+# %%
+primap_n2o_scaled = primap_n2o.copy()
+primap_n2o_scaled.loc[:, 1750:1969] = primap_n2o.loc[:, use_primap_years] * n2o_primap_sf
 
 # %%
 primap_ceds_biomass_burning_composite = (
@@ -226,8 +309,8 @@ primap_ceds_biomass_burning_composite = (
             # Keep CEDS CO2 separate
             ceds_sum.loc[~pix.ismatch(variable="Emissions|CO2**")],
             biomass_burning_sum,
-            primap_ch4,
-            primap_n2o,
+            primap_ch4_scaled,
+            primap_n2o_scaled,
         ]
     )
     .pix.extract(variable="Emissions|{species}|{source}")
