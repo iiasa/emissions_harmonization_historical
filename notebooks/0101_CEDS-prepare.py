@@ -43,7 +43,7 @@ pix.units.set_openscm_registry_as_default()
 # Set paths
 
 # %%
-ceds_release = "2024_07_08"
+ceds_release = "_2025_03_18"
 ceds_data_folder = DATA_ROOT / Path("national", "ceds", "data_raw")
 ceds_sector_mapping_file = DATA_ROOT / Path("national", "ceds", "data_aux", "sector_mapping.xlsx")
 ceds_processed_output_file_national = DATA_ROOT / Path(
@@ -251,7 +251,7 @@ non_zero_values = numeric_values[numeric_values != 0].dropna(how="all")
 if non_zero_values.empty:
     print("✅ Test passed: All numeric values for 'Aircraft' or 'Shipping' rows are zero.")
 else:
-    # For version 2024_07_08 of CEDS, we expect this to show BC and OC emissions for USA.
+    # For version 2024_07_08 and v_2025_03_11 versions of CEDS, we expect this to show BC and OC emissions for USA.
     # ... the reason is that for 'International Shipping', we also include the CEDS sector '1A3di_Oil_Tanker_Loading'
     # ... which only reports non-zero values for USA for BC and OC.
     print("⚠️ Found non-zero values in the following rows:")

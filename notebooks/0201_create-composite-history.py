@@ -64,12 +64,14 @@ pix.units.set_openscm_registry_as_default()
 class CEDSOption(StrEnum):
     """CEDS options"""
 
+    Drive_2025_03_18 = auto()
+    Drive_2025_03_11 = auto()
     Zenodo_2024_07_08 = auto()
     # esgf_gridded_yyyy_mm_dd = auto()
 
 
 # %%
-CEDS_SOURCE = CEDSOption.Zenodo_2024_07_08
+CEDS_SOURCE = CEDSOption.Drive_2025_03_11
 CEDS_SOURCE
 
 
@@ -97,7 +99,7 @@ combined_processed_output_file_world_only = DATA_ROOT / Path(
 # ## Process national data
 
 # %%
-if CEDS_SOURCE == CEDSOption.Zenodo_2024_07_08:
+if CEDS_SOURCE in [CEDSOption.Zenodo_2024_07_08, CEDSOption.Drive_2025_03_11]:
     ceds = pix.concat(
         [
             load_csv(
