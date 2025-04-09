@@ -1,6 +1,6 @@
 Biomass burning data is on the ESGF here: https://aims2.llnl.gov/search?project=input4MIPs&activeFacets=%7B%22mip_era%22%3A%22CMIP6Plus%22%2C%22institution_id%22%3A%22DRES%22%7D
 
-Download the data of interest here.
+Download the data of interest here. (Note that the full dataset is large > 100GB.)
 This can be done with the following commands
 and [esgpull](https://esgf.github.io/esgf-download/)
 (if you're not on a unix-based system,
@@ -52,4 +52,19 @@ venv/bin/esgpull download --tag bb4cmip
 venv/bin/esgpull add --tag bb4cmip-nmvoc-bulk --track variable_long_name:"biomass_burning_NMVOC_bulk_flux" project:input4MIPs mip_era:CMIP6Plus source_id:DRES-CMIP-BB4CMIP7-1-0 grid_label:gn
 venv/bin/esgpull update -y --tag bb4cmip-nmvoc-bulk
 venv/bin/esgpull download --tag bb4cmip-nmvoc-bulk
+```
+
+The download takes some time, but if it gets interrupted it can be restarted using
+```
+venv/bin/esgpull status
+```
+to check if you have downloads that were not completed (error) or that were not yet started before the interruption (starting)
+To put them back in the queue:
+```
+venv/bin/esgpull retry error
+venv/bin/esgpull retry starting
+```
+and then to continue downloading these:
+```
+venv/bin/esgpull retry download
 ```
