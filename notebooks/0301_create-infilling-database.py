@@ -28,6 +28,7 @@
 import logging
 import multiprocessing
 
+import pandas_indexing as pix
 from loguru import logger
 
 from emissions_harmonization_historical.constants import (
@@ -82,11 +83,21 @@ pre_processor = AR7FTPreProcessor.from_default_config()
 pre_processor.run_co2_reclassification
 
 # %%
-harmoniser = AR7FTHarmoniser.from_default_config(data_root=DATA_ROOT, n_processes=n_processes)
+harmoniser = AR7FTHarmoniser.from_default_config(
+    data_root=DATA_ROOT,
+    n_processes=n_processes,
+)
 harmoniser.historical_emissions
 
 # %%
 pre_processed = pre_processor(scenarios_raw_global)
+pre_processed
+
+# %%
+# ?? WITCH HFC23 data becomes NaN from 2090 onwards
+# Use this line to see the issue: pre_processed.loc[pix.isin(model=["WITCH 6.0"]) & pix.ismatch(variable="**HFC*")].dropna(how="all", axis="columns")
+#    - temporary solution: just drop it
+pre_processed = pre_processed.loc[~(pix.isin(model=["WITCH 6.0"]) & pix.ismatch(variable="**HFC23"))]
 pre_processed
 
 # %%

@@ -28,6 +28,7 @@
 import logging
 import multiprocessing
 
+import pandas_indexing as pix
 from loguru import logger
 
 from emissions_harmonization_historical.constants import (
@@ -64,6 +65,18 @@ scenarios_raw_global = load_global_scenario_data(
     scenario_time_id=SCENARIO_TIME_ID,
     progress=True,
 ).loc[:, :2100]  # TODO: drop 2100 end once we have usable scenario data post-2100
+
+# %%
+scenarios_raw_global.loc[pix.isin(model=["WITCH 6.0"]) & pix.ismatch(variable="**HFC*")].dropna(
+    how="all", axis="columns"
+)
+
+# %%
+# ?? WITCH HFC23 data becomes NaN from 2090 onwards
+# Use this line to see the issue: scenarios_raw_global.loc[pix.isin(model=["WITCH 6.0"]) & pix.ismatch(variable="**HFC*")].dropna(how="all", axis="columns")
+#    - temporary solution: just drop it
+scenarios_raw_global = scenarios_raw_global.loc[~(pix.isin(model=["WITCH 6.0"]) & pix.ismatch(variable="**HFC23"))]
+scenarios_raw_global
 
 # %% [markdown]
 # ## Run workflow
