@@ -124,8 +124,8 @@ scenarios_run = complete_scenarios[complete_scenarios.index.isin(selected_scenar
 # scenarios_run = complete_scenarios.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["GCAM*"])]
 
 # %%
-# # To run all, just uncomment the below
-# scenarios_run = complete_scenarios
+# To run all, just uncomment the below
+scenarios_run = complete_scenarios
 
 # %%
 scenarios_run.pix.unique(["model", "scenario"]).to_frame(index=False)
