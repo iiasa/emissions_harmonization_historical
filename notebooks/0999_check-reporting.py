@@ -76,6 +76,17 @@ scenarios_raw = pix.concat(
 ).sort_index(axis="columns")
 scenarios_raw
 
+# %%
+import pandas as pd
+
+pd.set_option("display.max_colwidth", None)
+pd.set_option("display.max_rows", None)
+
+# %%
+scenarios_raw.loc[pix.ismatch(variable="**Aviation**")].pix.unique(["model", "variable", "region"]).to_frame(
+    index=False
+).sort_values("model")
+
 # %% [markdown]
 # ### Data structure definition
 
