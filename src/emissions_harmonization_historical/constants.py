@@ -13,7 +13,8 @@ but they also require more effort :)
 
 from pathlib import Path
 
-DATA_ROOT = Path(__file__).parents[2] / "data"
+REPO_ROOT = Path(__file__).parents[2]
+DATA_ROOT = REPO_ROOT / "data"
 
 CEDS_PROCESSING_ID = "0010"
 CEDS_EXPECTED_NUMBER_OF_REGION_VARIABLE_PAIRS_IN_GLOBAL_HARMONIZATION = 2

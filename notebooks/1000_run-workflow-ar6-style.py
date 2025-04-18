@@ -138,38 +138,45 @@ reporting_issues.drop("scenario", axis="columns").drop_duplicates().sort_values(
 
 # %%
 for (model, variable), mdf in reporting_issues.groupby(["model", "variable"]):
+    # if "COFFEE" not in model:
+    #     continue
     print(f"Reporting  issues for {model} {variable}")
 
-    if variable == "Emissions|CO2|Energy and Industrial Processes":
-        component_vars = dsd.variable[variable].components
+    # if variable == "Emissions|CO2|Energy and Industrial Processes":
+    #     component_vars = dsd.variable[variable].components
+
+    # else:
+    component_vars_in_df = sorted(
+        scenarios_raw_global.loc[pix.ismatch(model=model, variable=f"{variable}|*")].pix.unique("variable")
+    )
+
+    print(f"{component_vars_in_df=}")
+
+    component_vars_in_nomenclature = dsd.variable[variable].components
+    print(f"{component_vars_in_nomenclature=}")
+    if component_vars_in_nomenclature is None:
+        print("No component variables defined by nomenclature")
 
     else:
-        component_vars = sorted(
-            scenarios_raw_global.loc[pix.ismatch(model=model, variable=f"{variable}|*")].pix.unique("variable")
+        component_vars_not_handled_by_nomenclature = set(component_vars_in_df).difference(
+            set(component_vars_in_nomenclature)
         )
+        print(f"{component_vars_not_handled_by_nomenclature=}")
 
-    print(f"{component_vars=}")
-
-    exp_component_vars = dsd.variable[variable].components
-    if exp_component_vars is None:
-        print("No expected component variables")
-
-    else:
-        variables_not_in_exp_component_variables = set(component_vars).difference(set(exp_component_vars))
-        print(f"{variables_not_in_exp_component_variables=}")
-
-        components_handled_by_nomenclature = set(exp_component_vars).intersection(set(component_vars))
+        components_handled_by_nomenclature = set(component_vars_in_nomenclature).intersection(set(component_vars_in_df))
         print(f"{components_handled_by_nomenclature=}")
 
     differences_ts = (
         dsd.check_aggregate(pyam.IamDataFrame(pyam_df.filter(model=model)))
         .loc[pix.isin(variable=variable)]
-        .melt(ignore_index=False)
-        .set_index("variable", append=True)
+        .melt(ignore_index=False, var_name="aggregation")
+        .set_index("aggregation", append=True)["value"]
         .unstack("year")
     )
     display(differences_ts)  # noqa:F821
     # print(differences_ts)
+    # if "AFOLU" in variable:
+    #     break
 
 # %%
 pre_processed = AR7FTPreProcessor.from_default_config()(scenarios_raw_global)
