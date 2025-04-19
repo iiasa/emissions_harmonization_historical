@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pandas as pd
 import pandas_indexing as pix
-from gcages.io import load_timeseries_csv
+from pandas_openscm.io import load_timeseries_csv
 
 
 def load_csv(fp: Path) -> pd.DataFrame:
@@ -33,9 +33,9 @@ def load_csv(fp: Path) -> pd.DataFrame:
     return out
 
 
-def load_global_scenario_data(scenario_path: Path, scenario_time_id: str, progress: bool = False) -> pd.DataFrame:
+def load_raw_scenario_data(scenario_path: Path, scenario_time_id: str, progress: bool = False) -> pd.DataFrame:
     """
-    Load global scenario data
+    Load raw scenario data
 
     Parameters
     ----------
@@ -73,6 +73,33 @@ def load_global_scenario_data(scenario_path: Path, scenario_time_id: str, progre
             for f in scenario_files
         ]
     ).sort_index(axis="columns")
+
+    return scenarios_raw
+
+
+def load_global_scenario_data(scenario_path: Path, scenario_time_id: str, progress: bool = False) -> pd.DataFrame:
+    """
+    Load global scenario data
+
+    Parameters
+    ----------
+    scenario_path
+        Path in which the scenarios were sved
+
+    scenario_time_id
+        Time ID used for saving the scenarios
+
+    progress
+        Show a progress bar while loading?
+
+    Returns
+    -------
+    :
+        Loaded global scenario data
+    """
+    scenarios_raw = load_raw_scenario_data(
+        scenario_path=scenario_path, scenario_time_id=scenario_time_id, progress=progress
+    )
 
     scenarios_raw_global = scenarios_raw.loc[pix.ismatch(region="World")]
 

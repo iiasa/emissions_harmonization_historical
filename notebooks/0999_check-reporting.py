@@ -22,22 +22,32 @@
 
 # %%
 import nomenclature
+import numpy as np
 import pandas_indexing as pix
 import pandas_openscm
 import pyam
+import gcages.completeness
 from gcages.cmip7_scenariomip import CMIP7ScenarioMIPPreProcessor
 from pandas_openscm.io import load_timeseries_csv
 from tqdm.auto import tqdm
+import pandas as pd
+from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 
+
+from gcages.cmip7_scenariomip.pre_processing import REQUIRED_GRIDDING_SPECIES_IAMC
 from emissions_harmonization_historical.constants import (
     DATA_ROOT,
     REPO_ROOT,
     SCENARIO_TIME_ID,
 )
+from emissions_harmonization_historical.io import load_raw_scenario_data
 from emissions_harmonization_historical.nomenclature_helpers import get_common_definitions
 
 # %% [markdown]
 # ## Set up
+
+# %%
+pd.set_option("display.max_colwidth", None)
 
 # %%
 pandas_openscm.register_pandas_accessor()
@@ -56,36 +66,164 @@ COMMON_DEFINITIONS_PATH = REPO_ROOT / "common-definitions"
 # ### Scenario data
 
 # %%
-scenario_files = tuple((DATA_ROOT / "scenarios" / "data_raw").glob(f"{SCENARIO_TIME_ID}__scenarios-scenariomip__*.csv"))
-if not scenario_files:
-    msg = f"Check your scenario ID. {list(scenario_path.glob('*.csv'))=}"
-    raise AssertionError(msg)
-
-
-scenario_files = tqdm(scenario_files, desc="Scenario files")
-
-scenarios_raw = pix.concat(
-    [
-        load_timeseries_csv(
-            f,
-            index_columns=["model", "scenario", "region", "variable", "unit"],
-            out_column_type=int,
-        )
-        for f in scenario_files
-    ]
-).sort_index(axis="columns")
+scenarios_raw = load_raw_scenario_data(
+    scenario_path=DATA_ROOT / "scenarios" / "data_raw",
+    scenario_time_id=SCENARIO_TIME_ID,
+    progress=True,
+).loc[:, :2100]  # TODO: drop 2100 end once we have usable scenario data post-2100
+scenarios_raw.columns.name = "year"
 scenarios_raw
 
 # %%
-import pandas as pd
+# can be helpful for inspecting
+# pd.set_option("display.max_rows", None)
+# scenarios_raw.loc[pix.ismatch(variable="**Aviation**")].pix.unique(["model", "variable", "region"]).to_frame(
+#     index=False
+# ).sort_values("model")
 
-pd.set_option("display.max_colwidth", None)
-pd.set_option("display.max_rows", None)
+# %% [markdown]
+# ## Check with pre-processor
 
 # %%
-scenarios_raw.loc[pix.ismatch(variable="**Aviation**")].pix.unique(["model", "variable", "region"]).to_frame(
-    index=False
-).sort_values("model")
+pre_processor = CMIP7ScenarioMIPPreProcessor()
+pre_processor
+
+# %%
+model_reported_times_d = {}
+for model, mdf in scenarios_raw.groupby("model"):
+    mdf_reported_times = mdf.dropna(how="all", axis="columns")
+    model_reported_times_d[model] = mdf_reported_times
+
+    try:
+        pre_processor(mdf_reported_times)
+    except (gcages.completeness.NotCompleteError, AssertionError) as exc:
+        print()
+        print(f"Failure for {model}")
+        print(exc)
+
+    # break
+
+# %% [markdown]
+# ### Individual model notes
+
+# %% [markdown]
+# #### AIM
+
+# %% [markdown]
+# Check if any scenarios pass.
+
+# %%
+passing_l = []
+for scenario, sdf in model_reported_times_d["AIM 3.0"].groupby("scenario"):
+    try:
+        pre_processor(sdf)
+    except gcages.completeness.NotCompleteError:
+        print(f"{scenario} failed")
+        continue
+
+    passing_l.append(scenario)
+
+passing_l
+
+# %%
+assert False, "Up to here. Get better completeness reporting."
+
+# %% [markdown]
+# Pre-process the passing scenarios.
+
+# %%
+pre_processor(model_reported_times_d["AIM 3.0"])
+
+
+# %% [markdown]
+# Missing international aviation and shipping reporting for a single scenario: SSP1 - Medium Emissions.
+# Options:
+#
+# 1. copy from another scenario
+# 1. fill with zeroes
+# 1. get them to report
+#
+# Action for now: try filling with zeros and see if we get any further.
+
+# %%
+def get_unit(v):
+    species = v.split("|")[1]
+    unit_map = {
+        "BC": "Mt BC/yr",
+        "CH4": "Mt CH4/yr",
+        "CO": "Mt CO/yr",
+        "CO2": "Mt CO2/yr",
+        "N2O": "kt N2O/yr",
+        "NH3": "Mt NH3/yr",
+        "NOx": "Mt NO2/yr",
+        "OC": "Mt OC/yr",
+        "Sulfur": "Mt SO2/yr",
+        "VOC": "Mt VOC/yr",
+    }
+
+    return unit_map[species]
+
+
+# %%
+
+0   Emissions|BC|Energy|Demand|Bunkers|International Aviation  AIM 3.0
+1  Emissions|N2O|Energy|Demand|Bunkers|International Aviation  AIM 3.0
+2  Emissions|N2O|Energy|Demand|Bunkers|International Shipping  AIM 3.0
+3  Emissions|NH3|Energy|Demand|Bunkers|International Aviation  AIM 3.0
+4   Emissions|OC|Energy|Demand|Bunkers|International Aviation  AIM 3.0
+
+                  scenario region
+0  SSP1 - Medium Emissions  World
+1  SSP1 - Medium Emissions  World
+2  SSP1 - Medium Emissions  World
+3  SSP1 - Medium Emissions  World
+4  SSP1 - Medium Emissions  World
+
+# %%
+tmp = pd.MultiIndex.from_product(
+    [
+        [
+            "Emissions|BC|Energy|Demand|Bunkers|International Aviation",
+            "Emissions|N2O|Energy|Demand|Bunkers|International Aviation",
+            "Emissions|N2O|Energy|Demand|Bunkers|International Shipping",
+            "Emissions|NH3|Energy|Demand|Bunkers|International Aviation",
+            "Emissions|OC|Energy|Demand|Bunkers|International Aviation",
+        ],
+        ["World"],
+        model_reported_times_d["AIM 3.0"].pix.unique("model"),
+        ["SSP1 - Medium Emissions"],
+    ],
+    names=["variable", "region", "model", "scenario"]
+).to_frame(index=False)
+tmp["unit"] = tmp["variable"].map(get_unit)
+index = pd.MultiIndex.from_frame(tmp)
+to_append = pd.DataFrame(
+    np.zeros((tmp.shape[0], model_reported_times_d["AIM 3.0"].columns.size)),
+    columns=model_reported_times_d["AIM 3.0"].columns,
+    index=index
+)
+
+aim_take_2 = pix.concat([model_reported_times_d["AIM 3.0"], to_append])
+aim_take_2
+
+# %%
+pre_processor(aim_take_2)
+
+# %%
+# MESSAGE reporting all over the place
+# scenarios_raw.loc[pix.ismatch(model="MESSAGEix-GLOBIOM-GAINS 2.1-M-R12")]
+
+# %%
+tmp = scenarios_raw.loc[pix.ismatch(model="WITCH 6.0")].dropna(how="all", axis="columns")
+tmp.loc[tmp.isnull().any(axis="columns"), :]
+
+# %%
+scenarios_raw.loc[pix.ismatch(variable="**International**")]
+
+# %%
+mdf_reported_times
+
+# %%
 
 # %% [markdown]
 # ### Data structure definition
