@@ -14,7 +14,7 @@ dependencies = [
     "scmdata>=0.17.0,<0.18",
     "nomenclature-iamc>=0.22.1,<0.23",
     "xarray-regrid==0.4.0",
-    "gcages @ git+https://github.com/openscm/gcages.git@11264b53dfeacd6e0f37cd5dbfdb01e969ca2ee2",
+    "gcages @ git+https://github.com/openscm/gcages.git@f245ceca9d89bd21259cd695d7be63e74fd6e6d8",
 ]
 name = "emissions-harmonization-historical"
 version = "0.1.0"

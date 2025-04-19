@@ -120,15 +120,15 @@ from gcages.cmip7_scenariomip.pre_processing import (
 from gcages.completeness import get_missing_levels
 
 # %%
-# TODO: push this back into gcages,
-# these CO2 burning variables aren't actually required
-REQUIRED_REGIONAL_INDEX_IAMC = REQUIRED_REGIONAL_INDEX_IAMC.drop(
-    [
-        "Emissions|CO2|AFOLU|Land|Fires|Forest Burning",
-        "Emissions|CO2|AFOLU|Land|Fires|Grassland Burning",
-        "Emissions|CO2|AFOLU|Land|Fires|Peat Burning",
-    ]
-)
+# # TODO: push this back into gcages,
+# # these CO2 burning variables aren't actually required
+# REQUIRED_REGIONAL_INDEX_IAMC = REQUIRED_REGIONAL_INDEX_IAMC.drop(
+#     [
+#         "Emissions|CO2|AFOLU|Land|Fires|Forest Burning",
+#         "Emissions|CO2|AFOLU|Land|Fires|Grassland Burning",
+#         "Emissions|CO2|AFOLU|Land|Fires|Peat Burning",
+#     ]
+# )
 
 
 # %%
@@ -336,6 +336,84 @@ model_missing_timeseries
 # %%
 model_df_take_2 = pd.concat([model_df, model_missing_timeseries])
 pre_processor(model_df_take_2)
+
+# %%
+from gcages.cmip7_scenariomip.pre_processing import unstack_sector
+from pandas_openscm.indexing import multi_index_lookup
+
+# %%
+model_df_take_3_sector = multi_index_lookup(model_df_take_2.loc[pix.ismatch(region="World")], REQUIRED_WORLD_INDEX_IAMC)
+# model_df_take_3_sector
+
+# %%
+sector = (
+    unstack_sector(model_df_take_3_sector.reset_index("region", drop=True), time_name="year").stack().unstack("year")
+)
+# sector
+
+# %%
+model_df_take_3_sector_region = multi_index_lookup(
+    model_df_take_2.loc[~pix.ismatch(region="World")], REQUIRED_REGIONAL_INDEX_IAMC
+)
+model_df_take_3_sector_region
+
+# %%
+region_sector = unstack_sector(model_df_take_3_sector_region, time_name="year").stack().unstack("year")
+region_sector.pix.unique("sectors")
+
+# %%
+totals = (
+    sector.openscm.groupby_except("sectors").sum()
+    + region_sector.loc[~pix.ismatch(sectors="**Domestic Aviation")].openscm.groupby_except(["region", "sectors"]).sum()
+)
+model_df_take_3_totals = totals.pix.assign(region="World").pix.format(variable="{table}|{species}", drop=True)
+# model_df_take_3_totals
+
+# %%
+model_df_non_gridding = model_df.loc[
+    pix.ismatch(
+        variable=[
+            "Emissions|C2F6",
+            "Emissions|C6F14",
+            "Emissions|CF4",
+            "**HFC|**",
+            "Emissions|SF6",
+        ],
+        region=["World"],
+    )
+]
+model_df_non_gridding
+
+# %%
+model_df_take_3 = pix.concat(
+    [
+        model_df_take_3_sector,
+        model_df_take_3_sector_region,
+        model_df_take_3_totals,
+        model_df_non_gridding,
+    ]
+)
+model_df_take_3.index = model_df_take_3.index.remove_unused_levels()
+
+# %%
+# %pdb
+
+# %%
+take_3_res = CMIP7ScenarioMIPPreProcessor(n_processes=None)(model_df_take_3)
+
+# %%
+ax = (
+    take_3_res.gridding_workflow_emissions.loc[pix.ismatch(variable="**CH4|Energy*")]
+    .pix.project(["region", "variable"])
+    .T.plot()
+)
+ax.legend(loc="center left", bbox_to_anchor=(1.05, 0.5))
+
+# %%
+take_3_res.global_workflow_emissions.loc[pix.ismatch(variable="**CO2**")].T.plot()
+
+# %%
+take_3_res.global_workflow_emissions.loc[pix.ismatch(variable="**SF6**")].T.plot()
 
 # %% [markdown]
 # #### COFFEE
