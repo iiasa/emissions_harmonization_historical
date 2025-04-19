@@ -21,20 +21,18 @@
 # ## Imports
 
 # %%
+import gcages.completeness
 import nomenclature
 import numpy as np
+import pandas as pd
 import pandas_indexing as pix
 import pandas_openscm
 import pyam
-import gcages.completeness
 from gcages.cmip7_scenariomip import CMIP7ScenarioMIPPreProcessor
-from pandas_openscm.io import load_timeseries_csv
+
+# %%
 from tqdm.auto import tqdm
-import pandas as pd
-from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 
-
-from gcages.cmip7_scenariomip.pre_processing import REQUIRED_GRIDDING_SPECIES_IAMC
 from emissions_harmonization_historical.constants import (
     DATA_ROOT,
     REPO_ROOT,
@@ -89,144 +87,522 @@ pre_processor = CMIP7ScenarioMIPPreProcessor()
 pre_processor
 
 # %%
+passing_models = []
 model_reported_times_d = {}
 for model, mdf in scenarios_raw.groupby("model"):
     mdf_reported_times = mdf.dropna(how="all", axis="columns")
-    model_reported_times_d[model] = mdf_reported_times
+    mdf_reported_times_relevant_regions = mdf_reported_times.loc[
+        pix.ismatch(region=["World", f"{model.split(' ')[0]}**"])
+    ]
+    model_reported_times_d[model] = mdf_reported_times_relevant_regions
 
     try:
         pre_processor(mdf_reported_times)
-    except (gcages.completeness.NotCompleteError, AssertionError) as exc:
+    except (gcages.completeness.NotCompleteError, AssertionError):
         print()
-        print(f"Failure for {model}")
-        print(exc)
+        print(f"{model} failed")
+        continue
 
-    # break
+    passing_models.append(model)
 
 # %% [markdown]
-# ### Individual model notes
+# Not a great start, but also not unexpected.
+
+# %% [markdown]
+# ### Individual model deeper dive
+
+# %%
+from gcages.cmip7_scenariomip.pre_processing import (
+    REQUIRED_REGIONAL_INDEX_IAMC,
+    REQUIRED_WORLD_INDEX_IAMC,
+    split_world_and_regional_data,
+)
+from gcages.completeness import get_missing_levels
+
+# %%
+# TODO: push this back into gcages,
+# these CO2 burning variables aren't actually required
+REQUIRED_REGIONAL_INDEX_IAMC = REQUIRED_REGIONAL_INDEX_IAMC.drop(
+    [
+        "Emissions|CO2|AFOLU|Land|Fires|Forest Burning",
+        "Emissions|CO2|AFOLU|Land|Fires|Grassland Burning",
+        "Emissions|CO2|AFOLU|Land|Fires|Peat Burning",
+    ]
+)
+
+
+# %%
+def check_if_any_scenario_passes(model_df: pd.DataFrame) -> list[str]:
+    passing_l = []
+    for scenario, sdf in model_df.groupby("scenario"):
+        try:
+            pre_processor(sdf)
+        except gcages.completeness.NotCompleteError:
+            print(f"{scenario} failed")
+            continue
+
+        passing_l.append(scenario)
+
+    passing_l
+
+
+# %%
+def get_missing_info(df_idx: pd.MultiIndex, complete_index: pd.MultiIndex) -> pd.DataFrame:
+    return (
+        get_missing_levels(
+            df_idx, complete_index=complete_index, levels_to_drop=df_idx.names.difference(complete_index.names)
+        )
+        .pix.extract(variable="{table}|{species}|{sector}")
+        .to_frame(index=False)
+    )
+
+
+def get_missing_summary_scenario(sdf: pd.DataFrame, world_region: str = "World") -> pd.DataFrame:
+    split_data = split_world_and_regional_data(sdf, world_region=world_region)
+
+    missing_world = get_missing_info(
+        split_data.world.index,
+        complete_index=REQUIRED_WORLD_INDEX_IAMC,
+    )
+
+    missing_regional = get_missing_info(
+        split_data.regional.index,
+        complete_index=REQUIRED_REGIONAL_INDEX_IAMC,
+    )
+
+    missing = pd.concat([missing_world, missing_regional])
+    missing["missing"] = True
+
+    return missing
+
+
+def get_model_missing(model_df: pd.DataFrame) -> pd.DataFrame:
+    model_missing_l = []
+    for scenario, sdf in model_df.groupby("scenario"):
+        scenario_missing = get_missing_summary_scenario(sdf)
+        scenario_missing["scenario"] = scenario
+        scenario_missing["model"] = model
+
+        model_missing_l.append(scenario_missing)
+
+    model_missing = pd.concat(model_missing_l)
+
+    return model_missing
+
+
+# %%
+def get_model_missing_total(model_missing: pd.DataFrame) -> pd.DataFrame:
+    return model_missing.groupby(["scenario"])["missing"].sum().sort_values(ascending=True)
+
+
+# %%
+def get_model_missing_styled_summary(model_missing: pd.DataFrame, model_missing_total: pd.DataFrame) -> pd.DataFrame:
+    return (
+        model_missing.pivot_table(
+            values=["missing"],
+            columns=["species"],
+            index=["scenario", "model", "sector"],
+            aggfunc=lambda x: any(~pd.isnull(xx) for xx in x.values),
+        )
+        .loc[model_missing_total.index]
+        .reorder_levels(["model", "scenario", "sector"])
+        .style.highlight_max(color="orange")
+    )
+
+
+# %%
+world_region = "World"
 
 # %% [markdown]
 # #### AIM
 
-# %% [markdown]
-# Check if any scenarios pass.
+# %%
+model = "AIM 3.0"
+model_df = model_reported_times_d[model]
 
 # %%
-passing_l = []
-for scenario, sdf in model_reported_times_d["AIM 3.0"].groupby("scenario"):
-    try:
-        pre_processor(sdf)
-    except gcages.completeness.NotCompleteError:
-        print(f"{scenario} failed")
-        continue
-
-    passing_l.append(scenario)
-
-passing_l
-
-# %%
-assert False, "Up to here. Get better completeness reporting."
+# temporary hack so we only deal with one scenario
+model_df = model_df.loc[pix.isin(scenario=model_df.pix.unique("scenario").tolist()[0])]
 
 # %% [markdown]
-# Pre-process the passing scenarios.
+# Let's see if any scenario passes.
 
 # %%
-pre_processor(model_reported_times_d["AIM 3.0"])
-
+passing_scenarios = check_if_any_scenario_passes(model_df)
+passing_scenarios
 
 # %% [markdown]
-# Missing international aviation and shipping reporting for a single scenario: SSP1 - Medium Emissions.
-# Options:
-#
-# 1. copy from another scenario
-# 1. fill with zeroes
-# 1. get them to report
-#
-# Action for now: try filling with zeros and see if we get any further.
+# Also not ideal.
+# Let's see what is going wrong.
 
 # %%
-def get_unit(v):
-    species = v.split("|")[1]
-    unit_map = {
-        "BC": "Mt BC/yr",
-        "CH4": "Mt CH4/yr",
-        "CO": "Mt CO/yr",
-        "CO2": "Mt CO2/yr",
-        "N2O": "kt N2O/yr",
-        "NH3": "Mt NH3/yr",
-        "NOx": "Mt NO2/yr",
-        "OC": "Mt OC/yr",
-        "Sulfur": "Mt SO2/yr",
-        "VOC": "Mt VOC/yr",
-    }
+model_missing = get_model_missing(model_df)
+model_missing
 
-    return unit_map[species]
+# %%
+model_missing_total = get_model_missing_total(model_missing)
+model_missing_total
+
+# %%
+get_model_missing_styled_summary(model_missing, model_missing_total)
 
 
 # %%
+def get_missing_idx_inner(df_idx: pd.MultiIndex, complete_index: pd.MultiIndex) -> pd.DataFrame:
+    return get_missing_levels(
+        df_idx, complete_index=complete_index, levels_to_drop=df_idx.names.difference(complete_index.names)
+    )
 
-0   Emissions|BC|Energy|Demand|Bunkers|International Aviation  AIM 3.0
-1  Emissions|N2O|Energy|Demand|Bunkers|International Aviation  AIM 3.0
-2  Emissions|N2O|Energy|Demand|Bunkers|International Shipping  AIM 3.0
-3  Emissions|NH3|Energy|Demand|Bunkers|International Aviation  AIM 3.0
-4   Emissions|OC|Energy|Demand|Bunkers|International Aviation  AIM 3.0
 
-                  scenario region
-0  SSP1 - Medium Emissions  World
-1  SSP1 - Medium Emissions  World
-2  SSP1 - Medium Emissions  World
-3  SSP1 - Medium Emissions  World
-4  SSP1 - Medium Emissions  World
+def get_fill_idx_scenario(sdf: pd.DataFrame, world_region: str = "World") -> pd.DataFrame:
+    split_data = split_world_and_regional_data(sdf, world_region=world_region)
 
-# %%
-tmp = pd.MultiIndex.from_product(
-    [
+    complete_index_world = pd.MultiIndex.from_product(
+        [*REQUIRED_WORLD_INDEX_IAMC.levels, ["World"]],
+        names=[*REQUIRED_WORLD_INDEX_IAMC.names, "region"],
+    )
+    missing_world = get_missing_idx_inner(
+        split_data.world.index,
+        complete_index=complete_index_world,
+    )
+
+    complete_index_region = pd.MultiIndex.from_product(
         [
-            "Emissions|BC|Energy|Demand|Bunkers|International Aviation",
-            "Emissions|N2O|Energy|Demand|Bunkers|International Aviation",
-            "Emissions|N2O|Energy|Demand|Bunkers|International Shipping",
-            "Emissions|NH3|Energy|Demand|Bunkers|International Aviation",
-            "Emissions|OC|Energy|Demand|Bunkers|International Aviation",
+            *REQUIRED_REGIONAL_INDEX_IAMC.levels,
+            [v for v in split_data.regional.index.get_level_values("region").unique() if v != "World"],
         ],
-        ["World"],
-        model_reported_times_d["AIM 3.0"].pix.unique("model"),
-        ["SSP1 - Medium Emissions"],
-    ],
-    names=["variable", "region", "model", "scenario"]
-).to_frame(index=False)
-tmp["unit"] = tmp["variable"].map(get_unit)
-index = pd.MultiIndex.from_frame(tmp)
-to_append = pd.DataFrame(
-    np.zeros((tmp.shape[0], model_reported_times_d["AIM 3.0"].columns.size)),
-    columns=model_reported_times_d["AIM 3.0"].columns,
-    index=index
-)
+        names=[*REQUIRED_REGIONAL_INDEX_IAMC.names, "region"],
+    )
+    missing_regional = get_missing_idx_inner(
+        split_data.regional.index,
+        complete_index=complete_index_region,
+    )
 
-aim_take_2 = pix.concat([model_reported_times_d["AIM 3.0"], to_append])
-aim_take_2
+    tmp = pd.concat([missing_world.to_frame(index=False), missing_regional.to_frame(index=False)])
+    variable_unit_map = (
+        sdf.pix.unique(["variable", "unit"]).drop_duplicates().to_frame().set_index("variable")["unit"].to_dict()
+    )
+
+    def guess_unit(variable: str) -> str:
+        for k, v in variable_unit_map.items():
+            if f"{k}|" in variable:
+                return v
+
+    tmp["unit"] = tmp["variable"].map(guess_unit)
+
+    index_missing_levels = pd.MultiIndex.from_frame(tmp)
+
+    sdf_index_except_missing_levels = (
+        sdf.index.remove_unused_levels().droplevel(index_missing_levels.names).drop_duplicates()
+    )
+    if sdf_index_except_missing_levels.shape[0] != 1:
+        raise AssertionError(sdf_index_except_missing_levels)
+
+    fill_index = pd.MultiIndex(
+        levels=[*index_missing_levels.levels, *sdf_index_except_missing_levels.levels],
+        codes=[
+            *index_missing_levels.codes,
+            *[np.zeros(index_missing_levels.shape[0]) for _ in sdf_index_except_missing_levels.codes],
+        ],
+        names=[*index_missing_levels.names, *sdf_index_except_missing_levels.names],
+    ).reorder_levels(sdf.index.names)
+
+    return fill_index
+
+
+def get_model_missing_timeseries(model_df: pd.DataFrame) -> pd.DataFrame:
+    model_missing_l = []
+    for scenario, sdf in model_df.groupby("scenario"):
+        missing_indexes_scenario = get_fill_idx_scenario(sdf)
+        scenario_missing_timeseries = pd.DataFrame(
+            np.zeros((missing_indexes_scenario.shape[0], sdf.shape[1])),
+            columns=sdf.columns,
+            index=missing_indexes_scenario,
+        )
+        model_missing_l.append(scenario_missing_timeseries)
+
+    model_missing = pd.concat(model_missing_l)
+
+    return model_missing
+
 
 # %%
-pre_processor(aim_take_2)
-
-# %%
-# MESSAGE reporting all over the place
-# scenarios_raw.loc[pix.ismatch(model="MESSAGEix-GLOBIOM-GAINS 2.1-M-R12")]
-
-# %%
-tmp = scenarios_raw.loc[pix.ismatch(model="WITCH 6.0")].dropna(how="all", axis="columns")
-tmp.loc[tmp.isnull().any(axis="columns"), :]
-
-# %%
-scenarios_raw.loc[pix.ismatch(variable="**International**")]
-
-# %%
-mdf_reported_times
-
-# %%
+model_missing_timeseries = get_model_missing_timeseries(model_df)
+model_missing_timeseries
 
 # %% [markdown]
-# ### Data structure definition
+# Try again with missing timeseries added.
+
+# %%
+model_df_take_2 = pd.concat([model_df, model_missing_timeseries])
+pre_processor(model_df_take_2)
+
+# %% [markdown]
+# #### COFFEE
+
+# %%
+model = "COFFEE 1.6"
+model_df = model_reported_times_d[model]
+
+# %%
+# temporary hack so we only deal with one scenario
+model_df = model_df.loc[pix.isin(scenario=model_df.pix.unique("scenario").tolist()[0])]
+
+# %% [markdown]
+# Let's see if any scenario passes.
+
+# %%
+passing_scenarios = check_if_any_scenario_passes(model_df)
+passing_scenarios
+
+# %% [markdown]
+# Also not ideal.
+# Let's see what is going wrong.
+
+# %%
+model_missing = get_model_missing(model_df)
+model_missing
+
+# %%
+model_missing_total = get_model_missing_total(model_missing)
+model_missing_total
+
+# %%
+get_model_missing_styled_summary(model_missing, model_missing_total)
+
+# %%
+model_missing_timeseries = get_model_missing_timeseries(model_df)
+model_missing_timeseries
+
+# %% [markdown]
+# Try again with missing timeseries added.
+
+# %%
+model_df_take_2 = pd.concat([model_df, model_missing_timeseries])
+pre_processor(model_df_take_2)
+
+# %% [markdown]
+# #### GCAM
+
+# %%
+model = "GCAM 7.1 scenarioMIP"
+model_df = model_reported_times_d[model]
+
+# %%
+# temporary hack so we only deal with one scenario
+model_df = model_df.loc[pix.isin(scenario=model_df.pix.unique("scenario").tolist()[0])]
+
+# %% [markdown]
+# Let's see if any scenario passes.
+
+# %%
+passing_scenarios = check_if_any_scenario_passes(model_df)
+passing_scenarios
+
+# %% [markdown]
+# Also not ideal.
+# Let's see what is going wrong.
+
+# %%
+model_missing = get_model_missing(model_df)
+model_missing
+
+# %%
+model_missing_total = get_model_missing_total(model_missing)
+model_missing_total
+
+# %%
+model_df.loc[pix.ismatch(variable="**Energy|Supply")]
+
+# %%
+get_model_missing_styled_summary(model_missing, model_missing_total)
+
+# %%
+model_missing_timeseries = get_model_missing_timeseries(model_df)
+model_missing_timeseries
+
+# %% [markdown]
+# Try again with missing timeseries added.
+
+# %%
+model_df_take_2 = pd.concat([model_df, model_missing_timeseries])
+pre_processor(model_df_take_2)
+
+# %% [markdown]
+# #### IMAGE
+
+# %%
+model = "IMAGE 3.4"
+model_df = model_reported_times_d[model]
+
+# %%
+# temporary hack so we only deal with one scenario
+model_df = model_df.loc[pix.isin(scenario=model_df.pix.unique("scenario").tolist()[0])]
+
+# %% [markdown]
+# Let's see if any scenario passes.
+
+# %%
+passing_scenarios = check_if_any_scenario_passes(model_df)
+passing_scenarios
+
+# %% [markdown]
+# Also not ideal.
+# Let's see what is going wrong.
+
+# %%
+model_missing = get_model_missing(model_df)
+model_missing
+
+# %%
+model_missing_total = get_model_missing_total(model_missing)
+model_missing_total
+
+# %%
+get_model_missing_styled_summary(model_missing, model_missing_total)
+
+# %%
+model_missing_timeseries = get_model_missing_timeseries(model_df)
+model_missing_timeseries
+
+# %% [markdown]
+# Try again with missing timeseries added.
+
+# %%
+model_df_take_2 = pd.concat([model_df, model_missing_timeseries])
+pre_processor(model_df_take_2)
+
+# %% [markdown]
+# #### MESSAGE
+
+# %%
+model = "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12"
+model_df = model_reported_times_d[model]
+
+# %%
+# temporary hack so we only deal with one scenario
+model_df = model_df.loc[pix.isin(scenario=model_df.pix.unique("scenario").tolist()[0])]
+
+# %% [markdown]
+# Let's see if any scenario passes.
+
+# %%
+passing_scenarios = check_if_any_scenario_passes(model_df)
+passing_scenarios
+
+# %% [markdown]
+# Also not ideal.
+# Let's see what is going wrong.
+
+# %%
+model_missing = get_model_missing(model_df)
+model_missing
+
+# %%
+model_missing_total = get_model_missing_total(model_missing)
+model_missing_total
+
+# %%
+get_model_missing_styled_summary(model_missing, model_missing_total)
+
+# %%
+model_missing_timeseries = get_model_missing_timeseries(model_df)
+model_missing_timeseries
+
+# %% [markdown]
+# Try again with missing timeseries added.
+
+# %%
+model_df_take_2 = pd.concat([model_df, model_missing_timeseries])
+pre_processor(model_df_take_2)
+
+# %% [markdown]
+# #### REMIND-MAgPIE
+
+# %%
+model = "REMIND-MAgPIE 3.5-4.10"
+model_df = model_reported_times_d[model]
+
+# %%
+# temporary hack so we only deal with one scenario
+model_df = model_df.loc[pix.isin(scenario=model_df.pix.unique("scenario").tolist()[0])]
+
+# %%
+passing_scenarios = check_if_any_scenario_passes(model_df)
+passing_scenarios
+
+# %% [markdown]
+# Also not ideal.
+# Let's see what is going wrong.
+
+# %%
+model_missing = get_model_missing(model_df)
+model_missing
+
+# %%
+model_missing_total = get_model_missing_total(model_missing)
+model_missing_total
+
+# %%
+get_model_missing_styled_summary(model_missing, model_missing_total)
+
+# %%
+model_missing_timeseries = get_model_missing_timeseries(model_df)
+model_missing_timeseries
+
+# %% [markdown]
+# Try again with missing timeseries added.
+
+# %%
+model_df_take_2 = pd.concat([model_df, model_missing_timeseries])
+pre_processor(model_df_take_2)
+
+# %% [markdown]
+# #### WITCH
+
+# %%
+model = "WITCH 6.0"
+model_df = model_reported_times_d[model]
+
+# %%
+# temporary hack so we only deal with one scenario
+model_df = model_df.loc[pix.isin(scenario=model_df.pix.unique("scenario").tolist()[0])]
+
+# %%
+passing_scenarios = check_if_any_scenario_passes(model_df)
+passing_scenarios
+
+# %% [markdown]
+# Also not ideal.
+# Let's see what is going wrong.
+
+# %%
+model_missing = get_model_missing(model_df)
+model_missing
+
+# %%
+model_missing_total = get_model_missing_total(model_missing)
+model_missing_total
+
+# %%
+get_model_missing_styled_summary(model_missing, model_missing_total)
+
+# %%
+model_missing_timeseries = get_model_missing_timeseries(model_df)
+model_missing_timeseries
+
+# %% [markdown]
+# Try again with missing timeseries added.
+
+# %%
+model_df_take_2 = pd.concat([model_df, model_missing_timeseries])
+model_df_take_2
+
+# %%
+pre_processor(model_df_take_2)
+
+# %% [markdown]
+# ## Check with common definitions
 
 # %%
 if not COMMON_DEFINITIONS_PATH.exists():
@@ -269,10 +645,9 @@ for variable in dsd.variable:
         # print(variable)
         dsd.variable[variable].check_aggregate = True
 
-pre_processor = CMIP7ScenarioMIPPreProcessor(data_structure_definition=dsd)
-pre_processor
-
 # %%
+# This output isn't actually that helpful,
+# because it's not testing the hieararchy used by the gridding.
 checked_models = []
 issues_d = {}
 for (model, scenario), msdf in tqdm(scenarios_raw.groupby(["model", "scenario"])):
@@ -288,97 +663,10 @@ for (model, scenario), msdf in tqdm(scenarios_raw.groupby(["model", "scenario"])
     if issues is None:
         continue
 
-        # break
-
     checked_models.append(model)
     display(issues)
     display(issues.index.get_level_values("variable").unique())
     issues_d[(model, scenario)] = issues
     print(len(issues.index.get_level_values("variable").unique()))
-    pre_processor(msdf)
     print()
     # break
-
-# %%
-checked_models = []
-issues_d = {}
-for (model, scenario), msdf in tqdm(scenarios_raw.loc[pix.ismatch(variable="**CO2**")].groupby(["model", "scenario"])):
-    if model in checked_models:
-        continue
-
-    issues = dsd.check_aggregate(
-        pyam.IamDataFrame(msdf),
-        rtol=1e-3,
-        atol=1e-6,
-    )
-    print(f"{model} {scenario}")
-    if issues is None:
-        continue
-
-        # break
-
-    checked_models.append(model)
-    display(issues)
-    print("Variables with issues")
-    display(issues.index.get_level_values("variable").unique())
-    issues_d[(model, scenario)] = issues
-    print(len(issues.index.get_level_values("variable").unique()))
-    print("variables in reporting")
-    print(msdf.loc[pix.ismatch(variable="**CO2|*")].index.get_level_values("variable").unique())
-    try:
-        pre_processor(msdf)
-    except ValueError as exc:
-        print(exc)
-    print()
-    # break
-
-# %%
-# scenarios_raw.loc[pix.ismatch(model="REMIND*")].pix.unique("variable").tolist()
-
-# %%
-from functools import partial
-
-
-def update_region(r, model):
-    if r == "World":
-        return r
-
-    return f"{model}|{r}"
-
-
-salty = pix.concat(
-    [
-        (
-            scenarios_raw.loc[pix.ismatch(model="REMIND-MAgPIE 3.5-4.10", scenario="SSP2 - Medium-Low Emissions")]
-            .pix.assign(model="model_1", scenario="scenario_1")
-            .openscm.update_index_levels({"region": partial(update_region, model="model_1")})
-        ),
-        (
-            scenarios_raw.loc[pix.ismatch(model="REMIND-MAgPIE 3.5-4.10", scenario="SSP2 - Medium-Low Emissions")]
-            .pix.assign(model="model_2", scenario="scenario_2")
-            .openscm.update_index_levels({"region": partial(update_region, model="model_2")})
-        ),
-    ]
-)
-salty.to_csv("~/salty.csv")
-
-# %%
-# pre_processor(msdf)
-
-# %%
-issues_d.keys()
-
-# %%
-issues_d[("REMIND-MAgPIE 3.5-4.10", "SSP2 - Low Overshoot_c")]
-
-# %%
-to_check = scenarios_raw.loc[pix.isin(model="WITCH 6.0", scenario="SSP5 - Medium-Low Emissions_a")]
-to_check = scenarios_raw.loc[
-    pix.isin(model="MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", scenario="SSP2 - Medium-Low Emissions")
-]
-# to_check = scenarios_raw.loc[pix.isin(model="REMIND-MAgPIE 3.5-4.10", scenario="SSP2 - Low Overshoot_d")]
-# to_check = scenarios_raw.loc[pix.isin(model="REMIND-MAgPIE 3.5-4.10", scenario="SSP2 - Low Overshoot_c")]
-
-pre_processor(to_check)
-
-# %%
