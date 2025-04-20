@@ -396,10 +396,15 @@ model_df_take_3 = pix.concat(
 model_df_take_3.index = model_df_take_3.index.remove_unused_levels()
 
 # %%
-# %pdb
+take_3_res = CMIP7ScenarioMIPPreProcessor(n_processes=None)(model_df_take_3)
 
 # %%
-take_3_res = CMIP7ScenarioMIPPreProcessor(n_processes=None)(model_df_take_3)
+ax = (
+    take_3_res.gridding_workflow_emissions.loc[pix.ismatch(variable=["**CO2|Aircraft", "**CO2|*Shipping"])]
+    .pix.project(["region", "variable"])
+    .T.plot()
+)
+ax.legend(loc="center left", bbox_to_anchor=(1.05, 0.5))
 
 # %%
 ax = (
