@@ -95,14 +95,15 @@ pre_processor = CMIP7ScenarioMIPPreProcessor()
 # ## Process
 
 # %% [markdown]
-# Simplify to one scenario for now.
+# Simplify to one model for now.
 
 # %%
 model = "REMIND-MAgPIE 3.5-4.10"
-scenario = "SSP1 - Low Emissions_c"
+# scenario = "SSP1 - Low Emissions_c"
+del scenario
 
 # %%
-sdf = scenarios_raw.loc[pix.isin(model=model, scenario=scenario)].dropna(how="all", axis="columns")
+sdf = scenarios_raw.loc[pix.isin(model=model)].dropna(how="all", axis="columns")
 # Also simplify to just the model regions and get rid of Kyoto variables
 sdf = sdf.loc[pix.ismatch(region=["World", f"{model.split(' ')[0]}*|*"])].loc[~pix.ismatch(variable="**Kyoto**")]
 # Also simplify to just data from 2015 onwards,
@@ -115,7 +116,8 @@ sdf
 # because of missing reporting.
 
 # %%
-pre_processor(sdf)
+# # Comment out for now so we can run all
+# pre_processor(sdf)
 
 # %% [markdown]
 # Effectively rewriting gcages from here on.
@@ -393,9 +395,27 @@ for n_sectors in sorted(required_sector_grouped.keys()):
 # as we expect everything else to be reported correctly.
 
 # %%
+len(sdf.pix.unique("scenario"))
+
+# %%
+missing_index_incl_scenarios = None
+for scenario in sdf.pix.unique("scenario"):
+    # Hacking through this as speed not an issue
+    very_slow = pd.DataFrame(
+        [scenario] * missing_index.shape[0], columns=["scenario"], index=missing_index
+    ).reset_index()
+    new_levels = pd.MultiIndex.from_frame(very_slow)
+    if missing_index_incl_scenarios is None:
+        missing_index_incl_scenarios = new_levels
+    else:
+        missing_index_incl_scenarios = missing_index_incl_scenarios.append(new_levels)
+
+# %%
 missing_timeseries = pd.DataFrame(
-    np.zeros((missing_index.shape[0], sdf.shape[1])), index=missing_index, columns=sdf.columns
-).pix.assign(model=model, scenario=scenario)
+    np.zeros((missing_index_incl_scenarios.shape[0], sdf.shape[1])),
+    index=missing_index_incl_scenarios,
+    columns=sdf.columns,
+).pix.assign(model=model)
 missing_timeseries
 
 # %% [markdown]
@@ -945,7 +965,6 @@ gridding_workflow_emissions = pix.concat(
 gridding_workflow_emissions.loc[pix.ismatch(variable="**BC**Aircraft")]
 
 # %%
-# %%
 import itertools
 
 from gcages.completeness import assert_all_groups_are_complete
@@ -1014,10 +1033,8 @@ gridding_workflow_emissions_harmonised_reaggregated
 import seaborn as sns
 
 # %%
-sns_df
-
-# %%
 locator = pix.isin(region="World") & pix.ismatch(variable="*|*")
+
 sns_df = (
     pix.concat(
         [
@@ -1028,6 +1045,9 @@ sns_df = (
     .loc[locator]
     .openscm.to_long_data()
 )
+if sns_df.empty:
+    raise AssertionError
+
 fg = sns.relplot(
     data=sns_df,
     x="time",
@@ -1050,3 +1070,46 @@ for ax in fg.axes:
         ax.axhline(0.0, color="k", alpha=0.3, zorder=1.0)
     else:
         ax.set_ylim(0.0)
+
+# %%
+locator = pix.ismatch(region="**EU 28") & pix.ismatch(variable="*|CO2|*")
+
+sns_df = (
+    pix.concat(
+        [
+            # sdf.pix.assign(stage="raw"),
+            gridding_workflow_emissions.pix.assign(stage="pre_processed"),
+            gridding_workflow_emissions_harmonised.pix.assign(stage="harmonised"),
+        ]
+    )
+    .loc[locator]
+    .openscm.to_long_data()
+)
+if sns_df.empty:
+    raise AssertionError
+
+fg = sns.relplot(
+    data=sns_df,
+    x="time",
+    y="value",
+    hue="scenario",
+    style="stage",
+    dashes=dict(
+        harmonised="",
+        pre_processed=(1, 1),
+        raw=(3, 3),
+    ),
+    col="variable",
+    col_wrap=3,
+    facet_kws=dict(sharey=False),
+    kind="line",
+    linewidth=2,
+)
+fg.figure.suptitle(model, y=1.01)
+for ax in fg.axes:
+    if "CO2" in ax.get_title():
+        ax.axhline(0.0, color="k", alpha=0.3, zorder=1.0)
+    else:
+        ax.set_ylim(0.0)
+
+# %%
