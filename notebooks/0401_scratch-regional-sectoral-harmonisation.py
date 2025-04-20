@@ -101,7 +101,7 @@ pre_processor = CMIP7ScenarioMIPPreProcessor()
 sorted(scenarios_raw.pix.unique("model"))
 
 # %%
-model = "AIM 3.0"  # blows up for some reason I can't figure out right now
+model = "AIM 3.0"
 scenario = "SSP2 - Low Overshoot_a"
 scenario = None
 model = "COFFEE 1.6"
