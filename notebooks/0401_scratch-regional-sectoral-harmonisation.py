@@ -123,7 +123,7 @@ pre_processor(sdf)
 
 # %%
 from gcages.cmip7_scenariomip.pre_processing import REQUIRED_WORLD_VARIABLES_IAMC
-from pandas_openscm.indexing import multi_index_lookup, multi_index_match
+from pandas_openscm.indexing import multi_index_match
 
 # %%
 REQUIRED_GRIDDING_SPECIES_IAMC: tuple[str, ...] = (
@@ -396,11 +396,22 @@ for n_sectors in sorted(required_sector_grouped.keys()):
 missing_timeseries = pd.DataFrame(
     np.zeros((missing_index.shape[0], sdf.shape[1])), index=missing_index, columns=sdf.columns
 ).pix.assign(model=model, scenario=scenario)
-# missing_timeseries
+missing_timeseries
+
+# %% [markdown]
+# Also include world sum.
 
 # %%
-sdf_take_2 = pix.concat([sdf, missing_timeseries])
-# sdf_take_2.loc[pix.ismatch(variable="Emissions|CO2")]
+# Can do this blindly as we're adding bottom level sectors.
+missing_timeseries_region_sum = (
+    missing_timeseries.loc[~pix.isin(region="World")].openscm.groupby_except("region").sum().pix.assign(region="World")
+)
+missing_timeseries_including_region_sum = pix.concat([missing_timeseries, missing_timeseries_region_sum])
+# missing_timeseries_including_region_sum
+
+# %%
+sdf_take_2 = pix.concat([sdf, missing_timeseries_including_region_sum])
+sdf_take_2.loc[pix.ismatch(variable="Emissions|BC**Aviation**", region="World")]
 
 
 # %%
@@ -459,10 +470,42 @@ def rul(idf: pd.DataFrame) -> pd.DataFrame:
 
 
 indf = sdf_take_2
-indf = sdf
+# indf
+
+# %%
+from gcages.units_helpers import strip_pint_incompatible_characters_from_unit_string
+from pandas_openscm.index_manipulation import update_index_levels_func
+
+
+# %%
+def fix_sector_info(v_in: str) -> str:
+    out = v_in
+    if "|HFC|" in out:
+        # This isn't a sector level
+        out = out.replace("|HFC|", "|")
+
+    return out
+
+
+def rebreak_sector_info(v_in: str) -> str:
+    out = v_in
+    if "|HFC" in out:
+        # Put the broken sector level back in
+        out = out.replace("|HFC", "|HFC|HFC")
+
+    return out
+
+
+# TODO: include unit fix in name too
+indf_sector_info_fixed = update_index_levels_func(
+    indf,
+    {"variable": fix_sector_info, "unit": strip_pint_incompatible_characters_from_unit_string},
+)
+
+# %%
 world_reported_locator = pix.ismatch(region="World")
-world_reported = rul(indf.loc[world_reported_locator].reset_index("region", drop=True))
-not_world_reported = rul(indf.loc[~world_reported_locator])
+world_reported = rul(indf_sector_info_fixed.loc[world_reported_locator].reset_index("region", drop=True))
+not_world_reported = rul(indf_sector_info_fixed.loc[~world_reported_locator])
 
 has_sector_locator = pix.ismatch(variable="*|*|**")
 sector_dim = rul(split_sectors(world_reported.loc[has_sector_locator]))  # no region dimension, has sector dimension
@@ -589,188 +632,421 @@ assert_frame_equal(
 # we can do the processing.
 
 # %%
+reported_times = indf.dropna(how="all", axis="columns")
+# reported_times
+
+# %% [markdown]
+# We only work with the following three tables
+
 
 # %%
-assert False
+def rul(idf: pd.DataFrame) -> pd.DataFrame:
+    idf.index = idf.index.remove_unused_levels()
+    return idf
+
+
+world_reported_locator = pix.ismatch(region="World")
+world_reported = indf_sector_info_fixed.loc[world_reported_locator].reset_index("region", drop=True)
+not_world_reported = indf_sector_info_fixed.loc[~world_reported_locator]
+
+has_sector_locator = pix.ismatch(variable="*|*|**")
+
+total = rul(split_species(world_reported.loc[~has_sector_locator]))  # for verification and stuff that is only global
+sector_dim = rul(
+    split_sectors(world_reported.loc[has_sector_locator])
+)  # things that we're only interested in at the global level
+region_sector_dim = rul(split_sectors(not_world_reported.loc[has_sector_locator]))  # for the gridding level
+
+# %% [markdown]
+# Move into columns being sectors while we shuffle things around.
 
 # %%
-region_sector_sum = region_sector_sum_components.groupby(region_sector.index.names.difference(["sectors"])).sum()
+region_sector_dim_sector_cols = region_sector_dim.stack().unstack("sectors")
+# region_sector_dim_sector_cols
 
 # %%
-world_sector
+sector_dim_sectors_cols = sector_dim.stack().unstack("sectors")
+# sector_dim_sectors_cols
+
+# %% [markdown]
+# Re-classify aviation
 
 # %%
-split_sectors(sdf_take_2)
+INTERNATIONAL_AVIATION_SECTOR_IAMC: str = "Energy|Demand|Bunkers|International Aviation"
+AVIATION_SECTOR_CEDS: str = "Aircraft"
+TRANSPORTATION_SECTOR_IAMC: str = "Energy|Demand|Transportation"
+TRANSPORTATION_SECTOR_CEDS: str = "Transportation Sector"
 
 # %%
-pre_processor(sdf_take_2)
+from pandas_openscm.grouping import groupby_except
 
 # %%
-sdf_totals = sdf.loc[pix.ismatch(region="World", variable="Emissions|*")]
-sdf_totals
-sdf_complete = pix.concat([sdf, missing_timeseries])
-# TODO: make gcages more robust to extra data
-sdf_complete_required_only = multi_index_lookup(sdf_complete, required_index)
-sdf_take_2 = pix.concat([sdf_complete_required_only, sdf_totals])
-sdf_take_2
-
-# %%
-assert False
-
-# %%
-from gcages.cmip7_scenariomip.pre_processing import (
-    AGRICULTURE_SECTOR_COMPONENTS_IAMC,
-    REQUIRED_GRIDDING_SPECIES_IAMC,
-    REQUIRED_REGIONAL_INDEX_IAMC,
-    REQUIRED_WORLD_INDEX_IAMC,
+region_sector_dim_domestic_aviation = region_sector_dim_sector_cols[DOMESTIC_AVIATION_SECTOR_IAMC]
+# Remove emissions from default reporting, creating a new sector in the process
+region_sector_dim_sector_cols[TRANSPORTATION_SECTOR_CEDS] = (
+    region_sector_dim_sector_cols[TRANSPORTATION_SECTOR_IAMC] - region_sector_dim_domestic_aviation
 )
-from pandas_openscm.indexing import multi_index_lookup
+# Create the new sector
+sector_dim_sectors_cols[AVIATION_SECTOR_CEDS] = (
+    sector_dim_sectors_cols[INTERNATIONAL_AVIATION_SECTOR_IAMC]
+    + groupby_except(region_sector_dim_domestic_aviation, "region").sum()
+)
+
+# Drop out now redundant sectors
+region_sector_dim_sector_cols = region_sector_dim_sector_cols.drop(
+    [
+        DOMESTIC_AVIATION_SECTOR_IAMC,
+    ],
+    axis="columns",
+)
+sector_dim_sectors_cols = sector_dim_sectors_cols.drop(
+    [
+        TRANSPORTATION_SECTOR_IAMC,
+        INTERNATIONAL_AVIATION_SECTOR_IAMC,
+    ],
+    axis="columns",
+)
+
+sector_dim_sectors_cols  # .stack().unstack("year")
+
 
 # %% [markdown]
-# Check for completeness.
+# Aggregate industry
 
 
 # %%
-def add_regions_to_required_index(ri: pd.MultiIndex, regions: list[str], region_level: str = "region") -> pd.MultiIndex:
-    return pd.MultiIndex.from_product(
-        [
-            *ri.levels,
-            regions,
-        ],
-        names=[*ri.names, region_level],
-    )
+def aggregate_sector(
+    indf: pd.DataFrame,  # assumes sector columns
+    sector_out: str,
+    sector_components: list[str],
+    allow_missing: list[str] | None = None,
+    copy: bool = True,
+) -> pd.DataFrame:
+    res = indf
+    if copy:
+        res = res.copy()
+
+    to_sum = sector_components
+    if allow_missing is not None:
+        missing = {c for c in to_sum if c not in indf}
+        # Anything which is missing and allowed to be missing,
+        # we can drop from to_sum
+        to_drop_from_sum = missing.intersection(set(allow_missing))
+        to_sum = list(set(to_sum) - to_drop_from_sum)
+
+        # Also make sure that missing values in optional columns
+        # don't break things
+        res[allow_missing] = res[allow_missing].fillna(0.0)
+
+    res[sector_out] = res[to_sum].sum(axis="columns", min_count=len(to_sum))
+    res = res.drop(to_sum, axis="columns")
+
+    return res
 
 
 # %%
-required_world_index = add_regions_to_required_index(REQUIRED_WORLD_INDEX_IAMC, ["World"])
+INDUSTRIAL_SECTOR_CEDS: str = "Industrial Sector"
+INDUSTRIAL_SECTOR_CEDS_COMPONENTS_IAMC: tuple[str, ...] = (
+    "Energy|Demand|Industry",
+    "Energy|Demand|Other Sector",
+    "Industrial Processes",
+    "Other",
+)
+
+# %%
+region_sector_dim_sectors_cols_industry = aggregate_sector(
+    region_sector_dim_sector_cols,
+    sector_out=INDUSTRIAL_SECTOR_CEDS,
+    sector_components=list(INDUSTRIAL_SECTOR_CEDS_COMPONENTS_IAMC),
+)
+
+# %%
+AGRICULTURE_SECTOR_CEDS: str = "Agriculture"
+AGRICULTURE_SECTOR_COMPONENTS_IAMC: tuple[str, ...] = (
+    "AFOLU|Agriculture",
+    "AFOLU|Land|Land Use and Land-Use Change",
+    "AFOLU|Land|Harvested Wood Products",
+    "AFOLU|Land|Other",
+    "AFOLU|Land|Wetlands",
+)
+
+# %%
+region_sector_dim_sectors_cols_industry_agriculture = aggregate_sector(
+    region_sector_dim_sectors_cols_industry,
+    sector_out=AGRICULTURE_SECTOR_CEDS,
+    sector_components=list(AGRICULTURE_SECTOR_COMPONENTS_IAMC),
+    allow_missing=list(OPTIONAL_GRIDDING_SECTORS_REGIONAL_IAMC),
+)
+
+# %%
+region_sector_dim_sectors_cols_industry_agriculture[["Agriculture"]]
+
+# %%
+GRIDDING_SECTORS_WORLD_REAGGREGATED: tuple[str, ...] = ("Aircraft", "Energy|Demand|Bunkers|International Shipping")
+GRIDDING_SECTORS_REGIONAL_REAGGREGATED: tuple[str, ...] = (
+    "Energy|Supply",
+    "Industrial Sector",
+    "Energy|Demand|Residential and Commercial and AFOFI",
+    "Product Use",
+    "Transportation Sector",
+    "Waste",
+    "Agriculture",
+    "AFOLU|Agricultural Waste Burning",
+    "AFOLU|Land|Fires|Forest Burning",
+    "AFOLU|Land|Fires|Grassland Burning",
+    "AFOLU|Land|Fires|Peat Burning",
+)
+
+# %%
+REAGGREGATED_TO_GRIDDING_SECTOR_MAP: dict[str, str] = {
+    "Energy|Supply": "Energy Sector",
+    INDUSTRIAL_SECTOR_CEDS: INDUSTRIAL_SECTOR_CEDS,
+    "Energy|Demand|Residential and Commercial and AFOFI": "Residential Commercial Other",
+    "Product Use": "Solvents Production and Application",
+    TRANSPORTATION_SECTOR_CEDS: TRANSPORTATION_SECTOR_CEDS,
+    "Waste": "Waste",
+    AVIATION_SECTOR_CEDS: AVIATION_SECTOR_CEDS,
+    "Energy|Demand|Bunkers|International Shipping": "International Shipping",
+    AGRICULTURE_SECTOR_CEDS: AGRICULTURE_SECTOR_CEDS,
+    "AFOLU|Agricultural Waste Burning": "Agricultural Waste Burning",
+    "AFOLU|Land|Fires|Forest Burning": "Forest Burning",
+    "AFOLU|Land|Fires|Grassland Burning": "Grassland Burning",
+    "AFOLU|Land|Fires|Peat Burning": "Peat Burning",
+}
+
+# %%
+time_name = "year"
 
 
 # %%
-def get_missing_index(ri: pd.MultiIndex, sdf_index: pd.MultiIndex) -> pd.MultiIndex:
-    return ri[~multi_index_match(ri, sdf_index.droplevel(sdf_index.names.difference(ri.names)))]
+def rename_to_gridding_sectors(idf: pd.DataFrame, sectors_to_grab: tuple[str, ...], time_name: str) -> pd.DataFrame:
+    return idf[list(sectors_to_grab)].rename(REAGGREGATED_TO_GRIDDING_SECTOR_MAP, axis="columns")
+
+
+sector_dim_sectors_cols_gridding = rename_to_gridding_sectors(
+    sector_dim_sectors_cols, GRIDDING_SECTORS_WORLD_REAGGREGATED, time_name=time_name
+)
+region_sector_dim_sectors_cols_gridding = rename_to_gridding_sectors(
+    region_sector_dim_sectors_cols_industry_agriculture, GRIDDING_SECTORS_REGIONAL_REAGGREGATED, time_name=time_name
+)
 
 
 # %%
-missing_world_index = get_missing_index(required_world_index, sdf.index)
-missing_world_index
+def combine_sectors(indf: pd.DataFrame, dropna: bool = True):
+    return indf.pix.format(variable="{table}|{species}|{sectors}", drop=True)
+
+
+def combine_species(indf: pd.DataFrame, dropna: bool = True):
+    return indf.pix.format(variable="{table}|{species}", drop=True)
+
 
 # %%
-model_regions = [r for r in sdf.pix.unique("region") if r.startswith(model.split(" ")[0])]
-model_regions
+global_workflow_emissions_not_from_gridding_emissions = combine_species(
+    total.loc[
+        ~pix.isin(species=sector_dim_sectors_cols_gridding.pix.unique("species"))
+        # Not handled for now
+        & ~pix.ismatch(unit="**equiv**")
+    ]
+)
+global_workflow_emissions_not_from_gridding_emissions = update_index_levels_func(
+    global_workflow_emissions_not_from_gridding_emissions,
+    {"variable": rebreak_sector_info},
+)
+global_workflow_emissions_not_from_gridding_emissions
 
 # %%
-REQUIRED_REGIONAL_INDEX_IAMC
+global_totals = pd.concat(
+    [
+        sector_dim_sectors_cols_gridding,
+        region_sector_dim_sectors_cols_gridding.openscm.groupby_except("region").sum(),
+    ],
+    axis="columns",
+)
+co2_locator = pix.isin(species="CO2")
+non_co2 = global_totals.loc[~co2_locator].sum(axis="columns").unstack()
+# non_co2
 
-# %% [markdown]
-# Add on optional sectors too.
+# %%
+CO2_FOSSIL_SECTORS_GRIDDING: tuple[str, ...] = (
+    "Energy Sector",
+    INDUSTRIAL_SECTOR_CEDS,
+    "Residential Commercial Other",
+    "Solvents Production and Application",
+    TRANSPORTATION_SECTOR_CEDS,
+    "Waste",
+    AVIATION_SECTOR_CEDS,
+    "International Shipping",
+)
 
+CO2_BIOSPHERE_SECTORS_GRIDDING: tuple[str, ...] = (
+    AGRICULTURE_SECTOR_CEDS,
+    "Agricultural Waste Burning",
+    "Forest Burning",
+    "Grassland Burning",
+    "Peat Burning",
+)
+
+# %%
+co2_fossil = (
+    global_totals.loc[co2_locator, list(CO2_FOSSIL_SECTORS_GRIDDING)]
+    .sum(axis="columns")
+    .unstack()
+    .pix.assign(sectors="Energy and Industrial Processes")
+)
+co2_biosphere = (
+    global_totals.loc[co2_locator, list(CO2_BIOSPHERE_SECTORS_GRIDDING)]
+    .sum(axis="columns")
+    .unstack()
+    .pix.assign(sectors="AFOLU")
+)
+# co2_biosphere
+
+# %%
+global_workflow_emissions_from_gridding_emissions = pix.concat(
+    [
+        combine_species(non_co2),
+        combine_sectors(pix.concat([co2_fossil, co2_biosphere])),
+    ]
+)
+
+# %%
+global_workflow_emissions_raw_names = pix.concat(
+    [global_workflow_emissions_from_gridding_emissions, global_workflow_emissions_not_from_gridding_emissions]
+)
+# global_workflow_emissions_raw_names
+
+# %%
+from functools import partial
+
+from gcages.renaming import SupportedNamingConventions, convert_variable_name
+
+# %%
+global_workflow_emissions = update_index_levels_func(
+    global_workflow_emissions_raw_names,
+    {
+        "variable": partial(
+            convert_variable_name,
+            from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+            to_convention=SupportedNamingConventions.GCAGES,
+        )
+    },
+)
+
+global_workflow_emissions
+
+# %%
+time_name = "year"
+gridding_workflow_emissions = pix.concat(
+    [
+        combine_sectors(region_sector_dim_sectors_cols_gridding.stack().unstack(time_name)),
+        combine_sectors(sector_dim_sectors_cols_gridding.stack().unstack(time_name)).pix.assign(region="World"),
+    ]
+)
+gridding_workflow_emissions.loc[pix.ismatch(variable="**BC**Aircraft")]
+
+# %%
 # %%
 import itertools
 
-optional_sectors = [
-    f"Emissions|{species}|{sector}"
-    for species, sector in itertools.product(REQUIRED_GRIDDING_SPECIES_IAMC, AGRICULTURE_SECTOR_COMPONENTS_IAMC)
-]
+from gcages.completeness import assert_all_groups_are_complete
 
 # %%
-full_regional_index_iamc = REQUIRED_REGIONAL_INDEX_IAMC.append(
-    pd.MultiIndex.from_product([optional_sectors], names=["variable"])
+gridding_required_index_world = pd.MultiIndex.from_product(
+    [
+        [
+            f"Emissions|{species}|{REAGGREGATED_TO_GRIDDING_SECTOR_MAP[sector]}"
+            for species, sector in itertools.product(
+                REQUIRED_GRIDDING_SPECIES_IAMC, GRIDDING_SECTORS_WORLD_REAGGREGATED
+            )
+        ],
+        ["World"],
+    ],
+    names=["variable", "region"],
 )
-full_regional_index_iamc
-
-# %%
-full_regional_index = add_regions_to_required_index(full_regional_index_iamc, model_regions)
-[v for v in full_regional_index.to_frame(index=False)["variable"].unique() if "CO" in v]
-
-# %%
-missing_regional_index = get_missing_index(required_regional_index, sdf.index)
-missing_regional_index
-
-# %%
-missing_index = missing_regional_index.append(missing_world_index)
-missing_index
-
-# %%
-variable_unit_map = {v: u for v, u in sdf.loc[pix.ismatch(variable="Emissions|*")].pix.unique(["variable", "unit"])}
-
-
-def guess_unit(variable: str) -> str:
-    for k, v in variable_unit_map.items():
-        if f"{k}|" in variable:
-            return v
-
-
-variable_unit_map
-
-# %%
-missing_index = missing_index.pix.assign(unit=missing_index.get_level_values("variable").map(guess_unit))
-missing_index
-
-# %%
-missing_timeseries = pd.DataFrame(
-    np.zeros((missing_index.shape[0], sdf.shape[1])), index=missing_index, columns=sdf.columns
-).pix.assign(model=model, scenario=scenario)
-missing_timeseries
-
-# %%
-required_index = required_regional_index.append(required_world_index)
-# required_index
-
-# %%
-sdf_totals = sdf.loc[pix.ismatch(region="World", variable="Emissions|*")]
-sdf_totals
-
-# %%
-sdf_complete = pix.concat([sdf, missing_timeseries])
-# TODO: make gcages more robust to extra data
-sdf_complete_required_only = multi_index_lookup(sdf_complete, required_index)
-sdf_take_2 = pix.concat([sdf_complete_required_only, sdf_totals])
-sdf_take_2
-
-# %%
-pre_processor(sdf_take_2)
-
-# %% [markdown]
-# Still failing because of inconsistencies in the sums.
-# Hence also reaggregate.
-
-# %%
-tmp = sdf_complete_required_only.pix.extract(variable="{table}|{species}|{sector}")
-# We have started from required only, so a straight sum should be fine
-reaggreated_totals = (
-    tmp.groupby(tmp.index.names.difference(["region", "sector"]))
-    .sum()
-    .pix.format(variable="{table}|{species}", drop=True)
-    .pix.assign(region="World")
-    .reorder_levels(sdf.index.names)
+gridding_required_index_regional = pd.MultiIndex.from_product(
+    [
+        [
+            f"Emissions|{species}|{REAGGREGATED_TO_GRIDDING_SECTOR_MAP[sector]}"
+            for species, sector in itertools.product(
+                REQUIRED_GRIDDING_SPECIES_IAMC, GRIDDING_SECTORS_REGIONAL_REAGGREGATED
+            )
+            if not (species == "CO2" and sector in NOT_CO2_REQUIRED_GRIDDING_SECTORS_REGIONAL_IAMC)
+        ],
+        region_sector_dim.pix.unique("region"),
+    ],
+    names=["variable", "region"],
 )
-
-# %% [markdown]
-# We can see how different our reaggregation is from the reported totals.
-# Some alarmingly big differences.
+gridding_required_index = gridding_required_index_world.append(gridding_required_index_regional)
+gridding_required_index
 
 # %%
-(
-    ((reaggreated_totals - sdf_totals.loc[reaggreated_totals.index]) / reaggreated_totals)
-    .abs()
-    .sort_values(2005, ascending=False)
-    * 100
-).round(1)
+assert_all_groups_are_complete(gridding_workflow_emissions, complete_index=gridding_required_index)
 
 # %%
-sdf_complete_required_only.loc[pix.ismatch(variable="Emissions|CO2|**", region="**Australi**")]
+history_fixed = update_index_levels_func(
+    history, {"region": lambda x: x.replace("REMIND-MAgPIE 3.4-4.8", "REMIND-MAgPIE 3.5-4.10")}
+)
+history_model_gridding_relevant = history_fixed.loc[pix.isin(region=gridding_workflow_emissions.pix.unique("region"))]
+# history_model_gridding_relevant
 
 # %%
-sdf.loc[
-    pix.ismatch(variable="Emissions|CO2|*", region="World") & ~pix.ismatch(variable="**Energy and Industrial**")
-]  # .groupby(sdf.index.names.difference(["variable"])).sum()
+from gcages.aneris_helpers import harmonise_all
 
 # %%
-sdf.loc[pix.ismatch(variable="Emissions|CO2", region="World")]
+to_try_locator = ~pix.ismatch(variable=["**Aircraft", "**Shipping"])
+gridding_workflow_emissions_to_try = gridding_workflow_emissions.loc[to_try_locator]
 
 # %%
-pix.concat([reaggreated_totals.pix.assign(source="reaggregated"), sdf_totals.pix.assign(source="model_reported")]).loc[
-    pix.ismatch(variable="**CO2")
-].pix.project(["variable", "region", "source"]).T.plot()
+gridding_workflow_emissions_harmonised = harmonise_all(
+    scenarios=gridding_workflow_emissions_to_try,
+    history=history_model_gridding_relevant,
+    year=2022,
+)
+gridding_workflow_emissions_harmonised
 
 # %%
+gridding_workflow_emissions_harmonised_reaggregated = combine_species(
+    split_sectors(gridding_workflow_emissions_harmonised).openscm.groupby_except(["region", "sectors"]).sum()
+).pix.assign(region="World")
+gridding_workflow_emissions_harmonised_reaggregated
+
+# %%
+import seaborn as sns
+
+# %%
+sns_df
+
+# %%
+locator = pix.isin(region="World") & pix.ismatch(variable="*|*")
+sns_df = (
+    pix.concat(
+        [
+            sdf.pix.assign(stage="raw"),
+            gridding_workflow_emissions_harmonised_reaggregated.pix.assign(stage="harmonised"),
+        ]
+    )
+    .loc[locator]
+    .openscm.to_long_data()
+)
+fg = sns.relplot(
+    data=sns_df,
+    x="time",
+    y="value",
+    hue="scenario",
+    style="stage",
+    dashes=dict(
+        harmonised="",
+        raw=(3, 3),
+    ),
+    col="variable",
+    col_wrap=3,
+    facet_kws=dict(sharey=False),
+    kind="line",
+    linewidth=2,
+)
+fg.figure.suptitle(model, y=1.01)
+for ax in fg.axes:
+    if "CO2" in ax.get_title():
+        ax.axhline(0.0, color="k", alpha=0.3, zorder=1.0)
+    else:
+        ax.set_ylim(0.0)
