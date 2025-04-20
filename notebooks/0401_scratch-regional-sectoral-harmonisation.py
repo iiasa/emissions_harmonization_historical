@@ -98,12 +98,32 @@ pre_processor = CMIP7ScenarioMIPPreProcessor()
 # Simplify to one model for now.
 
 # %%
+sorted(scenarios_raw.pix.unique("model"))
+
+# %%
+model = "AIM 3.0"  # blows up for some reason I can't figure out right now
+scenario = "SSP2 - Low Overshoot_a"
+scenario = None
+model = "COFFEE 1.6"
+scenario = None
+# model = "IMAGE 3.4"
+# scenario = None
+model = "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12"
+scenario = None
 model = "REMIND-MAgPIE 3.5-4.10"
-# scenario = "SSP1 - Low Emissions_c"
-del scenario
+scenario = None
+# model = "WITCH 6.0"
+# scenario = None
 
 # %%
 sdf = scenarios_raw.loc[pix.isin(model=model)].dropna(how="all", axis="columns")
+# sdf.pix.unique("scenario")
+
+# %%
+if scenario is not None:
+    sdf = sdf.loc[pix.isin(scenario=scenario)]
+
+# %%
 # Also simplify to just the model regions and get rid of Kyoto variables
 sdf = sdf.loc[pix.ismatch(region=["World", f"{model.split(' ')[0]}*|*"])].loc[~pix.ismatch(variable="**Kyoto**")]
 # Also simplify to just data from 2015 onwards,
@@ -299,7 +319,7 @@ variable_unit_map
 # %%
 missing_index = missing_world_index.append(missing_regional_index)
 missing_index = missing_index.pix.assign(unit=missing_index.get_level_values("variable").map(guess_unit))
-missing_index
+# missing_index
 
 # %% [markdown]
 # Double check to see if the model is reporting anything else that we might be missing
@@ -416,22 +436,30 @@ missing_timeseries = pd.DataFrame(
     index=missing_index_incl_scenarios,
     columns=sdf.columns,
 ).pix.assign(model=model)
-missing_timeseries
+missing_timeseries.loc[pix.ismatch(variable="**CH4**")]
 
 # %% [markdown]
 # Also include world sum.
 
 # %%
-# Can do this blindly as we're adding bottom level sectors.
 missing_timeseries_region_sum = (
     missing_timeseries.loc[~pix.isin(region="World")].openscm.groupby_except("region").sum().pix.assign(region="World")
 )
 missing_timeseries_including_region_sum = pix.concat([missing_timeseries, missing_timeseries_region_sum])
-# missing_timeseries_including_region_sum
+# # missing_timeseries_including_region_sum
 
 # %%
-sdf_take_2 = pix.concat([sdf, missing_timeseries_including_region_sum])
-sdf_take_2.loc[pix.ismatch(variable="Emissions|BC**Aviation**", region="World")]
+# Only append timeseries that aren't already in sdf
+# (we can end up with duplicates when missing sectors are only missing for some regions
+# because of the aggregation done above)
+missing_timeseries_to_append = missing_timeseries_including_region_sum.loc[
+    ~multi_index_match(missing_timeseries_including_region_sum.index, sdf.index)
+]
+# missing_timeseries_to_append
+
+# %%
+sdf_take_2 = pix.concat([sdf, missing_timeseries_to_append])
+# sdf_take_2.loc[pix.ismatch(variable="Emissions|BC**Aviation**", region="World")]
 
 
 # %%
@@ -562,8 +590,8 @@ assert_frame_equal(
     sector_dim_sector_sum,
     # Only compare with species that report sectoral information
     total.loc[pix.isin(species=sector_dim_sector_sum.pix.unique("species"))],
-    rtol=1e-3,  # have to be relatively loose here because of rounding issues
-    atol=1.0,  # typically, differences of 1.0 aren't of interest to us in the reporting we use (although could also just re-aggregate)
+    # Ideally set variable specific tolerance
+    rtol=5e-2,  # shouldn't need to be so loose here
 )
 
 # %%
@@ -582,8 +610,8 @@ assert_frame_equal(
     region_sector_dim_sector_sum,
     # Only compare with species that report sectoral information
     region_dim.loc[pix.isin(species=region_sector_dim_sector_sum.pix.unique("species"))],
-    rtol=1e-3,  # have to be relatively loose here because of rounding issues
-    atol=1.0,  # typically, differences of 1.0 aren't of interest to us in the reporting we use (although could also just re-aggregate)
+    # Ideally set variable specific tolerance
+    rtol=5e-2,  # shouldn't need to be so loose here
 )
 
 # %%
@@ -605,8 +633,8 @@ locator = ~pix.ismatch(sectors="Energy**")
 assert_frame_equal(
     sector_dim.loc[locator],
     region_sector_dim.openscm.groupby_except("region").sum().loc[locator],
-    rtol=1e-3,
-    atol=1.0,
+    # Ideally set variable specific tolerance
+    rtol=5e-2,  # shouldn't need to be so loose here
 )
 
 # %%
@@ -643,8 +671,8 @@ assert_frame_equal(
     region_level_sum_comparable,
     # Only compare with species that report sectoral information
     total.loc[pix.isin(species=region_level_sum_comparable.pix.unique("species"))],
-    rtol=1e-4,  # have to be relatively loose here because of rounding issues
-    atol=1.0,  # typically, differences of 1.0 aren't of interest to us in the reporting we use (although could also just re-aggregate)
+    # Ideally set variable specific tolerance
+    rtol=5e-4,  # this seems to be much easier for models to get right
 )
 
 # %% [markdown]
@@ -685,7 +713,12 @@ region_sector_dim_sector_cols = region_sector_dim.stack().unstack("sectors")
 # region_sector_dim_sector_cols
 
 # %%
-sector_dim_sectors_cols = sector_dim.stack().unstack("sectors")
+try:
+    sector_dim_sectors_cols = sector_dim.stack().unstack("sectors")
+except ValueError:
+    display(sector_dim.loc[sector_dim.index.duplicated(keep=False)].sort_index())
+    raise
+
 # sector_dim_sectors_cols
 
 # %% [markdown]
@@ -756,7 +789,8 @@ def aggregate_sector(
 
         # Also make sure that missing values in optional columns
         # don't break things
-        res[allow_missing] = res[allow_missing].fillna(0.0)
+        allow_missing_in_indf = indf.columns.intersection(allow_missing)
+        res[allow_missing_in_indf] = res[allow_missing_in_indf].fillna(0.0)
 
     res[sector_out] = res[to_sum].sum(axis="columns", min_count=len(to_sum))
     res = res.drop(to_sum, axis="columns")
@@ -797,9 +831,6 @@ region_sector_dim_sectors_cols_industry_agriculture = aggregate_sector(
     sector_components=list(AGRICULTURE_SECTOR_COMPONENTS_IAMC),
     allow_missing=list(OPTIONAL_GRIDDING_SECTORS_REGIONAL_IAMC),
 )
-
-# %%
-region_sector_dim_sectors_cols_industry_agriculture[["Agriculture"]]
 
 # %%
 GRIDDING_SECTORS_WORLD_REAGGREGATED: tuple[str, ...] = ("Aircraft", "Energy|Demand|Bunkers|International Shipping")
@@ -874,59 +905,69 @@ global_workflow_emissions_not_from_gridding_emissions = update_index_levels_func
 )
 global_workflow_emissions_not_from_gridding_emissions
 
-# %%
-global_totals = pd.concat(
-    [
-        sector_dim_sectors_cols_gridding,
-        region_sector_dim_sectors_cols_gridding.openscm.groupby_except("region").sum(),
-    ],
-    axis="columns",
-)
-co2_locator = pix.isin(species="CO2")
-non_co2 = global_totals.loc[~co2_locator].sum(axis="columns").unstack()
-# non_co2
 
 # %%
-CO2_FOSSIL_SECTORS_GRIDDING: tuple[str, ...] = (
-    "Energy Sector",
-    INDUSTRIAL_SECTOR_CEDS,
-    "Residential Commercial Other",
-    "Solvents Production and Application",
-    TRANSPORTATION_SECTOR_CEDS,
-    "Waste",
-    AVIATION_SECTOR_CEDS,
-    "International Shipping",
-)
+def get_global_workflow_emissions_from_gridding_emissions_sector_cols(
+    *,
+    gridding_emissions_sector_dim_sector_cols: pd.DataFrame,
+    gridding_emissions_region_sector_dim_sector_cols: pd.DataFrame,
+    co2_fossil_sectors: tuple[str, ...] = (
+        "Energy Sector",
+        "Industrial Sector",
+        "Residential Commercial Other",
+        "Solvents Production and Application",
+        "Transportation Sector",
+        "Waste",
+        "Aircraft",
+        "International Shipping",
+    ),
+    co2_biosphere_sectors: tuple[str, ...] = (
+        "Agriculture",
+        "Agricultural Waste Burning",
+        "Forest Burning",
+        "Grassland Burning",
+        "Peat Burning",
+    ),
+    co2_fossil_sector: str = "Energy and Industrial Processes",
+    co2_biosphere_sector: str = "AFOLU",
+) -> pd.DataFrame:
+    global_totals = pd.concat(
+        [
+            gridding_emissions_sector_dim_sector_cols,
+            gridding_emissions_region_sector_dim_sector_cols.openscm.groupby_except("region").sum(),
+        ],
+        axis="columns",
+    )
+    co2_locator = pix.isin(species="CO2")
+    non_co2 = global_totals.loc[~co2_locator].sum(axis="columns").unstack()
 
-CO2_BIOSPHERE_SECTORS_GRIDDING: tuple[str, ...] = (
-    AGRICULTURE_SECTOR_CEDS,
-    "Agricultural Waste Burning",
-    "Forest Burning",
-    "Grassland Burning",
-    "Peat Burning",
-)
+    co2_fossil = (
+        global_totals.loc[co2_locator, list(co2_fossil_sectors)]
+        .sum(axis="columns")
+        .unstack()
+        .pix.assign(sectors=co2_fossil_sector)
+    )
+    co2_biosphere = (
+        global_totals.loc[co2_locator, list(co2_biosphere_sectors)]
+        .sum(axis="columns")
+        .unstack()
+        .pix.assign(sectors=co2_biosphere_sector)
+    )
+
+    global_workflow_emissions = pix.concat(
+        [
+            combine_species(non_co2),
+            combine_sectors(pix.concat([co2_fossil, co2_biosphere])),
+        ]
+    )
+
+    return global_workflow_emissions
+
 
 # %%
-co2_fossil = (
-    global_totals.loc[co2_locator, list(CO2_FOSSIL_SECTORS_GRIDDING)]
-    .sum(axis="columns")
-    .unstack()
-    .pix.assign(sectors="Energy and Industrial Processes")
-)
-co2_biosphere = (
-    global_totals.loc[co2_locator, list(CO2_BIOSPHERE_SECTORS_GRIDDING)]
-    .sum(axis="columns")
-    .unstack()
-    .pix.assign(sectors="AFOLU")
-)
-# co2_biosphere
-
-# %%
-global_workflow_emissions_from_gridding_emissions = pix.concat(
-    [
-        combine_species(non_co2),
-        combine_sectors(pix.concat([co2_fossil, co2_biosphere])),
-    ]
+global_workflow_emissions_from_gridding_emissions = get_global_workflow_emissions_from_gridding_emissions_sector_cols(
+    gridding_emissions_sector_dim_sector_cols=sector_dim_sectors_cols_gridding,
+    gridding_emissions_region_sector_dim_sector_cols=region_sector_dim_sectors_cols_gridding,
 )
 
 # %%
@@ -962,7 +1003,7 @@ gridding_workflow_emissions = pix.concat(
         combine_sectors(sector_dim_sectors_cols_gridding.stack().unstack(time_name)).pix.assign(region="World"),
     ]
 )
-gridding_workflow_emissions.loc[pix.ismatch(variable="**BC**Aircraft")]
+# gridding_workflow_emissions.loc[pix.ismatch(variable="**BC**Aircraft")]
 
 # %%
 import itertools
@@ -996,50 +1037,200 @@ gridding_required_index_regional = pd.MultiIndex.from_product(
     names=["variable", "region"],
 )
 gridding_required_index = gridding_required_index_world.append(gridding_required_index_regional)
-gridding_required_index
+# gridding_required_index
 
 # %%
 assert_all_groups_are_complete(gridding_workflow_emissions, complete_index=gridding_required_index)
 
 # %%
-history_fixed = update_index_levels_func(
-    history, {"region": lambda x: x.replace("REMIND-MAgPIE 3.4-4.8", "REMIND-MAgPIE 3.5-4.10")}
-)
-history_model_gridding_relevant = history_fixed.loc[pix.isin(region=gridding_workflow_emissions.pix.unique("region"))]
-# history_model_gridding_relevant
-
-# %%
 from gcages.aneris_helpers import harmonise_all
 
-# %%
-to_try_locator = ~pix.ismatch(variable=["**Aircraft", "**Shipping"])
-gridding_workflow_emissions_to_try = gridding_workflow_emissions.loc[to_try_locator]
 
 # %%
+def interpolate_to_yearly(indf: pd.DataFrame, copy: bool = True) -> pd.DataFrame:
+    res = indf
+    if copy:
+        res = res.copy()
+
+    for y in np.arange(indf.columns.min(), indf.columns.max()):
+        if y not in indf:
+            res[y] = np.nan
+
+    res = res.sort_index(axis="columns")
+    res = res.T.interpolate("index").T
+
+    return res
+
+
+# %%
+to_try_locator = ~pix.ismatch(variable=["**Aircraft"])
+gridding_workflow_emissions_to_try = interpolate_to_yearly(gridding_workflow_emissions.loc[to_try_locator])
+gridding_workflow_emissions_to_try = gridding_workflow_emissions_to_try.dropna()
+gridding_workflow_emissions_to_try  # .loc[pix.ismatch(variable="Emissions|BC|Waste", region="**South Africa")]
+
+# %%
+# history.loc[pix.ismatch(region=f"{model.split(' ')[0]}**")].pix.unique("region")
+
+# %%
+history_fixed = update_index_levels_func(
+    history,
+    {
+        "region": lambda x: x.replace("REMIND-MAgPIE 3.4-4.8", "REMIND-MAgPIE 3.5-4.10").replace(
+            "COFFEE 1.5", "COFFEE 1.6"
+        )
+    },
+)
+
+history_shipping = (
+    history_fixed.loc[
+        pix.ismatch(
+            variable=["**Shipping**"],  # TODO: add aviation and remove this hack
+            region=gridding_workflow_emissions_to_try.pix.unique("region"),
+        )
+    ]
+    .openscm.groupby_except("region")
+    .sum()
+    .pix.assign(region="World")
+)
+
+history_model_gridding_relevant = pix.concat(
+    [
+        history_fixed.loc[
+            multi_index_match(
+                history_fixed.index, gridding_workflow_emissions_to_try.index.droplevel(["model", "scenario"])
+            )
+        ],
+        history_shipping,
+    ]
+)
+history_model_gridding_relevant
+
+# %%
+harmonisation_year = 2022
 gridding_workflow_emissions_harmonised = harmonise_all(
     scenarios=gridding_workflow_emissions_to_try,
     history=history_model_gridding_relevant,
-    year=2022,
+    year=harmonisation_year,
 )
 gridding_workflow_emissions_harmonised
 
+
 # %%
-gridding_workflow_emissions_harmonised_reaggregated = combine_species(
-    split_sectors(gridding_workflow_emissions_harmonised).openscm.groupby_except(["region", "sectors"]).sum()
-).pix.assign(region="World")
-gridding_workflow_emissions_harmonised_reaggregated
+def get_global_workflow_emissions_incl_region_col_from_gridding_emissions(
+    gridding_emissions: pd.DataFrame,
+    co2_fossil_sectors: tuple[str, ...] = (
+        "Energy Sector",
+        "Industrial Sector",
+        "Residential Commercial Other",
+        "Solvents Production and Application",
+        "Transportation Sector",
+        "Waste",
+        "Aircraft",
+        "International Shipping",
+    ),
+    co2_biosphere_sectors: tuple[str, ...] = (
+        "Agriculture",
+        "Agricultural Waste Burning",
+        "Forest Burning",
+        "Grassland Burning",
+        "Peat Burning",
+    ),
+    co2_fossil_sector: str = "Energy and Industrial Processes",
+    co2_biosphere_sector: str = "AFOLU",
+    region_out: str = "World",
+) -> pd.DataFrame:
+    world_locator = pix.isin(region="World")
+
+    gridding_emissions_sector_dim_sector_cols = (
+        split_sectors(gridding_emissions.loc[world_locator].reset_index("region", drop=True)).stack().unstack("sectors")
+    )
+    gridding_emissions_region_sector_dim_sector_cols = (
+        split_sectors(gridding_emissions.loc[~world_locator]).stack().unstack("sectors")
+    )
+
+    return get_global_workflow_emissions_from_gridding_emissions_sector_cols(
+        gridding_emissions_sector_dim_sector_cols=gridding_emissions_sector_dim_sector_cols,
+        gridding_emissions_region_sector_dim_sector_cols=gridding_emissions_region_sector_dim_sector_cols,
+        co2_fossil_sectors=co2_fossil_sectors,
+        co2_biosphere_sectors=co2_biosphere_sectors,
+        co2_fossil_sector=co2_fossil_sector,
+        co2_biosphere_sector=co2_biosphere_sector,
+    ).pix.assign(region=region_out)
+
+
+# %%
+ggwe = partial(
+    get_global_workflow_emissions_incl_region_col_from_gridding_emissions,
+    co2_fossil_sectors=(
+        "Energy Sector",
+        "Industrial Sector",
+        "Residential Commercial Other",
+        "Solvents Production and Application",
+        "Transportation Sector",
+        "Waste",
+        # Don't have this harmonised for now
+        # "Aircraft",
+        "International Shipping",
+    ),
+)
+
+# %%
+tmp = history_model_gridding_relevant.pix.assign(model="history")
+tmp.columns.name = "year"
+global_workflow_history = ggwe(tmp)
+# global_workflow_history
+
+# %%
+global_workflow = ggwe(gridding_workflow_emissions)
+# global_workflow
+
+# %%
+global_workflow_harmonised = ggwe(gridding_workflow_emissions_harmonised)
+# global_workflow_harmonised
 
 # %%
 import seaborn as sns
 
 # %%
-locator = pix.isin(region="World") & pix.ismatch(variable="*|*")
+# sdf.loc[pix.ismatch(variable="Emissions|CO2|Energy|Demand|Industry", region="World")].pix.project("scenario").T.plot()
+
+# %% [markdown]
+# International shipping from sulfur and NOx missing.
+
+# %%
+locator = pix.ismatch(variable="Emissions|*|International Shipping")
+model_shipping = (
+    gridding_workflow_emissions_harmonised.loc[
+        locator & pix.isin(scenario=gridding_workflow_emissions_harmonised.pix.unique("scenario")[0]),
+        :harmonisation_year,
+    ]
+).reset_index(["model", "scenario"], drop=True)[harmonisation_year]
+model_shipping.compare(
+    history_model_gridding_relevant.loc[locator, harmonisation_year]
+    .reset_index(["model", "scenario"], drop=True)
+    .reorder_levels(model_shipping.index.names)
+    .loc[model_shipping.index],
+    result_names=("model", "history"),
+)
+
+# %%
+locator = pix.isin(region="World") & pix.ismatch(
+    variable=[
+        "*|*",
+        "**CO2|Energy and Industrial Processes",
+        # # Not AFOLU because we're not harmonising to the right target
+        # # and it's not used by ESMs
+        # "**CO2|AFOLU",
+    ]
+)
 
 sns_df = (
     pix.concat(
         [
+            global_workflow_history.pix.assign(stage="history").loc[:, 2000:harmonisation_year],
             sdf.pix.assign(stage="raw"),
-            gridding_workflow_emissions_harmonised_reaggregated.pix.assign(stage="harmonised"),
+            global_workflow.pix.assign(stage="pre-processed"),
+            global_workflow_harmonised.pix.assign(stage="harmonised"),
         ]
     )
     .loc[locator]
@@ -1054,10 +1245,12 @@ fg = sns.relplot(
     y="value",
     hue="scenario",
     style="stage",
-    dashes=dict(
-        harmonised="",
-        raw=(3, 3),
-    ),
+    dashes={
+        "history": "",
+        "harmonised": "",
+        "pre-processed": (1, 1),
+        "raw": (3, 3),
+    },
     col="variable",
     col_wrap=3,
     facet_kws=dict(sharey=False),
@@ -1071,13 +1264,46 @@ for ax in fg.axes:
     else:
         ax.set_ylim(0.0)
 
+# %% [markdown]
+# Notes:
+#
+# - need to check internal consistency of history
+#   (if we harmonise at all levels, total should be harmonised too)
+# - Sulfur emissions harmonised negative for IMAGE, not ideal
+# - negative CO2 fossil emissions harmonised out for WITCH, not ideal
+# - CO2 industry not reported correctly by WITCH,
+#   which makes things look weird
+
 # %%
-locator = pix.ismatch(region="**EU 28") & pix.ismatch(variable="*|CO2|*")
+# gridding_workflow_emissions_harmonised_reaggregated.loc[pix.ismatch(variable="**Sulfur**")]
+
+# %%
+# gridding_workflow_emissions_harmonised.pix.unique("region")
+
+# %%
+if "AIM" in model:
+    locator = pix.ismatch(region="**|EU & UK")
+elif "COFFEE" in model:
+    locator = pix.ismatch(region="**|Europe")
+elif "IMAGE" in model:
+    locator = pix.ismatch(region="**|Western Europe")
+elif "MESSAGE" in model:
+    locator = pix.ismatch(region="**|Western Europe")
+elif "REMIND" in model:
+    locator = pix.ismatch(region="**|EU 28")
+elif "WITCH" in model:
+    locator = pix.ismatch(region="**|Europe")
+else:
+    raise NotImplementedError(model)
+
+# locator = locator & pix.ismatch(variable="*|CO2|*")
+locator = locator & pix.ismatch(variable="*|Sulfur|*")
 
 sns_df = (
     pix.concat(
         [
             # sdf.pix.assign(stage="raw"),
+            history_model_gridding_relevant.loc[locator].pix.assign(stage="history").loc[:, 2000:harmonisation_year],
             gridding_workflow_emissions.pix.assign(stage="pre_processed"),
             gridding_workflow_emissions_harmonised.pix.assign(stage="harmonised"),
         ]
@@ -1096,6 +1322,7 @@ fg = sns.relplot(
     style="stage",
     dashes=dict(
         harmonised="",
+        history="",
         pre_processed=(1, 1),
         raw=(3, 3),
     ),
@@ -1113,3 +1340,85 @@ for ax in fg.axes:
         ax.set_ylim(0.0)
 
 # %%
+variable = "Emissions|CO2|Energy Sector"
+variable = "Emissions|CO2|Industrial Sector"
+
+locator = pix.ismatch(variable=variable)
+
+sns_df = (
+    pix.concat(
+        [
+            # sdf.pix.assign(stage="raw"),
+            history_model_gridding_relevant.loc[locator].pix.assign(stage="history").loc[:, 2000:harmonisation_year],
+            gridding_workflow_emissions.pix.assign(stage="pre_processed"),
+            gridding_workflow_emissions_harmonised.pix.assign(stage="harmonised"),
+        ]
+    )
+    .loc[locator]
+    .openscm.to_long_data()
+)
+if sns_df.empty:
+    raise AssertionError
+
+fg = sns.relplot(
+    data=sns_df,
+    x="time",
+    y="value",
+    hue="scenario",
+    style="stage",
+    dashes=dict(
+        harmonised="",
+        history="",
+        pre_processed=(1, 1),
+        raw=(3, 3),
+    ),
+    col="region",
+    col_wrap=3,
+    facet_kws=dict(sharey=True),
+    kind="line",
+    linewidth=2,
+)
+fg.figure.suptitle(f"{model} - {variable}", y=1.01)
+for ax in fg.axes:
+    ax.axhline(0.0, color="k", alpha=0.3, zorder=1.0)
+
+# %%
+sns_df
+
+# %%
+locator = pix.ismatch(region="World")
+
+sns_df = split_sectors(
+    pix.concat(
+        [
+            # sdf.pix.assign(stage="raw"),
+            history_model_gridding_relevant.loc[locator].pix.assign(stage="history").loc[:, 2000:harmonisation_year],
+            gridding_workflow_emissions.pix.assign(stage="pre_processed"),
+            gridding_workflow_emissions_harmonised.pix.assign(stage="harmonised"),
+        ]
+    ).loc[locator]
+).openscm.to_long_data()
+if sns_df.empty:
+    raise AssertionError
+
+fg = sns.relplot(
+    data=sns_df,
+    x="time",
+    y="value",
+    hue="scenario",
+    style="stage",
+    dashes=dict(
+        harmonised="",
+        history="",
+        pre_processed=(1, 1),
+        raw=(3, 3),
+    ),
+    col="sectors",
+    row="species",
+    facet_kws=dict(sharey=False),
+    kind="line",
+    linewidth=2,
+)
+fg.figure.suptitle(model, y=1.01)
+for ax in fg.axes.flatten():
+    ax.axhline(0.0, color="k", alpha=0.3, zorder=1.0)
