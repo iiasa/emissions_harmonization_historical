@@ -14,7 +14,8 @@ dependencies = [
     "scmdata>=0.17.0,<0.18",
     "nomenclature-iamc>=0.22.1,<0.23",
     "xarray-regrid==0.4.0",
-    "gcages @ git+https://github.com/openscm/gcages.git@f245ceca9d89bd21259cd695d7be63e74fd6e6d8",
+    # in pypi-dependencies for now
+    # "gcages @ git+https://github.com/openscm/gcages.git@f245ceca9d89bd21259cd695d7be63e74fd6e6d8",
 ]
 name = "emissions-harmonization-historical"
 version = "0.1.0"
@@ -66,6 +67,7 @@ ipywidgets = ">=8.1.5,<9"
 
 [tool.pixi.pypi-dependencies]
 emissions_harmonization_historical = { path = ".", editable = true }
+gcages = { path = "../gcages", editable = true }
 
 [tool.jupytext]
 formats = "ipynb,py:percent"

@@ -43,6 +43,10 @@ pd.set_option("display.max_colwidth", None)
 SCENARIO_PATH = DATA_ROOT / "scenarios" / "data_raw"
 SCENARIO_PATH
 
+# %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
+model: str = "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12"
+output_dir: str = "data/reporting-checking"
+
 # %% [markdown]
 # ## Load data
 
@@ -174,7 +178,7 @@ def get_required_region_index_iamc(
 # for m in sorted(scenarios_raw.pix.unique("model")):
 #     print(f"model = '{m}'")
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 model = "AIM 3.0"
 model = "COFFEE 1.6"
 # model = 'GCAM 7.1 scenarioMIP'
