@@ -28,6 +28,7 @@ import os
 
 import openscm_runner.adapters
 import pandas as pd
+import pandas_indexing as pix
 from gcages.io import load_timeseries_csv
 from loguru import logger
 
@@ -108,7 +109,7 @@ scenarios_run = complete_scenarios[complete_scenarios.index.isin(selected_scenar
 
 # scenarios_run = complete_scenarios.loc[
 # pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["*", "AIM*", "GCAM*"])]
-# scenarios_run = complete_scenarios.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["GCAM*"])]
+scenarios_run = complete_scenarios.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["GCAM*"])]
 
 # %%
 # To run all, just uncomment the below

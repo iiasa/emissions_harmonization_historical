@@ -202,11 +202,12 @@ selected_scenarios_idx = pd.MultiIndex.from_tuples(
 scenarios_run = pre_processed[pre_processed.index.isin(selected_scenarios_idx)]
 
 # scenarios_run = pre_processed.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["GCAM*", "AIM*", "*"])]
-# scenarios_run = pre_processed.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["GCAM*"])]
+scenarios_run = pre_processed.loc[pix.ismatch(scenario=["*Very Low*", "*Overshoot*"], model=["GCAM*"])]
+scenarios_run = pre_processed.loc[pix.ismatch(model=["WITCH*"])]
 
 # %%
-# # To run all, just uncomment the below
-# scenarios_run = pre_processed
+# To run all, just uncomment the below
+scenarios_run = pre_processed
 
 # %%
 scenarios_run.pix.unique(["model", "scenario"]).to_frame(index=False)

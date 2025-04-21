@@ -160,6 +160,7 @@ workflow_map = {
     # "updated-workflow_fair-v2.2.2": "AR7FT-FaIRv2.2.2",
 }
 col_show_order = ["AR6", "AR6_updated-MAGICC", "AR7FT-MAGICCv7.6.0a3"]
+# col_show_order = ["AR6", "AR7FT-MAGICCv7.6.0a3"]
 
 tmp = metadata
 # # If Chris does separate runs, can use this
@@ -489,3 +490,5 @@ for start, title in (
 
     # ax.grid()
     fig.suptitle(title)
+
+# %%
