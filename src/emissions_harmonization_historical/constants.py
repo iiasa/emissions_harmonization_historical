@@ -16,7 +16,8 @@ from pathlib import Path
 DATA_ROOT = Path(__file__).parents[2] / "data"
 
 # CEDS_PROCESSING_ID = "0011" # v_2025_03_11
-CEDS_PROCESSING_ID = "0012"  # v_2025_03_18
+# CEDS_PROCESSING_ID = "0012"  # v_2025_03_18
+CEDS_PROCESSING_ID = "0013"  # v_2025_03_18, with added sector mapping of '2L_Other-process-emissions' to 'Industrial Sector'
 CEDS_EXPECTED_NUMBER_OF_REGION_VARIABLE_PAIRS_IN_GLOBAL_HARMONIZATION = 0
 # all domestic aviation is on the country-level since v_2025_03_18;
 # 2 for v_2025_03_11; for v2024_07_08 this is also 2; see https://github.com/JGCRI/CEDS/issues/54
