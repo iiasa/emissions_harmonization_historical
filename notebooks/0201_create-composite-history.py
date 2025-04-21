@@ -232,13 +232,13 @@ biomass_burning_sum
 # %%
 tmp = pix.concat(
     [
-        ceds_sum.rename(index=lambda x: x.replace("Emissions|CH4|CEDSv2024_07_08", "CH4")).loc[
+        ceds_sum.rename(index=lambda x: x.replace("Emissions|CH4|CEDSv_2025_03_18", "CH4")).loc[
             pix.isin(variable=["CH4"])
         ],
         primap_global.rename(index=lambda x: x.replace("Emissions|CH4|Fossil, industrial and agriculture", "CH4")).loc[
             pix.isin(variable=["CH4"])
         ],
-        ceds_sum.rename(index=lambda x: x.replace("Emissions|N2O|CEDSv2024_07_08", "N2O")).loc[
+        ceds_sum.rename(index=lambda x: x.replace("Emissions|N2O|CEDSv_2025_03_18", "N2O")).loc[
             pix.isin(variable=["N2O"])
         ],
         primap_global.rename(index=lambda x: x.replace("Emissions|N2O|Fossil, industrial and agriculture", "N2O")).loc[
@@ -270,7 +270,7 @@ for ax in fg.figure.axes:
 
 # %%
 ceds_primap_ch4_ratio = (
-    tmp.loc[pix.isin(variable=["CH4"], model=["CEDSv2024_07_08"]), 1970:2022].values.squeeze()
+    tmp.loc[pix.isin(variable=["CH4"], model=["CEDSv_2025_03_18"]), 1970:2022].values.squeeze()
     / tmp.loc[pix.isin(variable=["CH4"], model=["PRIMAP-HistTP"]), 1970:2022].values.squeeze()
 )
 plt.plot(ceds_primap_ch4_ratio)
@@ -280,7 +280,7 @@ plt.plot(np.arange(len(ceds_primap_ch4_ratio)), ch4reg.intercept + ch4reg.slope 
 
 # %%
 ceds_primap_n2o_ratio = (
-    tmp.loc[pix.isin(variable=["N2O"], model=["CEDSv2024_07_08"]), 1970:2022].values.squeeze()
+    tmp.loc[pix.isin(variable=["N2O"], model=["CEDSv_2025_03_18"]), 1970:2022].values.squeeze()
     / tmp.loc[pix.isin(variable=["N2O"], model=["PRIMAP-HistTP"]), 1970:2022].values.squeeze()
 )
 plt.plot(ceds_primap_n2o_ratio)
