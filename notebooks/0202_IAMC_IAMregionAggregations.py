@@ -51,13 +51,13 @@ cmip7_history_file = DATA_ROOT / Path("combined-processed-output", f"cmip7_histo
 # file name for output
 # TODO: add versioning / ID to this file
 iamc_commondefinitions_regions_processed_output_file = DATA_ROOT / Path(
-    "combined-processed-output", f"iamc_regions_cmip7_history_{IAMC_REGION_PROCESSING_ID}.csv"
+    "combined-processed-output", f"iamc_regions_cmip7_history_{COMBINED_HISTORY_ID}_{IAMC_REGION_PROCESSING_ID}.csv"
 )
 iamc_commondefinitions_regions_history_missing_iso_vsCEDSGFED = DATA_ROOT / Path(
-    "combined-processed-output", f"iamc_regions_cmip7_history_missing_iso_vsCEDSGFED_{IAMC_REGION_PROCESSING_ID}.csv"
+    "combined-processed-output", f"iamc_regions_cmip7_history_missing_iso_vsCEDSGFED_{COMBINED_HISTORY_ID}_{IAMC_REGION_PROCESSING_ID}.csv"
 )
 iamc_commondefinitions_regions_history_missing_iso = DATA_ROOT / Path(
-    "combined-processed-output", f"iamc_regions_cmip7_history_missing_iso_{IAMC_REGION_PROCESSING_ID}.csv"
+    "combined-processed-output", f"iamc_regions_cmip7_history_missing_iso_{COMBINED_HISTORY_ID}_{IAMC_REGION_PROCESSING_ID}.csv"
 )
 
 # %%
