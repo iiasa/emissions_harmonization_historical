@@ -67,3 +67,5 @@ HISTORY_SCENARIO_NAME = "historical"
 EDGAR_PROCESSING_ID = "0010" # processed data received from Steve Smith 
 
 FAO_PROCESSING_ID = "0010" # processed data received from Steve Smith
+
+GAINS_PROCESSING_ID = "0010" # processed data received from Shaohui Zhang
