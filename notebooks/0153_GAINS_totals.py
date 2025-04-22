@@ -54,7 +54,7 @@ raw_df
 # %%
 # find potential duplicates
 dupls = raw_df.reset_index().duplicated(subset=["COUNTRY", "IDPOLLUTANT_FRACTIONS", "UNIT", "IDYEARS"], keep=False)
-raw_df[dupls]
+assert len(raw_df[dupls]) == 0
 
 # %%
 df = raw_df.rename(
@@ -63,7 +63,7 @@ df = raw_df.rename(
         "IDPOLLUTANT_FRACTIONS": "variable",
         "UNIT": "unit",
         "IDYEARS": "year",
-        "EMISSION": "value",
+        "EMISS": "value",
     }, axis="columns"
 )
 df["country"] = df["region"].str.lower()
