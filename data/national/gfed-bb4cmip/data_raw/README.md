@@ -39,6 +39,12 @@ index_node = "esgf-node.llnl.gov"
 ...
 ```
 
+If it doesn't, you may need to choose this installation by doing something like
+
+```
+esgpull self choose /path/to/emissions_harmonization_historical/data/national/gfed-bb4cmip/data_raw
+```
+
 Then, download the data
 
 ```sh
@@ -46,9 +52,9 @@ Then, download the data
 # On ESGF website: https://aims2.llnl.gov/search?project=input4MIPs&activeFacets=%7B%22mip_era%22%3A%22CMIP7%22%2C%22institution_id%22%3A%22DRES%22%2C%22source_id%22%3A%22DRES-CMIP-BB4CMIP7-2-0%22%7D for an overview
 # You can search with esgpull search e.g. `venv/bin/esgpull search --all project:input4MIPs mip_era:CMIP7 source_id:DRES-CMIP-BB4CMIP7-2-0 grid_label:gn`
 variable_ids_to_grab="BC,CH4,CO,CO2,Multiple,N2O,NH3,NMVOCbulk,NOx,OC,SO2,gridcellarea"
-venv/bin/esgpull add --tag bb4cmip --track variable_id:"${variable_ids_to_grab}" project:input4MIPs mip_era:CMIP7 source_id:DRES-CMIP-BB4CMIP7-2-0 grid_label:gn
-venv/bin/esgpull update -y --tag bb4cmip
-venv/bin/esgpull download --tag bb4cmip # this downloads most variables, and requires about 12-13 GB of data
+venv/bin/esgpull add --tag bb4cmip-2-0 --track variable_id:"${variable_ids_to_grab}" project:input4MIPs mip_era:CMIP7 source_id:DRES-CMIP-BB4CMIP7-2-0 grid_label:gn
+venv/bin/esgpull update -y --tag bb4cmip-2-0
+venv/bin/esgpull download --tag bb4cmip-2-0 # this downloads most variables, and requires about 12-13 GB of data
 ```
 
 The download takes some time, but if it gets interrupted it can be restarted using
