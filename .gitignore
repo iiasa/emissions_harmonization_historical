@@ -9,6 +9,7 @@ data/national/gfed-bb4cmip/processed
 data/national/cams/processed
 data/national/primap-hist/processed
 data/national/fao/processed
+data/national/gains/processed
 data/global/adam-et-al-2024/processed
 data/global/edgar/processed
 data/national/edgar/processed
