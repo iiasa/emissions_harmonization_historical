@@ -242,5 +242,3 @@ iso_present
 # %%
 iso_present.to_csv(iamc_commondefinitions_regions_history_missing_iso, index=False)
 iamc_commondefinitions_regions_history_missing_iso
-
-# %%

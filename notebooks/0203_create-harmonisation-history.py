@@ -24,8 +24,8 @@
 import matplotlib.pyplot as plt
 import pandas_indexing as pix
 import scipy.stats
-from gcages.io import load_timeseries_csv
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
+from pandas_openscm.io import load_timeseries_csv
 
 from emissions_harmonization_historical.constants import (
     COMBINED_HISTORY_ID,

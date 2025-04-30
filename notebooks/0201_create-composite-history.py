@@ -29,6 +29,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pandas_indexing as pix
+import pandas_openscm
 import seaborn as sns
 from scipy.stats import linregress
 
@@ -49,6 +50,9 @@ from emissions_harmonization_historical.constants import (
 from emissions_harmonization_historical.io import load_csv
 from emissions_harmonization_historical.units import assert_units_match_wishes
 
+# %%
+pandas_openscm.register_pandas_accessor()
+
 # %% [markdown]
 # ## Set up the unit registry
 
@@ -64,10 +68,10 @@ pix.units.set_openscm_registry_as_default()
 class CEDSOption(StrEnum):
     """CEDS options"""
 
-    Zenodo_2025_03_18 = auto() # https://doi.org/10.5281/zenodo.15059443
-    Drive_2025_03_18 = auto() # https://drive.google.com/file/d/1xQprQN-bZboJrEH2g2t8uIF2IN7qAa2Q/view?usp=drive_link
-    Drive_2025_03_11 = auto() # https://drive.google.com/file/d/17ZjKy4VmGuzU1YnQMQFti5kG0prX2k_L/view?usp=drive_link
-    Zenodo_2024_07_08 = auto() # https://doi.org/10.5281/zenodo.12803197
+    Zenodo_2025_03_18 = auto()  # https://doi.org/10.5281/zenodo.15059443
+    Drive_2025_03_18 = auto()  # https://drive.google.com/file/d/1xQprQN-bZboJrEH2g2t8uIF2IN7qAa2Q/view?usp=drive_link
+    Drive_2025_03_11 = auto()  # https://drive.google.com/file/d/17ZjKy4VmGuzU1YnQMQFti5kG0prX2k_L/view?usp=drive_link
+    Zenodo_2024_07_08 = auto()  # https://doi.org/10.5281/zenodo.12803197
     # esgf_gridded_yyyy_mm_dd = auto()
 
 
@@ -101,7 +105,12 @@ combined_processed_output_file_world_only = DATA_ROOT / Path(
 # ## Process national data
 
 # %%
-if CEDS_SOURCE in [CEDSOption.Zenodo_2024_07_08, CEDSOption.Drive_2025_03_11, CEDSOption.Drive_2025_03_18, CEDSOption.Zenodo_2025_03_18]:
+if CEDS_SOURCE in [
+    CEDSOption.Zenodo_2024_07_08,
+    CEDSOption.Drive_2025_03_11,
+    CEDSOption.Drive_2025_03_18,
+    CEDSOption.Zenodo_2025_03_18,
+]:
     ceds = pix.concat(
         [
             load_csv(
@@ -173,6 +182,17 @@ bb4cmip_global = load_csv(
 bb4cmip_global
 
 # %%
+sns.relplot(
+    data=bb4cmip_global.openscm.to_long_data(),
+    x="time",
+    y="value",
+    col="variable",
+    col_wrap=3,
+    kind="line",
+    facet_kws=dict(sharey=False),
+)
+
+# %%
 ceds_world = ceds.loc[pix.isin(region=["World"])]
 ceds_world
 
@@ -232,13 +252,13 @@ biomass_burning_sum
 # %%
 tmp = pix.concat(
     [
-        ceds_sum.rename(index=lambda x: x.replace("Emissions|CH4|CEDSv2024_07_08", "CH4")).loc[
+        ceds_sum.rename(index=lambda x: x.replace("Emissions|CH4|CEDSv_2025_03_18", "CH4")).loc[
             pix.isin(variable=["CH4"])
         ],
         primap_global.rename(index=lambda x: x.replace("Emissions|CH4|Fossil, industrial and agriculture", "CH4")).loc[
             pix.isin(variable=["CH4"])
         ],
-        ceds_sum.rename(index=lambda x: x.replace("Emissions|N2O|CEDSv2024_07_08", "N2O")).loc[
+        ceds_sum.rename(index=lambda x: x.replace("Emissions|N2O|CEDSv_2025_03_18", "N2O")).loc[
             pix.isin(variable=["N2O"])
         ],
         primap_global.rename(index=lambda x: x.replace("Emissions|N2O|Fossil, industrial and agriculture", "N2O")).loc[
@@ -270,7 +290,7 @@ for ax in fg.figure.axes:
 
 # %%
 ceds_primap_ch4_ratio = (
-    tmp.loc[pix.isin(variable=["CH4"], model=["CEDSv2024_07_08"]), 1970:2022].values.squeeze()
+    tmp.loc[pix.isin(variable=["CH4"], model=["CEDSv_2025_03_18"]), 1970:2022].values.squeeze()
     / tmp.loc[pix.isin(variable=["CH4"], model=["PRIMAP-HistTP"]), 1970:2022].values.squeeze()
 )
 plt.plot(ceds_primap_ch4_ratio)
@@ -280,7 +300,7 @@ plt.plot(np.arange(len(ceds_primap_ch4_ratio)), ch4reg.intercept + ch4reg.slope 
 
 # %%
 ceds_primap_n2o_ratio = (
-    tmp.loc[pix.isin(variable=["N2O"], model=["CEDSv2024_07_08"]), 1970:2022].values.squeeze()
+    tmp.loc[pix.isin(variable=["N2O"], model=["CEDSv_2025_03_18"]), 1970:2022].values.squeeze()
     / tmp.loc[pix.isin(variable=["N2O"], model=["PRIMAP-HistTP"]), 1970:2022].values.squeeze()
 )
 plt.plot(ceds_primap_n2o_ratio)
