@@ -15,8 +15,9 @@ dependencies = [
     "nomenclature-iamc>=0.22.1,<0.23",
     "xarray-regrid==0.4.0",
     "papermill>=2.6.0,<3",
-    # To use a local version, comment this out and use the pypi-dependencies section below
-    "gcages>=0.4.0,<0.5",
+    "silicone>=1.3.0,<2", "pymagicc>=2.1.5,<3", "openscm-runner>=0.13.0,<0.14",
+    # # To use a local version, comment this out and use the pypi-dependencies section below
+    # "gcages>=0.4.0,<0.5",
 ]
 name = "emissions-harmonization-historical"
 version = "0.1.0"
@@ -68,8 +69,8 @@ ipywidgets = ">=8.1.5,<9"
 
 [tool.pixi.pypi-dependencies]
 emissions_harmonization_historical = { path = ".", editable = true }
-# # use this to pin to local version
-# gcages = { path = "../gcages", editable = true }
+# use this to pin to local version
+gcages = { path = "../gcages", editable = true }
 
 [tool.jupytext]
 formats = "ipynb,py:percent"

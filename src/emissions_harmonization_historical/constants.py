@@ -67,3 +67,9 @@ HISTORY_SCENARIO_NAME = "historical"
 EDGAR_PROCESSING_ID = "0010"  # processed data received from Steve Smith
 
 FAO_PROCESSING_ID = "0010"  # processed data received from Steve Smith
+
+CMIP7_SCENARIOMIP_PRE_PROCESSING_ID = "0001"
+
+CMIP7_SCENARIOMIP_HARMONISATION_ID = "0001"
+
+CMIP7_SCENARIOMIP_INFILLING_ID = "0001"

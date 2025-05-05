@@ -19,7 +19,8 @@ on your repository where you're up to. Some suggested options:
 
 Scripts that combine historical emissions data records from several datasets like CEDS and GFED
 to create complete historical emissions files
-that are input to the IAM emissions harmonization algorithms in `IAMconsortium/concordia` (regional harmonization and spatial gridding for ESMs)
+that are input to the IAM emissions harmonization algorithms in `IAMconsortium/concordia`
+(regional harmonization and spatial gridding for ESMs)
 and `iiasa/climate-assessment` (global climate emulator workflow).
 
 ## Status
@@ -94,6 +95,7 @@ git lfs pull --include="data/national/gfed/data_aux/iso_mask.nc"
 For more info, see, for example, [here](https://graphite.dev/guides/how-to-use-git-lfs-pull).
 
 ### Input data
+
 Note that this repository focuses on processing data, and does not currently also (re)host input data files.
 
 Files that need to be downloaded to make sure you can run the notebooks are specified in the relevant `data` subfolders,
@@ -101,6 +103,7 @@ in README files, such as in `\data\national\ceds\data_raw\README.txt` for the CE
 and in `\data\national\gfed\data_raw\README.txt` for the GFED data download.
 
 ### Processed data
+
 Data is processed by the jupyter notebooks (saved as .py scripts using jupytext, under the `notebooks` folder).
 The output paths are generally specified at the beginning of each notebook.
 
@@ -158,6 +161,16 @@ Overview of notebooks:
 
 - `01**`: preparing input data for `IAMconsortium/concordia`.
 - `02**`: preparing input data for `iiasa/climate-assessment`.
+
+##### The `500x` series
+
+This series of notebooks is an attempt to clarify the essential bits of the workflow
+needed to go from nothing to doing the climate assessment of a submission.
+There are lots of other things done in the notebooks,
+so we tried to clarify with this series.
+The other notebooks are still there and there is duplication with the other notebooks
+and some uncertainty about which other notebooks still run.
+Sorting this out is a next step.
 
 #### Local package
 

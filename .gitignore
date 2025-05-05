@@ -5,6 +5,7 @@ data/reporting-checking
 *.pdf
 
 # Processed data
+data/cmip7-scenariomip-workflow
 data/climate-assessment-workflow
 data/national/ceds/processed
 data/national/gfed/processed

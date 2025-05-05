@@ -309,6 +309,9 @@ burningCMIP7_ref = tmp.set_index("unit", append=True).reorder_levels(burningCMIP
 burningCMIP7_ref
 
 # %%
+burningCMIP7_ref
+
+# %%
 # Missing (NM)VOC at the moment from this processing...
 assert_units_match_wishes(burningCMIP7_ref)
 
