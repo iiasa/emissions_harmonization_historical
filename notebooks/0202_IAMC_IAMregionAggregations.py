@@ -81,6 +81,9 @@ region_mapping
 cmip7_history[(cmip7_history["region"].isin(["usa"]))]
 
 # %%
+region_mapping.tail()
+
+# %%
 agg_data = []
 for _, row in region_mapping.iterrows():
     model_region = row["model_region"]

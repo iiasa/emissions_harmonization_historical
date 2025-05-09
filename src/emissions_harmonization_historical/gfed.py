@@ -4,6 +4,7 @@ from pathlib import Path
 
 import cftime
 import dask
+import dask.array
 import h5py
 import numpy as np
 import pandas as pd
@@ -75,9 +76,10 @@ def concat_group(group, concat_dim, coords, sep=None):
     if sep is None:
         return da
 
-    return da.assign_coords(
-        {concat_dim: da.indexes[concat_dim].str.split(sep, expand=True).rename(concat_dim.split(sep))}
-    ).unstack(concat_dim)
+    mindex_coords = xr.Coordinates.from_pandas_multiindex(
+        da.indexes[concat_dim].str.split(sep, expand=True).rename(concat_dim.split(sep)), concat_dim
+    )
+    return da.assign_coords(mindex_coords).unstack(concat_dim)
 
 
 def read_monthly(group, coords):
@@ -236,3 +238,47 @@ def add_global(df, groups=["em", "unit", "sector"]):
         - Returns the resulting DataFrame with the added "World" aggregate rows.
     """
     return pd.concat([df, df.groupby(groups).sum().idx.assign(country="World", order=df.index.names)])
+
+
+def load_emissions_factors_per_dry_matter(
+    raw_path: Path,
+    species: tuple[str, ...] = (
+        "BC",
+        "CH4",
+        "CO",
+        "CO2",
+        "N2O",  # was global in CMIP6, so having this regionally is new
+        "NH3",
+        "NMVOC",  # assumed to be equivalent to IAMC-style reported VOC
+        "NOx",
+        "OC",
+        "SO2",
+    ),
+) -> xr.DataArray:
+    """
+    Load emissions factors per unit of dry matter emitted
+    """
+    nmvoc_aux_conversion = pd.read_excel(raw_path / "NMVOC-species.xlsx", index_col=0)
+    nmvoc_species = nmvoc_aux_conversion.set_axis(
+        nmvoc_aux_conversion.index.str.replace(r"^(\w+) *\(.*\)$", r"\1", regex=True).rename("em")
+    )
+    nmvoc_factors = pd.Series(1, nmvoc_species.index[nmvoc_species["NMVOC"].isin(["y"])])
+
+    gfed_emissions_factors_file = raw_path / "GFED4_Emission_Factors.txt"
+
+    _, marker, *sectors = pd.read_csv(gfed_emissions_factors_file, sep=r"\s+", skiprows=15, nrows=1, header=None).iloc[
+        0
+    ]
+    if marker != "SPECIE":
+        msg = "Unexpected header, check reading"
+        raise AssertionError(msg)
+
+    emissions_factors = pd.read_csv(
+        gfed_emissions_factors_file, sep=r"\s+", header=None, names=sectors, comment="#"
+    ).rename_axis(index="em", columns="sector")
+    emissions_factors.loc["NMVOC"] = emissions_factors.multiply(nmvoc_factors, axis=0).sum()
+
+    # in kg {species} / kg DM
+    emissions_factors_per_dry_matter = emissions_factors.loc[list(species)] / emissions_factors.loc["DM"]
+
+    return xr.DataArray(emissions_factors_per_dry_matter)

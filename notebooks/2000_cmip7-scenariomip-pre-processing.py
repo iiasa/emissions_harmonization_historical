@@ -24,7 +24,6 @@
 # ## Imports
 
 # %%
-
 import gcages.cmip7_scenariomip.pre_processing.reaggregation.basic
 import pandas as pd
 import pandas_indexing as pix
@@ -37,6 +36,7 @@ from pandas_openscm.db import (
 )
 
 from emissions_harmonization_historical.constants import (
+    CMIP7_SCENARIOMIP_PRE_PROCESSING_ID,
     DATA_ROOT,
     SCENARIO_TIME_ID,
 )
@@ -48,7 +48,15 @@ from emissions_harmonization_historical.constants import (
 model: str = "REMIND-MAgPIE 3.5-4.10"
 
 # %%
-# TODO: save output somewhere
+out_dir = DATA_ROOT / "cmip7-scenariomip-workflow" / "pre-processing" / CMIP7_SCENARIOMIP_PRE_PROCESSING_ID
+out_dir.mkdir(exist_ok=True, parents=True)
+
+# %%
+out_db = OpenSCMDB(
+    db_dir=out_dir,
+    backend_data=FeatherDataBackend(),
+    backend_index=FeatherIndexBackend(),
+)
 
 # %%
 SCENARIO_PATH = DATA_ROOT / "scenarios" / "data_raw"
@@ -63,6 +71,9 @@ SCENARIO_DB = OpenSCMDB(
 
 SCENARIO_DB.load_metadata().shape
 
+# %%
+SCENARIO_DB.load_metadata().get_level_values("model").unique()
+
 # %% [markdown]
 # ## Load data
 
@@ -74,7 +85,10 @@ model_raw = SCENARIO_DB.load(pix.isin(model=model), progress=True)
 if model_raw.empty:
     raise AssertionError
 
-# model_raw
+model_raw
+
+# %%
+model_raw.pix.unique(["variable", "region"]).to_frame(index=False)
 
 # %% [markdown]
 # Extract the model data, keeping:
@@ -188,14 +202,18 @@ pre_processor = CMIP7ScenarioMIPPreProcessor(
 pre_processing_res = pre_processor(model_df)
 
 # %%
-# TODO save this
-# Gridding emissions
-pre_processing_res.gridding_workflow_emissions
+model_safe = model.replace(" ", "_").replace(".", "-")
+model_safe
 
 # %%
-# Global workflow emissions
 pre_processing_res.global_workflow_emissions
 
 # %%
-# What we assumed to be zero
-pre_processing_res.assumed_zero_emissions
+for stage, df in (
+    ("gridding_emissions", pre_processing_res.gridding_workflow_emissions),
+    ("global_workflow_emissions", pre_processing_res.global_workflow_emissions),
+    ("global_workflow_emissions_raw_names", pre_processing_res.global_workflow_emissions_raw_names),
+    ("assumed_zero", pre_processing_res.assumed_zero_emissions),
+):
+    out_db.save(df.pix.assign(stage=stage))
+    print(f"Saved {stage}")

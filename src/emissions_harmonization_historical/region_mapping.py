@@ -44,7 +44,7 @@ def get_iso3_list(country_list: list[str]) -> list[str]:
     return iso3_list
 
 
-def create_region_mapping(out_file: Path, region_file: Path, common_definitions_path: Path) -> Path:
+def create_region_mapping(out_file: Path, common_definitions_path: Path) -> Path:
     """
     Create the region mapping file
 
@@ -52,9 +52,6 @@ def create_region_mapping(out_file: Path, region_file: Path, common_definitions_
     ----------
     out_file
         File in which to write the mapping
-
-    region_file
-        Path in which the region definitions are stored
 
     common_definitions_path
         Path in which the common-definitions repository can be found.

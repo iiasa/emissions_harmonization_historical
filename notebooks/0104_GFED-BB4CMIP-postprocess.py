@@ -137,10 +137,10 @@ national_sums_checker.columns = national_sums_checker.columns.astype(int)
 national_sums_checker
 
 # %%
-out_global
+pd.testing.assert_frame_equal(out_global, national_sums_checker, check_like=True)
 
 # %%
-pd.testing.assert_frame_equal(out_global, national_sums_checker, check_like=True)
+out_global.loc[pix.ismatch(variable="**VOC**")].T.plot()
 
 # %%
 out_global.to_csv(out_path_global)
