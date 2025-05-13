@@ -30,6 +30,7 @@ import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 import seaborn as sns
+from pandas_openscm.io import load_timeseries_csv
 from scipy.stats import linregress
 
 from emissions_harmonization_historical.constants import (
@@ -46,7 +47,6 @@ from emissions_harmonization_historical.constants import (
     VELDERS_ET_AL_2022_PROCESSING_ID,
     WMO_2022_PROCESSING_ID,
 )
-from emissions_harmonization_historical.io import load_csv
 from emissions_harmonization_historical.units import assert_units_match_wishes
 
 # %% [markdown]
@@ -64,10 +64,10 @@ pix.units.set_openscm_registry_as_default()
 class CEDSOption(StrEnum):
     """CEDS options"""
 
-    Zenodo_2025_03_18 = auto() # https://doi.org/10.5281/zenodo.15059443
-    Drive_2025_03_18 = auto() # https://drive.google.com/file/d/1xQprQN-bZboJrEH2g2t8uIF2IN7qAa2Q/view?usp=drive_link
-    Drive_2025_03_11 = auto() # https://drive.google.com/file/d/17ZjKy4VmGuzU1YnQMQFti5kG0prX2k_L/view?usp=drive_link
-    Zenodo_2024_07_08 = auto() # https://doi.org/10.5281/zenodo.12803197
+    Zenodo_2025_03_18 = auto()  # https://doi.org/10.5281/zenodo.15059443
+    Drive_2025_03_18 = auto()  # https://drive.google.com/file/d/1xQprQN-bZboJrEH2g2t8uIF2IN7qAa2Q/view?usp=drive_link
+    Drive_2025_03_11 = auto()  # https://drive.google.com/file/d/17ZjKy4VmGuzU1YnQMQFti5kG0prX2k_L/view?usp=drive_link
+    Zenodo_2024_07_08 = auto()  # https://doi.org/10.5281/zenodo.12803197
     # esgf_gridded_yyyy_mm_dd = auto()
 
 
@@ -101,13 +101,25 @@ combined_processed_output_file_world_only = DATA_ROOT / Path(
 # ## Process national data
 
 # %%
-if CEDS_SOURCE in [CEDSOption.Zenodo_2024_07_08, CEDSOption.Drive_2025_03_11, CEDSOption.Drive_2025_03_18, CEDSOption.Zenodo_2025_03_18]:
+index_cols = ["model", "scenario", "variable", "region", "unit"]
+
+# %%
+if CEDS_SOURCE in [
+    CEDSOption.Zenodo_2024_07_08,
+    CEDSOption.Drive_2025_03_11,
+    CEDSOption.Drive_2025_03_18,
+    CEDSOption.Zenodo_2025_03_18,
+]:
     ceds = pix.concat(
         [
-            load_csv(
-                DATA_ROOT / Path("national", "ceds", "processed", f"ceds_cmip7_national_{CEDS_PROCESSING_ID}.csv")
+            load_timeseries_csv(
+                DATA_ROOT / Path("national", "ceds", "processed", f"ceds_cmip7_national_{CEDS_PROCESSING_ID}.csv"),
+                index_columns=index_cols,
             ),
-            load_csv(DATA_ROOT / Path("national", "ceds", "processed", f"ceds_cmip7_global_{CEDS_PROCESSING_ID}.csv")),
+            load_timeseries_csv(
+                DATA_ROOT / Path("national", "ceds", "processed", f"ceds_cmip7_global_{CEDS_PROCESSING_ID}.csv"),
+                index_columns=index_cols,
+            ),
         ]
     )
 else:
@@ -123,10 +135,14 @@ ceds
 if BIOMASS_BURNING_SOURCE == BiomassBurningOption.GFED4_1s:
     biomass_burning = pix.concat(
         [
-            load_csv(
-                DATA_ROOT / Path("national", "gfed", "processed", f"gfed_cmip7_national_{GFED_PROCESSING_ID}.csv")
+            load_timeseries_csv(
+                DATA_ROOT / Path("national", "gfed", "processed", f"gfed_cmip7_national_{GFED_PROCESSING_ID}.csv"),
+                index_columns=index_cols,
             ),
-            load_csv(DATA_ROOT / Path("national", "gfed", "processed", f"gfed_cmip7_World_{GFED_PROCESSING_ID}.csv")),
+            load_timeseries_csv(
+                DATA_ROOT / Path("national", "gfed", "processed", f"gfed_cmip7_World_{GFED_PROCESSING_ID}.csv"),
+                index_columns=index_cols,
+            ),
         ]
     )
 else:
@@ -136,6 +152,9 @@ if biomass_burning.index.duplicated().any():
     raise AssertionError
 
 biomass_burning
+
+# %%
+biomass_burning.loc[pix.ismatch(variable="**VOC**", region=["World"])].pix.project("variable").T.plot()
 
 # %%
 cmip7combined_data = pix.concat([ceds, biomass_burning])

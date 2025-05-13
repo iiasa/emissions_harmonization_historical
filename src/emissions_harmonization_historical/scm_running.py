@@ -7,23 +7,15 @@ Individual notebooks can then override them as needed.
 
 from __future__ import annotations
 
-import hashlib
 import json
-import multiprocessing
-import os
+from functools import partial
 from pathlib import Path
 from typing import Any
 
-import openscm_runner.adapters
 import pandas as pd
-from attrs import define, field
-from gcages.database import GCDB
-from gcages.scm_running import (
-    convert_openscm_runner_output_names_to_magicc_output_names,
-    run_scm,
-    transform_iamc_to_openscm_runner_variable,
-)
-from gcages.units_helpers import strip_pint_incompatible_characters_from_units
+from gcages.renaming import SupportedNamingConventions, convert_variable_name
+from gcages.scm_running import convert_openscm_runner_output_names_to_magicc_output_names
+from pandas_openscm.indexing import multi_index_lookup
 
 SCM_OUTPUT_VARIABLES_DEFAULT: tuple[str, ...] = (
     # GSAT
@@ -82,210 +74,184 @@ SCM_OUTPUT_VARIABLES_DEFAULT: tuple[str, ...] = (
     # "Net Land to Atmosphere Flux|CO2|Earth System Feedbacks|Permafrost",
     # "Net Land to Atmosphere Flux|CH4|Earth System Feedbacks|Permafrost",
 )
+"""
+Default variables to get from SCMs
+"""
 
 
-@define
-class AR7FTSCMRunner:
+COMPLETE_EMISSIONS_INPUT_VARIABLES_GCAGES = [
+    "Emissions|CO2|Biosphere",
+    "Emissions|CO2|Fossil",
+    "Emissions|BC",
+    "Emissions|CH4",
+    "Emissions|CO",
+    "Emissions|N2O",
+    "Emissions|NH3",
+    "Emissions|NMVOC",
+    "Emissions|NOx",
+    "Emissions|OC",
+    "Emissions|SOx",
+    "Emissions|C2F6",
+    "Emissions|C6F14",
+    "Emissions|CF4",
+    "Emissions|SF6",
+    "Emissions|HFC125",
+    "Emissions|HFC134a",
+    "Emissions|HFC143a",
+    "Emissions|HFC227ea",
+    "Emissions|HFC23",
+    "Emissions|HFC245fa",
+    "Emissions|HFC32",
+    "Emissions|HFC4310mee",
+    "Emissions|CCl4",
+    "Emissions|CFC11",
+    "Emissions|CFC113",
+    "Emissions|CFC114",
+    "Emissions|CFC115",
+    "Emissions|CFC12",
+    "Emissions|CH3CCl3",
+    "Emissions|HCFC141b",
+    "Emissions|HCFC142b",
+    "Emissions|HCFC22",
+    "Emissions|Halon1202",
+    "Emissions|Halon1211",
+    "Emissions|Halon1301",
+    "Emissions|Halon2402",
+    "Emissions|C3F8",
+    "Emissions|C4F10",
+    "Emissions|C5F12",
+    "Emissions|C7F16",
+    "Emissions|C8F18",
+    "Emissions|cC4F8",
+    "Emissions|SO2F2",
+    "Emissions|HFC236fa",
+    "Emissions|HFC152a",
+    "Emissions|HFC365mfc",
+    "Emissions|CH2Cl2",
+    "Emissions|CHCl3",
+    "Emissions|CH3Br",
+    "Emissions|CH3Cl",
+    "Emissions|NF3",
+]
+"""
+Complete set of input emissions using gcages' naming
+"""
+
+to_reporting_names = partial(
+    convert_variable_name,
+    from_convention=SupportedNamingConventions.GCAGES,
+    to_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+)
+
+complete_index_gcages_names = pd.MultiIndex.from_product(
+    [COMPLETE_EMISSIONS_INPUT_VARIABLES_GCAGES, ["World"]],
+    names=["variable", "region"],
+)
+"""
+Complete index using gcages' names
+"""
+
+complete_index_reporting_names = pd.MultiIndex.from_product(
+    [[to_reporting_names(v) for v in COMPLETE_EMISSIONS_INPUT_VARIABLES_GCAGES], ["World"]],
+    names=["variable", "region"],
+)
+"""
+Complete index using reporting names
+"""
+
+
+def load_magicc_cfgs(
+    prob_distribution_path: Path,
+    output_variables: tuple[str, ...] = SCM_OUTPUT_VARIABLES_DEFAULT,
+    startyear: int = 1750,
+) -> dict[str, list[dict[str, Any]]]:
     """
-    AR7 fast-track simple climate model (SCM) runner
+    Load MAGICC's configuration
+
+    Parameters
+    ----------
+    prob_distribution_path
+        Path to the file containing the probabilistic distribution
+
+    output_variables
+        Output variables
+
+    startyear
+        Starting year of the runs
+
+    Returns
+    -------
+    :
+        Config that can be used to run MAGICC
     """
+    with open(prob_distribution_path) as fh:
+        cfgs_raw = json.load(fh)
 
-    climate_models_cfgs: dict[str, list[dict[str, Any]]] = field(
-        repr=lambda x: ", ".join((f"{climate_model}: {len(cfgs)} configurations" for climate_model, cfgs in x.items()))
-    )
-    """
-    Climate models to run and the configuration to use with them
-    """
-
-    output_variables: tuple[str, ...]
-    """
-    Variables to include in the output
-    """
-
-    force_interpolate_to_yearly: bool = True
-    """
-    Should we interpolate scenarios we run to yearly steps before running the SCMs.
-    """
-
-    db: GCDB | None = None
-    """
-    Database in which to store the output of the runs
-
-    If not supplied, a default temporary database will be used.
-    """
-
-    res_column_type: type = int
-    """
-    Type to cast the result's column type to
-    """
-
-    run_checks: bool = True
-    """
-    If `True`, run checks on both input and output data
-
-    If you are sure about your workflow,
-    you can disable the checks to speed things up
-    (but we don't recommend this unless you really
-    are confident about what you're doing).
-    """
-
-    n_processes: int = multiprocessing.cpu_count()
-    """
-    Number of processes to use for parallel processing.
-
-    Set to 1 to process in serial.
-    """
-
-    def __call__(
-        self,
-        in_emissions: pd.DataFrame,
-        batch_size_scenarios: int | None = None,
-        force_rerun: bool = False,
-    ) -> pd.DataFrame:
-        """
-        Run the simple climate model
-
-        Parameters
-        ----------
-        in_emissions
-            Emissions to run
-
-        batch_size_scenarios
-            The number of scenarios to run at once.
-
-            If not supplied, all scenarios are run simultaneously.
-            For a large number of scenarios, this may lead to you running out of memory.
-            Setting `batch_size_scenarios=1` means each scenario will be run separately,
-            which is slower but you (almost definitely) won't run out of memory.
-
-        force_rerun
-            Force scenarios to re-run (i.e. disable caching).
-
-        Returns
-        -------
-        :
-            Raw results from the simple climate model
-        """
-        if self.run_checks:
-            raise NotImplementedError
-
-        # TODO:
-        #   - enable optional checks for:
-        #       - only known variable names are in in_emissions
-        #       - only data with a useable time axis is in there
-        #       - metadata is appropriate/usable
-
-        to_run = strip_pint_incompatible_characters_from_units(in_emissions)
-        # Transform variable names
-        to_run = to_run.pix.assign(
-            variable=to_run.index.get_level_values("variable").map(transform_iamc_to_openscm_runner_variable).values
-        )
-
-        scm_results = run_scm(
-            to_run,
-            climate_models_cfgs=self.climate_models_cfgs,
-            output_variables=self.output_variables,
-            n_processes=self.n_processes,
-            db=self.db,
-            batch_size_scenarios=batch_size_scenarios,
-            force_interpolate_to_yearly=self.force_interpolate_to_yearly,
-            force_rerun=force_rerun,
-        )
-
-        out = scm_results
-        out.columns = out.columns.astype(self.res_column_type)
-
-        # TODO:
-        #   - enable optional checks for:
-        #       - input and output scenarios are the same
-
-        return out
-
-    @classmethod
-    def from_default_config(  # noqa: PLR0913
-        cls,
-        magicc_exe_path: Path,
-        magicc_prob_distribution_path: Path,
-        output_path: Path,
-        n_processes: int = multiprocessing.cpu_count(),
-        endyear: int = 2100,
-        scm_output_variables: tuple[str, ...] = SCM_OUTPUT_VARIABLES_DEFAULT,
-    ) -> AR7FTSCMRunner:
-        """
-        Initialise from default, hard-coded configuration
-        """
-        os.environ["MAGICC_EXECUTABLE_7"] = str(magicc_exe_path)
-        if openscm_runner.adapters.MAGICC7.get_version() != "v7.6.0a3":
-            raise AssertionError(openscm_runner.adapters.MAGICC7.get_version())
-
-        # Check MAGICC prob. distribution
-        with open(magicc_prob_distribution_path) as fh:
-            hash = hashlib.sha256(fh.read().encode("utf-8")).hexdigest()
-        if hash != "90ff13c82f552bba51051bb88dead7102ec94fee95408d416413bf352816b7dc":
-            # Calculated the hash with
-            # `openssl dgst -sha256 magicc/magicc-v7.6.0a3/configs/magicc-ar7-fast-track-drawnset-v0-3-0.json`
-            raise AssertionError
-
-        return cls.from_executable_info(
-            magicc_exe_path=magicc_exe_path,
-            magicc_prob_distribution_path=magicc_prob_distribution_path,
-            output_path=output_path,
-            n_processes=n_processes,
-            endyear=endyear,
-            scm_output_variables=scm_output_variables,
-        )
-
-    @classmethod
-    def from_executable_info(  # noqa: PLR0913
-        cls,
-        magicc_exe_path: Path,
-        magicc_prob_distribution_path: Path,
-        output_path: Path,
-        n_processes: int = multiprocessing.cpu_count(),
-        endyear: int = 2100,
-        scm_output_variables: tuple[str, ...] = SCM_OUTPUT_VARIABLES_DEFAULT,
-    ) -> AR7FTSCMRunner:
-        """
-        Initialise just from executable info, using defaults otherwise
-        """
-        os.environ["MAGICC_EXECUTABLE_7"] = str(magicc_exe_path)
-
-        with open(magicc_prob_distribution_path) as fh:
-            cfgs_raw = json.load(fh)
-
-        startyear = 1750
-        out_dynamic_vars = [
-            f"DAT_{v}" for v in convert_openscm_runner_output_names_to_magicc_output_names(scm_output_variables)
-        ]
-        scm_results_db = GCDB(output_path / "db")
-
-        base_cfgs = [
-            {
-                "run_id": c["paraset_id"],
-                **{k.lower(): v for k, v in c["nml_allcfgs"].items()},
-            }
-            for c in cfgs_raw["configurations"]
-        ]
-
-        common_cfg = {
-            "startyear": startyear,
-            "endyear": endyear,
-            "out_dynamic_vars": out_dynamic_vars,
-            "out_ascii_binary": "BINARY",
-            "out_binary_format": 2,
+    cfgs_physical = [
+        {
+            "run_id": c["paraset_id"],
+            **{k.lower(): v for k, v in c["nml_allcfgs"].items()},
         }
+        for c in cfgs_raw["configurations"]
+    ]
 
-        run_config = [{**common_cfg, **base_cfg} for base_cfg in base_cfgs]
+    common_cfg = {
+        "startyear": startyear,
+        # Note: endyear handled in gcages, which I don't love but is fine for now
+        "out_dynamic_vars": convert_openscm_runner_output_names_to_magicc_output_names(output_variables),
+        "out_ascii_binary": "BINARY",
+        "out_binary_format": 2,
+    }
 
-        res = cls(
-            climate_models_cfgs={"MAGICC7": run_config},
-            output_variables=scm_output_variables,
-            force_interpolate_to_yearly=True,
-            db=scm_results_db,
-            res_column_type=int,
-            # TODO: implement and activate
-            run_checks=False,
-            n_processes=n_processes,
-        )
+    run_config = [{**common_cfg, **physical_cfg} for physical_cfg in cfgs_physical]
+    climate_models_cfgs = {"MAGICC7": run_config}
 
-        return res
+    return climate_models_cfgs
+
+
+def get_complete_scenarios_for_magicc(
+    scenarios: pd.DataFrame,
+    history: pd.DataFrame,
+    magicc_start_year: int = 2015,
+) -> pd.DataFrame:
+    """
+    Get complete scenarios for MAGICC
+
+    Parameters
+    ----------
+    scenarios
+        Scenarios
+
+    history
+        History
+
+    magicc_start_year
+        MAGICC's internal year in which it switches to scenario data
+
+    Returns
+    -------
+    :
+        Complete scenario to use with MAGICC
+    """
+    import pandas_indexing as pix
+
+    scenarios_start_year = scenarios.columns.min()
+
+    history_to_add = (
+        multi_index_lookup(history, scenarios.reset_index(["model", "scenario"], drop=True).drop_duplicates().index)
+        .reset_index(["model", "scenario"], drop=True)
+        .align(scenarios)[0]
+        .loc[:, magicc_start_year : scenarios_start_year - 1]
+    )
+
+    complete_magicc = pix.concat(
+        [
+            history_to_add.reorder_levels(scenarios.index.names),
+            scenarios,
+        ],
+        axis="columns",
+    )
+    # Also interpolate for MAGICC
+    complete_magicc = complete_magicc.T.interpolate(method="index").T
+
+    return complete_magicc

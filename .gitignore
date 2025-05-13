@@ -1,10 +1,32 @@
+# Clone of common-definitions
+common-definitions
+
+# Extractions
+climate-assessment-for-sharepoint
+harmonisation-for-sharepoint
+reporting-checking
+
+# Data created by the 500x series
+data/raw/
+data/interim/
+data/processed
+
+# Notebooks run with papermill
+notebooks-papermill
+
 # Reporting checking outputs
 data/reporting-checking
 
+# Outputs
+*.tar.gz
+
 # Output plots
 *.pdf
+*.png
+*.jpeg
 
 # Processed data
+data/cmip7-scenariomip-workflow
 data/climate-assessment-workflow
 data/national/ceds/processed
 data/national/gfed/processed

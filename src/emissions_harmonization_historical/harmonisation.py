@@ -7,255 +7,383 @@ Individual notebooks can then override them as needed.
 
 from __future__ import annotations
 
-import multiprocessing
-from pathlib import Path
+import logging
+import warnings
+from typing import TYPE_CHECKING
 
+import aneris.utils
 import pandas as pd
 import pandas_indexing as pix
+import tqdm.auto
+from aneris.methods import default_methods
 from attrs import define
-from gcages.harmonisation import harmonise_scenario
-from gcages.io import load_timeseries_csv
-from gcages.parallelisation import run_parallel
-from gcages.units_helpers import strip_pint_incompatible_characters_from_units
+from gcages.aneris_helpers import _convert_units_to_match, harmonise_all
+from gcages.harmonisation.common import align_history_to_data_at_time
+from gcages.testing import compare_close
+from pandas_openscm.indexing import multi_index_lookup
 
-HARMONISATION_YEAR = 2021
+if TYPE_CHECKING:
+    from gcages.typing import PINT_SCALAR
 
-HARMONISATION_YEAR_MISSING_SCALING_YEAR = 2015
-"""
-Year to scale if the harmonisation year is missing from a submission
-"""
+HARMONISATION_YEAR = 2023
 
 
-def load_default_history(data_root: Path) -> pd.DataFrame:
-    """Load default emissions history"""
-    from emissions_harmonization_historical.constants import COMBINED_HISTORY_ID, HARMONISATION_VALUES_ID
+def get_aneris_defaults(  # noqa: PLR0913
+    scenarios: pd.DataFrame,
+    history: pd.DataFrame,
+    harmonisation_year: int,
+    region_level: str = "region",
+    unit_level: str = "unit",
+    scenario_grouper: tuple[str, ...] = ("model", "scenario"),
+) -> pd.DataFrame:
+    """
+    Get aneris' defaults
 
-    history_path = (
-        data_root
-        / "global-composite"
-        / f"cmip7-harmonisation-history_world_{COMBINED_HISTORY_ID}_{HARMONISATION_VALUES_ID}.csv"
-    )
+    Parameters
+    ----------
+    scenarios
+        Scenarios for which to get the defaults
 
-    history = strip_pint_incompatible_characters_from_units(
-        load_timeseries_csv(
-            history_path,
-            index_columns=["model", "scenario", "region", "variable", "unit"],
-            out_column_type=int,
+    history
+        History to use
+
+    harmonisation_year
+        Harmonisation year
+
+    region_level
+        Level which holds region metadata in the data indices
+
+    unit_level
+        Level which holds unit metadata in the data indices
+
+    scenario_grouper
+        Levels to use to group `scenarios` into scenarios
+        which would be run through a simple climate model
+
+    Returns
+    -------
+    :
+        Default harmonisation methods used by aneris for each timeseries in `scenarios`
+    """
+    scenario_grouper_l = list(scenario_grouper)
+
+    default_l = []
+    for (model, scenario), msdf in tqdm.auto.tqdm(scenarios.groupby(scenario_grouper_l)):
+        msdf_relevant_aneris = msdf.reset_index(scenario_grouper_l, drop=True)
+
+        history_model_relevant_aneris = _convert_units_to_match(
+            start=(
+                history.loc[pix.isin(region=msdf_relevant_aneris.index.get_level_values(region_level).unique())]
+                .reset_index(scenario_grouper_l, drop=True)
+                .reorder_levels(msdf_relevant_aneris.index.names)
+            ),
+            match=msdf_relevant_aneris,
         )
+        # Supress warnings about divide by zero
+        with warnings.catch_warnings(action="ignore", category=RuntimeWarning):
+            msdf_default_overrides = default_methods(
+                hist=history_model_relevant_aneris, model=msdf_relevant_aneris, base_year=harmonisation_year
+            )
+
+        default_l.append(msdf_default_overrides[0].pix.assign(model=model, scenario=scenario))
+
+    default = pix.concat(default_l).reset_index(unit_level, drop=True)
+
+    return default
+
+
+def avoid_offset_with_negative_results(  # noqa: PLR0913
+    scenarios: pd.DataFrame,
+    history: pd.DataFrame,
+    harmonisation_year: int,
+    overrides_in: pd.Series,
+    unit_level: str = "unit",
+    scenario_grouper: tuple[str, ...] = ("model", "scenario"),
+    do_not_update: tuple[str, ...] = ("**CO2**",),
+    offset_methods_to_update: tuple[str, ...] = ("reduce_offset_2150_cov",),
+    offset_methods_replacement: str = "constant_ratio",
+) -> pd.Series:
+    """
+    Update overrides to avoid using offset methods where negative values will be the result
+
+    The default harmonisation gives unwanted negative values
+    where the offset between the model and history
+    is larger than the historical emissions themselves
+    and the default choice is some sort of offset.
+    Hence we use this function to override these cases.
+
+    Parameters
+    ----------
+    scenarios
+        Scenarios to be harmonised
+
+    history
+        History to use for harmonisation
+
+    harmonisation_year
+        Harmonisation year
+
+    overrides_in
+        Starting harmonisation method overrides
+
+    unit_level
+        Level which holds unit metadata in the data indices
+
+    scenario_grouper
+        Levels to use to group `scenarios` into scenarios
+        which would be run through a simple climate model
+
+    do_not_update
+        Variable selectors which will not be updated,
+        even if the result of using `overrides_in` is negative values.
+
+    offset_methods_to_update
+        Offset methods which should be updated if the result will be negative values
+
+    offset_methods_replacement
+        Method to use if the result of using aneris' default method will be negative values
+
+    Returns
+    -------
+    :
+        `overrides_in`, updated to avoid giving negative values
+    """
+    scenario_grouper_l = list(scenario_grouper)
+
+    offsets = scenarios[harmonisation_year].subtract(
+        history[harmonisation_year].reset_index(scenario_grouper_l, drop=True)
     )
 
-    return history
+    scenarios_minus_offset = scenarios.subtract(offsets, axis="rows")
+    negative_with_offset = scenarios_minus_offset[scenarios_minus_offset.min(axis="columns") < 0.0]
+    # Drop out anything we don't want to update
+    negative_with_offset = negative_with_offset.loc[~pix.ismatch(variable=list(do_not_update))].index.droplevel(
+        unit_level
+    )
+
+    overrides = overrides_in.reorder_levels(negative_with_offset.names).copy()
+
+    overrides_negative_with_offset = overrides.loc[negative_with_offset]
+    reduce_offset_despite_negative_with_offset = overrides_negative_with_offset[
+        overrides_negative_with_offset.isin(offset_methods_to_update)
+    ]
+
+    # Override with ratio instead to avoid unintended negatives
+    overrides.loc[reduce_offset_despite_negative_with_offset.index] = offset_methods_replacement
+
+    return overrides
 
 
 @define
-class AR7FTHarmoniser:
+class HarmonisationResult:
     """
-    AR7 fast-track harmoniser
-    """
+    Results of harmonisation
 
-    historical_emissions: pd.DataFrame
-    """
-    Historical emissions to use for harmonisation
+    Includes the overrides used too, so we can iterate with IAM teams
     """
 
-    harmonisation_year: int
+    timeseries: pd.DataFrame
+    """The harmonised timeseries"""
+
+    overrides: pd.Series[str]
+    """The overrides used during the harmonisation"""
+
+
+def harmonise(  # noqa: PLR0913
+    scenarios: pd.DataFrame,
+    history: pd.DataFrame,
+    harmonisation_year: int,
+    user_overrides: pd.Series[str] | None,
+    do_not_update_negative_after_offset: tuple[str, ...] = ("**CO2**",),
+    offset_methods_to_update: tuple[str, ...] = ("reduce_offset_2150_cov",),
+    offset_methods_replacement: str = "constant_ratio",
+    region_level: str = "region",
+    unit_level: str = "unit",
+    scenario_grouper: tuple[str, ...] = ("model", "scenario"),
+    silence_aneris: bool = True,
+) -> HarmonisationResult:
     """
-    Year in which to harmonise
+    Harmonise scenarios
+
+    Parameters
+    ----------
+    scenarios
+        Scenarios to be harmonised
+
+    history
+        History to use for harmonisation
+
+    harmonisation_year
+        Harmonisation year
+
+    user_overrides
+        User-supplied overrides of harmonisation methods
+
+    do_not_update_negative_after_offset
+        Variable selectors which will not be updated,
+        even if the result of using aneris' default harmonisation
+        methods is negative values.
+
+    offset_methods_to_update
+        Default aneris offset methods
+        which should be updated if the result will be negative values
+
+    offset_methods_replacement
+        Method to use if the result of using aneris' default method will be negative values
+
+    region_level
+        Level which holds region metadata in the data indices
+
+    unit_level
+        Level which holds unit metadata in the data indices
+
+    scenario_grouper
+        Levels to use to group `scenarios` into scenarios
+        which would be run through a simple climate model
+
+    silence_aneris
+        Silence aneris' logging messages
+
+    Returns
+    -------
+    :
+        Harmonisation results
     """
+    scenario_grouper_l = list(scenario_grouper)
 
-    calc_scaling_year: int
-    """
-    Year to use for calculating a scaling factor from historical
+    # Only keep history relevant to the scenarios we're harmonising
+    history_for_harmonisation = multi_index_lookup(history, scenarios.index.droplevel(scenario_grouper_l))
 
-    This is only needed if `self.harmonisation_year`
-    is not in the emissions to be harmonised.
+    aneris_defaults = get_aneris_defaults(
+        scenarios=scenarios,
+        history=history_for_harmonisation,
+        harmonisation_year=harmonisation_year,
+        region_level=region_level,
+        unit_level=unit_level,
+        scenario_grouper=scenario_grouper_l,
+    )
+    # The default harmonisation gives unwanted negative values
+    # where the difference offset between the model and history
+    # is larger than the historical emissions themselves
+    # and the default choice is reduce offset.
+    # Hence we override these here
+    # for all species except CO<sub>2</sub>.
+    overrides_auto_inferred = avoid_offset_with_negative_results(
+        scenarios=scenarios,
+        history=history_for_harmonisation,
+        harmonisation_year=harmonisation_year,
+        overrides_in=aneris_defaults,
+        unit_level=unit_level,
+        scenario_grouper=scenario_grouper_l,
+        do_not_update=("**CO2**",),
+        offset_methods_to_update=("reduce_offset_2150_cov",),
+        offset_methods_replacement="constant_ratio",
+    )
 
-    For example, if `self.harmonisation_year` is 2015
-    and `self.calc_scaling_year` is 2010
-    and we have a scenario without 2015 data,
-    then we will use the difference from historical in 2010
-    to infer a value for 2015.
+    if user_overrides is None:
+        overrides_to_use = overrides_auto_inferred
 
-    This logic was perculiar to AR6, it may not be repeated.
-    """
+    else:
+        # Could be more flexible and provide helpers for getting into the right format.
+        # If we do this, put them outside this function.
+        wont_be_used_locator = ~user_overrides.index.isin(overrides_auto_inferred.index)
+        if wont_be_used_locator.any():
+            msg = f"The following overrides will not be used: {user_overrides.loc[wont_be_used_locator]}"
+            raise AssertionError(msg)
 
-    aneris_overrides: pd.DataFrame | None
-    """
-    Overrides to supply to `aneris.convenience.harmonise_all`
-
-    For source code and docs,
-    see e.g. https://github.com/iiasa/aneris/blob/v0.4.2/src/aneris/convenience.py.
-    """
-
-    run_checks: bool = True
-    """
-    If `True`, run checks on both input and output data
-
-    If you are sure about your workflow,
-    you can disable the checks to speed things up
-    (but we don't recommend this unless you really
-    are confident about what you're doing).
-    """
-
-    n_processes: int = multiprocessing.cpu_count()
-    """
-    Number of processes to use for parallel processing.
-
-    Set to 1 to process in serial.
-    """
-
-    def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:
-        """
-        Harmonise
-
-        Parameters
-        ----------
-        in_emissions
-            Emissions to harmonise
-
-        Returns
-        -------
-        :
-            Harmonised emissions
-        """
-        if self.run_checks:
-            # TODO: add checks back in
-            raise NotImplementedError
-
-        harmonised_df: pd.DataFrame = pix.concat(
-            run_parallel(
-                func_to_call=harmonise_scenario,
-                iterable_input=(gdf for _, gdf in in_emissions.groupby(["model", "scenario"])),
-                input_desc="model-scenario combinations to harmonise",
-                n_processes=self.n_processes,
-                history=self.historical_emissions,
-                harmonisation_year=self.harmonisation_year,
-                overrides=self.aneris_overrides,
-                calc_scaling_year=self.calc_scaling_year,
-            )
+        overrides_to_use = pix.concat(
+            [overrides_auto_inferred.loc[~overrides_auto_inferred.index.isin(user_overrides.index)], user_overrides]
         )
 
-        # Not sure why this is happening, anyway
-        harmonised_df.columns = harmonised_df.columns.astype(int)
-        harmonised_df = harmonised_df.sort_index(axis="columns")
+    if silence_aneris:
+        aneris_logger = aneris.utils.logger()
+        aneris_logger_level_in = aneris_logger.level
+        aneris_logger.setLevel(logging.WARNING)
 
-        return harmonised_df
-
-    @classmethod
-    def from_default_config(cls, data_root: Path, n_processes: int = multiprocessing.cpu_count()) -> AR7FTHarmoniser:
-        """
-        Initialise from default, hard-coded configuration
-        """
-        history = load_default_history(data_root=data_root)
-
-        # As at 2024-01-30, just the list from AR6.
-        # We can tweak from here.
-        aneris_overrides = pd.DataFrame(
-            [
-                # depending on the decision tree in aneris/method.py
-                #     {'method': 'default_aneris_tree', 'variable': 'Emissions|BC'},
-                {
-                    "method": "reduce_ratio_2150_cov",
-                    "variable": "Emissions|PFC",
-                },  # high historical variance (cov=16.2)
-                {
-                    "method": "reduce_ratio_2150_cov",
-                    "variable": "Emissions|PFC|C2F6",
-                },  # high historical variance (cov=16.2)
-                {
-                    "method": "reduce_ratio_2150_cov",
-                    "variable": "Emissions|PFC|C6F14",
-                },  # high historical variance (cov=15.4)
-                {
-                    "method": "reduce_ratio_2150_cov",
-                    "variable": "Emissions|PFC|CF4",
-                },  # high historical variance (cov=11.2)
-                {
-                    "method": "reduce_ratio_2150_cov",
-                    "variable": "Emissions|CO",
-                },  # high historical variance (cov=15.4)
-                {
-                    "method": "reduce_ratio_2080",
-                    "variable": "Emissions|CO2",
-                },  # always ratio method by choice
-                {
-                    # high historical variance,
-                    # but using offset method to prevent diff from increasing
-                    # when going negative rapidly (cov=23.2)
-                    "method": "reduce_offset_2150_cov",
-                    "variable": "Emissions|CO2|AFOLU",
-                },
-                {
-                    "method": "reduce_ratio_2080",  # always ratio method by choice
-                    "variable": "Emissions|CO2|Energy and Industrial Processes",
-                },
-                # depending on the decision tree in aneris/method.py
-                #     {'method': 'default_aneris_tree', 'variable': 'Emissions|CH4'},
-                {
-                    "method": "constant_ratio",
-                    "variable": "Emissions|F-Gases",
-                },  # basket not used in infilling (sum of f-gases with low model reporting confidence)
-                {
-                    "method": "constant_ratio",
-                    "variable": "Emissions|HFC",
-                },  # basket not used in infilling (sum of subset of f-gases with low model reporting confidence)
-                {
-                    "method": "constant_ratio",
-                    "variable": "Emissions|HFC|HFC125",
-                },  # minor f-gas with low model reporting confidence
-                {
-                    "method": "constant_ratio",
-                    "variable": "Emissions|HFC|HFC134a",
-                },  # minor f-gas with low model reporting confidence
-                {
-                    "method": "constant_ratio",
-                    "variable": "Emissions|HFC|HFC143a",
-                },  # minor f-gas with low model reporting confidence
-                {
-                    "method": "constant_ratio",
-                    "variable": "Emissions|HFC|HFC227ea",
-                },  # minor f-gas with low model reporting confidence
-                {
-                    "method": "constant_ratio",
-                    "variable": "Emissions|HFC|HFC23",
-                },  # minor f-gas with low model reporting confidence
-                {
-                    "method": "constant_ratio",
-                    "variable": "Emissions|HFC|HFC32",
-                },  # minor f-gas with low model reporting confidence
-                {
-                    "method": "constant_ratio",
-                    "variable": "Emissions|HFC|HFC43-10",
-                },  # minor f-gas with low model reporting confidence
-                # depending on the decision tree in aneris/method.py
-                #     {'method': 'default_aneris_tree', 'variable': 'Emissions|N2O'},
-                # depending on the decision tree in aneris/method.py
-                #     {'method': 'default_aneris_tree', 'variable': 'Emissions|NH3'},
-                # depending on the decision tree in aneris/method.py
-                #     {'method': 'default_aneris_tree', 'variable': 'Emissions|NOx'},
-                {
-                    "method": "reduce_ratio_2150_cov",
-                    "variable": "Emissions|OC",
-                },  # high historical variance (cov=18.5)
-                {
-                    "method": "constant_ratio",
-                    "variable": "Emissions|SF6",
-                },  # minor f-gas with low model reporting confidence
-                # depending on the decision tree in aneris/method.py
-                #     {'method': 'default_aneris_tree', 'variable': 'Emissions|Sulfur'},
-                {
-                    "method": "reduce_ratio_2150_cov",
-                    "variable": "Emissions|VOC",
-                },  # high historical variance (cov=12.0)
-            ]
+    # Supress warnings about divide by zero
+    with warnings.catch_warnings(action="ignore", category=RuntimeWarning):
+        harmonised = harmonise_all(
+            scenarios=scenarios,
+            history=history_for_harmonisation,
+            year=harmonisation_year,
+            overrides=overrides_to_use,
         )
 
-        return AR7FTHarmoniser(
-            historical_emissions=history,
-            harmonisation_year=HARMONISATION_YEAR,
-            calc_scaling_year=HARMONISATION_YEAR_MISSING_SCALING_YEAR,
-            aneris_overrides=aneris_overrides,
-            n_processes=n_processes,
-            # TODO: implement and turn on
-            run_checks=False,
+    if silence_aneris:
+        # Reset logger
+        aneris_logger.setLevel(aneris_logger_level_in)
+
+    return HarmonisationResult(timeseries=harmonised, overrides=overrides_to_use)
+
+
+def assert_harmonised(
+    scenarios: pd.DataFrame,
+    history: pd.DataFrame,
+    species_tolerances: dict[str, dict[str, float | PINT_SCALAR]] | None = None,
+) -> None:
+    """
+    Assert that scenarios are harmonised to a given history
+
+    TODO: move to gcages/update the existing gcages function
+
+    Parameters
+    ----------
+    scenarios
+        Scenarios
+
+    history
+        History
+
+    species_tolerances
+        Tolerance to apply while checking harmonisation of different species
+    """
+    # Protect this with try except in gcagees
+    import openscm_units
+
+    Q = openscm_units.unit_registry.Quantity
+
+    if species_tolerances is None:
+        species_tolerances = {
+            "BC": dict(rtol=1e-3, atol=Q(1e-3, "Mt BC/yr")),
+            "CH4": dict(rtol=1e-3, atol=Q(1e-2, "Mt CH4/yr")),
+            "CO": dict(rtol=1e-3, atol=Q(1e-1, "Mt CO/yr")),
+            "CO2": dict(rtol=1e-3, atol=Q(1e-3, "Gt CO2/yr")),
+            "NH3": dict(rtol=1e-3, atol=Q(1e-2, "Mt NH3/yr")),
+            "NOx": dict(rtol=1e-3, atol=Q(1e-2, "Mt NO2/yr")),
+            "OC": dict(rtol=1e-3, atol=Q(1e-3, "Mt OC/yr")),
+            "Sulfur": dict(rtol=1e-3, atol=Q(1e-2, "Mt SO2/yr")),
+            "VOC": dict(rtol=1e-3, atol=Q(1e-2, "Mt VOC/yr")),
+            "N2O": dict(rtol=1e-3, atol=Q(1e-1, "kt N2O/yr")),
+        }
+
+    scenarios_a, history_a = align_history_to_data_at_time(
+        scenarios,
+        history=history.loc[pix.isin(variable=scenarios.pix.unique("variable"))].reset_index(
+            ["model", "scenario"], drop=True
+        ),
+        time=HARMONISATION_YEAR,
+    )
+    for variable, scen_a_vdf in scenarios_a.groupby("variable"):
+        history_a_vdf = history_a.loc[pix.isin(variable=variable)]
+        species = variable.split("|")[1]
+        if species in species_tolerances:
+            unit_l = scen_a_vdf.pix.unique("unit").tolist()
+            if len(unit_l) != 1:
+                raise AssertionError(unit_l)
+            unit = unit_l[0]
+
+            rtol = species_tolerances[species]["rtol"]
+            atol = species_tolerances[species]["atol"].to(unit).m
+
+        else:
+            rtol = 1e-4
+            atol = 1e-6
+
+        compare_close(
+            scen_a_vdf.unstack("region"),
+            history_a_vdf.unstack("region"),
+            left_name="scenario",
+            right_name="history",
+            rtol=rtol,
+            atol=atol,
         )
