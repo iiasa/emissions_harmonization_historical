@@ -286,6 +286,7 @@ def harmonise(  # noqa: PLR0913
     else:
         # Could be more flexible and provide helpers for getting into the right format.
         # If we do this, put them outside this function.
+        overrides_auto_inferred = overrides_auto_inferred.reorder_levels(user_overrides.index.names)
         wont_be_used_locator = ~user_overrides.index.isin(overrides_auto_inferred.index)
         if wont_be_used_locator.any():
             msg = f"The following overrides will not be used: {user_overrides.loc[wont_be_used_locator]}"

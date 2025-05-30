@@ -69,7 +69,7 @@ Q = UR.Quantity
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "GCAM"
+model: str = "MESSAGE"
 output_to_pdf: bool = False
 
 # %% editable=true slideshow={"slide_type": ""}

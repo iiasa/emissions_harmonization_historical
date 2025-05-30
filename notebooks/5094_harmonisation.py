@@ -25,6 +25,7 @@ from contextlib import nullcontext
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import pandas_indexing as pix
 import pandas_openscm
 import seaborn as sns
@@ -33,6 +34,7 @@ from gcages.cmip7_scenariomip.gridding_emissions import to_global_workflow_emiss
 from gcages.index_manipulation import split_sectors
 from gcages.testing import compare_close
 from matplotlib.backends.backend_pdf import PdfPages
+from pandas_openscm.indexing import multi_index_lookup
 
 from emissions_harmonization_historical.constants_5000 import (
     HARMONISED_OUT_DIR,
@@ -52,10 +54,10 @@ from emissions_harmonization_historical.harmonisation import (
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "GCAM"
-output_to_pdf: bool = False
+model: str = "WITCH"
+output_to_pdf: bool = True
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 output_dir_model = HARMONISED_OUT_DIR / model
 output_dir_model.mkdir(exist_ok=True, parents=True)
 output_dir_model
@@ -139,13 +141,47 @@ history_for_harmonisation
 # %%
 # Could load in user overrides from elsewhere here.
 # They need to be a series with name "method".
-user_overrides = None
+user_overrides_gridding = None
+user_overrides_global = None
+
+if model.startswith("WITCH"):
+    user_overrides_gridding = pd.Series(
+        np.nan,
+        index=model_pre_processed_for_gridding.index.droplevel(
+            model_pre_processed_for_gridding.index.names.difference(["model", "scenario", "region", "variable"])
+        ),
+        name="method",
+    ).astype(str)
+    user_overrides_gridding.loc[
+        pix.isin(
+            variable=[
+                "Emissions|BC|Agricultural Waste Burning",
+                "Emissions|BC|Forest Burning",
+                "Emissions|CO|Agricultural Waste Burning",
+                "Emissions|CO|Forest Burning",
+                "Emissions|N2O|Agricultural Waste Burning",
+                "Emissions|NH3|Agricultural Waste Burning",
+                "Emissions|NH3|Forest Burning",
+                "Emissions|NOx|Agricultural Waste Burning",
+                "Emissions|NOx|Forest Burning",
+                "Emissions|OC|Agricultural Waste Burning",
+                "Emissions|OC|Forest Burning",
+                "Emissions|Sulfur|Agricultural Waste Burning",
+                "Emissions|Sulfur|Forest Burning",
+                "Emissions|Sulfur|Grassland Burning",
+                "Emissions|VOC|Agricultural Waste Burning",
+            ]
+        )
+    ] = "constant_ratio"
+    user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
+
+user_overrides_gridding
 
 # %%
 res = {}
-for key, idf in (
-    ("gridding", model_pre_processed_for_gridding),
-    ("global", model_pre_processed_for_global_workflow),
+for key, idf, user_overrides in (
+    ("gridding", model_pre_processed_for_gridding, user_overrides_gridding),
+    ("global", model_pre_processed_for_global_workflow, user_overrides_global),
 ):
     harmonised_key = harmonise(
         scenarios=idf.reset_index("stage", drop=True),
@@ -154,6 +190,9 @@ for key, idf in (
         user_overrides=user_overrides,
     )
     res[key] = harmonised_key
+    if user_overrides is not None:
+        # Check overrides were passsed through correctly
+        pd.testing.assert_series_equal(user_overrides, multi_index_lookup(res[key].overrides, user_overrides.index))
 
 # %%
 # tmp = res["gridding"].overrides.loc[pix.ismatch(variable="**Peat**")]
@@ -182,7 +221,10 @@ combo_gridding.columns = combo_gridding.columns.astype(int)
 # %%
 pdf = (
     combo_gridding.loc[
-        pix.isin(variable="Emissions|CO2|International Shipping"),
+        pix.isin(
+            variable="Emissions|OC|Agricultural Waste Burning",
+            region=model_pre_processed_for_gridding.pix.unique("region")[-1],
+        ),
         1990:2100,
     ]
     .openscm.to_long_data()
@@ -280,7 +322,7 @@ with ctx_manager as output_pdf_file:
     else:
         plt.show()
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # ### Global vs. gridding harmonisation
 
 # %%
@@ -324,8 +366,9 @@ combo_global_v_gridding = pix.concat(
 
 # %% [markdown]
 # Key difference in historical emissions
-# between gridding and global workflows is CO2 AFOLU
-# (make sense as they use different data sources).
+# between gridding and global workflows is CO2 AFOLU,
+# CH$_4$ pre-1970 and N$_2$O pre-1970,
+# which makes sense as they use different data sources.
 
 # %%
 tmp = combo_global_v_gridding.loc[pix.isin(stage="history")].dropna(axis="columns")
@@ -359,7 +402,7 @@ pdf_global_v_gridding = (
 )
 # pdf_global_v_gridding
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 fg = sns.relplot(
     data=pdf_global_v_gridding,
     x="time",
@@ -492,7 +535,7 @@ with ctx_manager as output_pdf_file:
         #     break
         # break
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Create combination to use for simple climate models
 #
 # Use the aggregate of the gridding emissions where we can,

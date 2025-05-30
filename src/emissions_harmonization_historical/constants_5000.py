@@ -264,8 +264,17 @@ HISTORY_HARMONISATION_DB = OpenSCMDB(
 # DOWNLOAD_SCENARIOS_ID = "0004"
 # # Moved to portable OpenSCMDB
 # DOWNLOAD_SCENARIOS_ID = "0005"
-# Scratch while we wait for new submissions
-DOWNLOAD_SCENARIOS_ID = "0006-zn-rc0"
+# # Scratch while we wait for new submissions
+# DOWNLOAD_SCENARIOS_ID = "0006-zn-rc0"
+# 2025-05-23 submissions
+# (still problems with how we harmonise novel CDR,
+# but good interim step)
+DOWNLOAD_SCENARIOS_ID = "0006"
+# DOWNLOAD_SCENARIOS_ID = "0006-MZ"
+# 2025-05-26 run
+# (still problems with how we harmonise novel CDR,
+# but good interim step)
+DOWNLOAD_SCENARIOS_ID = "0007"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(
@@ -428,6 +437,12 @@ POST_PROCESSED_METADATA_QUANTILE_DB = OpenSCMDB(
 
 POST_PROCESSED_METADATA_RUN_ID_DB = OpenSCMDB(
     db_dir=POST_PROCESSING_DIR / "db-metadata-run-id",
+    backend_data=FeatherDataBackend(),
+    backend_index=FeatherIndexBackend(),
+)
+
+POST_PROCESSED_TIMESERIES_DB = OpenSCMDB(
+    db_dir=POST_PROCESSING_DIR / "db-timeseries",
     backend_data=FeatherDataBackend(),
     backend_index=FeatherIndexBackend(),
 )

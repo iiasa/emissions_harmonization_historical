@@ -80,6 +80,32 @@ This can be used to pack up pre-processed data
 and then unpack them, so you can skip all the processing
 (e.g. biomass burning which takes hours and crashes many laptops).
 
+### Running a new set of scenarios
+
+If you haven't already, login to the scenario explorer with
+
+```sh
+pixi run ixmp4 login <your-username>
+```
+
+1. In `src/emissions_harmonization_historical/constants_5000.py`,
+   increment `DOWNLOAD_SCENARIOS_ID` to a new value.
+1. In `scripts/drive-500x-series.py`,
+   check that you have specified the notebooks and IAMs you want to run.
+1. Run the notebooks with `pixi run python scripts/drive-500x-series.py`
+1. Add the downloaded version information with
+   `git add -f data/raw/scenarios/<DOWNLOAD_SCENARIOS_ID>/versions.json`
+
+Once things have run, you will probably want to upload results
+
+1. To extract results, there are scripts named
+   `scripts/extract*`
+1. Pick the scripts you want to run
+1. Run the scripts of interest e.g. `pixi run python scripts/extract-climate-results.py`
+1. Upload the results to
+   [sharepoint](https://iiasahub.sharepoint.com/sites/eceprog/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2Feceprog%2FShared%20Documents%2FProjects%2FCMIP7%2FIAM%20Data%20Processing%2FScenarioMIP%20Emulator%20workflow&viewid=956acd8a%2De1e7%2D4ae9%2Dab1b%2D0506911bae11&csf=1&web=1&e=yQqAUa&CID=2955cf91%2D3d7b%2D4838%2Da9e5%2D37c5c0eae367&FolderCTID=0x012000AA9481BF7BE9264E85B14105F7F082FF)
+   in a suitably named folder
+
 ## Data
 
 Some of our data is managed using [git lfs](https://git-lfs.com/).

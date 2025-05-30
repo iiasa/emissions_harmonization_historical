@@ -55,8 +55,8 @@ UR = openscm_units.unit_registry
 Q = UR.Quantity
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "GCAM"
-scm: str = "MAGICCv7.6.0a3"
+model: str = "WITCH"
+scm: str = "MAGICCv7.5.3"
 
 # %%
 output_dir_model = SCM_OUT_DIR / model
@@ -113,20 +113,20 @@ output_variables = (
     # # GMST
     "Surface Air Ocean Blended Temperature Change",
     # # ERFs
-    # "Effective Radiative Forcing",
-    # "Effective Radiative Forcing|Anthropogenic",
+    "Effective Radiative Forcing",
+    "Effective Radiative Forcing|Anthropogenic",
     "Effective Radiative Forcing|Aerosols",
     "Effective Radiative Forcing|Aerosols|Direct Effect",
-    # "Effective Radiative Forcing|Aerosols|Direct Effect|BC",
-    # "Effective Radiative Forcing|Aerosols|Direct Effect|OC",
-    # "Effective Radiative Forcing|Aerosols|Direct Effect|SOx",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|BC",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|OC",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|SOx",
     "Effective Radiative Forcing|Aerosols|Indirect Effect",
     "Effective Radiative Forcing|Greenhouse Gases",
     "Effective Radiative Forcing|CO2",
-    # "Effective Radiative Forcing|CH4",
-    # "Effective Radiative Forcing|N2O",
-    # "Effective Radiative Forcing|F-Gases",
-    # "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
+    "Effective Radiative Forcing|CH4",
+    "Effective Radiative Forcing|N2O",
+    "Effective Radiative Forcing|F-Gases",
+    "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
     "Effective Radiative Forcing|Ozone",
     "Effective Radiative Forcing|Tropospheric Ozone",
     "Effective Radiative Forcing|Stratospheric Ozone",
@@ -142,11 +142,11 @@ output_variables = (
     # # Carbon cycle
     # "Net Atmosphere to Land Flux|CO2",
     # "Net Atmosphere to Ocean Flux|CO2",
-    "CO2_CURRENT_NPP",
+    # "CO2_CURRENT_NPP",
     # # Permafrost
     # "Net Land to Atmosphere Flux|CO2|Earth System Feedbacks|Permafrost",
     # "Net Land to Atmosphere Flux|CH4|Earth System Feedbacks|Permafrost",
-    # "Sea Level Rise",
+    "Sea Level Rise",
 )
 
 # %%
@@ -160,7 +160,7 @@ if scm in ["MAGICCv7.5.3", "MAGICCv7.6.0a3"]:
         elif platform.system() == "Windows":
             raise NotImplementedError(platform.system())
         elif platform.system().lower().startswith("linux"):
-            magicc_exe = "magicc"
+            magicc_exe_path = REPO_ROOT / "magicc" / "magicc-v7.6.0a3" / "bin" / "magicc"
         else:
             raise NotImplementedError(platform.system())
 

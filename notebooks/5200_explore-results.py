@@ -12,7 +12,7 @@
 #     name: python3
 # ---
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""} tags=["papermill-error-cell-tag"]
 # # Explore results
 #
 # Here we explore the results.
@@ -55,9 +55,6 @@ pd.set_option("display.max_rows", 100)
 # %% [markdown]
 # ## Load data
 
-# %% [markdown]
-# ### Categories
-
 # %%
 categories = POST_PROCESSED_METADATA_CATEGORIES_DB.load()["value"]
 # categories
@@ -73,16 +70,35 @@ temperatures_in_line_with_assessment = POST_PROCESSED_TIMESERIES_RUN_ID_DB.load(
 # temperatures_in_line_with_assessment
 
 # %%
+# slr = SCM_OUTPUT_DB.load(
+#     pix.ismatch(
+#         variable=[
+#             "Sea Level Rise",
+#         ],
+#         climate_model="MAGICCv7.6*"
+#     ),
+#     progress=True,
+#     max_workers=multiprocessing.cpu_count(),
+# )
+# pdf = slr.openscm.groupby_except("run_id").median().loc[:, 2000:]
+# ax = sns.lineplot(
+#     data=pdf.openscm.to_long_data(),
+#     x="time",
+#     y="value",
+#     hue="scenario",
+#     style="model"
+# )
+# sns.move_legend(ax, loc="center left", bbox_to_anchor=(1.05, 0.5), ncols=3)
+
+# %%
 raw_scm_output = SCM_OUTPUT_DB.load(
     pix.ismatch(
         variable=[
             "Heat Uptake",
-            "Effective Radiative Forcing|Aerosols",
-            "Effective Radiative Forcing|CO2",
-            "Effective Radiative Forcing|Greenhouse Gases",
-            "Effective Radiative Forcing|Ozone",
+            "Effective Radiative Forcing**",
             "Atmospheric Concentrations|CO2",
             "Atmospheric Concentrations|CH4",
+            "Sea Level Rise",
         ]
     ),
     progress=True,
@@ -119,10 +135,14 @@ tmp = (
     .round(3)
 )
 
+vllo_peak = 1.66
+l_min_diff = 0.1
+l_max_diff = 0.4
 tmp.loc[
     # :, :
-    (tmp[("max", "K", 0.33)] > 0.0) & (tmp[("max", "K", 0.33)] < 6.6)
-    # (tmp[("max", "K", 0.5)] > 1.7) & (tmp[("max", "K", 0.5)] < 1.9)
+    # (tmp[("max", "K", 0.33)] > 0.0) & (tmp[("max", "K", 0.33)] < 6.6)
+    ((tmp[("max", "K", 0.5)] > vllo_peak - 0.01) & (tmp[("max", "K", 0.5)] < vllo_peak + 0.01))
+    | ((tmp[("max", "K", 0.5)] > vllo_peak + l_min_diff) & (tmp[("max", "K", 0.5)] < vllo_peak + l_max_diff))
     # (tmp[("max", "K", 0.67)] > 1.8) & (tmp[("max", "K", 0.67)] < 2.05)
     # (tmp[("2100", "K", 0.5)] > 1.7)
     # & (tmp[("2100", "K", 0.5)] < 2.0)
@@ -130,7 +150,7 @@ tmp.loc[
     # # (tmp[("2100", "K", 0.5)] > 2.5)
     # # & (tmp[("2100", "K", 0.5)] < 3.0)
     # (tmp[("2100", "K", 0.5)] > 3.0) & (tmp[("2100", "K", 0.5)] < 30.6)
-].loc[pix.ismatch(model="MESSAGE*")]
+].loc[pix.ismatch(model=["REMIND*", "AIM*", "IMAGE*"], climate_model="MAGICCv7.6*")]
 
 # %%
 tmp = (
@@ -158,44 +178,55 @@ tmp
 
 # %%
 scratch_selection_l = [
-    # # H
-    # # ("#7f3e3e", ("REMIND-MAgPIE 3.5-4.10", "SSP3 - High Emissions")),
-    # # ("#7f3e3e", ("GCAM 7.1 scenarioMIP", "SSP5 - High Emissions")),
-    ("#7f3e3e", ("IMAGE 3.4", "SSP3 - High Emissions")),
-    # ("#7f3e3e", ("AIM 3.0", "SSP5 - High Emissions")),
-    # # M
-    # # ("#f7a84f", ("REMIND-MAgPIE 3.5-4.10", "SSP2 - Medium Emissions")),
-    ("#f7a84f", ("GCAM 7.1 scenarioMIP", "SSP2 - Medium Emissions")),
-    # # ("#f7a84f", ("IMAGE 3.4", "SSP2 - Medium Emissions")),
-    # # ("#f7a84f", ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Medium Emissions")),
-    # ("#f7a84f", ("WITCH 6.0", "SSP2 - Medium Emissions")),
-    # # ML
-    # # ("#e1ad01", ("REMIND-MAgPIE 3.5-4.10", "SSP3 - Medium-Low Emissions")),
-    # # # Very high sulfur emissions, not ideal
+    # # # HL
+    ("#7f3e3e", ("WITCH 6.0", "SSP5 - High Emissions")),
+    # # # H
+    # # # ("#7f3e3e", ("REMIND-MAgPIE 3.5-4.10", "SSP3 - High Emissions")),
+    ("#7f3e3e", ("GCAM 7.1 scenarioMIP", "SSP3 - High Emissions")),
+    # # ("#7f3e3e", ("IMAGE 3.4", "SSP3 - High Emissions")),
+    # # ("#7f3e3e", ("WITCH 6.0", "SSP5 - High Emissions")),
+    # # ("#7f3e3e", ("AIM 3.0", "SSP5 - High Emissions")),
+    # # # M
+    # # # ("#f7a84f", ("REMIND-MAgPIE 3.5-4.10", "SSP2 - Medium Emissions")),
+    # # ("#f7a84f", ("GCAM 7.1 scenarioMIP", "SSP2 - Medium Emissions")),
+    # # # ("#f7a84f", ("IMAGE 3.4", "SSP2 - Medium Emissions")),
+    ("#f7a84f", ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Medium Emissions")),
+    # # ("#f7a84f", ("WITCH 6.0", "SSP2 - Medium Emissions")),
+    # # # ML
+    # # # ("#e1ad01", ("REMIND-MAgPIE 3.5-4.10", "SSP3 - Medium-Low Emissions")),
+    # # # # Very high sulfur emissions, not ideal
     ("#e1ad01", ("COFFEE 1.6", "SSP2 - Medium-Low Emissions")),
-    # ("#e1ad01", ("GCAM 7.1 scenarioMIP", "SSP2 - Medium-Low Emissions")),
-    # # ("#586643", ("REMIND-MAgPIE 3.5-4.10", "SSP1 - Medium-Low Emissions")),
-    # L
-    # ("#2e9e68", ("REMIND-MAgPIE 3.5-4.10", "SSP2 - Low Emissions")),
-    # ("#2e9e68", ("COFFEE 1.6", "SSP2 - Low Emissions")),
-    ("#2e9e68", ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions")),
-    # VLHO
-    ("#4b3d89", ("REMIND-MAgPIE 3.5-4.10", "SSP2 - Low Overshoot_d")),
-    # ("#4b3d89", ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Overshoot_a")),
-    # ("#4b3d89", ("GCAM 7.1 scenarioMIP", "SSP1 - Low Overshoot")),
-    # ("#4b3d89", ("GCAM 7.1 scenarioMIP", "SSP2 - Low Overshoot")),
-    # VLLO
-    # Not sure if any of models can produce a 1.5C stable rather than overshoot
-    # ("#899edb", ("COFFEE 1.6", "SSP2 - Very Low Emissions")),
-    # Something weird happening with 2023 emissions,
-    # probably from interpolation I would guess.
-    # Hopefully they can fix
-    # ("#899edb", ("WITCH 6.0", "SSP1 - Low Overshoot")),
-    ("#899edb", ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP4 - Very Low Emissions")),
-    # VLLOD
-    ("#499edb", ("AIM 3.0", "SSP1 - Very Low Emissions_a")),
-    # ("#499edb", ("AIM 3.0", "SSP1 - Very Low Emissions")),
-    # ("#499edb", ("GCAM 7.1 scenarioMIP", "SSP1 - Very Low Emissions")),
+    # # ("#e1ad01", ("GCAM 7.1 scenarioMIP", "SSP2 - Medium-Low Emissions")),
+    # # # ("#586643", ("REMIND-MAgPIE 3.5-4.10", "SSP1 - Medium-Low Emissions")),
+    # # L
+    # # ("#2e9e68", ("REMIND-MAgPIE 3.5-4.10", "SSP2 - Low Emissions")),
+    # # ("#2e9e68", ("COFFEE 1.6", "SSP2 - Low Emissions")),
+    # # ("#2e9e68", ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions")),
+    ("#2e9e68", ("IMAGE 3.4", "SSP2 - Low Emissions")),
+    # # VLHO
+    # # ("#4b3d89", ("REMIND-MAgPIE 3.5-4.10", "SSP2 - Low Overshoot_d")),
+    ("#4b3d89", ("AIM 3.0", "SSP2 - Low Overshoot")),
+    # # ("#4b3d89", ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Overshoot_a")),
+    # # ("#4b3d89", ("GCAM 7.1 scenarioMIP", "SSP1 - Low Overshoot")),
+    # # ("#4b3d89", ("GCAM 7.1 scenarioMIP", "SSP2 - Low Overshoot")),
+    # # VLLO
+    # # Not sure if any of models can produce a 1.5C stable rather than overshoot
+    # # ("#899edb", ("COFFEE 1.6", "SSP2 - Very Low Emissions")),
+    # # Something weird happening with 2023 emissions,
+    # # probably from interpolation I would guess.
+    # # Hopefully they can fix
+    # # ("#899edb", ("WITCH 6.0", "SSP1 - Low Overshoot")),
+    # # ("#899edb", ("WITCH 6.0", "SSP2 - Low Overshoot")),
+    # # ("#899edb", ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP4 - Very Low Emissions")),
+    ("#499edb", ("REMIND-MAgPIE 3.5-4.10", "SSP1 - Very Low Emissions")),
+    # # VLLOD
+    # # ("#499edb", ("AIM 3.0", "SSP1 - Very Low Emissions_a")),
+    # # ("#499edb", ("AIM 3.0", "SSP1 - Very Low Emissions")),
+    # # ("#499edb", ("GCAM 7.1 scenarioMIP", "SSP1 - Very Low Emissions")),
+    # # ("#499edb", ("REMIND-MAgPIE 3.5-4.10", "SSP1 - Very Low Emissions")),
+    # ## Scratch
+    # ("#4b3d89", ("WITCH 6.0", "SSP1 - Low Overshoot")),
+    # ("#899edb", ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP1 - Very Low Emissions")),
     # ("#499edb", ("REMIND-MAgPIE 3.5-4.10", "SSP1 - Very Low Emissions_c")),
 ]
 
@@ -283,12 +314,12 @@ for i, (ax, yticks) in enumerate(zip(axes, [np.arange(0.5, 4.01, 0.5), np.arange
 
 # %%
 pdf_emissions = add_model_scenario_column(
-    SCM_OUTPUT_DB.load(pix.ismatch(variable="Emissions|**", climate_model="MAGICCv7.6.0a3")).reset_index(
+    SCM_OUTPUT_DB.load(pix.ismatch(variable="Emissions|**", climate_model="MAGICCv7.6.0a3"), progress=True).reset_index(
         "climate_model", drop=True
     ),
     ms_separator=ms_separator,
     ms_level=ms_level,
-)
+).sort_index(axis="columns")
 
 gwp = "AR6GWP100"
 with pint.get_application_registry().context(gwp):
@@ -300,6 +331,13 @@ pdf_emissions = pix.concat(
     [
         pdf_emissions,
         ghg_eq.openscm.groupby_except("variable").sum().pix.assign(variable=f"Emissions|GHG {gwp}"),
+        (
+            pdf_emissions.loc[pix.ismatch(variable="**CO2|*")]
+            .groupby(pdf_emissions.index.names.difference(["variable"]))
+            .sum(min_count=2)
+            .cumsum(axis=1)
+            / 1e3
+        ).pix.assign(variable="Cumulative Emissions|CO2", unit="GtCO2"),
     ]
 )
 pdf_emissions
@@ -331,6 +369,8 @@ for ax in fg.axes.flatten():
             ax.set_yticks(np.arange(-2e4, 7e4 + 1, 1e4))
         elif "GHG" in ax.get_title():
             ax.set_yticks(np.arange(-2e4, 7e4 + 1, 1e4))
+        elif "Cumulative" in ax.get_title():
+            ax.set_yticks(np.arange(0, 4e3 + 1, 1e3))
         else:
             ax.set_yticks(np.arange(-7e3, 10e3 + 1, 1e3))
 
@@ -349,10 +389,14 @@ pdf_raw_scm_output = add_model_scenario_column(
 # pdf_raw_scm_output
 
 # %%
+pdf_emissions.loc[pix.ismatch(variable="Cumulative**")].max(axis=1)
+
+# %%
 variables_src = [
     ("Emissions|CO2|Energy and Industrial Processes", pdf_emissions, True, False),
     ("Emissions|GHG", pdf_emissions, True, False),
     ("Emissions|CO2|AFOLU", pdf_emissions, True, True),
+    ("Cumulative Emissions|CO2", pdf_emissions, True, True),
     ("Emissions|CH4", pdf_emissions, True, False),
     ("Emissions|CFC12", pdf_emissions, True, False),
     ("Emissions|N2O", pdf_emissions, True, False),
@@ -365,15 +409,17 @@ variables_src = [
     ("Emissions|VOC", pdf_emissions, True, False),
     ("Atmospheric Concentrations|CO2", pdf_raw_scm_output, False, False),
     ("Atmospheric Concentrations|CH4", pdf_raw_scm_output, False, False),
-    ("Effective Radiative Forcing|CO2", pdf_raw_scm_output, False, False),
+    ("Effective Radiative Forcing", pdf_raw_scm_output, False, False),
     ("Effective Radiative Forcing|Greenhouse Gases", pdf_raw_scm_output, False, False),
     ("Effective Radiative Forcing|Aerosols", pdf_raw_scm_output, False, False),
+    ("Effective Radiative Forcing|CO2", pdf_raw_scm_output, False, False),
+    ("Effective Radiative Forcing|CH4", pdf_raw_scm_output, False, False),
     ("Heat Uptake", pdf_raw_scm_output, False, False),
     ("Surface Temperature (GSAT)", pdf_temperature, False, True),
 ]
 
 nrows = len(variables_src) // 2 + len(variables_src) % 2
-fig, axes = plt.subplots(nrows=nrows, ncols=2, figsize=(12, nrows * 5))
+fig, axes = plt.subplots(nrows=nrows, ncols=2, figsize=(14, nrows * 5))
 axes_flat = axes.flatten()
 hue = ms_level
 palette_h = palette
@@ -419,7 +465,9 @@ for i, (variable, src, emissions, show_legend) in tqdm.auto.tqdm(enumerate(varia
         if "Energy" in variable:
             ax.set_yticks(np.arange(-2e4, 6e4 + 1, 1e4))
         elif "GHG" in variable:
-            ax.set_yticks(np.arange(-2e4, 7e4 + 1, 1e4))
+            ax.set_yticks(np.arange(-2e4, 9e4 + 1, 1e4))
+        elif "Cumulative" in variable:
+            ax.set_yticks(np.arange(-1e3, 5e3 + 1, 5e2))
         else:
             ax.set_yticks(np.arange(-7.5e3, 10e3 + 1, 2.5e3))
 
@@ -462,7 +510,7 @@ multi_index_lookup(metadata_quantile, scratch_selection).unstack(["metric", "uni
 # ### How much difference is the MAGICC update making?
 
 # %%
-iam = "COFFEE"
+iam = "WITCH"
 tmp = temperatures_in_line_with_assessment.loc[pix.ismatch(model=f"{iam}**"), 2000:]
 
 fig, axes = plt.subplots(ncols=2, figsize=(16, 4))
@@ -499,15 +547,15 @@ ax = magicc_diff.openscm.plot_plume_after_calculating_quantiles(
 ax.grid()
 plt.show()
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 tmp = metadata_quantile.unstack("climate_model")
 magicc_diff = tmp["MAGICCv7.6.0a3"] - tmp["MAGICCv7.5.3"]
 magicc_diff.unstack(["metric", "unit", "quantile"])[
     [(metric, "K", percentile) for metric in ["max", "2100"] for percentile in [0.33, 0.5, 0.67, 0.95]]
 ].sort_values(by=("max", "K", 0.5)).describe().round(3)
 
-# %%
-iam = "REMIND"
+# %% editable=true slideshow={"slide_type": ""}
+iam = "WITCH"
 pdf = raw_scm_output.loc[pix.isin(variable="Atmospheric Concentrations|CH4") & pix.ismatch(model=f"*{iam}*"), :]
 
 ax = pdf.loc[:, 2000:].openscm.plot_plume_after_calculating_quantiles(

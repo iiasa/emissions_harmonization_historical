@@ -13,7 +13,7 @@ from emissions_harmonization_historical.constants_5000 import (
 
 def main():
     """
-    Run the 500x series of notebooks
+    Extract the data
     """
     HERE = Path(__file__).parent
     REPO_ROOT = HERE.parent
@@ -28,6 +28,7 @@ def main():
 
         out_dir = OUT_PATH / model
         out_dir.mkdir(exist_ok=True, parents=True)
+        print(f"Extracting to {out_dir}")
         shutil.copyfile(file, out_dir / file.name)
 
 

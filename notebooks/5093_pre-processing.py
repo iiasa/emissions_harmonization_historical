@@ -41,7 +41,7 @@ from emissions_harmonization_historical.constants_5000 import (
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "COFFEE"
+model: str = "MESSAGE"
 
 # %% [markdown]
 # ## Load data
@@ -56,7 +56,7 @@ if model_raw.empty:
 
 # model_raw
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # Extract the model data, keeping:
 #
 # - only reported timesteps
@@ -183,7 +183,7 @@ pre_processing_res = pre_processor(model_df)
 
 # %%
 pdf = pre_processing_res.global_workflow_emissions.loc[
-    pix.ismatch(variable=["**CO2**", "**CH4", "**N2O", "**SOx"])
+    pix.ismatch(variable=["**CO2**", "**CH4", "**NOx", "**N2O", "**SOx"])
 ].openscm.to_long_data()
 fg = sns.relplot(
     data=pdf,
