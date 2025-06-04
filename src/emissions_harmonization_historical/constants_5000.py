@@ -269,12 +269,16 @@ HISTORY_HARMONISATION_DB = OpenSCMDB(
 # 2025-05-23 submissions
 # (still problems with how we harmonise novel CDR,
 # but good interim step)
-DOWNLOAD_SCENARIOS_ID = "0006"
+# DOWNLOAD_SCENARIOS_ID = "0006"
 # DOWNLOAD_SCENARIOS_ID = "0006-MZ"
 # 2025-05-26 run
 # (still problems with how we harmonise novel CDR,
 # but good interim step)
-DOWNLOAD_SCENARIOS_ID = "0008"
+# DOWNLOAD_SCENARIOS_ID = "0008"
+# 2025-06-04 run
+# (still problems with how we harmonise novel CDR,
+# but good interim step)
+DOWNLOAD_SCENARIOS_ID = "0009"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(
