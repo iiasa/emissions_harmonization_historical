@@ -274,7 +274,7 @@ DOWNLOAD_SCENARIOS_ID = "0006"
 # 2025-05-26 run
 # (still problems with how we harmonise novel CDR,
 # but good interim step)
-DOWNLOAD_SCENARIOS_ID = "0007"
+DOWNLOAD_SCENARIOS_ID = "20250602-123212"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(
@@ -389,6 +389,35 @@ SCM_OUTPUT_DB = OpenSCMDB(
     backend_data=FeatherDataBackend(),
     backend_index=FeatherIndexBackend(),
 )
+
+# ID for the scenario extension step
+# SCM_RUNNING_ID = "0001"
+# Moved to portable OpenSCMDB
+EXTENSIONS_ID = "0001"
+
+EXTENSIONS_OUT_DIR = (
+    DATA_ROOT
+    / "processed"
+    / "extension-output"
+    / "_".join(
+        [
+            DOWNLOAD_SCENARIOS_ID,
+            PRE_PROCESSING_ID,
+            HISTORY_FOR_HARMONISATION_ID,
+            HARMONISATION_ID,
+            INFILLING_ID,
+            EXTENSIONS_ID,
+        ]
+    )
+)
+
+# Database into which SCM output is saved
+EXTENSIONS_OUTPUT_DB = OpenSCMDB(
+    db_dir=SCM_OUT_DIR / "db",
+    backend_data=FeatherDataBackend(),
+    backend_index=FeatherIndexBackend(),
+)
+
 
 # ID for the post-processing step
 # POST_PROCESSING_ID = "0001"
