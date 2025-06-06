@@ -409,7 +409,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/a9/cd/7e8753b9ef31c4e18d8c206019be052380bd2e8eb389180b6b39dc3f0c1e/xarray_regrid-0.4.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a6/0c/c2a72d51fe56e08a08acc85d13013558a2d793028ae7385448a6ccdfae64/xlrd-2.0.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/9b/07/df054f7413bdfff5e98f75056e4ed0977d0c8716424011fac2587864d1d3/XlsxWriter-3.2.2-py3-none-any.whl
-      - pypi: .
+      - pypi: ./
       linux-aarch64:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/_openmp_mutex-4.5-2_gnu.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/affine-2.4.0-pyhd8ed1ab_1.conda
@@ -812,7 +812,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/a9/cd/7e8753b9ef31c4e18d8c206019be052380bd2e8eb389180b6b39dc3f0c1e/xarray_regrid-0.4.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a6/0c/c2a72d51fe56e08a08acc85d13013558a2d793028ae7385448a6ccdfae64/xlrd-2.0.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/9b/07/df054f7413bdfff5e98f75056e4ed0977d0c8716424011fac2587864d1d3/XlsxWriter-3.2.2-py3-none-any.whl
-      - pypi: .
+      - pypi: ./
       osx-64:
       - conda: https://conda.anaconda.org/conda-forge/noarch/affine-2.4.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/anyio-4.8.0-pyhd8ed1ab_0.conda
@@ -1208,7 +1208,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/a9/cd/7e8753b9ef31c4e18d8c206019be052380bd2e8eb389180b6b39dc3f0c1e/xarray_regrid-0.4.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a6/0c/c2a72d51fe56e08a08acc85d13013558a2d793028ae7385448a6ccdfae64/xlrd-2.0.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/9b/07/df054f7413bdfff5e98f75056e4ed0977d0c8716424011fac2587864d1d3/XlsxWriter-3.2.2-py3-none-any.whl
-      - pypi: .
+      - pypi: ./
       osx-arm64:
       - conda: https://conda.anaconda.org/conda-forge/noarch/affine-2.4.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/anyio-4.8.0-pyhd8ed1ab_0.conda
@@ -1603,7 +1603,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/a9/cd/7e8753b9ef31c4e18d8c206019be052380bd2e8eb389180b6b39dc3f0c1e/xarray_regrid-0.4.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a6/0c/c2a72d51fe56e08a08acc85d13013558a2d793028ae7385448a6ccdfae64/xlrd-2.0.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/9b/07/df054f7413bdfff5e98f75056e4ed0977d0c8716424011fac2587864d1d3/XlsxWriter-3.2.2-py3-none-any.whl
-      - pypi: .
+      - pypi: ./
       win-64:
       - conda: https://conda.anaconda.org/conda-forge/win-64/_libavif_api-1.1.1-h57928b3_2.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/_openmp_mutex-4.5-2_gnu.conda
@@ -1989,7 +1989,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/a9/cd/7e8753b9ef31c4e18d8c206019be052380bd2e8eb389180b6b39dc3f0c1e/xarray_regrid-0.4.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a6/0c/c2a72d51fe56e08a08acc85d13013558a2d793028ae7385448a6ccdfae64/xlrd-2.0.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/9b/07/df054f7413bdfff5e98f75056e4ed0977d0c8716424011fac2587864d1d3/XlsxWriter-3.2.2-py3-none-any.whl
-      - pypi: .
+      - pypi: ./
 packages:
 - conda: https://conda.anaconda.org/conda-forge/win-64/_libavif_api-1.1.1-h57928b3_2.conda
   sha256: b99b8948a170ff721ea958ee04a4431797070e85dd6942cb27b73ac3102e5145
@@ -4766,10 +4766,10 @@ packages:
   - pkg:pypi/distributed?source=hash-mapping
   size: 803908
   timestamp: 1734473202885
-- pypi: .
+- pypi: ./
   name: emissions-harmonization-historical
   version: 0.1.0
-  sha256: 03903758fe82db9382d414e0ec042ac1f8c1e36b88af4379cfe71cfd114b76a5
+  sha256: 4b99cfbfe06da99d3472ad7b303230a1fa75e3371eb9edaec1e1707c0c662e7e
   requires_dist:
   - pre-commit==3.3.1
   - ptolemy-iamc @ git+https://github.com/gidden/ptolemy.git@015aa843c340bd57464eb7cfd5f3c8e397201266
@@ -12296,7 +12296,8 @@ packages:
   - pandas >=2.0
   license: BSD-3-Clause
   license_family: BSD
-  purls: []
+  purls:
+  - pkg:pypi/networkx?source=hash-mapping
   size: 1265008
   timestamp: 1731521053408
 - conda: https://conda.anaconda.org/conda-forge/linux-64/nlohmann_json-3.11.3-he02047a_1.conda

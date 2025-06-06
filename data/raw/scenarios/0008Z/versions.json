@@ -1,0 +1,60 @@
+{
+  "AIM 3.0": {
+    "SSP1 - Medium Emissions": 10,
+    "SSP1 - Very Low Emissions": 27,
+    "SSP1 - Very Low Emissions_a": 4,
+    "SSP2 - Low Emissions": 27,
+    "SSP2 - Low Overshoot": 28,
+    "SSP2 - Low Overshoot_a": 7,
+    "SSP2 - Low Overshoot_b": 6,
+    "SSP2 - Low Overshoot_c": 6,
+    "SSP2 - Low Overshoot_d": 4,
+    "SSP2 - Medium Emissions": 28,
+    "SSP2 - Medium-Low Emissions": 18,
+    "SSP2 - Very Low Emissions": 27,
+    "SSP3 - High Emissions": 27,
+    "SSP5 - High Emissions": 27
+  },
+  "GCAM 7.1 scenarioMIP": {
+    "SSP1 - Low Overshoot": 13,
+    "SSP1 - Very Low Emissions": 15,
+    "SSP2 - High Emissions": 6,
+    "SSP2 - Low Emissions": 18,
+    "SSP2 - Low Overshoot": 18,
+    "SSP2 - Medium Emissions": 18,
+    "SSP2 - Medium-Low Emissions": 17,
+    "SSP2 - Very Low Emissions": 14,
+    "SSP3 - High Emissions": 16,
+    "SSP5 - High Emissions": 13
+  },
+  "IMAGE 3.4": {
+    "SSP1 - Low Emissions": 16,
+    "SSP1 - Low Overshoot": 17,
+    "SSP1 - Low Overshoot_a": 1,
+    "SSP1 - Medium Emissions": 18,
+    "SSP1 - Medium Emissions_a": 15,
+    "SSP1 - Medium-Low Emissions": 16,
+    "SSP1 - Very Low Emissions": 16,
+    "SSP2 - Low Emissions": 16,
+    "SSP2 - Low Overshoot": 17,
+    "SSP2 - Low Overshoot_a": 1,
+    "SSP2 - Medium Emissions": 17,
+    "SSP2 - Medium-Low Emissions": 16,
+    "SSP2 - Very Low Emissions": 17,
+    "SSP2 - Very Low Emissions_a": 10,
+    "SSP3 - High Emissions": 19,
+    "SSP5 - High Emissions": 19
+  },
+  "WITCH 6.0": {
+    "SSP1 - Low Emissions": 17,
+    "SSP1 - Low Overshoot": 14,
+    "SSP1 - Very Low Emissions": 16,
+    "SSP2 - Low Emissions": 18,
+    "SSP2 - Low Overshoot": 15,
+    "SSP2 - Medium Emissions": 18,
+    "SSP2 - Medium-Low Emissions": 14,
+    "SSP2 - Very Low Emissions": 17,
+    "SSP5 - High Emissions": 18,
+    "SSP5 - Medium-Low Emissions_a": 11
+  }
+}

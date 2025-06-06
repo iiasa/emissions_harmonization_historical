@@ -68,6 +68,7 @@ pint-xarray = ">=0.4,<0.5"
 seaborn = ">=0.13.2,<0.14"
 tqdm = ">=4.67.0,<5"
 ipywidgets = ">=8.1.5,<9"
+ipykernel = ">=6.29.5,<7"
 
 [tool.pixi.pypi-dependencies]
 emissions_harmonization_historical = { path = ".", editable = true }
