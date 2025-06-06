@@ -36,9 +36,14 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
 
     elif notebook_name in [
         "5094_harmonisation.py",
+    ]:
+        res = {"model": iam, "make_region_sector_plots": True, "output_to_pdf": True}
+        res = {"model": iam, "make_region_sector_plots": False, "output_to_pdf": False}
+
+    elif notebook_name in [
         "5190_infilling.py",
     ]:
-        res = {"model": iam, "output_to_pdf": True}
+        res = {"model": iam}
 
     elif notebook_name in [
         "5191_run-simple-climate-model.py",
@@ -47,7 +52,6 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
         if scm is None:
             raise TypeError(scm)
 
-        # res = {"model": iam, "scm": scm, "n_processes" n_processes}
         res = {"model": iam, "scm": scm}
 
     else:
@@ -154,17 +158,16 @@ def main():  # noqa: PLR0912
     #     "GCAM",
     # ]
     # All
-    #    iams = [
-    #        "WITCH",
-    #        "REMIND",
-    #        "MESSAGE",
-    #        "IMAGE",
-    #        "GCAM",
-    #        "COFFEE",
-    #        "AIM",
-    #    ]
-
-    iams = ["IMAGE"]
+    iams = [
+        "WITCH",
+        "REMIND",
+        "MESSAGE",
+        "IMAGE",
+        "GCAM",
+        "COFFEE",
+        "AIM",
+    ]
+    # iams = ["COFFEE"]
     # Single notebook
     notebook_prefixes = ["5090"]
     # # Everything except downloads and reporting checking
@@ -223,7 +226,7 @@ def main():  # noqa: PLR0912
     # # Single notebook
     # notebook_prefixes = ["5192"]
     # Skip this step
-    # notebook_prefixes = []
+    notebook_prefixes = []
     scms = ["MAGICCv7.6.0a3", "MAGICCv7.5.3"]
     for iam, scm in tqdm.tqdm(itertools.product(iams, scms), desc="IAM SCM runs"):
         for notebook in all_notebooks:

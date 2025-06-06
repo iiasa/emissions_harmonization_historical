@@ -275,6 +275,8 @@ DOWNLOAD_SCENARIOS_ID = "0006"
 # (still problems with how we harmonise novel CDR,
 # but good interim step)
 DOWNLOAD_SCENARIOS_ID = "0008"
+# Development helper
+DOWNLOAD_SCENARIOS_ID = "0009-zn"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(
@@ -328,7 +330,7 @@ INFILLING_DB_DIR = (
     / f"{DOWNLOAD_SCENARIOS_ID}_{WMO_2022_PROCESSING_ID}_{HARMONISATION_ID}_{INFILLING_DB_CREATION_ID}"
 )
 
-# Database into which pre-processed scenarios are saved
+# Database into which infilled emissions are saved
 INFILLING_DB = OpenSCMDB(
     db_dir=INFILLING_DB_DIR / "db",
     backend_data=FeatherDataBackend(),

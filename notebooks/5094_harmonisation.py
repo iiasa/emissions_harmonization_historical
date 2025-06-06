@@ -55,7 +55,8 @@ pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
 model: str = "WITCH"
-output_to_pdf: bool = True
+make_region_sector_plots: bool = True
+output_to_pdf: bool = False
 
 # %% editable=true slideshow={"slide_type": ""}
 output_dir_model = HARMONISED_OUT_DIR / model
@@ -470,70 +471,71 @@ regions
 # %%
 species_l = sorted(pdf_sectors.pix.unique("species"))
 
-if output_to_pdf:
-    ctx_manager = PdfPages(output_dir_model / f"harmonisation-results_{model}.pdf")
+if make_region_sector_plots:
+    if output_to_pdf:
+        ctx_manager = PdfPages(output_dir_model / f"harmonisation-results_{model}.pdf")
 
-    pn = 1
-    toc_l = ["Table of contents", "=================", ""]
+        pn = 1
+        toc_l = ["Table of contents", "=================", ""]
 
-    for region in regions:
-        toc_l.append(f"{region}")
-        toc_l.append("-" * len(region))
-        for species in species_l:
-            pad = 10 - len(species)
-            toc_l.append(f"    {species}:{' ' * pad}{pn}")
-            pn += 1
+        for region in regions:
+            toc_l.append(f"{region}")
+            toc_l.append("-" * len(region))
+            for species in species_l:
+                pad = 10 - len(species)
+                toc_l.append(f"    {species}:{' ' * pad}{pn}")
+                pn += 1
 
-        toc_l.append("")
+            toc_l.append("")
 
-    toc = "\n".join(toc_l)
-    # toc
+        toc = "\n".join(toc_l)
+        # toc
 
-else:
-    ctx_manager = nullcontext()
+    else:
+        ctx_manager = nullcontext()
 
-with ctx_manager as output_pdf_file:
-    for region in tqdm.auto.tqdm(regions, desc="regions"):
-        pdf_r = pdf_sectors.loc[pix.isin(region=region)]
-        for species in tqdm.auto.tqdm(species_l, desc="species", leave=False):
-            sdf = pdf_r.loc[pix.isin(species=species)]
-            snsdf = sdf.openscm.to_long_data().dropna()
-            fg = sns.relplot(
-                data=snsdf,
-                x="time",
-                y="value",
-                hue="scenario",
-                hue_order=sorted(snsdf["scenario"].unique()),
-                style="stage",
-                dashes={
-                    "history": "",
-                    "harmonised": "",
-                    "pre-processed": (3, 3),
-                },
-                col="sectors",
-                col_wrap=min(3, len(snsdf["sectors"].unique())),
-                kind="line",
-                facet_kws=dict(sharey=False),
-            )
-            fg.fig.suptitle(f"{species} - {region}", y=1.02)
-            for ax in fg.axes.flatten():
-                ax.axvline(HARMONISATION_YEAR, linestyle="--", color="gray", alpha=0.3, zorder=1.2)
+    with ctx_manager as output_pdf_file:
+        for region in tqdm.auto.tqdm(regions, desc="regions"):
+            pdf_r = pdf_sectors.loc[pix.isin(region=region)]
+            for species in tqdm.auto.tqdm(species_l, desc="species", leave=False):
+                sdf = pdf_r.loc[pix.isin(species=species)]
+                snsdf = sdf.openscm.to_long_data().dropna()
+                fg = sns.relplot(
+                    data=snsdf,
+                    x="time",
+                    y="value",
+                    hue="scenario",
+                    hue_order=sorted(snsdf["scenario"].unique()),
+                    style="stage",
+                    dashes={
+                        "history": "",
+                        "harmonised": "",
+                        "pre-processed": (3, 3),
+                    },
+                    col="sectors",
+                    col_wrap=min(3, len(snsdf["sectors"].unique())),
+                    kind="line",
+                    facet_kws=dict(sharey=False),
+                )
+                fg.fig.suptitle(f"{species} - {region}", y=1.02)
+                for ax in fg.axes.flatten():
+                    ax.axvline(HARMONISATION_YEAR, linestyle="--", color="gray", alpha=0.3, zorder=1.2)
 
-                if species == "CO2":
-                    ax.axhline(0.0, linestyle="--", color="tab:gray")
+                    if species == "CO2":
+                        ax.axhline(0.0, linestyle="--", color="tab:gray")
+                    else:
+                        ax.set_ylim(ymin=0.0)
+
+                if output_to_pdf:
+                    output_pdf_file.savefig(bbox_inches="tight")
+                    plt.close()
                 else:
-                    ax.set_ylim(ymin=0.0)
+                    plt.show()
 
-            if output_to_pdf:
-                output_pdf_file.savefig(bbox_inches="tight")
-                plt.close()
-            else:
-                plt.show()
-
-        # # Don't plot all for now
-        # if region != "World":
-        #     break
-        # break
+            # # Don't plot all for now
+            # if region != "World":
+            #     break
+            # break
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Create combination to use for simple climate models
