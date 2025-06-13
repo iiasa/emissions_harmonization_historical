@@ -60,10 +60,11 @@ scenarios_to_analyse = [
     # ("WITCH*", "*- Low*"),
     # ("WITCH*", "*- Very Low*"),
     # ("AIM*", "*Very Low*"),
-    ("REMIND*", "SSP1*Very Low*_c"),
-    ("IMAGE*", "SSP1 - Very Low Emissions"),
-    ("WITCH*", "SSP1 - Low Overshoot"),
-    ("AIM*", "SSP1 - Very Low Emissions"),
+    # ("REMIND*", "SSP1*Very Low*_c"),
+    # ("IMAGE*", "SSP1 - Very Low Emissions"),
+    # ("WITCH*", "SSP1 - Low Overshoot"),
+    # ("AIM*", "SSP1 - Very Low Emissions"),
+    ("AIM*", "*Low Overshoot*"),
 ]
 
 # %%
@@ -221,11 +222,16 @@ pdf_erfs = amsc(erfs).loc[:, start_year:]
 pdf_temperature = amsc(temperatures_in_line_with_assessment).loc[:, start_year:]
 
 # %%
+pdf_erfs.pix.unique("variable")
+
+# %%
 variables_src = [
     ("Surface Temperature (GSAT)", pdf_temperature, False),
     ("Effective Radiative Forcing", pdf_erfs, False),
     ("Effective Radiative Forcing|Greenhouse Gases", pdf_erfs, False),
     ("Effective Radiative Forcing|Aerosols", pdf_erfs, False),
+    ("Effective Radiative Forcing|Aerosols|Direct Effect", pdf_erfs, False),
+    ("Effective Radiative Forcing|Aerosols|Indirect Effect", pdf_erfs, False),
     ("Emissions|CO2|Energy and Industrial Processes", pdf_emissions, True),
     # ("Emissions|GHG", pdf_emissions, True),
     ("Emissions|CO2|AFOLU", pdf_emissions, True),
@@ -300,5 +306,3 @@ for i, (variable, src, emissions) in tqdm.auto.tqdm(enumerate(variables_src)):
 
     ax.grid()
     # break
-
-# %%

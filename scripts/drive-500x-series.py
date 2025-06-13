@@ -167,7 +167,7 @@ def main():  # noqa: PLR0912
         "COFFEE",
         "AIM",
     ]
-    # iams = ["COFFEE"]
+    iams = ["AIM"]
     # Single notebook
     notebook_prefixes = ["5090"]
     # # Everything except downloads and reporting checking
@@ -226,8 +226,9 @@ def main():  # noqa: PLR0912
     # # Single notebook
     # notebook_prefixes = ["5192"]
     # Skip this step
-    notebook_prefixes = []
+    # notebook_prefixes = []
     scms = ["MAGICCv7.6.0a3", "MAGICCv7.5.3"]
+    scms = ["MAGICCv7.6.0a3"]
     for iam, scm in tqdm.tqdm(itertools.product(iams, scms), desc="IAM SCM runs"):
         for notebook in all_notebooks:
             if any(notebook.name.startswith(np) for np in notebook_prefixes):

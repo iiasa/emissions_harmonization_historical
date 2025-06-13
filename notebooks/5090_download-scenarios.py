@@ -95,6 +95,9 @@ props = conn_ssp.properties().reset_index()
 
 # %%
 to_download = props[props["model"].str.contains(model_search)]
+to_download = to_download[
+    to_download["scenario"].str.contains("_") & to_download["scenario"].str.contains("Low Overshoot")
+]
 to_download.shape[0]
 
 # %%

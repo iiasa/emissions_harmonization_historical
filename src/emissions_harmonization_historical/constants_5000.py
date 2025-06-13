@@ -277,6 +277,8 @@ DOWNLOAD_SCENARIOS_ID = "0006"
 DOWNLOAD_SCENARIOS_ID = "0008"
 # Development helper
 DOWNLOAD_SCENARIOS_ID = "0009-zn"
+# AIM fire specific runs
+DOWNLOAD_SCENARIOS_ID = "20250613-aim-fire"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(
