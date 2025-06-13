@@ -86,7 +86,7 @@ species = [
 
 # %%
 ceds_mapping = pd.read_excel(ceds_sector_mapping_file, sheet_name="CEDS Mapping 2024")
-ceds_map = get_map(ceds_mapping, "59_Sectors_2024")  # note; with 7BC now added it is actually 60 sectors, not 59?!
+ceds_map = get_map(ceds_mapping, "59_Sectors_2024")  # note; with 7BC and 2L now added it is actually 61 sectors, not 59 anymore
 ceds_map.to_frame(index=False)
 
 # %% [markdown]
@@ -98,6 +98,8 @@ ceds = pd.concat(
     read_CEDS(Path(ceds_data_folder) / f"{s}_CEDS_estimates_by_country_sector_v{ceds_release}.csv") for s in species # for Zenodo_2025_03_18
 ).rename_axis(index={"region": "country"})
 ceds = ceds.pix.semijoin(ceds_map, how="outer")
+# check that all emissions are mapped properly
+assert ceds.loc[isna].reset_index().sector_59.unique() == np.array(['6B_Other-not-in-total'])
 ceds.loc[isna].pix.unique(["sector_59", "sector"])  # print sectors with NAs
 
 # %%

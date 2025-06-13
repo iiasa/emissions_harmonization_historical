@@ -32,6 +32,7 @@ data/reporting-checking
 data/cmip7-scenariomip-workflow
 data/climate-assessment-workflow
 data/national/ceds/processed
+data/global/ceds/processed
 data/national/gfed/processed
 data/national/gfed-bb4cmip/processed
 data/national/cams/processed
