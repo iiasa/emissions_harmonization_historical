@@ -161,11 +161,11 @@ def main():  # noqa: PLR0912
     # All
     iams = [
         # "WITCH",
-        # "REMIND",
+        "REMIND",
         # "MESSAGE",
         # "IMAGE",
         # "GCAM",
-        "COFFEE",
+        # "COFFEE",
         # "AIM",
     ]
     # iams = ["COFFEE"]
@@ -198,9 +198,9 @@ def main():  # noqa: PLR0912
     # (and even then only to a limited degree because it is mostly for F-gases)
     # so this shouldn't make such a big impact.
     # Run the notebook
-    # notebook_prefixes = ["5095"]
+    notebook_prefixes = ["5095"]
     # # Skip this step
-    notebook_prefixes = []
+    # notebook_prefixes = []
     for notebook in all_notebooks:
         if any(notebook.name.startswith(np) for np in notebook_prefixes):
             run_notebook(
@@ -212,9 +212,9 @@ def main():  # noqa: PLR0912
 
     ### Infilling & Post-processing of emissions
     # only infilling
-    # notebook_prefixes = ["5190"] 
+    # notebook_prefixes = ["5190"]
     # only infilling
-    # notebook_prefixes = ["5191"] 
+    # notebook_prefixes = ["5191"]
     # infilling & post-processing emissions
     notebook_prefixes = ["5190", "5191"]
     # Skip this step
@@ -228,17 +228,15 @@ def main():  # noqa: PLR0912
                     iam=iam,
                 )
 
-
-
     ### Running the SCMs and post-processing climate outputs
     # SCM related notebooks
-    # notebook_prefixes = ["5195", "5196"]
+    notebook_prefixes = ["5195", "5196"]
     # Single notebook: run SCM
     # notebook_prefixes = ["5195"]
     # Single notebook: run post-processing of climate outputs
     # notebook_prefixes = ["5196"]
     # Skip this step
-    notebook_prefixes = []
+    # notebook_prefixes = []
     scms = ["MAGICCv7.6.0a3", "MAGICCv7.5.3"]
     for iam, scm in tqdm.tqdm(itertools.product(iams, scms), desc="IAM SCM runs"):
         for notebook in all_notebooks:
