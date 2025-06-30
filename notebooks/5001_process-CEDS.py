@@ -220,23 +220,42 @@ ceds_reformatted_iamc = (
 assert_units_match_wishes(ceds_reformatted_iamc)
 
 # %% [markdown]
-# ## Get output
+# ### Map national aviation emissions to global
+#
+# Since release 2025_03_18, CEDS splits up aviation between its 'global' region (for international aircraft) and other territories. Before it was all allocated to the 'global' region, which is what we were expecting, and what we want to continue to use here.
+#
+# 1. take all national aircraft emissions and aggregate and rename to global
+# 2. aggregate global emissions + national without aircraft + national aircraft aggregated to global
 
 # %%
-gridding_relevant_emissions = ceds_reformatted_iamc.loc[
-    ~pix.isin(region="World")
-]  # remove the added "World" region, but keep the CEDS "global" region
+ceds_reformatted_iamc.loc[pix.ismatch(variable="Emissions|*|Aircraft")].loc[pix.isin(region=["global","usa"])] # show that there is both international and domestic aviation emissions in this data
+
+# %%
+out_no_aircraft = ceds_reformatted_iamc.loc[~pix.ismatch(variable="**|Aircraft")]
+
+# %%
+out_aircraft = (
+    ceds_reformatted_iamc.loc[pix.ismatch(variable="**|Aircraft")]
+    .groupby(["model", "scenario", "variable", "unit"])
+    .sum(numeric_only=True)
+    .pix.assign(region="global")
+)
+out_aircraft = out_aircraft.reorder_levels(out_no_aircraft.index.names)
+
+# %%
+out = pd.concat([out_aircraft, out_no_aircraft], axis=0)
+
+# %%
+assert (
+    out.loc[~pix.ismatch(variable="**Aircraft")].shape[0]
+    == ceds_reformatted_iamc.loc[~pix.ismatch(variable="**Aircraft")].shape[0]
+)
 
 # %% [markdown]
 # ### Check we didn't lose any mass
 
 # %%
-res_sum = (
-    split_sectors(ceds_reformatted_iamc)
-    .openscm.groupby_except(["region", "sectors"])
-    .sum()
-    .pix.project(["species", "unit"])
-)
+res_sum = split_sectors(out).openscm.groupby_except(["region", "sectors"]).sum().pix.project(["species", "unit"])
 res_sum.index = res_sum.index.rename({"species": "em", "unit": "units"})
 res_sum = pix.units.convert_unit(
     res_sum,
@@ -275,7 +294,7 @@ pd.testing.assert_frame_equal(
 # ## Save formatted CEDS data
 
 # %%
-CEDS_PROCESSED_DB.save(ceds_reformatted_iamc.pix.assign(stage="iso3c_ish"), allow_overwrite=True)
+CEDS_PROCESSED_DB.save(out.pix.assign(stage="iso3c_ish"), allow_overwrite=True)
 
 # %% [markdown]
 # ----------
@@ -309,13 +328,15 @@ if RUN_OPTIONAL_BYFUEL_PROCESSING_FOR_AVIATION_AND_SHIPPING:
         )
         .pix.semijoin(ceds_map, how="outer")
     )
-    ceds_by_fuel = pix.assignlevel(ceds_by_fuel, region="World")
-    
+
     # only aircraft and shipping
     ceds_by_fuel_aviation_shipping = ceds_by_fuel.loc[pix.isin(sector=[
         "Aircraft",
         "International Shipping"
     ])]
+    
+    # assign all emissions to the global level
+    ceds_by_fuel_aviation_shipping = pix.assignlevel(ceds_by_fuel_aviation_shipping, region="World")
     
     # aggregate
     ceds_by_fuel_aviation_shipping = ceds_by_fuel_aviation_shipping.groupby(["em", "region", "fuel", "units", "sector"]).sum().pix.fixna()  # group and fix NAs
