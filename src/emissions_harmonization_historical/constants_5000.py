@@ -34,7 +34,7 @@ CEDS_VERSION_ID = "v_2025_03_18"
 # ID for the CEDS processing step
 # CEDS_PROCESSING_ID = "0001"
 # Moved to portable OpenSCMDB
-CEDS_PROCESSING_ID = "0002"
+# CEDS_PROCESSING_ID = "0002"
 # Updated Aircraft handling
 CEDS_PROCESSING_ID = "0003"
 
@@ -96,11 +96,20 @@ BB4CMIP7_ANNUAL_SECTORAL_COUNTRY_OUTPUT_DIR = BB4CMIP7_INTERIM_OUTPUT_DIR / BB4C
 # BB4CMIP7_FORMATTING_ID = "0001"
 # Moved to portable OpenSCMDB
 BB4CMIP7_FORMATTING_ID = "0002"
+# 20250701 version, should not differ from previous, but aggregation methods have changed
+BB4CMIP7_FORMATTING_ID = "0003"
 
 # Database into which the processed BB4CMIP7 data is saved
 BB4CMIP7_PROCESSED_DIR = DATA_ROOT / "processed" / "bb4cmip7" / BB4CMIP7_FORMATTING_ID
 BB4CMIP7_PROCESSED_DB = OpenSCMDB(
     db_dir=BB4CMIP7_PROCESSED_DIR / "db",
+    backend_data=FeatherDataBackend(),
+    backend_index=FeatherIndexBackend(),
+)
+
+BB4CMIP7_PROCESSED_DIR_UNSMOOTHED = DATA_ROOT / "processed" / "bb4cmip7" / BB4CMIP7_FORMATTING_ID / "unsmoothed"
+BB4CMIP7_PROCESSED_DB_UNSMOOTHED = OpenSCMDB(
+    db_dir=BB4CMIP7_PROCESSED_DIR_UNSMOOTHED / "db",
     backend_data=FeatherDataBackend(),
     backend_index=FeatherIndexBackend(),
 )
