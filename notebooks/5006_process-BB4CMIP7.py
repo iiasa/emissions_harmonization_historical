@@ -47,9 +47,14 @@ from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR
 # %% [markdown]
 # ## Setup
 
+# %% [markdown]
+# this notebook needs to be run for all the following emission species by hand:
+#
+# "BC", "CH4", "CO", "CO2", "N2O", "NH3", "NMVOC"/"NMVOCbulk", "NOx", "OC", "SO2"
+
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-species: str = "OC"
-species_esgf: str = "OC"
+species: str = "NMVOC"
+species_esgf: str = "NMVOCbulk"
 
 
 # %% [markdown]
