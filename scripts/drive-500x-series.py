@@ -143,7 +143,7 @@ def main():  # noqa: PLR0912
     # iams = ["REMIND"]
     # iams = ["GCAM"]
     # iams = ["WITCH"]
-    # iams = ["AIM"]
+    iams = ["AIM"]
     # Combos
     # iams = ["COFFEE", "WITCH"]
     # iams = [
@@ -158,16 +158,16 @@ def main():  # noqa: PLR0912
     # iams = [
     #     "GCAM",
     # ]
-    # All
-    iams = [
-        "WITCH",
-        "REMIND",
-        "MESSAGE",
-        "IMAGE",
-        "GCAM",
-        "COFFEE",
-        "AIM",
-    ]
+    # # All
+    # iams = [
+    #     "WITCH",
+    #     "REMIND",
+    #     "MESSAGE",
+    #     "IMAGE",
+    #     "GCAM",
+    #     "COFFEE",
+    #     "AIM",
+    # ]
     # iams = ["COFFEE"]
 
     #### downloading and processing

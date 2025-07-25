@@ -49,7 +49,7 @@ pandas_openscm.register_pandas_accessor()
 pix.set_openscm_registry_as_default()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "GCAM"
+model: str = "AIM"
 output_to_pdf: bool = False
 
 # %% [markdown]
@@ -431,10 +431,11 @@ pdf = (
     .loc[
         pix.ismatch(
             variable=[
-                "Emissions|GHG AR6GWP100",
-                "Emissions|Kyoto GHG AR6GWP100",
-                "Emissions|CO2|Energy and Industrial Processes",
-                "Emissions|CO2|AFOLU",
+                # "Emissions|GHG AR6GWP100",
+                # "Emissions|Kyoto GHG AR6GWP100",
+                # "Emissions|CO2|Energy and Industrial Processes",
+                # "Emissions|CO2|AFOLU",
+                "Emissions|OC",
             ],
             scenario="SSP2*",
         )
