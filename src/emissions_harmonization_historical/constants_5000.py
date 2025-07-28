@@ -413,7 +413,7 @@ EXTENSIONS_OUT_DIR = (
 
 # Database into which SCM output is saved
 EXTENSIONS_OUTPUT_DB = OpenSCMDB(
-    db_dir=SCM_OUT_DIR / "db",
+    db_dir=EXTENSIONS_OUT_DIR / "db",
     backend_data=FeatherDataBackend(),
     backend_index=FeatherIndexBackend(),
 )
