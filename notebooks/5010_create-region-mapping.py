@@ -19,12 +19,16 @@
 # ## Imports
 
 # %%
+import ast
+
+import pandas as pd
 from git import Repo
 
 from emissions_harmonization_historical.constants_5000 import (
     COMMON_DEFINITIONS_COMMIT,
     COMMON_DEFINITIONS_PATH,
     REGION_MAPPING_FILE,
+    REGION_MAPPING_PATH,
 )
 from emissions_harmonization_historical.region_mapping import create_region_mapping
 
@@ -52,3 +56,29 @@ create_region_mapping(
     out_file=REGION_MAPPING_FILE,
     common_definitions_path=COMMON_DEFINITIONS_PATH,
 )
+
+# %% [markdown]
+# ## Create the region mapping for concordia
+
+# %%
+regionmapping = pd.read_csv(REGION_MAPPING_FILE, index_col=0)
+
+# %%
+models = [
+    "GCAM 7.1",
+    "IMAGE 3.4",
+    "WITCH 6.0",
+    "COFFEE 1.6",
+    "REMIND-MAgPIE 3.5-4.10",
+    "MESSAGEix-GLOBIOM-GAINS 2.1-R12",
+    "AIM 3.0",
+]
+
+# %%
+for model in models:
+    data = regionmapping[regionmapping["hierarchy"] == model]
+    data = data.drop(columns=["countries", "hierarchy"])
+    data["iso3"] = data["iso3"].apply(ast.literal_eval)
+    output = data.explode("iso3").reset_index(drop=True)
+
+    output.to_csv(REGION_MAPPING_PATH / f"region_definitions_{model}.csv", index=False)

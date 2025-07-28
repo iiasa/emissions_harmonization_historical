@@ -45,6 +45,7 @@ from emissions_harmonization_historical.constants_5000 import (
 from emissions_harmonization_historical.harmonisation import (
     HARMONISATION_YEAR,
     harmonise,
+    HarmonisationResult
 )
 
 # %% [markdown]
@@ -55,7 +56,8 @@ pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
 model: str = "WITCH"
-output_to_pdf: bool = True
+make_region_sector_plots: bool = True
+output_to_pdf: bool = False
 
 # %% editable=true slideshow={"slide_type": ""}
 output_dir_model = HARMONISED_OUT_DIR / model
@@ -138,6 +140,9 @@ history_for_harmonisation
 # %% [markdown]
 # ## Harmonise
 
+# %% [markdown]
+# ### Overrides
+
 # %%
 # Could load in user overrides from elsewhere here.
 # They need to be a series with name "method".
@@ -174,8 +179,89 @@ if model.startswith("WITCH"):
         )
     ] = "constant_ratio"
     user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
+if model.startswith("REMIND"):
+
+    # advised on 5 June 2025 by Elmar
+    
+    # template
+    user_overrides_gridding = pd.Series(
+        np.nan,
+        index=model_pre_processed_for_gridding.index.droplevel(
+            model_pre_processed_for_gridding.index.names.difference(["model", "scenario", "region", "variable"])
+        ),
+        name="method",
+    ).astype(str)
+
+
+    # index selector: combinations_model_zero_in_harmyear
+    model_zero_in_harmyear = model_pre_processed_for_gridding[model_pre_processed_for_gridding[2023] == 0]
+    combinations_model_zero_in_harmyear = model_zero_in_harmyear.index.unique()
+    # combinations_model_zero_in_harmyear
+    combinations_model_zero_in_harmyear_filter = combinations_model_zero_in_harmyear.droplevel(
+        [level for level in combinations_model_zero_in_harmyear.names if level not in user_overrides_gridding.index.names]
+    ) # only keep indices that are in the template 
+    
+    
+    # set reduce_ratio_2050 for all that do NOT have zero in the harmonization year for model data
+    user_overrides_gridding.loc[~user_overrides_gridding.index.isin(combinations_model_zero_in_harmyear_filter)] = "reduce_ratio_2050"
+    user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
+
+    ## global (not implemented yet)
+    # template
+    user_overrides_global = pd.Series(
+        np.nan,
+        index=model_pre_processed_for_global_workflow.index.droplevel(
+            model_pre_processed_for_global_workflow.index.names.difference(["model", "scenario", "region", "variable"])
+        ),
+        name="method",
+    ).astype(str)
+
+
+    # index selector: combinations_model_zero_in_harmyear
+    model_zero_in_harmyear_global = model_pre_processed_for_global_workflow[model_pre_processed_for_global_workflow[2023] == 0]
+    combinations_model_zero_in_harmyear_global = model_zero_in_harmyear_global.index.unique()
+    combinations_model_zero_in_harmyear_global_filter = combinations_model_zero_in_harmyear_global.droplevel(
+        [level for level in combinations_model_zero_in_harmyear_global.names if level not in user_overrides_global.index.names]
+    ) # only keep indices that are in the template 
+    
+    
+    # set reduce_ratio_2050 for all that do NOT have zero in the harmonization year for model data
+    user_overrides_global.loc[~user_overrides_global.index.isin(combinations_model_zero_in_harmyear_global_filter)] = "reduce_ratio_2050"
+    user_overrides_global = user_overrides_global[user_overrides_global != "nan"]
+
+    # additional method tweaks advised by Leon on 25 June 2025 
+    user_overrides_gridding.loc[
+        pix.isin(
+            variable=[
+                "Emissions|BC|Energy Sector",
+                "Emissions|BC|Industrial Sector",
+
+                "Emissions|CO|Energy Sector",
+                "Emissions|CO|Industrial Sector",
+                "Emissions|CO|Transportation Sector",
+
+                "Emissions|CO2|Waste",
+                "Emissions|N2O|Waste",
+                
+                "Emissions|NH3|Energy Sector",
+                "Emissions|NH3|Industrial Sector",
+                
+                "Emissions|Sulfur|Energy Sector",
+                "Emissions|Sulfur|Industrial Sector",
+                "Emissions|Sulfur|Transportation Sector"
+            ]
+        )
+    ] = "constant_ratio"
 
 user_overrides_gridding
+
+
+# %%
+# user_overrides_gridding.reset_index().variable.unique()
+
+
+# %% [markdown]
+# ### Harmonization
 
 # %%
 res = {}
@@ -194,11 +280,86 @@ for key, idf, user_overrides in (
         # Check overrides were passsed through correctly
         pd.testing.assert_series_equal(user_overrides, multi_index_lookup(res[key].overrides, user_overrides.index))
 
+# %% [markdown]
+# ### Post-harmonization fixes
+
+# %%
+# NOTE: do not do this for CDR variables!
+
+# set hist_zero to zero
+data = res["gridding"].timeseries
+methods = res["gridding"].overrides
+methods = methods.reindex(data.index) # add 'unit' to the methods index to enable matching with data
+
+# find all places that have 'hist_zero' harmonization method
+hist_zero_mask = methods[methods == 'hist_zero'].index
+hist_zero_mask
+
+# replace in all data
+all_years = [col for col in data.columns if isinstance(col, int)]
+data.loc[hist_zero_mask, all_years] = 0.0
+
+res["gridding"] = HarmonisationResult(
+    timeseries=data, 
+    overrides=methods
+)
+
+
+# %% [markdown]
+# ### Exploring bugs
+
+# %%
+# res["gridding"].overrides[res["gridding"].overrides == 'hist_zero']
+# res["global"].overrides[res["global"].overrides == 'hist_zero']
+
 # %%
 # tmp = res["gridding"].overrides.loc[pix.ismatch(variable="**Peat**")]
 # # These cause issues as the history is zero but the model is not
 # # so the result isn't actually harmonised
 # tmp[tmp == "hist_zero"].loc[pix.ismatch(variable="**CO2**") & pix.isin(scenario=tmp.pix.unique("scenario")[0])]
+
+# %% [markdown]
+# ## Ensure that harmonisation worked as expected
+
+# %%
+def keep_df_where_harmonisation_gridding_failed(df):
+     
+    # 1. Define tolerance-based uniqueness
+    def _tolerant_nunique(values, tol=1e-6):
+        seen = []
+        for val in sorted(values):
+            if not any(np.isclose(val, x, atol=tol) for x in seen):
+                seen.append(val)
+        return len(seen)
+    
+    # 2. Compute approx. unique value count per group
+    approx_unique = (
+        df.groupby(['model', 'region', 'variable'])[HARMONISATION_YEAR]
+        .agg(lambda x: _tolerant_nunique(x, tol=1e-6))
+        .reset_index(name='approx_unique_harmonisationyear')
+    )
+
+    # 3. Filter groups with more than 1 approx. unique value
+    nonunique_groups = approx_unique.query("approx_unique_harmonisationyear > 1")[['model', 'region', 'variable']] # should be only one value in harmonization year
+
+    # 4. Join back to full dataframe to get all relevant rows
+    filtered_df = df.merge(nonunique_groups, on=['model', 'region', 'variable'])
+
+    return filtered_df
+
+def assert_harmonisation_gridding_success(df, harmonisation_year=HARMONISATION_YEAR):
+   
+    failed_df = keep_df_where_harmonisation_gridding_failed(df)
+
+    if not failed_df.empty:
+        print("❌ Gridding/harmonization failed for the following rows:")
+        print(failed_df)
+    else:
+        print("✅ All harmonization values passed consistency check.")
+        assert failed_df.empty
+
+
+assert_harmonisation_gridding_success(res["gridding"].timeseries.reset_index())
 
 # %% [markdown]
 # ## Examine results
@@ -470,70 +631,71 @@ regions
 # %%
 species_l = sorted(pdf_sectors.pix.unique("species"))
 
-if output_to_pdf:
-    ctx_manager = PdfPages(output_dir_model / f"harmonisation-results_{model}.pdf")
+if make_region_sector_plots:
+    if output_to_pdf:
+        ctx_manager = PdfPages(output_dir_model / f"harmonisation-results_{model}.pdf")
 
-    pn = 1
-    toc_l = ["Table of contents", "=================", ""]
+        pn = 1
+        toc_l = ["Table of contents", "=================", ""]
 
-    for region in regions:
-        toc_l.append(f"{region}")
-        toc_l.append("-" * len(region))
-        for species in species_l:
-            pad = 10 - len(species)
-            toc_l.append(f"    {species}:{' ' * pad}{pn}")
-            pn += 1
+        for region in regions:
+            toc_l.append(f"{region}")
+            toc_l.append("-" * len(region))
+            for species in species_l:
+                pad = 10 - len(species)
+                toc_l.append(f"    {species}:{' ' * pad}{pn}")
+                pn += 1
 
-        toc_l.append("")
+            toc_l.append("")
 
-    toc = "\n".join(toc_l)
-    # toc
+        toc = "\n".join(toc_l)
+        # toc
 
-else:
-    ctx_manager = nullcontext()
+    else:
+        ctx_manager = nullcontext()
 
-with ctx_manager as output_pdf_file:
-    for region in tqdm.auto.tqdm(regions, desc="regions"):
-        pdf_r = pdf_sectors.loc[pix.isin(region=region)]
-        for species in tqdm.auto.tqdm(species_l, desc="species", leave=False):
-            sdf = pdf_r.loc[pix.isin(species=species)]
-            snsdf = sdf.openscm.to_long_data().dropna()
-            fg = sns.relplot(
-                data=snsdf,
-                x="time",
-                y="value",
-                hue="scenario",
-                hue_order=sorted(snsdf["scenario"].unique()),
-                style="stage",
-                dashes={
-                    "history": "",
-                    "harmonised": "",
-                    "pre-processed": (3, 3),
-                },
-                col="sectors",
-                col_wrap=min(3, len(snsdf["sectors"].unique())),
-                kind="line",
-                facet_kws=dict(sharey=False),
-            )
-            fg.fig.suptitle(f"{species} - {region}", y=1.02)
-            for ax in fg.axes.flatten():
-                ax.axvline(HARMONISATION_YEAR, linestyle="--", color="gray", alpha=0.3, zorder=1.2)
+    with ctx_manager as output_pdf_file:
+        for region in tqdm.auto.tqdm(regions, desc="regions"):
+            pdf_r = pdf_sectors.loc[pix.isin(region=region)]
+            for species in tqdm.auto.tqdm(species_l, desc="species", leave=False):
+                sdf = pdf_r.loc[pix.isin(species=species)]
+                snsdf = sdf.openscm.to_long_data().dropna()
+                fg = sns.relplot(
+                    data=snsdf,
+                    x="time",
+                    y="value",
+                    hue="scenario",
+                    hue_order=sorted(snsdf["scenario"].unique()),
+                    style="stage",
+                    dashes={
+                        "history": "",
+                        "harmonised": "",
+                        "pre-processed": (3, 3),
+                    },
+                    col="sectors",
+                    col_wrap=min(3, len(snsdf["sectors"].unique())),
+                    kind="line",
+                    facet_kws=dict(sharey=False),
+                )
+                fg.fig.suptitle(f"{species} - {region}", y=1.02)
+                for ax in fg.axes.flatten():
+                    ax.axvline(HARMONISATION_YEAR, linestyle="--", color="gray", alpha=0.3, zorder=1.2)
 
-                if species == "CO2":
-                    ax.axhline(0.0, linestyle="--", color="tab:gray")
+                    if species == "CO2":
+                        ax.axhline(0.0, linestyle="--", color="tab:gray")
+                    else:
+                        ax.set_ylim(ymin=0.0)
+
+                if output_to_pdf:
+                    output_pdf_file.savefig(bbox_inches="tight")
+                    plt.close()
                 else:
-                    ax.set_ylim(ymin=0.0)
+                    plt.show()
 
-            if output_to_pdf:
-                output_pdf_file.savefig(bbox_inches="tight")
-                plt.close()
-            else:
-                plt.show()
-
-        # # Don't plot all for now
-        # if region != "World":
-        #     break
-        # break
+            # # Don't plot all for now
+            # if region != "World":
+            #     break
+            # break
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Create combination to use for simple climate models

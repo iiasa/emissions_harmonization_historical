@@ -58,7 +58,6 @@ from emissions_harmonization_historical.infilling import (
 )
 from emissions_harmonization_historical.scm_running import complete_index_reporting_names
 
-# %% [markdown]
 # ## Set up
 
 # %%
@@ -70,7 +69,6 @@ pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
 model: str = "MESSAGE"
-output_to_pdf: bool = False
 
 # %% editable=true slideshow={"slide_type": ""}
 output_dir_model = INFILLED_OUT_DIR / model

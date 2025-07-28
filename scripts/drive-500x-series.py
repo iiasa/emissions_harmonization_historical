@@ -36,18 +36,23 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
 
     elif notebook_name in [
         "5094_harmonisation.py",
-        "5190_infilling.py",
     ]:
-        res = {"model": iam, "output_to_pdf": True}
+        res = {"model": iam, "make_region_sector_plots": True, "output_to_pdf": True}
+        res = {"model": iam, "make_region_sector_plots": False, "output_to_pdf": False}
 
     elif notebook_name in [
-        "5191_run-simple-climate-model.py",
-        "5192_post-process.py",
+        "5190_infilling.py",
+        "5191_post-process-emissions.py",
+    ]:
+        res = {"model": iam}
+
+    elif notebook_name in [
+        "5195_run-simple-climate-model.py",
+        "5196_post-process-simple-climate-model-output.py",
     ]:
         if scm is None:
             raise TypeError(scm)
 
-        # res = {"model": iam, "scm": scm, "n_processes" n_processes}
         res = {"model": iam, "scm": scm}
 
     else:
@@ -154,19 +159,20 @@ def main():  # noqa: PLR0912
     #     "GCAM",
     # ]
     # All
-    #    iams = [
-    #        "WITCH",
-    #        "REMIND",
-    #        "MESSAGE",
-    #        "IMAGE",
-    #        "GCAM",
-    #        "COFFEE",
-    #        "AIM",
-    #    ]
+    iams = [
+        # "WITCH",
+        "REMIND",
+        # "MESSAGE",
+        # "IMAGE",
+        # "GCAM",
+        # "COFFEE",
+        # "AIM",
+    ]
+    # iams = ["COFFEE"]
 
-    iams = ["IMAGE"]
+    #### downloading and processing
     # Single notebook
-    notebook_prefixes = ["5090"]
+    # notebook_prefixes = ["5090"]
     # # Everything except downloads and reporting checking
     # notebook_prefixes = ["5093", "5094"]
     # # # Downloading and reporting checking
@@ -204,8 +210,13 @@ def main():  # noqa: PLR0912
                 idn="only",
             )
 
-    ### Infilling
-    notebook_prefixes = ["5190"]
+    ### Infilling & Post-processing of emissions
+    # only infilling
+    # notebook_prefixes = ["5190"]
+    # only infilling
+    # notebook_prefixes = ["5191"]
+    # infilling & post-processing emissions
+    notebook_prefixes = ["5190", "5191"]
     # Skip this step
     # notebook_prefixes = []
     for iam in iams:
@@ -217,11 +228,13 @@ def main():  # noqa: PLR0912
                     iam=iam,
                 )
 
-    ### Running the SCMs
+    ### Running the SCMs and post-processing climate outputs
     # SCM related notebooks
-    notebook_prefixes = ["5191", "5192"]
-    # # Single notebook
-    # notebook_prefixes = ["5192"]
+    notebook_prefixes = ["5195", "5196"]
+    # Single notebook: run SCM
+    # notebook_prefixes = ["5195"]
+    # Single notebook: run post-processing of climate outputs
+    # notebook_prefixes = ["5196"]
     # Skip this step
     # notebook_prefixes = []
     scms = ["MAGICCv7.6.0a3", "MAGICCv7.5.3"]

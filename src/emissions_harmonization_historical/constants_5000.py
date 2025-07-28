@@ -35,6 +35,8 @@ CEDS_VERSION_ID = "v_2025_03_18"
 # CEDS_PROCESSING_ID = "0001"
 # Moved to portable OpenSCMDB
 CEDS_PROCESSING_ID = "0002"
+# Updated Aircraft handling
+CEDS_PROCESSING_ID = "0003"
 
 CEDS_TOP_LEVEL_RAW_PATH = DATA_ROOT / "raw" / "ceds"
 CEDS_RAW_PATH = CEDS_TOP_LEVEL_RAW_PATH / CEDS_VERSION_ID
@@ -223,7 +225,8 @@ RCMIP_PROCESSED_DB = OpenSCMDB(
 
 # Commit from https://github.com/IAMconsortium/common-definitions
 # to use
-COMMON_DEFINITIONS_COMMIT = "95b5f2c9fb62e32a4d08fe2ffc5b4a6ff246ad2d"
+# previous: COMMON_DEFINITIONS_COMMIT = "95b5f2c9fb62e32a4d08fe2ffc5b4a6ff246ad2d"
+COMMON_DEFINITIONS_COMMIT = "f2536b68fd52a81fda792c7d3547b9a60c868041"
 COMMON_DEFINITIONS_PATH = REPO_ROOT / "common-definitions"
 
 REGION_MAPPING_FILE = (
@@ -233,6 +236,9 @@ REGION_MAPPING_FILE = (
     / COMMON_DEFINITIONS_COMMIT
     / f"region-mapping_{COMMON_DEFINITIONS_COMMIT}.csv"
 )
+
+REGION_MAPPING_PATH = DATA_ROOT / "processed" / "region-mapping" / COMMON_DEFINITIONS_COMMIT
+
 
 # ID for the created history for harmonisation
 HISTORY_FOR_HARMONISATION_ID = "_".join(
@@ -274,6 +280,15 @@ DOWNLOAD_SCENARIOS_ID = "0006"
 # 2025-05-26 run
 # (still problems with how we harmonise novel CDR,
 # but good interim step)
+
+DOWNLOAD_SCENARIOS_ID = "0008"
+# Development helper
+DOWNLOAD_SCENARIOS_ID = "0009-zn"
+# Temporary to investigate code
+DOWNLOAD_SCENARIOS_ID = "0010-jk"
+# Run intermediary submission REMIND 20250617
+DOWNLOAD_SCENARIOS_ID = "0011-REMIND-jk"
+# Current for this branch, a bit outdated...
 DOWNLOAD_SCENARIOS_ID = "20250602-123212"
 
 # Database into which raw scenarios are saved
@@ -328,7 +343,7 @@ INFILLING_DB_DIR = (
     / f"{DOWNLOAD_SCENARIOS_ID}_{WMO_2022_PROCESSING_ID}_{HARMONISATION_ID}_{INFILLING_DB_CREATION_ID}"
 )
 
-# Database into which pre-processed scenarios are saved
+# Database into which infilled emissions are saved
 INFILLING_DB = OpenSCMDB(
     db_dir=INFILLING_DB_DIR / "db",
     backend_data=FeatherDataBackend(),
