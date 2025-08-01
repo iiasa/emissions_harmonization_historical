@@ -298,11 +298,7 @@ DOWNLOAD_SCENARIOS_ID = "0010-jk"
 # Run intermediary submission REMIND 20250617
 DOWNLOAD_SCENARIOS_ID = "0011-REMIND-jk"
 # Run 20250710 by Marco (prepared with/by Jarmo)
-DOWNLOAD_SCENARIOS_ID = "0020"
-# Zeb exploring
-DOWNLOAD_SCENARIOS_ID = "2025-07-25-zn-scratch"
-# ZN scratch
-DOWNLOAD_SCENARIOS_ID = "zn-gcam-20250731-scratch"
+DOWNLOAD_SCENARIOS_ID = "MESSAGE_tests"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(

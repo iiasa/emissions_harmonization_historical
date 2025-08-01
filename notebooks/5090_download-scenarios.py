@@ -101,17 +101,17 @@ to_download = props[props["model"].str.contains(model_search)]
 # if model_search == "AIM":
 #     # to_download = to_download[to_download["scenario"].str.endswith("- Low Overshoot")]
 #     to_download = to_download[to_download["scenario"].str.contains("- Low Overshoot")]
-# if model_search == "MESSAGE":
-#     to_download = to_download[to_download["scenario"].str.endswith("- Low Emissions")]
+if model_search == "MESSAGE":
+    to_download = to_download[to_download["scenario"].str.endswith("- Low Emissions")]
 # if model_search == "IMAGE":
 #     to_download = to_download[to_download["scenario"].str.endswith("- Medium Emissions")]
 # if model_search == "COFFEE":
 #     to_download = to_download[to_download["scenario"].str.endswith("- Medium-Low Emissions")]
-if model_search == "GCAM":
-    # to_download = to_download[to_download["scenario"].str.endswith("- High Emissions")]
-    to_download = to_download[to_download["scenario"].str.contains("SSP3 - High Emissions")]
+# if model_search == "GCAM":
+# to_download = to_download[to_download["scenario"].str.endswith("- High Emissions")]
+#   to_download = to_download[to_download["scenario"].str.contains("SSP3 - High Emissions")]
 # if model_search == "WITCH":
-#     to_download = to_download[to_download["scenario"].str.contains("- Medium-Low Emissions")]
+#   to_download = to_download[to_download["scenario"].str.contains("- Medium-Low Emissions")]
 
 to_download.shape[0]
 

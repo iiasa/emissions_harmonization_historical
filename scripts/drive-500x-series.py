@@ -162,11 +162,11 @@ def main():  # noqa: PLR0912
     iams = [
         # "WITCH",
         # "REMIND",
-        # "MESSAGE",
+        "MESSAGE",
         # "IMAGE",
         # "GCAM",
         # "COFFEE",
-        "AIM",
+        # "AIM",
     ]
     # iams = ["COFFEE"]
 
@@ -180,7 +180,7 @@ def main():  # noqa: PLR0912
     # Everything
     notebook_prefixes = ["5090", "5091", "5092", "5093", "5094"]
     # # Skip this step
-    # notebook_prefixes = []
+    notebook_prefixes = []
 
     for iam in tqdm.tqdm(iams, desc="IAMs pre infilling"):
         for notebook in all_notebooks:
