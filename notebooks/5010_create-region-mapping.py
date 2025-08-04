@@ -21,6 +21,7 @@
 # %%
 import ast
 
+import nomenclature
 import pandas as pd
 from git import Repo
 
@@ -32,18 +33,33 @@ from emissions_harmonization_historical.constants_5000 import (
 )
 from emissions_harmonization_historical.region_mapping import create_region_mapping
 
+# %%
+nomenclature.__version__
+
 # %% [markdown]
 # ## Set common definitions to right commit
 
 # %%
 if COMMON_DEFINITIONS_PATH.exists():
     repo = Repo(COMMON_DEFINITIONS_PATH)
-
+    print("Fetching latest updates")
+    repo.remotes.origin.fetch()
 else:
     print("Cloning common-definitions")
     repo = Repo.clone_from("https://github.com/IAMconsortium/common-definitions", COMMON_DEFINITIONS_PATH)
 
+repo.remotes["origin"].fetch()
 repo.git.checkout(COMMON_DEFINITIONS_COMMIT)
+
+# %%
+origin = repo.remotes.origin
+origin.fetch()
+
+# Resolve origin/HEAD to a commit hash
+latest_commit = repo.commit("origin/HEAD").hexsha
+COMMON_DEFINITIONS_COMMIT = latest_commit
+
+print(f"Checking out latest commit: {COMMON_DEFINITIONS_COMMIT}")
 
 # %% [markdown]
 # ## Create the region mapping
@@ -69,7 +85,7 @@ models = [
     "IMAGE 3.4",
     "WITCH 6.0",
     "COFFEE 1.6",
-    "REMIND-MAgPIE 3.5-4.10",
+    "REMIND-MAgPIE 3.5-4.11",
     "MESSAGEix-GLOBIOM-GAINS 2.1-R12",
     "AIM 3.0",
 ]

@@ -12,12 +12,19 @@ dependencies = [
     "aneris-iamc @ git+https://github.com/iiasa/aneris.git@9e5aa002b523f1d5d0ac32554988816e8c20cb44",
     "openscm-units>=0.6.2",
     "scmdata>=0.17.0,<0.18",
-    "nomenclature-iamc>=0.22.1,<0.23",
+    "nomenclature-iamc>=0.26",
     "xarray-regrid==0.4.0",
     "papermill>=2.6.0,<3",
-    "silicone>=1.3.0,<2", "pymagicc>=2.1.5,<3", "openscm-runner>=0.13.0,<0.14", "loguru>=0.7.3,<0.8", "openscm-zenodo>=0.5.0,<0.6", "python-dotenv>=1.1.0,<2",
-    # To use a local version, comment this out and use the pypi-dependencies section below
-    "gcages>=0.6.0",
+    "silicone>=1.3.0,<2",
+    "pymagicc>=2.1.5,<3",
+    "openscm-runner>=0.13.0,<0.14",
+    "loguru>=0.7.3,<0.8",
+    "openscm-zenodo>=0.5.0,<0.6",
+    "python-dotenv>=1.1.0,<2",
+    # # To use a local version, comment this out and use the pypi-dependencies section below
+    "gcages>=0.11.0",
+    # # To use a specific commit, use the line below.
+    # "gcages @ git+https://github.com/openscm/gcages.git@0ffda1ce29fe9ff775ea6e3870fe157f62dd98f7",
     "ixmp4>=0.9.8,<0.10",
     "pandas-openscm>=0.5.0",
 ]

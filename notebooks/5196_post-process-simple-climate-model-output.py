@@ -60,7 +60,7 @@ pandas_openscm.register_pandas_accessor()
 pix.set_openscm_registry_as_default()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "COFFEE"
+model: str = "GCAM"
 scm: str = "MAGICCv7.6.0a3"
 output_to_pdf: bool = False
 
@@ -195,6 +195,9 @@ categories = categorise_scenarios(
 )
 categories.sort_values()
 
+# %%
+exceedance_probabilities.unstack("threshold").sort_values(1.5)
+
 # %% [markdown]
 # ### Compile climate output result
 
@@ -227,7 +230,7 @@ res = PostProcessingResult(
 )
 
 # %%
-res.metadata_categories.unstack(["metric"]).sort_values
+res.metadata_categories.unstack(["metric"]).sort_values("category")
 
 # %%
 res.metadata_quantile.unstack(["metric", "unit", "quantile"]).loc[

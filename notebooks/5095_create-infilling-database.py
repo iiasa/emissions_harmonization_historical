@@ -83,6 +83,13 @@ scenarios_for_infilling_db = scenarios_for_infilling_db.dropna()
 scenarios_for_infilling_db
 
 # %% [markdown]
+# #### Temporary hack: remove carbon removal from raw scenarios
+
+# %%
+scenarios_for_infilling_db = scenarios_for_infilling_db.loc[~pix.ismatch(variable="Carbon Removal**")]
+scenarios_for_infilling_db
+
+# %% [markdown]
 # ### WMO 2022
 
 # %%

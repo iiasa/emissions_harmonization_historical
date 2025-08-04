@@ -57,11 +57,11 @@ pd.set_option("display.max_rows", 100)
 
 # %%
 categories = POST_PROCESSED_METADATA_CATEGORIES_DB.load()["value"]
-# categories
+categories
 
 # %%
 metadata_quantile = POST_PROCESSED_METADATA_QUANTILE_DB.load()["value"]
-# metadata_quantile
+metadata_quantile.unstack(["metric", "quantile", "unit"])[("max", 0.5)]
 
 # %%
 temperatures_in_line_with_assessment = POST_PROCESSED_TIMESERIES_RUN_ID_DB.load(
@@ -140,9 +140,9 @@ l_min_diff = 0.1
 l_max_diff = 0.4
 tmp.loc[
     # :, :
-    # (tmp[("max", "K", 0.33)] > 0.0) & (tmp[("max", "K", 0.33)] < 6.6)
-    ((tmp[("max", "K", 0.5)] > vllo_peak - 0.01) & (tmp[("max", "K", 0.5)] < vllo_peak + 0.01))
-    | ((tmp[("max", "K", 0.5)] > vllo_peak + l_min_diff) & (tmp[("max", "K", 0.5)] < vllo_peak + l_max_diff))
+    (tmp[("max", "K", 0.33)] > 0.0) & (tmp[("max", "K", 0.33)] < 6.6)  # noqa: PLR2004
+    # ((tmp[("max", "K", 0.5)] > vllo_peak - 0.01) & (tmp[("max", "K", 0.5)] < vllo_peak + 0.01))
+    # | ((tmp[("max", "K", 0.5)] > vllo_peak + l_min_diff) & (tmp[("max", "K", 0.5)] < vllo_peak + l_max_diff))
     # (tmp[("max", "K", 0.67)] > 1.8) & (tmp[("max", "K", 0.67)] < 2.05)
     # (tmp[("2100", "K", 0.5)] > 1.7)
     # & (tmp[("2100", "K", 0.5)] < 2.0)
@@ -179,10 +179,10 @@ tmp
 # %%
 scratch_selection_l = [
     # # # HL
-    ("#7f3e3e", ("WITCH 6.0", "SSP5 - High Emissions")),
+    ("#7f3e3e", ("WITCH 6.0", "SSP5 - Medium-Low Emissions_a")),
     # # # H
     # # # ("#7f3e3e", ("REMIND-MAgPIE 3.5-4.10", "SSP3 - High Emissions")),
-    ("#7f3e3e", ("GCAM 7.1 scenarioMIP", "SSP3 - High Emissions")),
+    ("#7f3e3e", ("GCAM 7.1 scenarioMIP", "SSP3 - High Emissions_a")),
     # # ("#7f3e3e", ("IMAGE 3.4", "SSP3 - High Emissions")),
     # # ("#7f3e3e", ("WITCH 6.0", "SSP5 - High Emissions")),
     # # ("#7f3e3e", ("AIM 3.0", "SSP5 - High Emissions")),
@@ -483,6 +483,21 @@ for i, (variable, src, emissions, show_legend) in tqdm.auto.tqdm(enumerate(varia
 plt.savefig("full-dive.pdf", bbox_inches="tight")
 
 # %%
+erf_nat = pdf_raw_scm_output.loc[pix.isin(variable="Effective Radiative Forcing")].reset_index(
+    "variable", drop=True
+) - pdf_raw_scm_output.loc[pix.isin(variable="Effective Radiative Forcing|Anthropogenic")].reset_index(
+    "variable", drop=True
+)
+erf_nat.openscm.plot_plume_after_calculating_quantiles(
+    quantile_over="run_id",
+    hue_var="scenario",
+    style_var="climate_model",
+    # palette=palette_h,
+    quantiles_plumes=((0.5, 1.0), ((0.33, 0.67), 0.3), ((0.05, 0.95), 0.0)),
+    # ax=ax,
+)
+
+# %%
 multi_index_lookup(categories, scratch_selection).unstack(["metric", "climate_model"]).sort_values(
     ("category", "MAGICCv7.6.0a3")
 ).sort_index(axis="columns")
@@ -510,7 +525,7 @@ multi_index_lookup(metadata_quantile, scratch_selection).unstack(["metric", "uni
 # ### How much difference is the MAGICC update making?
 
 # %%
-iam = "WITCH"
+iam = "REMIND"
 tmp = temperatures_in_line_with_assessment.loc[pix.ismatch(model=f"{iam}**"), 2000:]
 
 fig, axes = plt.subplots(ncols=2, figsize=(16, 4))
@@ -555,7 +570,7 @@ magicc_diff.unstack(["metric", "unit", "quantile"])[
 ].sort_values(by=("max", "K", 0.5)).describe().round(3)
 
 # %% editable=true slideshow={"slide_type": ""}
-iam = "WITCH"
+iam = "REMIND"
 pdf = raw_scm_output.loc[pix.isin(variable="Atmospheric Concentrations|CH4") & pix.ismatch(model=f"*{iam}*"), :]
 
 ax = pdf.loc[:, 2000:].openscm.plot_plume_after_calculating_quantiles(

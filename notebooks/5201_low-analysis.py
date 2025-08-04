@@ -32,6 +32,7 @@ import seaborn as sns
 import tqdm.auto
 
 from emissions_harmonization_historical.constants_5000 import (
+    HISTORY_HARMONISATION_DB,
     POST_PROCESSED_METADATA_CATEGORIES_DB,
     POST_PROCESSED_METADATA_QUANTILE_DB,
     POST_PROCESSED_TIMESERIES_RUN_ID_DB,
@@ -60,10 +61,11 @@ scenarios_to_analyse = [
     # ("WITCH*", "*- Low*"),
     # ("WITCH*", "*- Very Low*"),
     # ("AIM*", "*Very Low*"),
-    ("REMIND*", "SSP1*Very Low*_c"),
-    ("IMAGE*", "SSP1 - Very Low Emissions"),
-    ("WITCH*", "SSP1 - Low Overshoot"),
-    ("AIM*", "SSP1 - Very Low Emissions"),
+    ("REMIND*", "SSP1 - Very Low Emissions"),
+    # ("IMAGE*", "SSP1 - Very Low Emissions"),
+    # ("WITCH*", "SSP1 - Low Overshoot"),
+    ("AIM*", "SSP2 - Low Overshoot"),
+    ("MESSAGE*", "SSP2 - Low Emissions"),
 ]
 
 # %%
@@ -120,8 +122,35 @@ emissions = SCM_OUTPUT_DB.load(
     & climate_model_locator,
     progress=True,
     max_workers=multiprocessing.cpu_count(),
-)
+).reset_index("climate_model", drop=True)
 # emissions
+
+# %%
+history = HISTORY_HARMONISATION_DB.load(pix.ismatch(purpose="global_workflow_emissions")).reset_index(
+    "purpose", drop=True
+)
+
+# history.loc[:, :2023]
+
+# %%
+scenarios_start_year = emissions.columns.min()
+
+history_to_add = (
+    history.openscm.mi_loc(emissions.reset_index(["model", "scenario"], drop=True).drop_duplicates().index)
+    .reset_index(["model", "scenario"], drop=True)
+    .align(emissions)[0]
+    .loc[:, : scenarios_start_year - 1]
+)
+
+emissions_complete = pix.concat(
+    [
+        history_to_add.reorder_levels(emissions.index.names),
+        emissions,
+    ],
+    axis="columns",
+)
+
+emissions_complete
 
 # %% [markdown]
 # ## Analysis
@@ -216,7 +245,8 @@ amsc = partial(
 
 # %%
 start_year = 2000
-pdf_emissions = amsc(emissions).loc[:, :]
+# start_year = 1750
+pdf_emissions = amsc(emissions_complete).loc[:, start_year:]
 pdf_erfs = amsc(erfs).loc[:, start_year:]
 pdf_temperature = amsc(temperatures_in_line_with_assessment).loc[:, start_year:]
 
@@ -226,6 +256,11 @@ variables_src = [
     ("Effective Radiative Forcing", pdf_erfs, False),
     ("Effective Radiative Forcing|Greenhouse Gases", pdf_erfs, False),
     ("Effective Radiative Forcing|Aerosols", pdf_erfs, False),
+    ("Effective Radiative Forcing|Aerosols|Direct Effect", pdf_erfs, False),
+    ("Effective Radiative Forcing|Aerosols|Direct Effect|BC", pdf_erfs, False),
+    ("Effective Radiative Forcing|Aerosols|Direct Effect|OC", pdf_erfs, False),
+    ("Effective Radiative Forcing|Aerosols|Direct Effect|SOx", pdf_erfs, False),
+    ("Effective Radiative Forcing|Aerosols|Indirect Effect", pdf_erfs, False),
     ("Emissions|CO2|Energy and Industrial Processes", pdf_emissions, True),
     # ("Emissions|GHG", pdf_emissions, True),
     ("Emissions|CO2|AFOLU", pdf_emissions, True),

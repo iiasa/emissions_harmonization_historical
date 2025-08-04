@@ -51,7 +51,7 @@ from emissions_harmonization_historical.constants_5000 import (
 # ## Set up
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model_search: str = "WITCH"
+model_search: str = "IMAGE"
 
 # %%
 output_dir_model = DATA_ROOT / "raw" / "scenarios" / DOWNLOAD_SCENARIOS_ID / model_search
@@ -95,10 +95,28 @@ props = conn_ssp.properties().reset_index()
 
 # %%
 to_download = props[props["model"].str.contains(model_search)]
+
+# if model_search == "REMIND":
+#     to_download = to_download[to_download["scenario"].str.endswith("- Very Low Emissions")]
+# if model_search == "AIM":
+#     # to_download = to_download[to_download["scenario"].str.endswith("- Low Overshoot")]
+#     to_download = to_download[to_download["scenario"].str.contains("- Low Overshoot")]
+# if model_search == "MESSAGE":
+#     to_download = to_download[to_download["scenario"].str.endswith("- Low Emissions")]
+# if model_search == "IMAGE":
+#     to_download = to_download[to_download["scenario"].str.endswith("- Medium Emissions")]
+# if model_search == "COFFEE":
+#     to_download = to_download[to_download["scenario"].str.endswith("- Medium-Low Emissions")]
+if model_search == "GCAM":
+    # to_download = to_download[to_download["scenario"].str.endswith("- High Emissions")]
+    to_download = to_download[to_download["scenario"].str.contains("SSP3 - High Emissions")]
+# if model_search == "WITCH":
+#     to_download = to_download[to_download["scenario"].str.contains("- Medium-Low Emissions")]
+
 to_download.shape[0]
 
 # %%
-to_download.head(2)
+to_download  # .head(2)
 
 # %% [markdown]
 # ### Check the versions
@@ -149,7 +167,7 @@ for _, row in tqdm.auto.tqdm(to_download.iterrows(), total=to_download.shape[0])
     model = row.model
     scenario = row.scenario
 
-    df = pyam.read_iiasa("ssp_submission", model=model, scenario=scenario, variable="Emissions|*")
+    df = pyam.read_iiasa("ssp_submission", model=model, scenario=scenario, variable=["Emissions|*", "Carbon Removal|*"])
     if df.empty:
         msg = f"No data for {model=} {scenario=}"
         raise AssertionError(msg)

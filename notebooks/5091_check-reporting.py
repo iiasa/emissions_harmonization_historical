@@ -44,7 +44,7 @@ from emissions_harmonization_historical.excel_writing import set_cell
 # ## Set up
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "MESSAGE"
+model: str = "GCAM"
 
 # %%
 output_dir_model = DATA_ROOT / "raw" / "scenarios" / DOWNLOAD_SCENARIOS_ID / model

@@ -41,7 +41,7 @@ from emissions_harmonization_historical.constants_5000 import (
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "MESSAGE"
+model: str = "IMAGE"
 
 # %% [markdown]
 # ## Load data
@@ -54,7 +54,10 @@ model_raw = RAW_SCENARIO_DB.load(pix.ismatch(model=f"*{model}*"), progress=True)
 if model_raw.empty:
     raise AssertionError
 
-# model_raw
+# sorted(model_raw.pix.unique("variable"))
+
+# %%
+model_raw.loc[pix.ismatch(variable="**CO2|AFOLU", region="World")].sort_index(axis="columns")
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # Extract the model data, keeping:
@@ -69,6 +72,37 @@ if model_df.empty:
     raise AssertionError
 
 model_df.columns.name = "year"
+# model_df
+
+# %%
+# sorted(model_df.pix.unique("variable"))
+
+# %%
+# AIM currently (2025.07.10) accidentally reports zeroes between model years for Carbon Removal,
+# so let's fix that by delete those and interpolating
+if model.startswith("AIM"):
+    model_df = pd.concat(
+        [
+            model_df.loc[pix.ismatch(variable=["Emissions**"])].loc[:, 2015:2100:1].dropna(how="all", axis="columns"),
+            model_df.loc[pix.ismatch(variable=["Carbon Removal**"])]
+            .loc[:, 2015:2100:5]
+            .dropna(how="all", axis="columns"),
+        ]
+    )
+
+# %%
+# GCAM currently (2025.07.10) reports
+# Australia and New Zealand for some scenarios
+# and Australia_and New Zealand for others.
+# Fix this.
+if model.startswith("GCAM"):
+    model_df = model_df.openscm.update_index_levels({"region": lambda x: x.replace("Australia_and", "Australia and")})
+
+# %%
+# Interpolate
+# (needs to be done to ensure that the CDR-Emissions correction
+# works even if Carbon Removal data is reported at different time resolutions)
+model_df = model_df.T.interpolate(method="index").T
 # model_df
 
 # %% [markdown]
@@ -94,10 +128,6 @@ from gcages.cmip7_scenariomip.pre_processing.reaggregation.basic import get_requ
 from gcages.index_manipulation import create_levels_based_on_existing, set_new_single_value_levels  # noqa: E402
 
 reaggregator = ReaggregatorBasic(model_regions=model_regions)
-pre_processor = CMIP7ScenarioMIPPreProcessor(
-    reaggregator=reaggregator,
-    n_processes=None,  # run serially
-)
 
 required_index = get_required_timeseries_index(
     model_regions=model_regions,
@@ -182,8 +212,33 @@ model_df = model_df.loc[~pix.ismatch(variable="Emissions|C2F6|**")]
 pre_processing_res = pre_processor(model_df)
 
 # %%
+# Hard override the global workflow emissions for CO2 AFOLU
+# to use globally reported numbers,
+# even if they're not consistent with region-sector reporting.
+pre_processing_res.global_workflow_emissions = pix.concat(
+    [
+        pre_processing_res.global_workflow_emissions.loc[~pix.isin(variable="Emissions|CO2|Biosphere")],
+        model_df.loc[pix.isin(variable="Emissions|CO2|AFOLU", region="World")].pix.assign(
+            variable="Emissions|CO2|Biosphere"
+        ),
+    ]
+)
+
+pre_processing_res.global_workflow_emissions_raw_names = pix.concat(
+    [
+        pre_processing_res.global_workflow_emissions_raw_names.loc[~pix.isin(variable="Emissions|CO2|AFOLU")],
+        model_df.loc[pix.isin(variable="Emissions|CO2|AFOLU", region="World")],
+    ]
+)
+
+# %%
 pdf = pre_processing_res.global_workflow_emissions.loc[
-    pix.ismatch(variable=["**CO2**", "**CH4", "**NOx", "**N2O", "**SOx"])
+    pix.ismatch(
+        variable=[
+            "**CO2**",
+            # "**CH4", "**NOx", "**N2O", "**SOx",
+        ]
+    )
 ].openscm.to_long_data()
 fg = sns.relplot(
     data=pdf,
@@ -209,10 +264,15 @@ for ax in fg.axes.flatten():
     ax.grid()
 
 # %%
+# pre_processing_res.global_workflow_emissions.loc[:, 2023:2025]
+
+# %%
 # sorted(pre_processing_res.assumed_zero_emissions.pix.unique("variable"))
 
 # %%
-pre_processing_res.global_workflow_emissions
+# pre_processing_res.global_workflow_emissions.loc[
+# pix.ismatch(variable="**CO2**")
+# ]
 
 # %% editable=true slideshow={"slide_type": ""}
 for stage, df in (

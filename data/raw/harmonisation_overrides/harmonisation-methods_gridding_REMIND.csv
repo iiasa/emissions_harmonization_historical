@@ -1,0 +1,131 @@
+model,scenario,region,variable,unit,method
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|BC|Agricultural Waste Burning,Mt BC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|BC|Agriculture,Mt BC/yr,model_zero
+REMIND-MAgPIE 3.5-4.11,all,World,Emissions|BC|Aircraft,Mt BC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|BC|Energy Sector,Mt BC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|BC|Forest Burning,Mt BC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|BC|Grassland Burning,Mt BC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|BC|Industrial Sector,Mt BC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,World,Emissions|BC|International Shipping,Mt BC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|BC|Peat Burning,Mt BC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|BC|Residential Commercial Other,Mt BC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|BC|Solvents Production and Application,Mt BC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|BC|Transportation Sector,Mt BC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|BC|Waste,Mt BC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CH4|Agricultural Waste Burning,Mt CH4/yr,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CH4|Agriculture,Mt CH4/yr,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,all,World,Emissions|CH4|Aircraft,Mt CH4/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CH4|Energy Sector,Mt CH4/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CH4|Forest Burning,Mt CH4/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CH4|Grassland Burning,Mt CH4/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CH4|Industrial Sector,Mt CH4/yr,model_zero
+REMIND-MAgPIE 3.5-4.11,all,World,Emissions|CH4|International Shipping,Mt CH4/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CH4|Peat Burning,Mt CH4/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CH4|Residential Commercial Other,Mt CH4/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CH4|Solvents Production and Application,Mt CH4/yr,model_zero
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CH4|Transportation Sector,Mt CH4/yr,model_zero
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CH4|Waste,Mt CH4/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO|Agricultural Waste Burning,Mt CO/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO|Agriculture,Mt CO/yr,model_zero
+REMIND-MAgPIE 3.5-4.11,all,World,Emissions|CO|Aircraft,Mt CO/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO|Energy Sector,Mt CO/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO|Forest Burning,Mt CO/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO|Grassland Burning,Mt CO/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO|Industrial Sector,Mt CO/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,World,Emissions|CO|International Shipping,Mt CO/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO|Peat Burning,Mt CO/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO|Residential Commercial Other,Mt CO/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO|Solvents Production and Application,Mt CO/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO|Transportation Sector,Mt CO/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO|Waste,Mt CO/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO2|Agricultural Waste Burning,Mt CO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO2|Agriculture,Mt CO2/yr,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,all,World,Emissions|CO2|Aircraft,Mt CO2/yr,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO2|Energy Sector,Mt CO2/yr,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO2|Forest Burning,Mt CO2/yr,model_zero
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO2|Grassland Burning,Mt CO2/yr,model_zero
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO2|Industrial Sector,Mt CO2/yr,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,all,World,Emissions|CO2|International Shipping,Mt CO2/yr,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO2|Peat Burning,Mt CO2/yr,model_zero
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO2|Residential Commercial Other,Mt CO2/yr,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO2|Solvents Production and Application,Mt CO2/yr,model_zero
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO2|Transportation Sector,Mt CO2/yr,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|CO2|Waste,Mt CO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|N2O|Agricultural Waste Burning,kt N2O/yr,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|N2O|Agriculture,kt N2O/yr,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,all,World,Emissions|N2O|Aircraft,kt N2O/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|N2O|Energy Sector,kt N2O/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|N2O|Forest Burning,kt N2O/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|N2O|Grassland Burning,kt N2O/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|N2O|Industrial Sector,kt N2O/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,World,Emissions|N2O|International Shipping,kt N2O/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|N2O|Peat Burning,kt N2O/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|N2O|Residential Commercial Other,kt N2O/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|N2O|Solvents Production and Application,kt N2O/yr,model_zero
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|N2O|Transportation Sector,kt N2O/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|N2O|Waste,kt N2O/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NH3|Agricultural Waste Burning,Mt NH3/yr,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NH3|Agriculture,Mt NH3/yr,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,all,World,Emissions|NH3|Aircraft,Mt NH3/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NH3|Energy Sector,Mt NH3/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NH3|Forest Burning,Mt NH3/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NH3|Grassland Burning,Mt NH3/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NH3|Industrial Sector,Mt NH3/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,World,Emissions|NH3|International Shipping,Mt NH3/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NH3|Peat Burning,Mt NH3/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NH3|Residential Commercial Other,Mt NH3/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NH3|Solvents Production and Application,Mt NH3/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NH3|Transportation Sector,Mt NH3/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NH3|Waste,Mt NH3/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NOx|Agricultural Waste Burning,Mt NO2/yr,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NOx|Agriculture,Mt NO2/yr,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,all,World,Emissions|NOx|Aircraft,Mt NO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NOx|Energy Sector,Mt NO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NOx|Forest Burning,Mt NO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NOx|Grassland Burning,Mt NO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NOx|Industrial Sector,Mt NO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,World,Emissions|NOx|International Shipping,Mt NO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NOx|Peat Burning,Mt NO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NOx|Residential Commercial Other,Mt NO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NOx|Solvents Production and Application,Mt NO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NOx|Transportation Sector,Mt NO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|NOx|Waste,Mt NO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|OC|Agricultural Waste Burning,Mt OC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|OC|Agriculture,Mt OC/yr,model_zero
+REMIND-MAgPIE 3.5-4.11,all,World,Emissions|OC|Aircraft,Mt OC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|OC|Energy Sector,Mt OC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|OC|Forest Burning,Mt OC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|OC|Grassland Burning,Mt OC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|OC|Industrial Sector,Mt OC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,World,Emissions|OC|International Shipping,Mt OC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|OC|Peat Burning,Mt OC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|OC|Residential Commercial Other,Mt OC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|OC|Solvents Production and Application,Mt OC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|OC|Transportation Sector,Mt OC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|OC|Waste,Mt OC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|Sulfur|Agricultural Waste Burning,Mt SO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|Sulfur|Agriculture,Mt SO2/yr,model_zero
+REMIND-MAgPIE 3.5-4.11,all,World,Emissions|Sulfur|Aircraft,Mt SO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|Sulfur|Energy Sector,Mt SO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|Sulfur|Forest Burning,Mt SO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|Sulfur|Grassland Burning,Mt SO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|Sulfur|Industrial Sector,Mt SO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,World,Emissions|Sulfur|International Shipping,Mt SO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|Sulfur|Peat Burning,Mt SO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|Sulfur|Residential Commercial Other,Mt SO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|Sulfur|Solvents Production and Application,Mt SO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|Sulfur|Transportation Sector,Mt SO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|Sulfur|Waste,Mt SO2/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|VOC|Agricultural Waste Burning,Mt VOC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|VOC|Agriculture,Mt VOC/yr,model_zero
+REMIND-MAgPIE 3.5-4.11,all,World,Emissions|VOC|Aircraft,Mt VOC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|VOC|Energy Sector,Mt VOC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|VOC|Forest Burning,Mt VOC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|VOC|Grassland Burning,Mt VOC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|VOC|Industrial Sector,Mt VOC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,World,Emissions|VOC|International Shipping,Mt VOC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|VOC|Peat Burning,Mt VOC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|VOC|Residential Commercial Other,Mt VOC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|VOC|Solvents Production and Application,Mt VOC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|VOC|Transportation Sector,Mt VOC/yr,constant_ratio
+REMIND-MAgPIE 3.5-4.11,all,all,Emissions|VOC|Waste,Mt VOC/yr,constant_ratio

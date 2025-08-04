@@ -55,8 +55,8 @@ pd.set_option("display.max_rows", 100)
 # ### Categories
 
 # %%
-model = "MESSAGE**"
-scenario = "SSP1**Very Low**"
+model = "AIM**"
+scenario = "SSP2**Low Overshoot"
 
 # %%
 raw_scm_output = SCM_OUTPUT_DB.load(

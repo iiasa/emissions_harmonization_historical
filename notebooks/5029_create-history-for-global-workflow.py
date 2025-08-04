@@ -86,7 +86,7 @@ history_for_gridding_harmonisation = HISTORY_HARMONISATION_DB.load(
 
 # %%
 # TODO: check whether we get the same global sum for all IAM region groupings
-model_regions = [r for r in history_for_gridding_harmonisation.pix.unique("region") if "REMIND-MAgPIE 3.5-4.10" in r]
+model_regions = [r for r in history_for_gridding_harmonisation.pix.unique("region") if "REMIND-MAgPIE 3.5-4.11" in r]
 model_regions
 
 # %%
@@ -498,7 +498,6 @@ global_workflow_harmonisation_emissions_reporting_names = update_index_levels_fu
     global_workflow_harmonisation_emissions_reporting_names, {"unit": lambda x: x.replace("HFC4310mee", "HFC4310")}
 )
 
-# TODO: turn back on
 exp_n_timeseries = 52
 if global_workflow_harmonisation_emissions.shape[0] != exp_n_timeseries:
     raise AssertionError

@@ -3,9 +3,43 @@
 from pathlib import Path
 
 import pandas as pd
+import requests
 from nomenclature import countries
 from nomenclature.definition import DataStructureDefinition
 from nomenclature.processor import RegionProcessor
+
+
+def get_latest_commit_hash(
+    repo_owner: str, repo_name: str, fallback_commit: str = "cc69ed0a415a63c7ce7372d5a36c088d9cbee055"
+):
+    """
+    Fetch the latest commit hash from a GitHub repository.
+
+    Falls back to a default hash, here for IAMconsortium/common-definitions, if the request fails.
+
+    Parameters
+    ----------
+    repo_owner
+        GitHub user
+
+    repo_name
+        Repository name
+
+    fallback_commit
+        Commit hash to use if request fails.
+
+    Returns
+    -------
+    :
+        The latest commit hash or the fallback hash.
+    """
+    url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/commits"
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        return response.json()[0]["sha"]
+    except (requests.RequestException, KeyError, IndexError):
+        return fallback_commit
 
 
 def get_iso3_list(country_list: list[str]) -> list[str]:
@@ -76,16 +110,16 @@ def create_region_mapping(out_file: Path, common_definitions_path: Path) -> Path
     rp = RegionProcessor.from_directory(common_definitions_path / "mappings", dsd)
     rows = []
     for ram in rp.mappings.values():
-        rows.extend(
-            [
-                (
-                    ram.model,
-                    common_region.name,
-                    [ram.rename_mapping[nr] for nr in common_region.constituent_regions],
-                )
-                for common_region in ram.common_regions
-            ]
-        )
+        rows_model = [
+            (
+                ram.model,
+                common_region.name,
+                [ram.rename_mapping[nr] for nr in common_region.constituent_regions],
+            )
+            for common_region in ram.common_regions
+        ]
+
+        rows.extend(rows_model)
 
     region_df.to_csv(out_file)
 

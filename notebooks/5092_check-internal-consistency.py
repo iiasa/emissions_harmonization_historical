@@ -50,7 +50,7 @@ from emissions_harmonization_historical.excel_writing import set_cell
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "MESSAGE"
+model: str = "GCAM"
 
 # %%
 output_dir_model = DATA_ROOT / "raw" / "scenarios" / DOWNLOAD_SCENARIOS_ID / model
@@ -102,6 +102,11 @@ if model_df.empty:
     raise AssertionError
 
 model_df.columns.name = "year"
+# model_df
+
+# %%
+# Interpolate before checking to handle issues with reporting on different timesteps
+model_df = model_df.T.interpolate(method="index").T
 # model_df
 
 # %% [markdown]

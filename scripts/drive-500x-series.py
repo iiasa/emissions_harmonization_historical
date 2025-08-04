@@ -29,7 +29,7 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
 
     elif notebook_name in [
         "5091_check-reporting.py",
-        "5092_check-interal-consistency.py",
+        "5092_check-internal-consistency.py",
         "5093_pre-processing.py",
     ]:
         res = {"model": iam}
@@ -38,7 +38,7 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
         "5094_harmonisation.py",
     ]:
         res = {"model": iam, "make_region_sector_plots": True, "output_to_pdf": True}
-        res = {"model": iam, "make_region_sector_plots": False, "output_to_pdf": False}
+    #    res = {"model": iam, "make_region_sector_plots": False, "output_to_pdf": False}
 
     elif notebook_name in [
         "5190_infilling.py",
@@ -161,12 +161,12 @@ def main():  # noqa: PLR0912
     # All
     iams = [
         # "WITCH",
-        "REMIND",
+        # "REMIND",
         # "MESSAGE",
         # "IMAGE",
         # "GCAM",
         # "COFFEE",
-        # "AIM",
+        "AIM",
     ]
     # iams = ["COFFEE"]
 
