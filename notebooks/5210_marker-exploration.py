@@ -196,7 +196,7 @@ def create_legend(ax, handles) -> None:
 
 
 fig, axes = plt.subplots(ncols=2, figsize=(8, 4), sharex=True)
-for i, (ax, yticks) in enumerate(zip(axes, [np.arange(0.5, 4.01, 0.5), np.arange(0.7, 2.21, 0.1)])):
+for i, (ax, yticks) in enumerate(zip(axes, [np.arange(0.5, 4.01, 0.5), np.arange(1.1, 2.01, 0.1)])):
     pdf_temperature.openscm.plot_plume_after_calculating_quantiles(
         quantile_over="run_id",
         hue_var=hue,
