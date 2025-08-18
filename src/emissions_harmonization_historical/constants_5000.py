@@ -298,7 +298,7 @@ DOWNLOAD_SCENARIOS_ID = "0010-jk"
 # Run intermediary submission REMIND 20250617
 DOWNLOAD_SCENARIOS_ID = "0011-REMIND-jk"
 # Run 20250710 by Marco (prepared with/by Jarmo)
-DOWNLOAD_SCENARIOS_ID = "overridfile_MESSAGE"
+DOWNLOAD_SCENARIOS_ID = "08Snapshot"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(
