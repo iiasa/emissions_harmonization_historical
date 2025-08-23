@@ -301,13 +301,8 @@ DOWNLOAD_SCENARIOS_ID = "0011-REMIND-jk"
 # Current for this branch, a bit outdated...
 DOWNLOAD_SCENARIOS_ID = "20250602-123212"
 # Run 20250710 by Marco (prepared with/by Jarmo)
-DOWNLOAD_SCENARIOS_ID = "0020"
-# Zeb exploring
-DOWNLOAD_SCENARIOS_ID = "2025-07-25-zn-scratch"
-# ZN scratch
-DOWNLOAD_SCENARIOS_ID = "zn-gcam-20250731-scratch"
-# Current for this branch, a bit outdated...
-DOWNLOAD_SCENARIOS_ID = "20250730-135425"
+DOWNLOAD_SCENARIOS_ID = "08Snapshot"
+DOWNLOAD_SCENARIOS_ID = "20250818"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(

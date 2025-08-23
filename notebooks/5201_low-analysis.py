@@ -251,6 +251,9 @@ pdf_erfs = amsc(erfs).loc[:, start_year:]
 pdf_temperature = amsc(temperatures_in_line_with_assessment).loc[:, start_year:]
 
 # %%
+pdf_emissions
+
+# %%
 variables_src = [
     ("Surface Temperature (GSAT)", pdf_temperature, False),
     ("Effective Radiative Forcing", pdf_erfs, False),
@@ -277,6 +280,7 @@ variables_src = [
     # ("Effective Radiative Forcing|CO2", pdf_erfs, False),
     # ("Effective Radiative Forcing|CH4", pdf_erfs, False),
 ]
+
 
 ncols = 2
 nrows = len(variables_src) // ncols + len(variables_src) % ncols
@@ -317,6 +321,7 @@ for i, (variable, src, emissions) in tqdm.auto.tqdm(enumerate(variables_src)):
         sns.move_legend(ax, loc="center left", bbox_to_anchor=(1.05, 0.5))
     else:
         ax.legend().remove()
+    ax.set_xlabel("Year")
 
     if "Emissions" in variable and ("CO2" in variable or "GHG" in variable):
         ax.axhline(0.0, linestyle="--", color="gray")
@@ -335,5 +340,9 @@ for i, (variable, src, emissions) in tqdm.auto.tqdm(enumerate(variables_src)):
 
     ax.grid()
     # break
+
+
+# %%
+fig.savefig("Global_comparison.png", bbox_inches="tight")
 
 # %%

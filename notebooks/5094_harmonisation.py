@@ -34,7 +34,7 @@ from gcages.cmip7_scenariomip.gridding_emissions import to_global_workflow_emiss
 from gcages.index_manipulation import split_sectors
 from gcages.testing import compare_close
 from matplotlib.backends.backend_pdf import PdfPages
-from pandas_openscm.indexing import multi_index_lookup
+from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 
 from emissions_harmonization_historical.constants_5000 import (
     DATA_ROOT,
@@ -52,7 +52,7 @@ from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR,
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "IMAGE"
+model: str = "WITCH"
 make_region_sector_plots: bool = False
 output_to_pdf: bool = False
 
@@ -169,52 +169,22 @@ if model.startswith("WITCH"):
         ),
         name="method",
     ).astype(str)
-    user_overrides_gridding.loc[
-        pix.isin(
+
+    model_zero_in_harmyear = model_pre_processed_for_gridding[model_pre_processed_for_gridding[2023] == 0].index
+    model_zero_in_harmyear_for_overrides = model_zero_in_harmyear.droplevel(
+        model_zero_in_harmyear.names.difference(user_overrides_gridding.index.names)
+    ).unique()
+    mask = (~multi_index_match(user_overrides_gridding.index, model_zero_in_harmyear_for_overrides)) & (
+        pix.ismatch(
             variable=[
-                "Emissions|BC|Agricultural Waste Burning",
-                "Emissions|BC|Forest Burning",
-                # "Emissions|BC|Grassland Burning",
-                # 'Emissions|BC|Peat Burning',
-                "Emissions|CH4|Agricultural Waste Burning",
-                # 'Emissions|CH4|Forest Burning',
-                "Emissions|CH4|Grassland Burning",
-                # 'Emissions|CH4|Peat Burning',
-                # 'Emissions|CO2|Agricultural Waste Burning',  # model zero
-                # 'Emissions|CO2|Forest Burning',
-                # 'Emissions|CO2|Grassland Burning',  # model zero
-                # 'Emissions|CO2|Peat Burning',
-                "Emissions|CO|Agricultural Waste Burning",
-                "Emissions|CO|Forest Burning",
-                "Emissions|CO|Grassland Burning",
-                # 'Emissions|CO|Peat Burning',
-                "Emissions|N2O|Agricultural Waste Burning",
-                # 'Emissions|N2O|Forest Burning',
-                # 'Emissions|N2O|Grassland Burning',  # model zero
-                # 'Emissions|N2O|Peat Burning',
-                "Emissions|NH3|Agricultural Waste Burning",
-                "Emissions|NH3|Forest Burning",
-                "Emissions|NH3|Grassland Burning",
-                # 'Emissions|NH3|Peat Burning',
-                "Emissions|NOx|Agricultural Waste Burning",
-                "Emissions|NOx|Forest Burning",
-                "Emissions|NOx|Grassland Burning",
-                # 'Emissions|NOx|Peat Burning',
-                "Emissions|OC|Agricultural Waste Burning",
-                "Emissions|OC|Forest Burning",
-                "Emissions|OC|Grassland Burning",
-                # 'Emissions|OC|Peat Burning',
-                "Emissions|Sulfur|Agricultural Waste Burning",
-                "Emissions|Sulfur|Forest Burning",
-                "Emissions|Sulfur|Grassland Burning",
-                # 'Emissions|Sulfur|Peat Burning',
-                "Emissions|VOC|Agricultural Waste Burning",
-                # 'Emissions|VOC|Forest Burning',
-                "Emissions|VOC|Grassland Burning",
-                # 'Emissions|VOC|Peat Burning'
+                "**Agricultural Waste Burning**",
+                "**Forest Burning**",
+                "**Grassland Burning**",
             ]
         )
-    ] = "constant_ratio"
+    )
+
+    user_overrides_gridding.loc[mask] = "constant_ratio"
     user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
 
 if model.startswith("REMIND"):
@@ -313,10 +283,11 @@ if model.startswith("REMIND"):
     ] = "constant_ratio"
 
 if model.startswith("MESSAGE"):
-    # advised on 10 July 2025 by Volker. This is expected to be updated later through an excel file provided by Luca.
-    # Guidance: 'reduce_ratio_2080' for
-    # "NOx, BC, OC, CO, Sulfur for all energy sectors
-    # (energy, industry, transportation, residential & commercial) and waste"
+    # 04 August 2025 - Switch to file overrides
+    # READING form the CSV file located at "./data/raw/harmonisation_overrides/."
+    file_overrides = DATA_ROOT / "raw/harmonisation_overrides/harmonisation-methods_gridding_MESSAGE.csv"
+    override_df = pd.read_csv(file_overrides)
+
     user_overrides_gridding = pd.Series(
         np.nan,
         index=model_pre_processed_for_gridding.index.droplevel(
@@ -325,59 +296,30 @@ if model.startswith("MESSAGE"):
         name="method",
     ).astype(str)
 
-    # index selector: combinations_model_zero_in_harmyear
-    model_zero_in_harmyear = model_pre_processed_for_gridding[model_pre_processed_for_gridding[2023] == 0]
-    combinations_model_zero_in_harmyear = model_zero_in_harmyear.index.unique()
-    # combinations_model_zero_in_harmyear
-    combinations_model_zero_in_harmyear_filter = combinations_model_zero_in_harmyear.droplevel(
-        [
-            level
-            for level in combinations_model_zero_in_harmyear.names
-            if level not in user_overrides_gridding.index.names
-        ]
-    )  # only keep indices that are in the template
-    mask = (
-        (~user_overrides_gridding.index.isin(combinations_model_zero_in_harmyear_filter))
-        & (
-            ~pix.ismatch(
-                variable=[
-                    # make sure Waste didn't include 'Agricultural Waste Burning'
-                    "**Agricultural Waste Burning**",
-                ]
-            )
-        )
-        & (
-            pix.ismatch(
-                variable=[
-                    # for "NOx, BC, OC, CO, Sulfur
-                    # VOC, NH3 advised on 22 July 2025 by Luca
-                    "Emissions|BC|**",
-                    "Emissions|NOx|**",
-                    "Emissions|OC|**",
-                    "Emissions|CO|**",
-                    "Emissions|Sulfur|**",
-                    "Emissions|VOC|**",
-                    "Emissions|NH3|**",
-                ]
-            )
-        )
-        & (
-            pix.ismatch(
-                variable=[
-                    # for all energy sectors (energy, industry, transportation, residential & commercial) and waste
-                    # Aircraft advised on 22 July 2025 by Luca
-                    "**Energy**",
-                    "**Industr**",
-                    "**Transport**",
-                    "**Residential**",
-                    "**Waste**",
-                    "**Aircraft**",
-                ]
-            )
-        )
-    )
+    model_zero_in_harmyear = model_pre_processed_for_gridding[model_pre_processed_for_gridding[2023] == 0].index
+    model_zero_in_harmyear_for_overrides = model_zero_in_harmyear.droplevel(
+        model_zero_in_harmyear.names.difference(user_overrides_gridding.index.names)
+    ).unique()
 
-    user_overrides_gridding.loc[mask] = "reduce_ratio_2080"
+    # Looping over input df rows separating the behaviour in case of "constant_ratio" or "reduced_ratio_{year}"
+    for _, row in override_df.iterrows():
+        # Find all entries in user_overrides_gridding with matching variable
+        matching_idx = (user_overrides_gridding.index.get_level_values("variable") == row["variable"]) & (
+            user_overrides_gridding.index.get_level_values("region") == row["region"]
+        )
+
+        valid_overrides_idx = user_overrides_gridding.index[matching_idx]
+
+        if "ratio" in row["method"].lower():
+            # If method is a "ratio" type, exclude combinations where the model is zero in 2023
+            non_zero_idx = ~valid_overrides_idx.isin(model_zero_in_harmyear_for_overrides)
+            to_override = valid_overrides_idx[non_zero_idx]
+        else:
+            # For non-ratio methods, apply override unconditionally
+            to_override = valid_overrides_idx
+
+        # Apply the method
+        user_overrides_gridding.loc[to_override] = row["method"]
 
     user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
 
