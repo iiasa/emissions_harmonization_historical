@@ -59,8 +59,7 @@ scenarios_to_analyse = [
     ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions"),
     ("COFFEE 1.6", "SSP2 - Medium-Low Emissions"),
     ("IMAGE 3.4", "SSP2 - Medium Emissions"),
-    # Note: still waiting to decide which variant
-    ("AIM 3.0", "SSP2 - Low Overshoot"),
+    ("AIM 3.0", "SSP2 - Low Overshoot_c"),
     ("REMIND-MAgPIE 3.5-4.11", "SSP1 - Very Low Emissions"),
 ]
 
@@ -291,6 +290,7 @@ emissions_to_plot = [
     "Emissions|CO2|Energy and Industrial Processes",
     "Emissions|GHG AR6GWP100",
     "Emissions|CO2|AFOLU",
+    "Emissions|CO2",
     "Cumulative Emissions|CO2",
     "Emissions|CH4",
     "Emissions|CFC12",
@@ -304,7 +304,13 @@ emissions_to_plot = [
     "Emissions|VOC",
 ]
 pdf_emissions = add_model_scenario_column(
-    emissions.loc[pix.isin(variable=emissions_to_plot, stage="complete")], ms_separator=ms_separator, ms_level=ms_level
+    emissions.loc[pix.isin(variable=emissions_to_plot, stage="complete")],
+    ms_separator=ms_separator,
+    ms_level=ms_level,
+    # emissions.loc[
+    #    pix.isin(variable=emissions_to_plot, stage="pre-processed-scms")],
+    #    ms_separator=ms_separator,
+    #    ms_level=ms_level,
 )
 # pdf_emissions
 
