@@ -300,6 +300,7 @@ DOWNLOAD_SCENARIOS_ID = "0011-REMIND-jk"
 # Run 20250710 by Marco (prepared with/by Jarmo)
 DOWNLOAD_SCENARIOS_ID = "08Snapshot"
 DOWNLOAD_SCENARIOS_ID = "20250818"
+DOWNLOAD_SCENARIOS_ID = "20250901-message-offline"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(

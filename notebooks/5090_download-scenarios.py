@@ -104,7 +104,8 @@ if model_search == "AIM":
     to_download = to_download[to_download["scenario"].str.contains("- Low Overshoot")]
 #    to_download = to_download[to_download["scenario"].str.endswith("- Low Overshoot_e")]
 if model_search == "MESSAGE":
-    to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Low Emissions")]
+    # to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Low Emissions")]
+    to_download = to_download[to_download["run_id"].isin([2191, 2198, 2199, 2200, 2201])]
 if model_search == "IMAGE":
     to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Medium Emissions")]
 if model_search == "COFFEE":
@@ -118,7 +119,7 @@ if model_search == "WITCH":
 to_download.shape[0]
 
 # %%
-to_download  # .head(2)
+to_download  # ["annotation"].tolist()  # .head(2)
 
 # %% [markdown]
 # ### Check the versions
