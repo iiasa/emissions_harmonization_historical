@@ -160,13 +160,13 @@ def main():  # noqa: PLR0912
     # ]
     # All
     iams = [
-        "IMAGE",
-        "WITCH",
+        # "IMAGE",
+        # "WITCH",
         "REMIND",
-        "MESSAGE",
-        "GCAM",
-        "COFFEE",
-        "AIM",
+        # "MESSAGE",
+        # "GCAM",
+        # "COFFEE",
+        # "AIM",
     ]
     # iams = ["COFFEE"]
 
