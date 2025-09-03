@@ -237,7 +237,35 @@ sns.relplot(
         "full_ts": (1, 2),
     },
     col="variable",
-    col_wrap=7,
+    col_wrap=4,
+    kind="line",
+    facet_kws=dict(sharey=False),
+)
+
+# %%
+pdf = (
+    pix.concat(
+        [
+            infilling_db_wmo.pix.assign(use="infilling_db"),
+            wmo_2022_smoothed_full.pix.assign(use="full_ts"),
+        ]
+    )
+    .loc[pix.ismatch(variable=["**CFC113", "**CFC114", "**CFC115", "**1211", "**1301"]), :]
+    .openscm.to_long_data()
+)
+sns.relplot(
+    data=pdf,
+    x="time",
+    y="value",
+    hue="use",
+    style="use",
+    dashes={
+        "infilling_db": "",
+        "full_ts": (1, 2),
+    },
+    col="variable",
+    col_wrap=3,
+    height=3,
     kind="line",
     facet_kws=dict(sharey=False),
 )
@@ -268,7 +296,7 @@ sns.relplot(
     y="value",
     hue="scenario",
     col="variable",
-    col_wrap=7,
+    col_wrap=4,
     kind="line",
     facet_kws=dict(sharey=False),
 )
