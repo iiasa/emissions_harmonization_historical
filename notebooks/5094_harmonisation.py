@@ -436,6 +436,34 @@ for key, idf, user_overrides in (
         # Check overrides were passsed through correctly
         pd.testing.assert_series_equal(user_overrides, multi_index_lookup(res[key].overrides, user_overrides.index))
 
+
+# %% [markdown]
+# ### Post-harmonization negative values checking
+
+# %%
+for key in ["gridding", "global"]:
+    tmp = res[key].timeseries
+
+    # Filter rows where 'unit' is not "CO2"
+    tmp_not_co2 = tmp.loc[~tmp.index.get_level_values("unit").str.contains("CO2")]
+
+    # Check for negative values
+    negative_rows = (tmp_not_co2 < 0).any(axis=1)
+
+    if negative_rows.any():
+        # Extract indices of negative rows
+        negative_indices = tmp_not_co2.index[negative_rows]
+
+        negative = list(
+            zip(
+                negative_indices.get_level_values("scenario"),
+                negative_indices.get_level_values("region"),
+                negative_indices.get_level_values("variable"),
+            )
+        )
+        msg = f"Negative values found in rows with indices:\n{negative}"
+        raise AssertionError(msg)
+
 # %% [markdown]
 # ### Post-harmonization fixes
 
