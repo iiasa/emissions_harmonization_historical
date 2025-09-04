@@ -168,9 +168,14 @@ tmpdir = Path(tempfile.mkdtemp(prefix="ssp-submission-db"))
 
 
 def check_negatives(df):  # noqa : D103
-    # Filter rows where 'unit' is not "CO2"
-    tmp_not_co2 = df.loc[~df.index.get_level_values("unit").str.contains("CO2")]
+    # Filter rows where negative values are allowed
+    mask_exclude_from_check = (
+        df.index.get_level_values("variable").str.contains("CO2")
+        | df.index.get_level_values("variable").str.contains("Removal")
+        | df.index.get_level_values("variable").str.contains("Kyoto")
+    )
 
+    tmp_not_co2 = df.loc[~mask_exclude_from_check]
     # Check for negative values
     negative_rows = (tmp_not_co2 < 0).any(axis=1)
 
