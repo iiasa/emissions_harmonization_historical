@@ -294,10 +294,10 @@ for sv_name in tqdm.auto.tqdm(sector_variables):
         "polyfit_coefficients"
     ].sel(degree=0).assign_attrs(dict(units=sector_per_cell_regridded_per_year.attrs["units"]))
 
+    # Replace negative extrapolated values with zeros
     neg_mask = (extrapolated < 0).compute()
     if neg_mask.any().compute():
-        avg_10_years = sector_per_cell_regridded_per_year.sel(year=slice(2012, 2021)).mean(dim="year").compute()
-        extrapolated = extrapolated.where(~neg_mask, avg_10_years)
+        extrapolated = extrapolated.where(~neg_mask, 0)
 
     full = xr.concat([sector_per_cell_regridded_per_year, extrapolated], dim="year")
 
