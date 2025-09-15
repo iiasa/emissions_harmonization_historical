@@ -165,6 +165,36 @@ for _, row in tqdm.auto.tqdm(to_download.iterrows(), total=to_download.shape[0])
 tmpdir = Path(tempfile.mkdtemp(prefix="ssp-submission-db"))
 
 # %%
+
+
+def check_negatives(df):  # noqa : D103
+    # Filter rows where negative values are allowed
+    mask_exclude_from_check = df.index.get_level_values("variable").str.contains("CO2") | df.index.get_level_values(
+        "variable"
+    ).str.contains("Kyoto")
+
+    tmp_not_co2 = df.loc[~mask_exclude_from_check]
+    # Check for negative values
+    negative_rows = (tmp_not_co2 < 0).any(axis=1)
+
+    if negative_rows.any():
+        # Extract indices only from negative rows
+        negative_indices = tmp_not_co2.index[negative_rows]
+
+        negative = list(
+            zip(
+                negative_indices.get_level_values("scenario"),
+                negative_indices.get_level_values("region"),
+                negative_indices.get_level_values("variable"),
+            )
+        )
+
+        msg = f"Negative values found in rows with indices:\n{negative}"
+
+        raise AssertionError(msg)
+
+
+# %%
 for _, row in tqdm.auto.tqdm(to_download.iterrows(), total=to_download.shape[0]):
     model = row.model
     scenario = row.scenario
@@ -175,6 +205,8 @@ for _, row in tqdm.auto.tqdm(to_download.iterrows(), total=to_download.shape[0])
         raise AssertionError(msg)
 
     df_ts = df.timeseries()
+
+    check_negatives(df_ts)
 
     # If we got to this stage, we are fine with an overwrite
     RAW_SCENARIO_DB.save(df_ts, allow_overwrite=True)
