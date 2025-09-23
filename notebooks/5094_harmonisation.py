@@ -174,6 +174,17 @@ if model.startswith("IMAGE"):
         ]
     )
     user_overrides_gridding.loc[mask] = "reduce_offset_2030"
+
+    mask = pix.ismatch(
+        variable=[
+            "**CO|Energy Sector**",
+        ]
+    ) & user_overrides_gridding.index.get_level_values("region").str.contains(
+        "Eastern Africa|India|Rest of Southern Africa|Western Africa"
+    )
+
+    user_overrides_gridding.loc[mask] = "reduce_offset_2080"
+
     user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
 
 if model.startswith("WITCH"):
