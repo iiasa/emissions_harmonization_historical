@@ -42,6 +42,9 @@ from emissions_harmonization_historical.constants_5000 import (
 from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR
 from emissions_harmonization_historical.zenodo import upload_to_zenodo
 
+# %%
+COUNTRY_LEVEL_HISTORY
+
 # %% [markdown]
 # ## Setup
 
@@ -218,3 +221,5 @@ logger.enable("openscm_zenodo")
 
 # %%
 upload_to_zenodo([out_file_grid], remove_existing=False, update_metadata=True)
+
+# %%

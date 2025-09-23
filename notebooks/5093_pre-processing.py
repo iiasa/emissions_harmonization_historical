@@ -283,3 +283,23 @@ for stage, df in (
 ):
     PRE_PROCESSED_SCENARIO_DB.save(df.pix.assign(stage=stage), allow_overwrite=True)
     print(f"Saved {stage}")
+
+# %%
+df = pre_processing_res.gridding_workflow_emissions
+msk = (df.index.get_level_values("scenario") == "SSP2 - Medium Emissions") & (
+    df.index.get_level_values("region") == "IMAGE 3.4|Western Europe"
+)
+# msk=(df.index.get_level_values("scenario") == 'SSP2 - Medium
+# Emissions')&(df.index.get_level_values("variable").str.startswith('Emissions|CO|'))
+# &(df.index.get_level_values("region")
+# == 'IMAGE 3.4|Western Europe')
+# df=pre_processing_res.global_workflow_emissions
+# msk=(df.index.get_level_values("scenario") == 'SSP2 - Medium Emissions')
+
+# %%
+df.loc[msk].groupby(["model", "scenario", "variable"]).sum()
+
+# %%
+df.to_csv("pre_processing_res.gridding_workflow_emissions.csv")
+
+# %%

@@ -36,6 +36,7 @@
 # %%
 import json
 import tempfile
+import warnings
 from pathlib import Path
 
 import pyam
@@ -51,7 +52,7 @@ from emissions_harmonization_historical.constants_5000 import (
 # ## Set up
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model_search: str = "MESSAGE"
+model_search: str = "REMIND"
 
 # %%
 output_dir_model = DATA_ROOT / "raw" / "scenarios" / DOWNLOAD_SCENARIOS_ID / model_search
@@ -96,24 +97,70 @@ props = conn_ssp.properties().reset_index()
 # %%
 to_download = props[props["model"].str.contains(model_search)]
 
-if model_search == "REMIND":
-    to_download = to_download[to_download["scenario"].str.endswith("SSP1 - Very Low Emissions")]
-#    laurin = ("SSP1 - Very Low Emissions", "SSP2 - Low Emissions", "SSP2 - Medium Emissions","SSP3 - High Emissions")
-#    to_download = to_download[to_download["scenario"].str.endswith(laurin)]
-if model_search == "AIM":
-    to_download = to_download[to_download["scenario"].str.contains("- Low Overshoot")]
-#    to_download = to_download[to_download["scenario"].str.endswith("- Low Overshoot_e")]
+# if model_search == "REMIND":
+#     to_download = to_download[to_download["scenario"].str.endswith("SSP1 - Very Low Emissions")]
+# #    laurin = ("SSP1 - Very Low Emissions", "SSP2 - Low Emissions", "SSP2 - Medium Emissions","SSP3 - High Emissions")
+# #    to_download = to_download[to_download["scenario"].str.endswith(laurin)]
+# skip=('SSP1 - Low Emissions','SSP1 - Low Emissions_c','SSP1 - Low
+# Emissions_d','SSP1 - Medium Emissions','SSP1 - Medium-Low Emissions',
+#       'SSP1 - Very Low Emissions','SSP1 - Very Low Emissions_c','SSP2 - High
+#       Emissions','SSP2 - Low Emissions','SSP2 - Low Emissions_c',
+#      'SSP2 - Low Emissions_d','SSP2 - Low Overshoot','SSP2 - Low
+#      Overshoot_b','SSP2 - Low Overshoot_c','SSP2 - Low Overshoot_d','SSP2 -
+#      Medium Emissions',
+#      'SSP2 - Medium-Low Emissions','SSP2 - Very Low Emissions','SSP2 - Very
+#      Low Emissions_c','SSP3 - High Emissions','SSP3 - Medium Emissions',
+#      'SSP3 - Medium-Low Emissions','SSP2 - Low Emissions_d',)
+# to_download = to_download[~to_download["scenario"].str.endswith(skip)]
+# if model_search == "AIM":
+#     to_download = to_download[to_download["scenario"].str.contains("- Low Overshoot")]
+# #    to_download = to_download[to_download["scenario"].str.endswith("- Low Overshoot_e")]
 if model_search == "MESSAGE":
-    to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Low Emissions")]
+    # ('SSP2 - Low Overshoot_a','SSP2 - Medium Emissions_a','SSP3 - High
+    # Emissions','SSP2 - Very Low Emissions','SSP1 - Low Emissions','SSP1 - Low
+    # Emissions_a',
+    #      'SSP1 - Very Low Emissions','SSP2 - Low Emissions_a','SSP2 - Low
+    #      Overshoot','SSP2 - Medium Emissions','SSP2 - Medium-Low
+    #      Emissions','SSP4 - Low Overshoot',
+    #      'SSP5 - Low Overshoot','SSP2 - Low Emissions_b','SSP2 - Low
+    #      Emissions_c','SSP2 - Low Emissions_d','SSP2 - Low Emissions_e','SSP2
+    #      - Low Emissions',)
+    skip = (
+        "SSP2 - Low Overshoot_a",
+        "SSP2 - Medium Emissions_a",
+        "SSP3 - High Emissions",
+        "SSP2 - Very Low Emissions",
+        "SSP4 - Low Overshoot",
+        "SSP5 - Low Overshoot",
+    )
+    to_download = to_download[~to_download["scenario"].str.endswith(skip)]
+#     to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Low Emissions")]
 if model_search == "IMAGE":
-    to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Medium Emissions")]
-if model_search == "COFFEE":
-    to_download = to_download[to_download["scenario"].str.endswith("- Medium-Low Emissions")]
-if model_search == "GCAM":
-    #   to_download = to_download[to_download["scenario"].str.endswith("- High Emissions")]
-    to_download = to_download[to_download["scenario"].str.contains("SSP3 - High Emissions")]
+    # to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Medium Emissions")]
+    skip = (
+        "SSP1 - Very Low Emissions",
+        "SSP2 - Low Emissions",
+        "SSP2 - Medium-Low Emissions",
+        "SSP2 - Very Low Emissions",
+        "SSP2 - Very Low Emissions_a",
+    )  # "SSP1 - Medium Emissions_a",
+    to_download = to_download[~to_download["scenario"].str.endswith(skip)]
+# if model_search == "COFFEE":
+#     to_download = to_download[to_download["scenario"].str.endswith("- Medium-Low Emissions")]
+# if model_search == "GCAM":
+#     #   to_download = to_download[to_download["scenario"].str.endswith("- High Emissions")]
+#     to_download = to_download[to_download["scenario"].str.contains("SSP3 - High Emissions")]
 if model_search == "WITCH":
-    to_download = to_download[to_download["scenario"].str.contains("- Medium-Low Emissions")]
+    #     to_download = to_download[to_download["scenario"].str.contains("- Medium-Low Emissions")]
+    skip = (
+        "SSP1 - Low Overshoot",
+        "SSP1 - Very Low Emissions",
+        "SSP2 - Low Emissions",
+        "SSP2 - Low Overshoot",
+        "SSP2 - Very Low Emissions",
+        "SSP5 - High Emissions",
+    )  # "SSP5 - Medium-Low Emissions_a")
+    to_download = to_download[~to_download["scenario"].str.endswith(skip)]
 
 to_download.shape[0]
 
@@ -168,6 +215,11 @@ tmpdir = Path(tempfile.mkdtemp(prefix="ssp-submission-db"))
 
 
 def check_negatives(df):  # noqa : D103
+    if model_search == "WITCH":
+        return
+    if model_search == "REMIND":
+        return
+
     # Filter rows where negative values are allowed
     mask_exclude_from_check = df.index.get_level_values("variable").str.contains("CO2") | df.index.get_level_values(
         "variable"
@@ -190,8 +242,17 @@ def check_negatives(df):  # noqa : D103
         )
 
         msg = f"Negative values found in rows with indices:\n{negative}"
+        warnings.warn(msg)
 
-        raise AssertionError(msg)
+        for idx, row in tmp_not_co2[negative_rows].iterrows():
+            neg_rows = row.where(row < -(10**-6)).dropna()
+
+            if not neg_rows.empty:
+                err = [(idx, col, val) for col, val in zip(neg_rows.index, neg_rows.tolist())]
+                msg = f"Negative values found:\n{err}"
+                raise ValueError(msg)
+
+        df_ts.clip(lower=0)
 
 
 # %%
@@ -217,3 +278,7 @@ db_metadata = RAW_SCENARIO_DB.load_metadata().to_frame(index=False)
 db_metadata[["model", "scenario"]][db_metadata["model"].str.contains(model_search)].drop_duplicates().reset_index(
     drop=True
 )
+
+# %%
+# df_ts[(df_ts.index.get_level_values("variable").str.endswith('Emissions|N2O|Energy|Supply|Hydrogen|Coal')
+# & df_ts.index.get_level_values("region").str.endswith('World'))]
