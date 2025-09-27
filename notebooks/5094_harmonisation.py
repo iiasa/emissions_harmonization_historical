@@ -52,7 +52,7 @@ from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR,
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "WITCH"
+model: str = "GCAM"
 make_region_sector_plots: bool = False
 output_to_pdf: bool = False
 
@@ -859,6 +859,19 @@ if make_region_sector_plots:
             pdf_r = pdf_sectors.loc[pix.isin(region=region)]
             for species in tqdm.auto.tqdm(species_l, desc="species", leave=False):
                 sdf = pdf_r.loc[pix.isin(species=species)]
+                sdf = pix.concat(
+                    [
+                        sdf,
+                        sdf.loc[~pix.isin(scenario="historical")]
+                        .openscm.groupby_except("sectors")
+                        .sum(min_count=1)
+                        .pix.assign(sectors="Total"),
+                        sdf.loc[pix.isin(scenario="historical")]
+                        .openscm.groupby_except(["model", "sectors"])
+                        .sum(min_count=1)
+                        .pix.assign(model="hist-contributors", sectors="Total"),
+                    ]
+                )
                 snsdf = sdf.openscm.to_long_data().dropna()
                 fg = sns.relplot(
                     data=snsdf,
@@ -874,6 +887,7 @@ if make_region_sector_plots:
                     },
                     col="sectors",
                     col_wrap=min(3, len(snsdf["sectors"].unique())),
+                    col_order=["Total", *sorted(set(snsdf["sectors"].unique()) - {"Total"})],
                     kind="line",
                     facet_kws=dict(sharey=False),
                 )
@@ -891,11 +905,6 @@ if make_region_sector_plots:
                     plt.close()
                 else:
                     plt.show()
-
-            # # Don't plot all for now
-            # if region != "World":
-            #     break
-            # break
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Create combination to use for simple climate models
