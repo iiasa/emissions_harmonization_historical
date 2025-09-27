@@ -793,6 +793,90 @@ for ax in fg.axes.flatten():
 # %% [markdown]
 # ### Gridding emissions
 
+# %% [markdown]
+# #### Total
+
+# %%
+gridding_aggregate_pre_processed = to_global_workflow_emissions(
+    model_pre_processed_for_gridding,
+    global_workflow_co2_fossil_sector="Energy and Industrial Processes",
+    global_workflow_co2_biosphere_sector="AFOLU",
+).pix.assign(
+    workflow="gridding",
+    stage="pre-processed",
+)
+
+combo_global_v_gridding_by_stage = pix.concat(
+    [
+        combo_global.pix.assign(workflow="global").loc[pix.isin(variable=gridding_aggregates.pix.unique("variable"))],
+        gridding_aggregates,
+        gridding_aggregate_pre_processed,
+    ]
+).sort_index(axis="columns")
+
+pdf_global_v_gridding_by_stage = (
+    combo_global_v_gridding_by_stage.loc[
+        :,
+        1990:2100,
+    ]
+    .openscm.to_long_data()
+    .dropna()
+)
+pdf_global_v_gridding_by_stage["workflow - stage"] = (
+    pdf_global_v_gridding_by_stage["workflow"] + " - " + pdf_global_v_gridding_by_stage["stage"]
+)
+pdf_global_v_gridding_by_stage = pdf_global_v_gridding_by_stage[
+    pdf_global_v_gridding_by_stage["scenario"].isin(
+        ["historical", gridding_aggregate_pre_processed.pix.unique("scenario")[0]]
+    )
+]
+pdf_global_v_gridding_by_stage
+
+# %%
+if output_to_pdf:
+    ctx_manager = PdfPages(output_dir_model / f"harmonisation-results-gridding-global-aggregate_{model}.pdf")
+
+else:
+    ctx_manager = nullcontext()
+
+with ctx_manager as output_pdf_file:
+    fg = sns.relplot(
+        data=pdf_global_v_gridding_by_stage,
+        x="time",
+        y="value",
+        hue="stage",
+        # hue_order=sorted(pdf_global_v_gridding["scenario"].unique()),
+        style="workflow",
+        dashes={
+            "gridding": "",
+            "global": (3, 3),
+        },
+        col="variable",
+        col_order=sorted(pdf_global_v_gridding["variable"].unique()),
+        col_wrap=3,
+        estimator=None,
+        facet_kws=dict(sharey=False),
+        kind="line",
+    )
+    for ax in fg.axes.flatten():
+        if "Emissions|CO2" in ax.get_title():
+            ax.axhline(0.0, linestyle="--", color="tab:gray")
+
+        elif "Carbon Removal" in ax.get_title():
+            ax.set_ylim(ymax=0.0)
+
+        else:
+            ax.set_ylim(ymin=0.0)
+
+    if output_to_pdf:
+        output_pdf_file.savefig(bbox_inches="tight")
+        plt.close()
+    else:
+        plt.show()
+
+# %% [markdown]
+# #### By gas, region
+
 # %%
 pdf_gridding = pix.concat(
     [
