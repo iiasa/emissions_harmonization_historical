@@ -570,6 +570,7 @@ combo_gridding.columns = combo_gridding.columns.astype(int)
 # %%
 single_variable = "Emissions|CO2|BECCS"
 single_variable = "Emissions|CH4|Grassland Burning"
+single_variable = "Emissions|CH4|Peat Burning"
 # single_variable = "Emissions|CO2|Other non-Land CDR"
 pdf = (
     combo_gridding.loc[
@@ -825,11 +826,11 @@ pdf_global_v_gridding_by_stage = (
 pdf_global_v_gridding_by_stage["workflow - stage"] = (
     pdf_global_v_gridding_by_stage["workflow"] + " - " + pdf_global_v_gridding_by_stage["stage"]
 )
-pdf_global_v_gridding_by_stage = pdf_global_v_gridding_by_stage[
-    pdf_global_v_gridding_by_stage["scenario"].isin(
-        ["historical", gridding_aggregate_pre_processed.pix.unique("scenario")[0]]
-    )
-]
+# pdf_global_v_gridding_by_stage = pdf_global_v_gridding_by_stage[
+#     pdf_global_v_gridding_by_stage["scenario"].isin(
+#         ["historical", gridding_aggregate_pre_processed.pix.unique("scenario")[0]]
+#     )
+# ]
 pdf_global_v_gridding_by_stage
 
 # %%
@@ -844,12 +845,16 @@ with ctx_manager as output_pdf_file:
         data=pdf_global_v_gridding_by_stage,
         x="time",
         y="value",
-        hue="stage",
-        # hue_order=sorted(pdf_global_v_gridding["scenario"].unique()),
-        style="workflow",
+        hue="scenario",
+        hue_order=sorted(pdf_global_v_gridding_by_stage["scenario"].unique()),
+        style="workflow - stage",
         dashes={
-            "gridding": "",
-            "global": (3, 3),
+            "global - history": (3, 3),
+            "gridding - history": "",
+            "global - pre-processed": (3, 3),
+            "gridding - pre-processed": (1, 1),
+            "global - harmonised": (3, 3),
+            "gridding - harmonised": "",
         },
         col="variable",
         col_order=sorted(pdf_global_v_gridding["variable"].unique()),
