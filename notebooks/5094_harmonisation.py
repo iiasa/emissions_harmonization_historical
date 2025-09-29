@@ -879,6 +879,65 @@ with ctx_manager as output_pdf_file:
     else:
         plt.show()
 
+# %%
+pdf_global_v_gridding_by_stage_used_only = pdf_global_v_gridding_by_stage[
+    (
+        pdf_global_v_gridding_by_stage["variable"].isin(["Emissions|CO2|AFOLU"])
+        & pdf_global_v_gridding_by_stage["workflow"].isin(["global"])
+    )
+    | (
+        ~pdf_global_v_gridding_by_stage["variable"].isin(["Emissions|CO2|AFOLU"])
+        & pdf_global_v_gridding_by_stage["workflow"].isin(["gridding"])
+    )
+]
+
+if output_to_pdf:
+    ctx_manager = PdfPages(
+        output_dir_model / f"harmonisation-results-gridding-global-aggregate-only-used-timeseries_{model}.pdf"
+    )
+
+else:
+    ctx_manager = nullcontext()
+
+with ctx_manager as output_pdf_file:
+    fg = sns.relplot(
+        data=pdf_global_v_gridding_by_stage_used_only,
+        x="time",
+        y="value",
+        hue="scenario",
+        hue_order=sorted(pdf_global_v_gridding_by_stage["scenario"].unique()),
+        style="workflow - stage",
+        dashes={
+            "global - history": (3, 3),
+            "global - pre-processed": (1, 1),
+            "global - harmonised": (3, 3),
+            "gridding - history": "",
+            "gridding - harmonised": "",
+            "gridding - pre-processed": (1, 3),
+        },
+        col="variable",
+        col_order=sorted(pdf_global_v_gridding["variable"].unique()),
+        col_wrap=3,
+        estimator=None,
+        facet_kws=dict(sharey=False),
+        kind="line",
+    )
+    for ax in fg.axes.flatten():
+        if "Emissions|CO2" in ax.get_title():
+            ax.axhline(0.0, linestyle="--", color="tab:gray")
+
+        elif "Carbon Removal" in ax.get_title():
+            ax.set_ylim(ymax=0.0)
+
+        else:
+            ax.set_ylim(ymin=0.0)
+
+    if output_to_pdf:
+        output_pdf_file.savefig(bbox_inches="tight")
+        plt.close()
+    else:
+        plt.show()
+
 # %% [markdown]
 # #### By gas, region
 
