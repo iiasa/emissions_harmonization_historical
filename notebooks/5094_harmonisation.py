@@ -349,6 +349,47 @@ if model.startswith("MESSAGE"):
 
     user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
 
+if model.startswith("GCAM"):
+    # 29 September 2025 - Switch to file overrides
+    # READING form the CSV file located at "./data/raw/harmonisation_overrides/."
+    file_overrides = DATA_ROOT / "raw/harmonisation_overrides/harmonisation-methods_gridding_GCAM.csv"
+    override_df = pd.read_csv(file_overrides)
+
+    user_overrides_gridding = pd.Series(
+        np.nan,
+        index=model_pre_processed_for_gridding.index.droplevel(
+            model_pre_processed_for_gridding.index.names.difference(["model", "scenario", "region", "variable"])
+        ),
+        name="method",
+    ).astype(str)
+
+    model_zero_in_harmyear = model_pre_processed_for_gridding[model_pre_processed_for_gridding[2023] == 0].index
+    model_zero_in_harmyear_for_overrides = model_zero_in_harmyear.droplevel(
+        model_zero_in_harmyear.names.difference(user_overrides_gridding.index.names)
+    ).unique()
+
+    # Looping over input df rows separating the behaviour in case of "constant_ratio" or "reduced_ratio_{year}"
+    for _, row in override_df.iterrows():
+        # Find all entries in user_overrides_gridding with matching variable
+        matching_idx = (user_overrides_gridding.index.get_level_values("variable") == row["variable"]) & (
+            user_overrides_gridding.index.get_level_values("region") == row["region"]
+        )
+
+        valid_overrides_idx = user_overrides_gridding.index[matching_idx]
+
+        if "ratio" in row["method"].lower():
+            # If method is a "ratio" type, exclude combinations where the model is zero in 2023
+            non_zero_idx = ~valid_overrides_idx.isin(model_zero_in_harmyear_for_overrides)
+            to_override = valid_overrides_idx[non_zero_idx]
+        else:
+            # For non-ratio methods, apply override unconditionally
+            to_override = valid_overrides_idx
+
+        # Apply the method
+        user_overrides_gridding.loc[to_override] = row["method"]
+
+    user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
+
 # additional method tweaks advised by Shinichiro on 17 July 2025
 if model.startswith("AIM"):
     user_overrides_gridding = pd.Series(

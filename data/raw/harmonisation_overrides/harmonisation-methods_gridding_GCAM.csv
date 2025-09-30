@@ -1,0 +1,641 @@
+model,scenario,region,variable,method
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Eastern,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Eastern,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Eastern,Emissions|CH4|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Eastern,Emissions|CH4|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Eastern,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Eastern,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Eastern,Emissions|CO|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Eastern,Emissions|CO|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Eastern,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Eastern,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Eastern,Emissions|NH3|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Eastern,Emissions|NH3|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Eastern,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Eastern,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Eastern,Emissions|OC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Eastern,Emissions|OC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Eastern,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Eastern,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Eastern,Emissions|VOC|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Eastern,Emissions|VOC|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Northern,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Northern,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Northern,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Northern,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Northern,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Northern,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Northern,Emissions|CO|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Northern,Emissions|CO|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Northern,Emissions|N2O|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Northern,Emissions|N2O|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Northern,Emissions|NH3|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Northern,Emissions|NH3|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Northern,Emissions|NOx|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Northern,Emissions|NOx|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Northern,Emissions|OC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Northern,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Northern,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Northern,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Northern,Emissions|VOC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Northern,Emissions|VOC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Southern,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Southern,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Southern,Emissions|CH4|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Southern,Emissions|CH4|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Southern,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Southern,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Southern,Emissions|CO|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Southern,Emissions|CO|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Southern,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Southern,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Southern,Emissions|NH3|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Southern,Emissions|NH3|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Southern,Emissions|NOx|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Southern,Emissions|NOx|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Southern,Emissions|OC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Southern,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Southern,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Southern,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Southern,Emissions|VOC|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Southern,Emissions|VOC|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Western,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Western,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Western,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Western,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Western,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Western,Emissions|CO2|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Western,Emissions|CO|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Western,Emissions|CO|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Western,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Western,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Western,Emissions|NH3|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Western,Emissions|NH3|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Western,Emissions|NOx|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Western,Emissions|NOx|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Western,Emissions|OC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Western,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Western,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Western,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Western,Emissions|VOC|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Africa_Western,Emissions|VOC|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Argentina,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Argentina,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Argentina,Emissions|CH4|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Argentina,Emissions|CH4|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Argentina,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Argentina,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Argentina,Emissions|CO|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Argentina,Emissions|CO|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Argentina,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Argentina,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Argentina,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Argentina,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Argentina,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Argentina,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Argentina,Emissions|OC|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Argentina,Emissions|OC|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Argentina,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Argentina,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Argentina,Emissions|VOC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Argentina,Emissions|VOC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Australia and New Zealand,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Australia and New Zealand,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Australia and New Zealand,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Australia and New Zealand,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Australia and New Zealand,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Australia and New Zealand,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Australia and New Zealand,Emissions|CO|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Australia and New Zealand,Emissions|CO|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Australia and New Zealand,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Australia and New Zealand,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Australia and New Zealand,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Australia and New Zealand,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Australia and New Zealand,Emissions|NOx|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Australia and New Zealand,Emissions|NOx|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Australia and New Zealand,Emissions|OC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Australia and New Zealand,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Australia and New Zealand,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Australia and New Zealand,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Australia and New Zealand,Emissions|VOC|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Australia and New Zealand,Emissions|VOC|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Brazil,Emissions|BC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Brazil,Emissions|BC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Brazil,Emissions|CH4|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Brazil,Emissions|CH4|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Brazil,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Brazil,Emissions|CO2|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Brazil,Emissions|CO|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Brazil,Emissions|CO|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Brazil,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Brazil,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Brazil,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Brazil,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Brazil,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Brazil,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Brazil,Emissions|OC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Brazil,Emissions|OC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Brazil,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Brazil,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Brazil,Emissions|VOC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Brazil,Emissions|VOC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Canada,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Canada,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Canada,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Canada,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Canada,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Canada,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Canada,Emissions|CO|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Canada,Emissions|CO|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Canada,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Canada,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Canada,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Canada,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Canada,Emissions|NOx|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Canada,Emissions|NOx|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Canada,Emissions|OC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Canada,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Canada,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Canada,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Canada,Emissions|VOC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Canada,Emissions|VOC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|CO|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|CO|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|OC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|VOC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|VOC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|CO2|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|CO|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|CO|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|OC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|VOC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|VOC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|China,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|China,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|China,Emissions|CH4|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|China,Emissions|CH4|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|China,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|China,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|China,Emissions|CO|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|China,Emissions|CO|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|China,Emissions|N2O|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|China,Emissions|N2O|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|China,Emissions|NH3|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|China,Emissions|NH3|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|China,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|China,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|China,Emissions|OC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|China,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|China,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|China,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|China,Emissions|VOC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|China,Emissions|VOC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Colombia,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Colombia,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Colombia,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Colombia,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Colombia,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Colombia,Emissions|CO2|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Colombia,Emissions|CO|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Colombia,Emissions|CO|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Colombia,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Colombia,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Colombia,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Colombia,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Colombia,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Colombia,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Colombia,Emissions|OC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Colombia,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Colombia,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Colombia,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Colombia,Emissions|VOC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Colombia,Emissions|VOC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|BC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|BC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|CO2|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|CO|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|CO|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|OC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|OC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|VOC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|VOC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|CO2|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|CO|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|CO|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|OC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|VOC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|VOC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Eastern,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Eastern,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Eastern,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Eastern,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Eastern,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Eastern,Emissions|CO2|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Eastern,Emissions|CO|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Eastern,Emissions|CO|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Eastern,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Eastern,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Eastern,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Eastern,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Eastern,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Eastern,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Eastern,Emissions|OC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Eastern,Emissions|OC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Eastern,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Eastern,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Eastern,Emissions|VOC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Eastern,Emissions|VOC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Non_EU,Emissions|BC|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Non_EU,Emissions|BC|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Non_EU,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Non_EU,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Non_EU,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Non_EU,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Non_EU,Emissions|CO|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Non_EU,Emissions|CO|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Non_EU,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Non_EU,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Non_EU,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Non_EU,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Non_EU,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Non_EU,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Non_EU,Emissions|OC|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Non_EU,Emissions|OC|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Non_EU,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Non_EU,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Non_EU,Emissions|VOC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Europe_Non_EU,Emissions|VOC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|European Free Trade Association,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|European Free Trade Association,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|European Free Trade Association,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|European Free Trade Association,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|European Free Trade Association,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|European Free Trade Association,Emissions|CO2|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|European Free Trade Association,Emissions|CO|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|European Free Trade Association,Emissions|CO|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|European Free Trade Association,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|European Free Trade Association,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|European Free Trade Association,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|European Free Trade Association,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|European Free Trade Association,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|European Free Trade Association,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|European Free Trade Association,Emissions|OC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|European Free Trade Association,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|European Free Trade Association,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|European Free Trade Association,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|European Free Trade Association,Emissions|VOC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|European Free Trade Association,Emissions|VOC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|India,Emissions|BC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|India,Emissions|BC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|India,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|India,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|India,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|India,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|India,Emissions|CO|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|India,Emissions|CO|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|India,Emissions|N2O|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|India,Emissions|N2O|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|India,Emissions|NH3|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|India,Emissions|NH3|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|India,Emissions|NOx|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|India,Emissions|NOx|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|India,Emissions|OC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|India,Emissions|OC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|India,Emissions|Sulfur|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|India,Emissions|Sulfur|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|India,Emissions|VOC|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|India,Emissions|VOC|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|CO|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|CO|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|N2O|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|N2O|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|NH3|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|NH3|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|OC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|Sulfur|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|Sulfur|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|VOC|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|VOC|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|BC|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|BC|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|CO2|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|CO|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|CO|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|OC|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|OC|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|VOC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|VOC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|CO|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|CO|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|OC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|VOC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|VOC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Middle East,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Middle East,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Middle East,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Middle East,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Middle East,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Middle East,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Middle East,Emissions|CO|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Middle East,Emissions|CO|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Middle East,Emissions|N2O|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Middle East,Emissions|N2O|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Middle East,Emissions|NH3|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Middle East,Emissions|NH3|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Middle East,Emissions|NOx|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Middle East,Emissions|NOx|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Middle East,Emissions|OC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Middle East,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Middle East,Emissions|Sulfur|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Middle East,Emissions|Sulfur|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Middle East,Emissions|VOC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Middle East,Emissions|VOC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Pakistan,Emissions|BC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Pakistan,Emissions|BC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Pakistan,Emissions|CH4|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Pakistan,Emissions|CH4|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Pakistan,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Pakistan,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Pakistan,Emissions|CO|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Pakistan,Emissions|CO|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Pakistan,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Pakistan,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Pakistan,Emissions|NH3|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Pakistan,Emissions|NH3|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Pakistan,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Pakistan,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Pakistan,Emissions|OC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Pakistan,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Pakistan,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Pakistan,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Pakistan,Emissions|VOC|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Pakistan,Emissions|VOC|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|BC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|BC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|CO2|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|CO|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|CO|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|OC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|VOC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|VOC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|CO|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|CO|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|OC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|Sulfur|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|Sulfur|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|VOC|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|VOC|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Northern,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Northern,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Northern,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Northern,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Northern,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Northern,Emissions|CO2|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Northern,Emissions|CO|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Northern,Emissions|CO|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Northern,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Northern,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Northern,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Northern,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Northern,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Northern,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Northern,Emissions|OC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Northern,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Northern,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Northern,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Northern,Emissions|VOC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Northern,Emissions|VOC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Southern,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Southern,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Southern,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Southern,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Southern,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Southern,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Southern,Emissions|CO|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Southern,Emissions|CO|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Southern,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Southern,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Southern,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Southern,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Southern,Emissions|NOx|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Southern,Emissions|NOx|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Southern,Emissions|OC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Southern,Emissions|OC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Southern,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Southern,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Southern,Emissions|VOC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South America_Southern,Emissions|VOC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Asia,Emissions|BC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Asia,Emissions|BC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Asia,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Asia,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Asia,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Asia,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Asia,Emissions|CO|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Asia,Emissions|CO|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Asia,Emissions|N2O|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Asia,Emissions|N2O|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Asia,Emissions|NH3|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Asia,Emissions|NH3|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Asia,Emissions|NOx|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Asia,Emissions|NOx|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Asia,Emissions|OC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Asia,Emissions|OC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Asia,Emissions|Sulfur|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Asia,Emissions|Sulfur|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Asia,Emissions|VOC|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Asia,Emissions|VOC|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Korea,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Korea,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Korea,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Korea,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Korea,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Korea,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Korea,Emissions|CO|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Korea,Emissions|CO|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Korea,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Korea,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Korea,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Korea,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Korea,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Korea,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Korea,Emissions|OC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Korea,Emissions|OC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Korea,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Korea,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Korea,Emissions|VOC|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Korea,Emissions|VOC|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Southeast Asia,Emissions|BC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Southeast Asia,Emissions|BC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Southeast Asia,Emissions|CH4|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Southeast Asia,Emissions|CH4|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Southeast Asia,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Southeast Asia,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Southeast Asia,Emissions|CO|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Southeast Asia,Emissions|CO|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Southeast Asia,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Southeast Asia,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Southeast Asia,Emissions|NH3|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Southeast Asia,Emissions|NH3|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Southeast Asia,Emissions|NOx|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Southeast Asia,Emissions|NOx|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Southeast Asia,Emissions|OC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Southeast Asia,Emissions|OC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Southeast Asia,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Southeast Asia,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Southeast Asia,Emissions|VOC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Southeast Asia,Emissions|VOC|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Taiwan,Emissions|BC|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Taiwan,Emissions|BC|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Taiwan,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Taiwan,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Taiwan,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Taiwan,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Taiwan,Emissions|CO|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Taiwan,Emissions|CO|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Taiwan,Emissions|N2O|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Taiwan,Emissions|N2O|Industrial Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Taiwan,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Taiwan,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Taiwan,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Taiwan,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Taiwan,Emissions|OC|Energy Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Taiwan,Emissions|OC|Industrial Sector,constant_ratio
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Taiwan,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Taiwan,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Taiwan,Emissions|VOC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Taiwan,Emissions|VOC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|USA,Emissions|BC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|USA,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|USA,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|USA,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|USA,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|USA,Emissions|CO2|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|USA,Emissions|CO|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|USA,Emissions|CO|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|USA,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|USA,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|USA,Emissions|NH3|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|USA,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|USA,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|USA,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|USA,Emissions|OC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|USA,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|USA,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|USA,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|USA,Emissions|VOC|Energy Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|USA,Emissions|VOC|Industrial Sector,reduce_offset_2150_cov
