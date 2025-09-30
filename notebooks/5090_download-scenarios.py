@@ -52,7 +52,7 @@ from emissions_harmonization_historical.constants_5000 import (
 # ## Set up
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model_search: str = "REMIND"
+model_search: str = "MESSAGE"
 
 # %%
 output_dir_model = DATA_ROOT / "raw" / "scenarios" / DOWNLOAD_SCENARIOS_ID / model_search
@@ -169,9 +169,8 @@ for _, row in tqdm.auto.tqdm(to_download.iterrows(), total=to_download.shape[0])
 # %%
 tmpdir = Path(tempfile.mkdtemp(prefix="ssp-submission-db"))
 
+
 # %%
-
-
 def check_negatives(df):  # noqa : D103
     # Filter rows where negative values are allowed
     mask_exclude_from_check = df.index.get_level_values("variable").str.contains("CO2") | df.index.get_level_values(
@@ -204,6 +203,12 @@ def check_negatives(df):  # noqa : D103
                 err = [(idx, col, val) for col, val in zip(neg_rows.index, neg_rows.tolist())]
                 msg = f"Negative values found:\n{err}"
                 raise ValueError(msg)
+
+        # As the Error has not been raised we can set to zero "small" negative values
+        df.loc[~mask_exclude_from_check] = df.loc[~mask_exclude_from_check].mask(
+            (df.loc[~mask_exclude_from_check] < 0),
+            0,
+        )
 
 
 # %%
