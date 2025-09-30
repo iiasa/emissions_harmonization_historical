@@ -205,8 +205,6 @@ def check_negatives(df):  # noqa : D103
                 msg = f"Negative values found:\n{err}"
                 raise ValueError(msg)
 
-        df_ts.clip(lower=0)
-
 
 # %%
 for _, row in tqdm.auto.tqdm(to_download.iterrows(), total=to_download.shape[0]):
