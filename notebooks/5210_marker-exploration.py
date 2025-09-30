@@ -56,11 +56,10 @@ pd.set_option("display.max_columns", 100)
 scenarios_to_analyse = [
     ("WITCH 6.0", "SSP5 - Medium-Low Emissions_a"),
     ("GCAM 7.1 scenarioMIP", "SSP3 - High Emissions_a"),
-    ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions_e"),
+    ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions"),
     ("COFFEE 1.6", "SSP2 - Medium-Low Emissions"),
     ("IMAGE 3.4", "SSP2 - Medium Emissions"),
-    # Note: still waiting to decide which variant
-    ("AIM 3.0", "SSP2 - Low Overshoot_a"),
+    ("AIM 3.0", "SSP2 - Low Overshoot"),
     ("REMIND-MAgPIE 3.5-4.11", "SSP1 - Very Low Emissions"),
 ]
 

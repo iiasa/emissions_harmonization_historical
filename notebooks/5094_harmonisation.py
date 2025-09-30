@@ -470,10 +470,6 @@ for key, idf, user_overrides in (
 for key in ["gridding", "global"]:
     tmp = res[key].timeseries
 
-    if model.startswith("MESSAGE"):
-        break
-    if model.startswith("REMIND"):
-        break
     # Filter rows where 'unit' is not "CO2"
     tmp_not_co2 = tmp.loc[~tmp.index.get_level_values("unit").str.contains("CO2")]
 

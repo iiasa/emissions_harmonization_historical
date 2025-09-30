@@ -271,34 +271,7 @@ HISTORY_HARMONISATION_DB = OpenSCMDB(
 
 
 # # ID for the scenario download step
-# DOWNLOAD_SCENARIOS_ID = "0001"
-# # Updated May 6 for revised AIM scenarios
-# DOWNLOAD_SCENARIOS_ID = "0002"
-# # Chris workaround
-# DOWNLOAD_SCENARIOS_ID = "0003"
-# # Update hashing
-# DOWNLOAD_SCENARIOS_ID = "0004"
-# # Moved to portable OpenSCMDB
-# DOWNLOAD_SCENARIOS_ID = "0005"
-# # Scratch while we wait for new submissions
-# DOWNLOAD_SCENARIOS_ID = "0006-zn-rc0"
-# 2025-05-23 submissions
-# (still problems with how we harmonise novel CDR,
-# but good interim step)
-DOWNLOAD_SCENARIOS_ID = "0006"
-# DOWNLOAD_SCENARIOS_ID = "0006-MZ"
-# 2025-05-26 run
-# (still problems with how we harmonise novel CDR,
-# but good interim step)
-DOWNLOAD_SCENARIOS_ID = "0008"
-# Development helper
-DOWNLOAD_SCENARIOS_ID = "0009-zn"
-# Temporary to investigate code
-DOWNLOAD_SCENARIOS_ID = "0010-jk"
-# Run intermediary submission REMIND 20250617
-DOWNLOAD_SCENARIOS_ID = "0011-REMIND-jk"
-# Run 20250710 by Marco (prepared with/by Jarmo)
-DOWNLOAD_SCENARIOS_ID = "08Snapshot"
+# Run by Marco
 DOWNLOAD_SCENARIOS_ID = "20250915"
 
 # Database into which raw scenarios are saved
