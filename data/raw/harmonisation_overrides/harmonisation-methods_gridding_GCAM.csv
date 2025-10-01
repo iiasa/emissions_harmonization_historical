@@ -177,8 +177,8 @@ GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbea
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
-GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|VOC|Energy Sector,reduce_offset_2150_cov
-GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|VOC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|VOC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central America and Caribbean,Emissions|VOC|Industrial Sector,reduce_ratio_2080
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|BC|Energy Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Central Asia,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
@@ -259,8 +259,8 @@ GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|Sulfur|Energ
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|VOC|Energy Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-12,Emissions|VOC|Industrial Sector,reduce_offset_2150_cov
-GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|BC|Energy Sector,reduce_offset_2150_cov
-GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|BC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|BC|Industrial Sector,reduce_ratio_2080
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
@@ -273,8 +273,8 @@ GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|NH3|Energy S
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
-GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|OC|Energy Sector,reduce_offset_2150_cov
-GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|OC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|OC|Industrial Sector,reduce_ratio_2080
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|EU-15,Emissions|VOC|Energy Sector,reduce_offset_2150_cov
@@ -381,8 +381,8 @@ GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|VOC|Ener
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Indonesia,Emissions|VOC|Industrial Sector,constant_ratio
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|BC|Energy Sector,constant_ratio
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|BC|Industrial Sector,constant_ratio
-GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
-GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|CH4|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|CH4|Industrial Sector,reduce_ratio_2080
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|CO2|Industrial Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|CO|Energy Sector,reduce_offset_2150_cov
@@ -397,8 +397,8 @@ GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|OC|Energy Se
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|OC|Industrial Sector,constant_ratio
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
-GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|VOC|Energy Sector,reduce_offset_2150_cov
-GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|VOC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|VOC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Japan,Emissions|VOC|Industrial Sector,reduce_ratio_2080
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|BC|Energy Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|BC|Industrial Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Mexico,Emissions|CH4|Energy Sector,reduce_offset_2150_cov
@@ -473,8 +473,8 @@ GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|NH3|Energy 
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|NH3|Industrial Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|NOx|Energy Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|NOx|Industrial Sector,reduce_offset_2150_cov
-GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|OC|Energy Sector,reduce_offset_2150_cov
-GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|OC|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|OC|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|OC|Industrial Sector,reduce_ratio_2080
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|Sulfur|Energy Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|Sulfur|Industrial Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|Russia,Emissions|VOC|Energy Sector,reduce_ratio_2080
@@ -485,8 +485,8 @@ GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|CH4|E
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|CH4|Industrial Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|CO2|Energy Sector,reduce_ratio_2080
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|CO2|Industrial Sector,reduce_ratio_2080
-GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|CO|Energy Sector,reduce_offset_2150_cov
-GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|CO|Industrial Sector,reduce_offset_2150_cov
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|CO|Energy Sector,reduce_ratio_2080
+GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|CO|Industrial Sector,reduce_ratio_2080
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|N2O|Energy Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|N2O|Industrial Sector,reduce_offset_2150_cov
 GCAM 7.1 scenarioMIP,SSP3 - High Emissions,GCAM 7.1|South Africa,Emissions|NH3|Energy Sector,reduce_offset_2150_cov

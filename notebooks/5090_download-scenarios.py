@@ -52,7 +52,7 @@ from emissions_harmonization_historical.constants_5000 import (
 # ## Set up
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model_search: str = "MESSAGE"
+model_search: str = "GCAM"
 
 # %%
 output_dir_model = DATA_ROOT / "raw" / "scenarios" / DOWNLOAD_SCENARIOS_ID / model_search
@@ -116,7 +116,7 @@ if model_search == "IMAGE":
 if model_search == "COFFEE":
     to_download = to_download[to_download["scenario"].str.endswith("- Medium-Low Emissions")]
 if model_search == "GCAM":
-    to_download = to_download[to_download["scenario"].str.endswith("- High Emissions")]
+    to_download = to_download[to_download["scenario"].str.endswith("SSP3 - High Emissions")]
 if model_search == "WITCH":
     to_download = to_download[to_download["scenario"].str.contains("- Medium-Low Emissions")]
 

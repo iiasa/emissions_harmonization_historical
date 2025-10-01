@@ -272,7 +272,7 @@ HISTORY_HARMONISATION_DB = OpenSCMDB(
 
 # # ID for the scenario download step
 # Run by Marco
-DOWNLOAD_SCENARIOS_ID = "20250915"
+DOWNLOAD_SCENARIOS_ID = "GCAM_overrides"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(

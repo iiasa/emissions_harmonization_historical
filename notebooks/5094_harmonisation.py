@@ -52,7 +52,7 @@ from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR,
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "IMAGE"
+model: str = "GCAM"
 make_region_sector_plots: bool = False
 output_to_pdf: bool = False
 
@@ -511,6 +511,8 @@ for key, idf, user_overrides in (
 for key in ["gridding", "global"]:
     tmp = res[key].timeseries
 
+    if model.startswith("GCAM"):
+        break
     # Filter rows where 'unit' is not "CO2"
     tmp_not_co2 = tmp.loc[~tmp.index.get_level_values("unit").str.contains("CO2")]
 
