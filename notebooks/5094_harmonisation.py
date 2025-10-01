@@ -53,6 +53,7 @@ pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
 model: str = "IMAGE"
+
 make_region_sector_plots: bool = False
 output_to_pdf: bool = False
 
@@ -596,6 +597,7 @@ combo_gridding.columns = combo_gridding.columns.astype(int)
 # %%
 single_variable = "Emissions|CO2|BECCS"
 single_variable = "Emissions|CH4|Grassland Burning"
+single_variable = "Emissions|CH4|Peat Burning"
 # single_variable = "Emissions|CO2|Other non-Land CDR"
 pdf = (
     combo_gridding.loc[
@@ -819,6 +821,153 @@ for ax in fg.axes.flatten():
 # %% [markdown]
 # ### Gridding emissions
 
+# %% [markdown]
+# #### Total
+
+# %%
+gridding_aggregate_pre_processed = to_global_workflow_emissions(
+    model_pre_processed_for_gridding,
+    global_workflow_co2_fossil_sector="Energy and Industrial Processes",
+    global_workflow_co2_biosphere_sector="AFOLU",
+).pix.assign(
+    workflow="gridding",
+    stage="pre-processed",
+)
+
+combo_global_v_gridding_by_stage = pix.concat(
+    [
+        combo_global.pix.assign(workflow="global").loc[pix.isin(variable=gridding_aggregates.pix.unique("variable"))],
+        gridding_aggregates,
+        gridding_aggregate_pre_processed,
+    ]
+).sort_index(axis="columns")
+
+pdf_global_v_gridding_by_stage = (
+    combo_global_v_gridding_by_stage.loc[
+        :,
+        1990:2100,
+    ]
+    .openscm.to_long_data()
+    .dropna()
+)
+pdf_global_v_gridding_by_stage["workflow - stage"] = (
+    pdf_global_v_gridding_by_stage["workflow"] + " - " + pdf_global_v_gridding_by_stage["stage"]
+)
+# pdf_global_v_gridding_by_stage = pdf_global_v_gridding_by_stage[
+#     pdf_global_v_gridding_by_stage["scenario"].isin(
+#         ["historical", gridding_aggregate_pre_processed.pix.unique("scenario")[0]]
+#     )
+# ]
+pdf_global_v_gridding_by_stage
+
+# %%
+if output_to_pdf:
+    ctx_manager = PdfPages(output_dir_model / f"harmonisation-results-gridding-global-aggregate_{model}.pdf")
+
+else:
+    ctx_manager = nullcontext()
+
+with ctx_manager as output_pdf_file:
+    fg = sns.relplot(
+        data=pdf_global_v_gridding_by_stage,
+        x="time",
+        y="value",
+        hue="scenario",
+        hue_order=sorted(pdf_global_v_gridding_by_stage["scenario"].unique()),
+        style="workflow - stage",
+        dashes={
+            "global - history": (3, 3),
+            "global - pre-processed": (1, 1),
+            "global - harmonised": (3, 3),
+            "gridding - history": "",
+            "gridding - harmonised": "",
+            "gridding - pre-processed": (1, 3),
+        },
+        col="variable",
+        col_order=sorted(pdf_global_v_gridding["variable"].unique()),
+        col_wrap=3,
+        estimator=None,
+        facet_kws=dict(sharey=False),
+        kind="line",
+    )
+    for ax in fg.axes.flatten():
+        if "Emissions|CO2" in ax.get_title():
+            ax.axhline(0.0, linestyle="--", color="tab:gray")
+
+        elif "Carbon Removal" in ax.get_title():
+            ax.set_ylim(ymax=0.0)
+
+        else:
+            ax.set_ylim(ymin=0.0)
+
+    if output_to_pdf:
+        output_pdf_file.savefig(bbox_inches="tight")
+        plt.close()
+    else:
+        plt.show()
+
+# %%
+pdf_global_v_gridding_by_stage_used_only = pdf_global_v_gridding_by_stage[
+    (
+        pdf_global_v_gridding_by_stage["variable"].isin(["Emissions|CO2|AFOLU"])
+        & pdf_global_v_gridding_by_stage["workflow"].isin(["global"])
+    )
+    | (
+        ~pdf_global_v_gridding_by_stage["variable"].isin(["Emissions|CO2|AFOLU"])
+        & pdf_global_v_gridding_by_stage["workflow"].isin(["gridding"])
+    )
+]
+
+if output_to_pdf:
+    ctx_manager = PdfPages(
+        output_dir_model / f"harmonisation-results-gridding-global-aggregate-only-used-timeseries_{model}.pdf"
+    )
+
+else:
+    ctx_manager = nullcontext()
+
+with ctx_manager as output_pdf_file:
+    fg = sns.relplot(
+        data=pdf_global_v_gridding_by_stage_used_only,
+        x="time",
+        y="value",
+        hue="scenario",
+        hue_order=sorted(pdf_global_v_gridding_by_stage["scenario"].unique()),
+        style="workflow - stage",
+        dashes={
+            "global - history": (3, 3),
+            "global - pre-processed": (1, 1),
+            "global - harmonised": (3, 3),
+            "gridding - history": "",
+            "gridding - harmonised": "",
+            "gridding - pre-processed": (1, 3),
+        },
+        col="variable",
+        col_order=sorted(pdf_global_v_gridding["variable"].unique()),
+        col_wrap=3,
+        estimator=None,
+        facet_kws=dict(sharey=False),
+        kind="line",
+    )
+    for ax in fg.axes.flatten():
+        if "Emissions|CO2" in ax.get_title():
+            ax.axhline(0.0, linestyle="--", color="tab:gray")
+
+        elif "Carbon Removal" in ax.get_title():
+            ax.set_ylim(ymax=0.0)
+
+        else:
+            ax.set_ylim(ymin=0.0)
+
+    if output_to_pdf:
+        output_pdf_file.savefig(bbox_inches="tight")
+        plt.close()
+    else:
+        plt.show()
+
+# %% [markdown]
+# #### By gas, region
+
 # %%
 pdf_gridding = pix.concat(
     [
@@ -885,6 +1034,19 @@ if make_region_sector_plots:
             pdf_r = pdf_sectors.loc[pix.isin(region=region)]
             for species in tqdm.auto.tqdm(species_l, desc="species", leave=False):
                 sdf = pdf_r.loc[pix.isin(species=species)]
+                sdf = pix.concat(
+                    [
+                        sdf,
+                        sdf.loc[~pix.isin(scenario="historical")]
+                        .openscm.groupby_except("sectors")
+                        .sum(min_count=1)
+                        .pix.assign(sectors="Total"),
+                        sdf.loc[pix.isin(scenario="historical")]
+                        .openscm.groupby_except(["model", "sectors"])
+                        .sum(min_count=1)
+                        .pix.assign(model="hist-contributors", sectors="Total"),
+                    ]
+                )
                 snsdf = sdf.openscm.to_long_data().dropna()
                 fg = sns.relplot(
                     data=snsdf,
@@ -900,6 +1062,7 @@ if make_region_sector_plots:
                     },
                     col="sectors",
                     col_wrap=min(3, len(snsdf["sectors"].unique())),
+                    col_order=["Total", *sorted(set(snsdf["sectors"].unique()) - {"Total"})],
                     kind="line",
                     facet_kws=dict(sharey=False),
                 )
@@ -917,11 +1080,6 @@ if make_region_sector_plots:
                     plt.close()
                 else:
                     plt.show()
-
-            # # Don't plot all for now
-            # if region != "World":
-            #     break
-            # break
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Create combination to use for simple climate models
