@@ -52,7 +52,7 @@ from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR,
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "WITCH"
+model: str = "IMAGE"
 make_region_sector_plots: bool = False
 output_to_pdf: bool = False
 
@@ -143,8 +143,6 @@ history_for_harmonisation = history_for_harmonisation.dropna(axis="columns")
 if HARMONISATION_YEAR not in history_for_harmonisation:
     raise AssertionError
 
-history_for_harmonisation
-
 # %% [markdown]
 # ## Harmonise
 
@@ -161,6 +159,34 @@ user_overrides_global = None
 # #### Model specific
 
 # %%
+if model.startswith("IMAGE"):
+    user_overrides_gridding = pd.Series(
+        np.nan,
+        index=model_pre_processed_for_gridding.index.droplevel(
+            model_pre_processed_for_gridding.index.names.difference(["model", "scenario", "region", "variable"])
+        ),
+        name="method",
+    ).astype(str)
+
+    mask = pix.ismatch(
+        variable=[
+            "**Forest Burning**",
+        ]
+    )
+    user_overrides_gridding.loc[mask] = "reduce_offset_2030"
+
+    mask = pix.ismatch(
+        variable=[
+            "**CO|Energy Sector**",
+        ]
+    ) & user_overrides_gridding.index.get_level_values("region").str.contains(
+        "Eastern Africa|India|Rest of Southern Africa|Western Africa"
+    )
+
+    user_overrides_gridding.loc[mask] = "reduce_offset_2080"
+
+    user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
+
 if model.startswith("WITCH"):
     user_overrides_gridding = pd.Series(
         np.nan,

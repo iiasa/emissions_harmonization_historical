@@ -59,7 +59,6 @@ scenarios_to_analyse = [
     ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions"),
     ("COFFEE 1.6", "SSP2 - Medium-Low Emissions"),
     ("IMAGE 3.4", "SSP2 - Medium Emissions"),
-    # Note: still waiting to decide which variant
     ("AIM 3.0", "SSP2 - Low Overshoot"),
     ("REMIND-MAgPIE 3.5-4.11", "SSP1 - Very Low Emissions"),
 ]
@@ -195,7 +194,7 @@ def create_legend(ax, handles) -> None:
     ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(1.05, -0.2))
 
 
-fig, axes = plt.subplots(ncols=2, figsize=(8, 4), sharex=True)
+fig, axes = plt.subplots(ncols=2, figsize=(16, 8), sharex=True)
 for i, (ax, yticks) in enumerate(zip(axes, [np.arange(0.5, 4.01, 0.5), np.arange(1.1, 2.01, 0.1)])):
     pdf_temperature.openscm.plot_plume_after_calculating_quantiles(
         quantile_over="run_id",
@@ -212,6 +211,11 @@ for i, (ax, yticks) in enumerate(zip(axes, [np.arange(0.5, 4.01, 0.5), np.arange
     ax.set_ylim(ymin=yticks.min(), ymax=yticks.max())
     # ax.set_ylim(ymax=ymax)
     ax.grid()
+fig.savefig("All_AIM_base.png", bbox_inches="tight")
+
+
+# %%
+fig.savefig("temperature_all_marker.pdf", format="pdf", bbox_inches="tight")
 
 # %% [markdown]
 # ### Peak and 2100 warming
@@ -334,3 +338,7 @@ for i, variable_to_plot in enumerate(emissions_to_plot):
         ax.legend().remove()
 
     ax.grid()
+
+# %%
+
+# %%

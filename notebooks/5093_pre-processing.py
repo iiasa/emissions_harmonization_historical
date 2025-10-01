@@ -283,3 +283,5 @@ for stage, df in (
 ):
     PRE_PROCESSED_SCENARIO_DB.save(df.pix.assign(stage=stage), allow_overwrite=True)
     print(f"Saved {stage}")
+
+# %%

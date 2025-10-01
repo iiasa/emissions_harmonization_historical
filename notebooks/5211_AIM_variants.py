@@ -47,7 +47,7 @@ pd.set_option("display.max_rows", 100)
 pd.set_option("display.max_columns", 100)
 
 # %%
-# POST_PROCESSED_METADATA_CATEGORIES_DB.load_metadata().to_frame(index=False)
+POST_PROCESSED_METADATA_CATEGORIES_DB.load_metadata().to_frame(index=False)
 
 # %% [markdown]
 # ## Load data
@@ -55,7 +55,12 @@ pd.set_option("display.max_columns", 100)
 # %%
 scenarios_to_analyse = [
     # Note: still waiting to decide which variant
-    ("AIM 3.0", "SSP2 - Low Overshoot*"),
+    ("AIM 3.0", "SSP2 - Low Overshoot"),
+    ("AIM 3.0", "SSP2 - Low Overshoot_a"),
+    ("AIM 3.0", "SSP2 - Low Overshoot_b"),
+    ("AIM 3.0", "SSP2 - Low Overshoot_c"),
+    # ("MESSAGE*", "SSP2 - Low Emissions_d"),
+    # ("MESSAGE*", "SSP2 - Low Emissions_e"),
 ]
 
 # %%
@@ -189,6 +194,8 @@ for i, (ax, yticks) in enumerate(zip(axes, [np.arange(0.5, 4.01, 0.5), np.arange
     ax.set_ylim(ymin=yticks.min(), ymax=yticks.max())
     # ax.set_ylim(ymax=ymax)
     ax.grid()
+fig.savefig("AIM_variants_temperature.png", bbox_inches="tight")
+
 
 # %% [markdown]
 # ### Peak and 2100 warming
@@ -258,6 +265,8 @@ for i, variable_to_plot in enumerate(erfs_to_plot):
 # ax.set_ylim(ymin=yticks.min(), ymax=yticks.max())
 # # ax.set_ylim(ymax=ymax)
 # ax.grid()
+fig.savefig("AIM_forcings.png", bbox_inches="tight")
+
 
 # %% [markdown]
 # ### Emissions
@@ -309,5 +318,10 @@ for i, variable_to_plot in enumerate(emissions_to_plot):
         ax.legend().remove()
 
     ax.grid()
+
+
+# %%
+fig.savefig("AIM_emissions.png", bbox_inches="tight")
+
 
 # %%
