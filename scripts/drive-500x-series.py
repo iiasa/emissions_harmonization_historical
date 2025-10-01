@@ -126,7 +126,7 @@ def main():  # noqa: PLR0912
     ]
 
     # Run the notebook
-    notebook_prefixes = ["5006"]
+    # notebook_prefixes = ["5006"]
     # Skip this step
     notebook_prefixes = []
     for sp, sp_esgf in species[::-1]:
@@ -160,13 +160,13 @@ def main():  # noqa: PLR0912
     # ]
     # All
     iams = [
-        "IMAGE",
+        # "IMAGE",
         "WITCH",
-        "REMIND",
-        "MESSAGE",
-        "GCAM",
-        "COFFEE",
-        "AIM",
+        # "REMIND",
+        # "MESSAGE",
+        # "GCAM",
+        # "COFFEE",
+        # "AIM",
     ]
     # iams = ["COFFEE"]
 
@@ -174,7 +174,7 @@ def main():  # noqa: PLR0912
     # Single notebook
     # notebook_prefixes = ["5090"]
     # # Everything except downloads and reporting checking
-    # notebook_prefixes = ["5093", "5094"]
+    # notebook_prefixes = ["5093","5094"]
     # # # Downloading and reporting checking
     # # notebook_prefixes = ["5090", "5091", "5092"]
     # Everything
