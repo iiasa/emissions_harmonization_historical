@@ -116,17 +116,17 @@ def main():  # noqa: PLR0912
         ("BC", "BC"),
         ("CH4", "CH4"),
         ("CO", "CO"),
-        ("CO2", "CO2"),
-        ("N2O", "N2O"),  # new, to have regional, was global in CMIP6
-        ("NH3", "NH3"),
-        ("NMVOC", "NMVOCbulk"),  # assumed to be equivalent to IAMC-style reported VOC
-        ("NOx", "NOx"),
-        ("OC", "OC"),
-        ("SO2", "SO2"),
+        # ("CO2", "CO2"),
+        # ("N2O", "N2O"),  # new, to have regional, was global in CMIP6
+        # ("NH3", "NH3"),
+        # ("NMVOC", "NMVOCbulk"),  # assumed to be equivalent to IAMC-style reported VOC
+        # ("NOx", "NOx"),
+        # ("OC", "OC"),
+        # ("SO2", "SO2"),
     ]
 
     # Run the notebook
-    # notebook_prefixes = ["5006"]
+    notebook_prefixes = ["5006"]
     # Skip this step
     notebook_prefixes = []
     for sp, sp_esgf in species[::-1]:
@@ -144,29 +144,19 @@ def main():  # noqa: PLR0912
     # iams = ["GCAM"]
     # iams = ["WITCH"]
     # iams = ["AIM"]
+    iams = ["MESSAGE"]
     # Combos
-    # iams = ["COFFEE", "WITCH"]
-    # iams = [
-    #     "WITCH",
-    #     "REMIND",
-    #     "IMAGE",
-    #     "AIM",
-    #     "MESSAGE",
-    #     "COFFEE",
-    # ]
-    # # Waiting for submission
-    # iams = [
-    #     "GCAM",
-    # ]
+    iams = ["COFFEE", "GCAM"]
+    # iams = ["WITCH", "REMIND", "IMAGE", "AIM", "MESSAGE", "COFFEE", "GCAM"]
     # All
     iams = [
-        # "IMAGE",
+        "IMAGE",
         "WITCH",
-        # "REMIND",
-        # "MESSAGE",
-        # "GCAM",
-        # "COFFEE",
-        # "AIM",
+        "REMIND",
+        "MESSAGE",
+        "GCAM",
+        "COFFEE",
+        "AIM",
     ]
     # iams = ["COFFEE"]
 
@@ -180,7 +170,7 @@ def main():  # noqa: PLR0912
     # Everything
     notebook_prefixes = ["5090", "5091", "5092", "5093", "5094"]
     # # Skip this step
-    # notebook_prefixes = []
+    notebook_prefixes = []
 
     for iam in tqdm.tqdm(iams, desc="IAMs pre infilling"):
         for notebook in all_notebooks:
@@ -209,7 +199,6 @@ def main():  # noqa: PLR0912
                 parameters={},
                 idn="only",
             )
-
     ### Infilling & Post-processing of emissions
     # only infilling
     # notebook_prefixes = ["5190"]
@@ -238,6 +227,7 @@ def main():  # noqa: PLR0912
     # Skip this step
     # notebook_prefixes = []
     scms = ["MAGICCv7.6.0a3", "MAGICCv7.5.3"]
+    scms = ["MAGICCv7.6.0a3"]
     for iam, scm in tqdm.tqdm(itertools.product(iams, scms), desc="IAM SCM runs"):
         for notebook in all_notebooks:
             if any(notebook.name.startswith(np) for np in notebook_prefixes):
