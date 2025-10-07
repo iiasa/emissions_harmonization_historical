@@ -235,7 +235,7 @@ RCMIP_PROCESSED_DB = OpenSCMDB(
 COMMON_DEFINITIONS_COMMIT = get_latest_commit_hash(
     "IAMconsortium", "common-definitions", fallback_commit="cc69ed0a415a63c7ce7372d5a36c088d9cbee055"
 )
-
+COMMON_DEFINITIONS_COMMIT = "3e85a57cf491180e36eac2dd588b43f250d612c7"
 COMMON_DEFINITIONS_PATH = REPO_ROOT / "common-definitions"
 
 
