@@ -120,6 +120,7 @@ CREATE_HISTORY_FOR_GRIDDING_ID = "_".join(
         CEDS_PROCESSING_ID,
         BB4CMIP7_ANNUAL_SECTORAL_COUNTRY_ID,
         BB4CMIP7_FORMATTING_ID,
+        "0001",
     ]
 )
 
@@ -236,6 +237,7 @@ COMMON_DEFINITIONS_COMMIT = get_latest_commit_hash(
     "IAMconsortium", "common-definitions", fallback_commit="cc69ed0a415a63c7ce7372d5a36c088d9cbee055"
 )
 
+COMMON_DEFINITIONS_COMMIT = "3e85a57cf491180e36eac2dd588b43f250d612c7"
 COMMON_DEFINITIONS_PATH = REPO_ROOT / "common-definitions"
 
 
@@ -272,7 +274,7 @@ HISTORY_HARMONISATION_DB = OpenSCMDB(
 
 # # ID for the scenario download step
 # Run by Marco
-DOWNLOAD_SCENARIOS_ID = "20250915"
+DOWNLOAD_SCENARIOS_ID = "gcages_test"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(
@@ -289,6 +291,7 @@ PRE_PROCESSING_ID = "0002"
 PRE_PROCESSING_ID = "0003"
 # Upgrade to gcages which puts CDR in the Emissions tree
 PRE_PROCESSING_ID = "0004"
+PRE_PROCESSING_ID = "0005"
 
 # Database into which pre-processed scenarios are saved
 PRE_PROCESSED_SCENARIO_DB = OpenSCMDB(
