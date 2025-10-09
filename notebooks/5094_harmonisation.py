@@ -1110,6 +1110,12 @@ if make_region_sector_plots:
                     ]
                 )
                 snsdf = sdf.openscm.to_long_data().dropna()
+                col_order = ["Total", *sorted(set(snsdf["sectors"].unique()) - {"Total"})]
+
+                if species == "CO2":
+                    col_order = [*sorted(set(snsdf["sectors"].unique()) - {"Total"})]
+                    snsdf = snsdf[snsdf["sectors"] != "Total"]
+
                 fg = sns.relplot(
                     data=snsdf,
                     x="time",
@@ -1124,7 +1130,7 @@ if make_region_sector_plots:
                     },
                     col="sectors",
                     col_wrap=min(3, len(snsdf["sectors"].unique())),
-                    col_order=["Total", *sorted(set(snsdf["sectors"].unique()) - {"Total"})],
+                    col_order=col_order,
                     kind="line",
                     facet_kws=dict(sharey=False),
                 )
