@@ -36,6 +36,7 @@
 # %%
 import json
 import tempfile
+import warnings
 from pathlib import Path
 
 import pyam
@@ -51,7 +52,7 @@ from emissions_harmonization_historical.constants_5000 import (
 # ## Set up
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model_search: str = "MESSAGE"
+model_search: str = "GCAM"
 
 # %%
 output_dir_model = DATA_ROOT / "raw" / "scenarios" / DOWNLOAD_SCENARIOS_ID / model_search
@@ -97,28 +98,32 @@ props = conn_ssp.properties().reset_index()
 to_download = props[props["model"].str.contains(model_search)]
 
 if model_search == "REMIND":
-    to_download = to_download[to_download["scenario"].str.endswith("SSP1 - Very Low Emissions")]
-#    laurin = ("SSP1 - Very Low Emissions", "SSP2 - Low Emissions", "SSP2 - Medium Emissions","SSP3 - High Emissions")
-#    to_download = to_download[to_download["scenario"].str.endswith(laurin)]
+    ssp = ("SSP1 - Very Low Emissions", "SSP2 - Low Emissions", "SSP2 - Medium Emissions", "SSP3 - High Emissions")
+    to_download = to_download[to_download["scenario"].str.endswith(ssp)]
 if model_search == "AIM":
     to_download = to_download[to_download["scenario"].str.contains("- Low Overshoot")]
-#    to_download = to_download[to_download["scenario"].str.endswith("- Low Overshoot_e")]
 if model_search == "MESSAGE":
     to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Low Emissions")]
 if model_search == "IMAGE":
-    to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Medium Emissions")]
+    skip = (
+        "SSP1 - Very Low Emissions",
+        "SSP2 - Low Emissions",
+        "SSP2 - Medium-Low Emissions",
+        "SSP2 - Very Low Emissions",
+        "SSP2 - Very Low Emissions_a",
+    )
+    to_download = to_download[~to_download["scenario"].str.endswith(skip)]
 if model_search == "COFFEE":
     to_download = to_download[to_download["scenario"].str.endswith("- Medium-Low Emissions")]
 if model_search == "GCAM":
-    #   to_download = to_download[to_download["scenario"].str.endswith("- High Emissions")]
-    to_download = to_download[to_download["scenario"].str.contains("SSP3 - High Emissions")]
+    to_download = to_download[to_download["scenario"].str.endswith("- High Emissions")]
 if model_search == "WITCH":
     to_download = to_download[to_download["scenario"].str.contains("- Medium-Low Emissions")]
 
 to_download.shape[0]
 
 # %%
-to_download  # .head(2)
+to_download
 
 # %% [markdown]
 # ### Check the versions
@@ -164,6 +169,48 @@ for _, row in tqdm.auto.tqdm(to_download.iterrows(), total=to_download.shape[0])
 # %%
 tmpdir = Path(tempfile.mkdtemp(prefix="ssp-submission-db"))
 
+
+# %%
+def check_negatives(df):  # noqa : D103
+    # Filter rows where negative values are allowed
+    mask_exclude_from_check = df.index.get_level_values("variable").str.contains("CO2") | df.index.get_level_values(
+        "variable"
+    ).str.contains("Kyoto")
+
+    tmp_not_co2 = df.loc[~mask_exclude_from_check]
+    # Check for negative values
+    negative_rows = (tmp_not_co2 < 0).any(axis=1)
+
+    if negative_rows.any():
+        # Extract indices only from negative rows
+        negative_indices = tmp_not_co2.index[negative_rows]
+
+        negative = list(
+            zip(
+                negative_indices.get_level_values("scenario"),
+                negative_indices.get_level_values("region"),
+                negative_indices.get_level_values("variable"),
+            )
+        )
+
+        msg = f"Negative values found in rows with indices:\n{negative}"
+        warnings.warn(msg)
+
+        for idx, row in tmp_not_co2[negative_rows].iterrows():
+            neg_rows = row.where(row < -(10**-6)).dropna()
+
+            if not neg_rows.empty:
+                err = [(idx, col, val) for col, val in zip(neg_rows.index, neg_rows.tolist())]
+                msg = f"Negative values found:\n{err}"
+                raise ValueError(msg)
+
+        # As the Error has not been raised we can set to zero "small" negative values
+        df.loc[~mask_exclude_from_check] = df.loc[~mask_exclude_from_check].mask(
+            (df.loc[~mask_exclude_from_check] < 0),
+            0,
+        )
+
+
 # %%
 for _, row in tqdm.auto.tqdm(to_download.iterrows(), total=to_download.shape[0]):
     model = row.model
@@ -175,6 +222,8 @@ for _, row in tqdm.auto.tqdm(to_download.iterrows(), total=to_download.shape[0])
         raise AssertionError(msg)
 
     df_ts = df.timeseries()
+
+    check_negatives(df_ts)
 
     # If we got to this stage, we are fine with an overwrite
     RAW_SCENARIO_DB.save(df_ts, allow_overwrite=True)

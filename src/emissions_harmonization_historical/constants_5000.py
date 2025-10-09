@@ -303,6 +303,8 @@ DOWNLOAD_SCENARIOS_ID = "20250602-123212"
 # Run 20250710 by Marco (prepared with/by Jarmo)
 DOWNLOAD_SCENARIOS_ID = "08Snapshot"
 DOWNLOAD_SCENARIOS_ID = "20250818"
+# Run by Marco
+DOWNLOAD_SCENARIOS_ID = "20250915"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(

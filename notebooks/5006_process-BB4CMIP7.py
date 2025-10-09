@@ -294,6 +294,11 @@ for sv_name in tqdm.auto.tqdm(sector_variables):
         "polyfit_coefficients"
     ].sel(degree=0).assign_attrs(dict(units=sector_per_cell_regridded_per_year.attrs["units"]))
 
+    # Replace negative extrapolated values with zeros
+    neg_mask = (extrapolated < 0).compute()
+    if neg_mask.any().compute():
+        extrapolated = extrapolated.where(~neg_mask, 0)
+
     full = xr.concat([sector_per_cell_regridded_per_year, extrapolated], dim="year")
 
     selectors = dict(latitude=8.125, longitude=0.0, method="nearest")
