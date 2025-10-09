@@ -56,6 +56,9 @@ from emissions_harmonization_historical.extension_functionality import (
     sigmoid_function,
 )
 
+print(INFILLED_SCENARIOS_DB)
+print(HISTORY_HARMONISATION_DB)
+
 # %% [markdown]
 # ## Set up
 
