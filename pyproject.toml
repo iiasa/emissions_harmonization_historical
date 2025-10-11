@@ -22,7 +22,7 @@ dependencies = [
     "openscm-zenodo>=0.5.0,<0.6",
     "python-dotenv>=1.1.0,<2",
     # # To use a local version, comment this out and use the pypi-dependencies section below
-    # "gcages>=0.11.0",
+    "gcages>=0.12.0",
     # # To use a specific commit, use the line below.
     # "gcages @ git+https://github.com/openscm/gcages.git@0ffda1ce29fe9ff775ea6e3870fe157f62dd98f7",
     "ixmp4>=0.9.8,<0.10",
@@ -80,7 +80,7 @@ ipykernel = ">=6.29.5,<7"
 [tool.pixi.pypi-dependencies]
 emissions_harmonization_historical = { path = ".", editable = true }
 # # use this to pin to local version
-gcages = { path = "../gcages", editable = true }
+# gcages = { path = "../gcages", editable = true }
 
 [tool.jupytext]
 formats = "ipynb,py:percent"
