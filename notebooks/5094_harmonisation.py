@@ -52,7 +52,7 @@ from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR,
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "IMAGE"
+model: str = "MESSAGE"
 
 make_region_sector_plots: bool = False
 output_to_pdf: bool = False
@@ -404,7 +404,10 @@ user_overrides_gridding_cdr = pd.Series(
 # reduce_ratio_2040 may be a good choice for now.
 cdr_var_matcher = [
     "Emissions|CO2|BECCS",
-    "Emissions|CO2|Other non-Land CDR",
+    "Emissions|CO2|Enhanced Weathering",
+    "Emissions|CO2|Ocean",
+    "Emissions|CO2|Direct Air Capture",
+    "Emissions|CO2|Other CDR",
 ]
 user_overrides_gridding_cdr.loc[pix.ismatch(variable=cdr_var_matcher)] = "reduce_ratio_2040"
 user_overrides_gridding_cdr = user_overrides_gridding_cdr[
