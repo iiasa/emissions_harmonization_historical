@@ -174,6 +174,30 @@ if model.startswith("IMAGE"):
             "**Forest Burning**",
         ]
     )
+    user_overrides_gridding.loc[mask] = "constant_offset"
+
+    region_list = (
+        "IMAGE 3.4|Brazil",
+        "IMAGE 3.4|Central America",
+        "IMAGE 3.4|China Region",
+        "IMAGE 3.4|Eastern Africa",
+        "IMAGE 3.4|India",
+        "IMAGE 3.4|Indonesia Region",
+        "IMAGE 3.4|Japan",
+        "IMAGE 3.4|Rest of South America",
+        "IMAGE 3.4|Rest of Southern Africa",
+        "IMAGE 3.4|South Africa",
+        "IMAGE 3.4|Southeastern Asia",
+        "IMAGE 3.4|Western Africa",
+        "IMAGE 3.4|Western Europe",
+    )
+
+    mask = pix.ismatch(
+        variable=[
+            "**Forest Burning**",
+        ]
+    ) & user_overrides_gridding.index.get_level_values("region").str.endswith(region_list)
+
     user_overrides_gridding.loc[mask] = "reduce_offset_2030"
 
     mask = pix.ismatch(
