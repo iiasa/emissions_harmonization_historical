@@ -235,6 +235,7 @@ RCMIP_PROCESSED_DB = OpenSCMDB(
 COMMON_DEFINITIONS_COMMIT = get_latest_commit_hash(
     "IAMconsortium", "common-definitions", fallback_commit="cc69ed0a415a63c7ce7372d5a36c088d9cbee055"
 )
+COMMON_DEFINITIONS_COMMIT = "dc4de51f613de5e8f2f16b686106720316cfb8e1"
 
 COMMON_DEFINITIONS_PATH = REPO_ROOT / "common-definitions"
 
@@ -305,6 +306,12 @@ DOWNLOAD_SCENARIOS_ID = "08Snapshot"
 DOWNLOAD_SCENARIOS_ID = "20250818"
 # Run by Marco
 DOWNLOAD_SCENARIOS_ID = "20250915"
+# Local latest run by Marit
+DOWNLOAD_SCENARIOS_ID = "20251009-154352"
+# Local latest run by Marit
+DOWNLOAD_SCENARIOS_ID = "20251014-retry"
+# Local latest run by Marit
+DOWNLOAD_SCENARIOS_ID = "20251015"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(
@@ -388,6 +395,13 @@ INFILLED_OUT_DIR_ID = "_".join(
 )
 
 INFILLED_OUT_DIR = DATA_ROOT / "processed" / "infilled" / INFILLED_OUT_DIR_ID
+# print(f"Using infilled output dir: {INFILLED_OUT_DIR}")
+# print(f"DOWNLOAD_SCENARIOS_ID: {DOWNLOAD_SCENARIOS_ID}")
+# print(f"PRE_PROCESSING_ID: {PRE_PROCESSING_ID}")
+# print(f"HISTORY_FOR_HARMONISATION_ID: {HISTORY_FOR_HARMONISATION_ID}")
+# print(f"HARMONISATION_ID: {HARMONISATION_ID}")
+# print(f"INFILLING_ID: {INFILLING_ID}")
+# sys.exit(4)
 
 # Database into which infilled data is saved
 INFILLED_SCENARIOS_DB = OpenSCMDB(
