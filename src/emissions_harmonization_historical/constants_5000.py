@@ -110,16 +110,21 @@ BB4CMIP7_PROCESSED_DB = OpenSCMDB(
     backend_index=FeatherIndexBackend(),
 )
 
+# ID for including other modifications that affect
+# the creation of historical emissions dataset for gridding
+# Gcages CDR split
+MOD_HISTORY_FOR_GRIDDING_ID = "0001"
 # ID for the creation of a historical emissions dataset for gridding
 # CREATE_HISTORY_FOR_GRIDDING_ID = "0001"
 # Update to make the smoothing consistent with CMIP7
-CREATE_HISTORY_FOR_GRIDDING_ID = "0002"
+# CREATE_HISTORY_FOR_GRIDDING_ID = "0002"
 # Update to use BB4CMIP7 data
 CREATE_HISTORY_FOR_GRIDDING_ID = "_".join(
     [
         CEDS_PROCESSING_ID,
         BB4CMIP7_ANNUAL_SECTORAL_COUNTRY_ID,
         BB4CMIP7_FORMATTING_ID,
+        MOD_HISTORY_FOR_GRIDDING_ID,
     ]
 )
 
@@ -237,6 +242,7 @@ COMMON_DEFINITIONS_COMMIT = get_latest_commit_hash(
 )
 COMMON_DEFINITIONS_COMMIT = "dc4de51f613de5e8f2f16b686106720316cfb8e1"
 
+COMMON_DEFINITIONS_COMMIT = "3e85a57cf491180e36eac2dd588b43f250d612c7"
 COMMON_DEFINITIONS_PATH = REPO_ROOT / "common-definitions"
 
 
@@ -312,6 +318,8 @@ DOWNLOAD_SCENARIOS_ID = "20251009-154352"
 DOWNLOAD_SCENARIOS_ID = "20251014-retry"
 # Local latest run by Marit
 DOWNLOAD_SCENARIOS_ID = "20251015"
+# Current on main
+# DOWNLOAD_SCENARIOS_ID = "gcages_test"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(
@@ -328,6 +336,7 @@ PRE_PROCESSING_ID = "0002"
 PRE_PROCESSING_ID = "0003"
 # Upgrade to gcages which puts CDR in the Emissions tree
 PRE_PROCESSING_ID = "0004"
+PRE_PROCESSING_ID = "0005"
 
 # Database into which pre-processed scenarios are saved
 PRE_PROCESSED_SCENARIO_DB = OpenSCMDB(
