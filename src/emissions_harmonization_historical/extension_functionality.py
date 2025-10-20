@@ -53,7 +53,7 @@ def solve_LU_constants(cle_0, lu_0, dlu_0, cle_inf_0=False, min_tau=20):
         k_mult = -lu_0 / dlu_0
         cle_inf = cle_0 + k_mult
     tau = k_mult / lu_0
-    print(f"direct tau value: {tau}")
+
     if tau < min_tau:
         tau = min_tau
     elif tau > min_tau * 5:
@@ -73,11 +73,11 @@ def find_func_form_lu_extension(function, cle_func, t_vals, t_extend, cle_inf_0=
         cle_inf, k_mult, tau = solve_LU_constants(cle_0, lu_0, 1, cle_inf_0=cle_inf_0)
     else:
         dlu_0 = get_derivative_using_spline(function, t_vals, t_extend)
-        print(dlu_0)
+        # print(dlu_0)
         cle_inf, k_mult, tau = solve_LU_constants(cle_0, lu_0, dlu_0)
     ext_func = np.zeros(len(t_vals))
     ext_func[:t_extend] = function[:t_extend]
-    print(f"Value of tau is {tau}")
+    # print(f"Value of tau is {tau}")
     ext_func[t_extend:] = k_mult / tau * np.exp((t_vals[t_extend] - t_vals[t_extend:]) / tau)
     return ext_func, cle_inf
 
@@ -272,13 +272,6 @@ def make_quadratic_roll_to_linear_extension(  # noqa: PLR0913
     slope_min = vert_dist / (lin_seg_length + roll_start_length)
     slope = np.mean([slope_max, slope_min])
     height_at_start_of_linear = target_val - slope * lin_seg_length - vert_dist_for_end_cubic
-    print(f"slope at extension: {slope_at_extension}, calculated slope: {slope}")
-    print(f"height at start of linear: {height_at_start_of_linear}")
-    print(
-        f"lin seg length: {lin_seg_length}, roll start length: {roll_start_length}, roll end length: {roll_end_length}"
-    )
-    print(f"target val: {target_val}, function end val: {function[-1]}")
-    print(f"vert dist: {vert_dist}, vert dist for end cubic: {vert_dist_for_end_cubic}")
 
     a1, b1, c1 = make_combined_quadratic(
         t_vals[t_extend],
@@ -317,8 +310,6 @@ def get_derivative_using_spline(function, t_vals, t_extend):
     """
     Get derivative of function using spline
     """
-    print(function[t_extend - 50 : t_extend])
-    print(t_extend)
     spline = np.interp(
         t_vals[t_extend - 10 : t_extend + 10], t_vals[t_extend - 50 : t_extend], function[t_extend - 50 : t_extend]
     )

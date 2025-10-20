@@ -57,7 +57,7 @@ def get_cumulative_afolu_fill_from_hist(
     # print(cumulative.columns[0])
     # print(hist_fill.columns[0])
     first_scen_year_idx = int(cumulative.columns[0] - hist_fill.columns[0])
-    print(first_scen_year_idx)
+    # print(first_scen_year_idx)
     # sys.exit(4)
     full_cumulative[0, :first_scen_year_idx] = hist_fill.values[0, :first_scen_year_idx]
     just_add_scen = first_scen_year_idx + hist_fill.columns[0]
