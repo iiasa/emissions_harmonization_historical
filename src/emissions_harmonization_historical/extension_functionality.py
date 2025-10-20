@@ -244,6 +244,16 @@ def make_cubic_roll_to_linear_extension(  # noqa: PLR0913
     return data_extend[t_extend + 1 :]
 
 
+def get_exp_targ_from_current_data(function, exp_end, fraction_extend=0.1):
+    """
+    Get exponential target from current data
+    """
+    slope_at_extension = get_derivative_using_spline(function, np.arange(len(function)), len(function) - 1)
+    exp_targ = function[-1] + slope_at_extension * (exp_end - (len(function) - 1)) * fraction_extend
+
+    return exp_targ
+
+
 def make_quadratic_roll_to_linear_extension(  # noqa: PLR0913
     function, target_val, roll_start_length, roll_end_length, t_vals, t_extend, vert_dist_end_frac=0.01
 ):

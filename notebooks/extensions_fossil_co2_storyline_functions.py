@@ -3,6 +3,7 @@ import sys
 import numpy as np
 
 from emissions_harmonization_historical.extension_functionality import (
+    get_exp_targ_from_current_data,
     make_linear_function_with_smooth_transition,
 )
 
@@ -170,8 +171,12 @@ def extend_co2_for_scen_storyline(df_extended_afolu, df_fossil, storyline, start
         # )
     elif storyline[0] == "ECS":
         exp_end = storyline[1]
+
         exp_targ = storyline[2]
+
         sig_start = storyline[3]
+        if exp_targ is None:
+            exp_targ = get_exp_targ_from_current_data(co2_total_extend[: 2101 - start], exp_end - start)
         sig_end = storyline[4]
         # exp_decay_total = exp_decay(
         #     exp_targ,
@@ -202,6 +207,7 @@ def extend_co2_for_scen_storyline(df_extended_afolu, df_fossil, storyline, start
         )
         # sigmoid_total_extension = sigmoid_function(0, exp_decay_total[-1],
         # sig_start, sig_end, extended_years[sig_start-start:])
+    elif storyline[0] == "CSCS":
         stop_const = storyline[1]
         sig_targ = storyline[2]
         end_sig1 = storyline[3]
