@@ -439,7 +439,6 @@ SCM_OUTPUT_DB = OpenSCMDB(
 )
 
 # ID for the scenario extension step
-# SCM_RUNNING_ID = "0001"
 # Moved to portable OpenSCMDB
 EXTENSIONS_ID = "0001"
 
@@ -459,7 +458,7 @@ EXTENSIONS_OUT_DIR = (
     )
 )
 
-# Database into which SCM output is saved
+# Database into which extensions output is saved
 EXTENSIONS_OUTPUT_DB = OpenSCMDB(
     db_dir=EXTENSIONS_OUT_DIR / "db",
     backend_data=FeatherDataBackend(),

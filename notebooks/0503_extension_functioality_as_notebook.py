@@ -1,3 +1,7 @@
+# # Extensions of Marker Scenarios
+
+# Regular imports
+
 import glob
 
 import matplotlib.pyplot as plt
@@ -8,6 +12,9 @@ import pandas_indexing as pix
 import pandas_openscm
 import seaborn as sns
 import tqdm.auto
+
+# Package imports
+# +
 from afolu_extension_functions import (
     get_cumulative_afolu,
     get_cumulative_afolu_fill_from_hist,
@@ -23,6 +30,7 @@ from general_utils_for_extensions import (
 )
 
 from emissions_harmonization_historical.constants_5000 import (
+    EXTENSIONS_OUTPUT_DB,
     HARMONISED_SCENARIO_DB,
     HISTORY_HARMONISATION_DB,
     INFILLED_SCENARIOS_DB,
@@ -37,22 +45,40 @@ from emissions_harmonization_historical.extension_functionality import (
     find_func_form_lu_extension,
 )
 
+# -
+# More preamble
+
+# +
 save_plots = True
 
 pandas_openscm.register_pandas_accessor()
 
 UR = openscm_units.unit_registry
 Q = UR.Quantity
+# -
 
-# Get input data:
 
+# ## Loading scenarios
+
+# +
 scenarios_complete_global = INFILLED_SCENARIOS_DB.load(pix.isin(stage="complete")).reset_index("stage", drop=True)
 scenarios_complete_global  # TODO: drop 2100 end once we have usable scenario data post-2100
 for model in scenarios_complete_global.pix.unique("model").values:
     print(model)
     print(scenarios_complete_global.loc[pix.ismatch(model=f"{model}")].pix.unique("scenario"))
+
+history = HISTORY_HARMONISATION_DB.load(pix.ismatch(purpose="global_workflow_emissions")).reset_index(
+    "purpose", drop=True
+)
+
+scenarios_regional = HARMONISED_SCENARIO_DB.load()
+history_regional = HISTORY_HARMONISATION_DB.load()
 # sys.exit(4)
 # scenarios_complete_global
+
+# -
+
+# Marker definitions
 
 scenario_model_match = {
     "VLLO": ["SSP1 - Very Low Emissions", "REMIND-MAgPIE 3.5-4.11", "tab:blue"],
@@ -66,8 +92,8 @@ scenario_model_match = {
     "HL": ["SSP5 - Medium-Low Emissions_a", "WITCH 6.0", "tab:brown"],
 }
 
-scenarios_regional = HARMONISED_SCENARIO_DB.load()
-print(scenarios_regional.shape)
+# Go over and check, add extra entry for MOS, which is really just M up to the overshoot
+
 for stype, model_scen_match in scenario_model_match.items():
     model = model_scen_match[1]
     scenario = model_scen_match[0]
@@ -87,25 +113,13 @@ for stype, model_scen_match in scenario_model_match.items():
         scenarios_regional = pd.concat([scenarios_regional, scenarios_regional_mos])
         scenarios_complete_global = pd.concat([scenarios_complete_global, scenarios_global_mos])
 scenarios_regional = scenarios_regional.sort_index(axis="columns").T.interpolate("index").T
-history = HISTORY_HARMONISATION_DB.load(pix.ismatch(purpose="global_workflow_emissions")).reset_index(
-    "purpose", drop=True
-)
-print(scenarios_regional.shape)
-# sys.exit(4)
-history_regional = HISTORY_HARMONISATION_DB.load()
-print(history.pix.unique("variable"))
-print(history.pix.unique("region"))
-print(history_regional.loc[pix.ismatch(variable="Emissions|CO2**")].pix.unique("variable"))
 
+# Finally get cumulative CO2 history
 
 cumulative_history_afolu = get_cumulative_afolu(history, "GCB-extended", "historical")
-print(cumulative_history_afolu[2021])
-print(cumulative_history_afolu[2022])
-print(cumulative_history_afolu[2023])
-print(cumulative_history_afolu[2024])
-print(cumulative_history_afolu[2030])
-print(cumulative_history_afolu[2050])
-print(cumulative_history_afolu[2100])
+
+
+# ## Main block for AFOLU
 
 
 # AFOLU section
@@ -195,6 +209,10 @@ def calculate_afolu_extensions(scenarios_complete_global, history, cumulative_hi
     }
 
 
+# ## Non-CO2 functionality
+
+# First defining some non-zero end-points for certain gases per marker:
+
 component_global_targets = {
     "Emissions|CH4": {
         "VLLO": 95.0,
@@ -217,6 +235,9 @@ component_global_targets = {
         "HL": 10.0,
     },
 }
+
+
+# Main functionality for all non-co2 extensions
 
 
 def do_all_non_co2_extensions(scenarios_complete_global, history):
@@ -314,6 +335,8 @@ def do_all_non_co2_extensions(scenarios_complete_global, history):
     return df_all
 
 
+# ## Do main block of non-fossil CO2 extensions first
+
 do_and_write_to_csv = False
 if do_and_write_to_csv:
     df_all = do_all_non_co2_extensions(scenarios_complete_global, history)
@@ -327,10 +350,20 @@ if do_and_write_to_csv:
 df_all = pd.read_csv("first_draft_extended_nonCO2_all.csv")
 afolu_dfs = {}
 for afolu_file in glob.glob("first_draft_extended_afolu_*.csv"):
+    print(afolu_file)
     name = afolu_file.split("first_draft_extended_")[-1].split(".csv")[0]
+    print(name)
     afolu_dfs[name] = pd.read_csv(afolu_file)
+    print(afolu_dfs[name].shape)
+    print(afolu_dfs[name])
 # sys.exit(4)
 
+# ## Finally Fossil CO2 extensions
+
+# Storyline dictionaries
+
+# +
+# Original ScenarioMIP:
 fossil_evolution_dictionary = {
     "VLLO": ["CS", 2300, 2350],
     "VLHO": ["CS", 2200, 2300],
@@ -342,6 +375,7 @@ fossil_evolution_dictionary = {
     "HL": ["CSCS", 2110, -36e3, 2200, 2400, 2450],
 }
 
+# Updated:
 fossil_evolution_dictionary = {
     "VLLO": ["CS", 2300, 2350],
     "VLHO": ["ECS", 2150, None, 2200, 2300],
@@ -352,52 +386,80 @@ fossil_evolution_dictionary = {
     "H": ["ECS", 2150, None, 2175, 2275],
     "HL": ["CSCS", 2100, -36e3, 2200, 2400, 2450],
 }
+# -
+
+# Looping over afolu variants to get CO2
+
+# +
+name = "afolu_linear_afolu_rampdown"
+df_afolu = afolu_dfs[name]
+fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(30, 15))
+temp_list_for_new_data = []
+for s, meta in scenario_model_match.items():
+    print(s)
+    print(meta)
+    co2_fossil = interpolate_to_annual(
+        scenarios_complete_global.loc[
+            pix.ismatch(variable="Emissions|CO2|Energy and Industrial Processes", model=meta[1], scenario=meta[0])
+        ]
+    )
+    co2_afolu = df_afolu.loc[(df_afolu["model"] == meta[1]) & (df_afolu["scenario"] == meta[0])]
+    co2_total_extend, co2_fossil_extend, extend_years = extend_co2_for_scen_storyline(
+        co2_afolu, co2_fossil, fossil_evolution_dictionary[s]
+    )
+
+    df_total = pd.DataFrame(data=[co2_fossil_extend], columns=extend_years, index=co2_fossil.index)
+    temp_list_for_new_data.append(df_total)
+
+    axs[0].plot(co2_fossil.columns, co2_fossil.values.flatten(), label=s, color=meta[2])
+    axs[0].plot(extend_years, co2_fossil_extend, label=s, color=meta[2], linestyle="--")
+    axs[0].plot(co2_fossil.columns, co2_fossil.values.flatten(), label=s, color=meta[2])
+    axs[1].plot(extend_years, co2_afolu.loc[:, "2023":].to_numpy().flatten(), label=s, color=meta[2], linestyle="--")
+    axs[2].plot(extend_years, co2_total_extend, label=s, color=meta[2], linestyle="--")
+    axs[2].plot(
+        co2_fossil.columns,
+        co2_fossil.values.flatten() + co2_afolu.loc[:, "2023":"2100"].to_numpy().flatten(),
+        label=s,
+        color=meta[2],
+    )
+
+fossil_extension_df = pd.concat(temp_list_for_new_data)
+fossil_extension_df.to_csv(f"co2_fossil_fuel_extenstions_{name}.csv")
+axs[0].set_title("CO2 fossil", fontsize="x-large")
+axs[1].set_title("CO2 AFOLU", fontsize="x-large")
+axs[2].set_title("CO2 total", fontsize="x-large")
+for ax in axs:
+    ax.set_xlabel("Years", fontsize="x-large")
+axs[2].legend(fontsize="x-large")
+
+plt.savefig(f"co2_fossil_fuel_extenstions_{name}.png")
+# -
+
+# ## Make a dataframe of all parts and send to database
+
+# +
+print(fossil_extension_df.head())
+print(df_afolu.head())
+print(df_all.head())
+
+df_everything = pix.concat(
+    [
+        fossil_extension_df,
+        df_afolu,
+        df_all,
+    ]
+)
 
 
-for name, df_afolu in afolu_dfs.items():
-    fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(30, 15))
-    temp_list_for_new_data = []
-    for s, meta in scenario_model_match.items():
-        print(s)
-        print(meta)
-        co2_fossil = interpolate_to_annual(
-            scenarios_complete_global.loc[
-                pix.ismatch(variable="Emissions|CO2|Energy and Industrial Processes", model=meta[1], scenario=meta[0])
-            ]
-        )
-        co2_afolu = df_afolu.loc[(df_afolu["model"] == meta[1]) & (df_afolu["scenario"] == meta[0])]
-        co2_total_extend, co2_fossil_extend, extend_years = extend_co2_for_scen_storyline(
-            co2_afolu, co2_fossil, fossil_evolution_dictionary[s]
-        )
+# -
 
-        df_total = pd.DataFrame(data=[co2_fossil_extend], columns=extend_years, index=co2_fossil.index)
-        temp_list_for_new_data.append(df_total)
+EXTENSIONS_OUTPUT_DB(df_everything, allow_overwrite=True)
 
-        axs[0].plot(co2_fossil.columns, co2_fossil.values.flatten(), label=s, color=meta[2])
-        axs[0].plot(extend_years, co2_fossil_extend, label=s, color=meta[2], linestyle="--")
-        axs[0].plot(co2_fossil.columns, co2_fossil.values.flatten(), label=s, color=meta[2])
-        axs[1].plot(
-            extend_years, co2_afolu.loc[:, "2023":].to_numpy().flatten(), label=s, color=meta[2], linestyle="--"
-        )
-        axs[2].plot(extend_years, co2_total_extend, label=s, color=meta[2], linestyle="--")
-        axs[2].plot(
-            co2_fossil.columns,
-            co2_fossil.values.flatten() + co2_afolu.loc[:, "2023":"2100"].to_numpy().flatten(),
-            label=s,
-            color=meta[2],
-        )
-
-    fossil_extension_df = pd.concat(temp_list_for_new_data)
-    fossil_extension_df.to_csv(f"co2_fossil_fuel_extenstions_{name}.csv")
-    axs[0].set_title("CO2 fossil", fontsize="x-large")
-    axs[1].set_title("CO2 AFOLU", fontsize="x-large")
-    axs[2].set_title("CO2 total", fontsize="x-large")
-    for ax in axs:
-        ax.set_xlabel("Years", fontsize="x-large")
-    axs[2].legend(fontsize="x-large")
-
-    plt.savefig(f"co2_fossil_fuel_extenstions_{name}.png")
-    # plt.show()
-
-
-# EXTENSIONS_OUTPUT_DB.save(df_all)
+# +
+# for df, db in (
+#    (pre_processed_emms_scms_out.pix.assign(stage="pre-processed-scms"), POST_PROCESSED_TIMESERIES_DB),
+#    (harmonised_emms_gridding.pix.assign(stage="harmonised-gridding"), POST_PROCESSED_TIMESERIES_DB),
+#    (harmonised_emms_scms_out.pix.assign(stage="harmonised-scms"), POST_PROCESSED_TIMESERIES_DB),
+#    (complete_emissions_out.pix.assign(stage="complete"), POST_PROCESSED_TIMESERIES_DB),
+# ):
+#    db.save(df, allow_overwrite=True)
