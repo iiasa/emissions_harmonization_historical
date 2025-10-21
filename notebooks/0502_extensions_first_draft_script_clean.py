@@ -347,13 +347,13 @@ fossil_evolution_dictionary = {
     "VLHO": ["ECS", 2150, None, 2200, 2300],
     "L": ["ECS", 2150, None, 2240, 2300],
     "ML": ["ECS", 2150, -13e3, 2250, 2300],
-    "M": ["CS", 2100, 2200],
+    "M": ["ECS", 2150, None, 2150, 2250],
     "MOS": ["CSCS", 2105, -20e3, 2175, 2300, 2350],
     "H": ["ECS", 2150, None, 2175, 2275],
     "HL": ["CSCS", 2100, -36e3, 2200, 2400, 2450],
 }
 
-
+df_per_afolu = {}
 for name, df_afolu in afolu_dfs.items():
     fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(30, 15))
     temp_list_for_new_data = []
@@ -389,6 +389,7 @@ for name, df_afolu in afolu_dfs.items():
 
     fossil_extension_df = pd.concat(temp_list_for_new_data)
     fossil_extension_df.to_csv(f"co2_fossil_fuel_extenstions_{name}.csv")
+    df_per_afolu[name] = fossil_extension_df
     axs[0].set_title("CO2 fossil", fontsize="x-large")
     axs[1].set_title("CO2 AFOLU", fontsize="x-large")
     axs[2].set_title("CO2 total", fontsize="x-large")
@@ -398,6 +399,17 @@ for name, df_afolu in afolu_dfs.items():
 
     plt.savefig(f"co2_fossil_fuel_extenstions_{name}.png")
     # plt.show()
+print("In history it works likte this:")
+print(history.head())
+print("In df from file it looks like this:")
+print(df_all.head())
+print("In history it works likte this:")
+print(history.index)
+print("In df from file it looks like this:")
+print(df_all.index)
+# for name, df_afolu in afolu_dfs.items():
+#    print(df_afolu.head())
+#    print(df_per_afolu[name].head())
 
 
 # EXTENSIONS_OUTPUT_DB.save(df_all)
