@@ -81,7 +81,7 @@ regionmapping = pd.read_csv(REGION_MAPPING_FILE, index_col=0)
 
 # %%
 models = [
-    "GCAM 7.1",
+    "GCAM 8s",
     "IMAGE 3.4",
     "WITCH 6.0",
     "COFFEE 1.6",
