@@ -185,9 +185,9 @@ if model.startswith("IMAGE"):
             model_pre_processed_for_gridding.loc[idx][HARMONISATION_YEAR].item()
             < 0.8 * history_for_gridding_harmonisation[mask_history][HARMONISATION_YEAR].item()
         ):
-            user_overrides_gridding[idx[0:3]] == "constant_offset_2030"
-        else:
             user_overrides_gridding[idx[0:3]] == "constant_offset"
+        else:
+            user_overrides_gridding[idx[0:3]] == "constant_offset_2030"
 
     user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
 
