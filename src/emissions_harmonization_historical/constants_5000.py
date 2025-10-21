@@ -278,7 +278,7 @@ HISTORY_HARMONISATION_DB = OpenSCMDB(
 
 # # ID for the scenario download step
 # Run by Marco
-DOWNLOAD_SCENARIOS_ID = "gcages_test"
+DOWNLOAD_SCENARIOS_ID = "IMAGE_20251021"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(
