@@ -169,22 +169,16 @@ if model.startswith("IMAGE"):
         name="method",
     ).astype(str)
 
-    for idx, value in model_pre_processed_for_gridding[
+    for idx, model_harm_year_value in model_pre_processed_for_gridding[
         model_pre_processed_for_gridding[HARMONISATION_YEAR].index.get_level_values("variable").str.contains("Forest")
     ][HARMONISATION_YEAR].items():
         mask_history = (history_for_gridding_harmonisation.index.get_level_values("variable") == idx[3]) & (
             history_for_gridding_harmonisation.index.get_level_values("region") == idx[2]
         )
 
-        if (
-            model_pre_processed_for_gridding.loc[idx][HARMONISATION_YEAR].item()
-            > 1.5 * history_for_gridding_harmonisation[mask_history][HARMONISATION_YEAR].item()
-        ):
+        if model_harm_year_value > 1.5 * history_for_gridding_harmonisation[mask_history][HARMONISATION_YEAR].item():
             user_overrides_gridding[idx[0:3]] == "constant_ratio"
-        elif (
-            model_pre_processed_for_gridding.loc[idx][HARMONISATION_YEAR].item()
-            < 0.8 * history_for_gridding_harmonisation[mask_history][HARMONISATION_YEAR].item()
-        ):
+        elif model_harm_year_value < 0.8 * history_for_gridding_harmonisation[mask_history][HARMONISATION_YEAR].item():
             user_overrides_gridding[idx[0:3]] == "constant_offset"
         else:
             user_overrides_gridding[idx[0:3]] == "constant_offset_2030"
