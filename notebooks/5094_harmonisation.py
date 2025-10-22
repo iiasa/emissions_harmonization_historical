@@ -177,11 +177,11 @@ if model.startswith("IMAGE"):
         )
 
         if model_harm_year_value > 1.5 * history_for_gridding_harmonisation[mask_history][HARMONISATION_YEAR].item():
-            user_overrides_gridding[idx[0:3]] == "constant_ratio"
+            user_overrides_gridding.loc[(idx[0], idx[1], idx[2], idx[3])] = "constant_ratio"
         elif model_harm_year_value < 0.8 * history_for_gridding_harmonisation[mask_history][HARMONISATION_YEAR].item():
-            user_overrides_gridding[idx[0:3]] == "constant_offset"
+            user_overrides_gridding.loc[(idx[0], idx[1], idx[2], idx[3])] = "constant_offset"
         else:
-            user_overrides_gridding[idx[0:3]] == "constant_offset_2030"
+            user_overrides_gridding.loc[(idx[0], idx[1], idx[2], idx[3])] = "reduce_offset_2030"
 
     user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
 
