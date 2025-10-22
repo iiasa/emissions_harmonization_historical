@@ -353,6 +353,40 @@ if model.startswith("GCAM"):
     # 29 September 2025 - Switch to file overrides
     # READING form the CSV file located at "./data/raw/harmonisation_overrides/."
     file_overrides = DATA_ROOT / "raw/harmonisation_overrides/harmonisation-methods_gridding_GCAM.csv"
+
+    # 22 October 2025 - add in aviation override
+    # and create initial overrides with code.
+    # From email with subject "OC emissions from forest fires"
+    # "Doing the aviation harmonization with reduce_ratio_2050 as discussed"
+    # ==> use reduce_ratio_2050 for harmonisation
+    # "For CO2... in general for all regions
+    # use the same harmonization rule for industry that is used for the supply sector"
+    # ==> use same harmonisation rule for energy and industrial sectors for CO2
+    #
+    # # Creating the override sheet in the first place
+    # harmonise_result_default = harmonise(
+    #     scenarios=model_pre_processed_for_gridding.reset_index("stage", drop=True),
+    #     history=history_for_harmonisation,
+    #     harmonisation_year=HARMONISATION_YEAR,
+    #     user_overrides=None,
+    # )
+    # default_methods = harmonise_result_default.overrides
+
+    # tmpa = (
+    #     default_methods.pix.extract(variable="{table}|{species}|{sector}")
+    #     .loc[pix.isin(sector=["Energy Sector", "Industrial Sector"]) & pix.isin(species="CO2")]
+    #     .unstack("sector")
+    # )
+    # tmpa["Industrial Sector"] = tmpa["Energy Sector"]
+    # tmpa = tmpa.stack("sector").pix.format(variable="{table}|{species}|{sector}", drop=True)
+
+    # tmp = default_methods.loc[pix.ismatch(variable="**Air**")]
+    # tmp.loc[:] = "reduce_ratio_2050"
+
+    # overrides = pix.concat([tmp, tmpa])
+    # overrides.name = "method"
+    # overrides.to_csv(file_overrides)
+
     override_df = pd.read_csv(file_overrides)
 
     user_overrides_gridding = pd.Series(
