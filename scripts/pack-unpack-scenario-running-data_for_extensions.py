@@ -59,7 +59,7 @@ def main(pack: bool = True) -> None:
                 REPO_ROOT / f"harmonised-scenarios_{HARMONISATION_ID}.tar.gz",
                 HARMONISED_SCENARIO_DB.db_dir,
             ),
-            (REPO_ROOT / f"rcmip-processed_{INFILLED_OUT_DIR_ID}.tar.gz", INFILLED_SCENARIOS_DB.db_dir),
+            (REPO_ROOT / f"infilled_{INFILLED_OUT_DIR_ID}.tar.gz", INFILLED_SCENARIOS_DB.db_dir),
         ):
             OpenSCMDB.from_gzipped_tar_archive(
                 tar_archive=gzip,
