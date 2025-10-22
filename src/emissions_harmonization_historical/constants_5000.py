@@ -124,7 +124,7 @@ CREATE_HISTORY_FOR_GRIDDING_ID = "_".join(
         CEDS_PROCESSING_ID,
         BB4CMIP7_ANNUAL_SECTORAL_COUNTRY_ID,
         BB4CMIP7_FORMATTING_ID,
-        MOD_HISTORY_FOR_GRIDDING_ID,
+        # MOD_HISTORY_FOR_GRIDDING_ID,
     ]
 )
 
@@ -240,9 +240,10 @@ RCMIP_PROCESSED_DB = OpenSCMDB(
 COMMON_DEFINITIONS_COMMIT = get_latest_commit_hash(
     "IAMconsortium", "common-definitions", fallback_commit="cc69ed0a415a63c7ce7372d5a36c088d9cbee055"
 )
+COMMON_DEFINITIONS_COMMIT = "dc4de51f613de5e8f2f16b686106720316cfb8e1"
 
-COMMON_DEFINITIONS_COMMIT = "3e85a57cf491180e36eac2dd588b43f250d612c7"
-COMMON_DEFINITIONS_PATH = REPO_ROOT / "common-definitions"
+# COMMON_DEFINITIONS_COMMIT = "3e85a57cf491180e36eac2dd588b43f250d612c7"
+# COMMON_DEFINITIONS_PATH = REPO_ROOT / "common-definitions"
 
 
 REGION_MAPPING_FILE = (
@@ -277,8 +278,48 @@ HISTORY_HARMONISATION_DB = OpenSCMDB(
 
 
 # # ID for the scenario download step
+# DOWNLOAD_SCENARIOS_ID = "0001"
+# # Updated May 6 for revised AIM scenarios
+# DOWNLOAD_SCENARIOS_ID = "0002"
+# # Chris workaround
+# DOWNLOAD_SCENARIOS_ID = "0003"
+# # Update hashing
+# DOWNLOAD_SCENARIOS_ID = "0004"
+# # Moved to portable OpenSCMDB
+# DOWNLOAD_SCENARIOS_ID = "0005"
+# # Scratch while we wait for new submissions
+# DOWNLOAD_SCENARIOS_ID = "0006-zn-rc0"
+# 2025-05-23 submissions
+# (still problems with how we harmonise novel CDR,
+# but good interim step)
+DOWNLOAD_SCENARIOS_ID = "0006"
+# DOWNLOAD_SCENARIOS_ID = "0006-MZ"
+# 2025-05-26 run
+# (still problems with how we harmonise novel CDR,
+# but good interim step)
+
+DOWNLOAD_SCENARIOS_ID = "0008"
+# Development helper
+DOWNLOAD_SCENARIOS_ID = "0009-zn"
+# Temporary to investigate code
+DOWNLOAD_SCENARIOS_ID = "0010-jk"
+# Run intermediary submission REMIND 20250617
+DOWNLOAD_SCENARIOS_ID = "0011-REMIND-jk"
+# Current for this branch, a bit outdated...
+DOWNLOAD_SCENARIOS_ID = "20250602-123212"
+# Run 20250710 by Marco (prepared with/by Jarmo)
+DOWNLOAD_SCENARIOS_ID = "08Snapshot"
+DOWNLOAD_SCENARIOS_ID = "20250818"
 # Run by Marco
-DOWNLOAD_SCENARIOS_ID = "gcages_test"
+DOWNLOAD_SCENARIOS_ID = "20250915"
+# Local latest run by Marit
+DOWNLOAD_SCENARIOS_ID = "20251009-154352"
+# Local latest run by Marit
+DOWNLOAD_SCENARIOS_ID = "20251014-retry"
+# Local latest run by Marit
+DOWNLOAD_SCENARIOS_ID = "20251015"
+# Current on main
+# DOWNLOAD_SCENARIOS_ID = "gcages_test"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(
@@ -295,7 +336,7 @@ PRE_PROCESSING_ID = "0002"
 PRE_PROCESSING_ID = "0003"
 # Upgrade to gcages which puts CDR in the Emissions tree
 PRE_PROCESSING_ID = "0004"
-PRE_PROCESSING_ID = "0005"
+# PRE_PROCESSING_ID = "0005"
 
 # Database into which pre-processed scenarios are saved
 PRE_PROCESSED_SCENARIO_DB = OpenSCMDB(
@@ -363,6 +404,13 @@ INFILLED_OUT_DIR_ID = "_".join(
 )
 
 INFILLED_OUT_DIR = DATA_ROOT / "processed" / "infilled" / INFILLED_OUT_DIR_ID
+# print(f"Using infilled output dir: {INFILLED_OUT_DIR}")
+# print(f"DOWNLOAD_SCENARIOS_ID: {DOWNLOAD_SCENARIOS_ID}")
+# print(f"PRE_PROCESSING_ID: {PRE_PROCESSING_ID}")
+# print(f"HISTORY_FOR_HARMONISATION_ID: {HISTORY_FOR_HARMONISATION_ID}")
+# print(f"HARMONISATION_ID: {HARMONISATION_ID}")
+# print(f"INFILLING_ID: {INFILLING_ID}")
+# sys.exit(4)
 
 # Database into which infilled data is saved
 INFILLED_SCENARIOS_DB = OpenSCMDB(
@@ -398,6 +446,34 @@ SCM_OUTPUT_DB = OpenSCMDB(
     backend_data=FeatherDataBackend(),
     backend_index=FeatherIndexBackend(),
 )
+
+# ID for the scenario extension step
+# Moved to portable OpenSCMDB
+EXTENSIONS_ID = "0001"
+
+EXTENSIONS_OUT_DIR = (
+    DATA_ROOT
+    / "processed"
+    / "extension-output"
+    / "_".join(
+        [
+            DOWNLOAD_SCENARIOS_ID,
+            PRE_PROCESSING_ID,
+            HISTORY_FOR_HARMONISATION_ID,
+            HARMONISATION_ID,
+            INFILLING_ID,
+            EXTENSIONS_ID,
+        ]
+    )
+)
+
+# Database into which extensions output is saved
+EXTENSIONS_OUTPUT_DB = OpenSCMDB(
+    db_dir=EXTENSIONS_OUT_DIR / "db",
+    backend_data=FeatherDataBackend(),
+    backend_index=FeatherIndexBackend(),
+)
+
 
 # ID for the post-processing step
 # POST_PROCESSING_ID = "0001"

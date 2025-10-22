@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pandas as pd
 import pandas_indexing as pix
-from gcages.io import load_timeseries_csv
+from pandas_openscm.io import load_timeseries_csv
 
 
 def load_csv(fp: Path) -> pd.DataFrame:
