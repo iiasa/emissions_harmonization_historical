@@ -92,3 +92,5 @@ for model in models:
     output = data.explode("iso3").reset_index(drop=True)
 
     output.to_csv(REGION_MAPPING_PATH / f"region_definitions_{model}.csv", index=False)
+
+# %%

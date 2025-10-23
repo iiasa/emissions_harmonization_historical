@@ -103,7 +103,7 @@ if model_search == "REMIND":
 if model_search == "AIM":
     to_download = to_download[to_download["scenario"].str.contains("- Low Overshoot")]
 if model_search == "MESSAGE":
-    to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Low Emissions")]
+    to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Low Emissions_f")]
 if model_search == "IMAGE":
     skip = (
         "SSP1 - Very Low Emissions",
