@@ -1,0 +1,75 @@
+model,scenario,region,variable,method
+GCAM 8s,SSP3 - High Emissions,World,Emissions|BC|Aircraft,reduce_ratio_2050
+GCAM 8s,SSP3 - High Emissions,World,Emissions|CH4|Aircraft,reduce_ratio_2050
+GCAM 8s,SSP3 - High Emissions,World,Emissions|CO2|Aircraft,reduce_ratio_2050
+GCAM 8s,SSP3 - High Emissions,World,Emissions|CO|Aircraft,reduce_ratio_2050
+GCAM 8s,SSP3 - High Emissions,World,Emissions|N2O|Aircraft,reduce_ratio_2050
+GCAM 8s,SSP3 - High Emissions,World,Emissions|NH3|Aircraft,reduce_ratio_2050
+GCAM 8s,SSP3 - High Emissions,World,Emissions|NOx|Aircraft,reduce_ratio_2050
+GCAM 8s,SSP3 - High Emissions,World,Emissions|OC|Aircraft,reduce_ratio_2050
+GCAM 8s,SSP3 - High Emissions,World,Emissions|Sulfur|Aircraft,reduce_ratio_2050
+GCAM 8s,SSP3 - High Emissions,World,Emissions|VOC|Aircraft,reduce_ratio_2050
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Africa_Eastern,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Africa_Eastern,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Africa_Northern,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Africa_Northern,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Africa_Southern,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Africa_Southern,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Africa_Western,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Africa_Western,Emissions|CO2|Industrial Sector,reduce_offset_2150_cov
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Argentina,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Argentina,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Australia and New Zealand,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Australia and New Zealand,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Brazil,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Brazil,Emissions|CO2|Industrial Sector,reduce_offset_2150_cov
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Canada,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Canada,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Central America and Caribbean,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Central America and Caribbean,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Central Asia,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Central Asia,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|China,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|China,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Colombia,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Colombia,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|EU-12,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|EU-12,Emissions|CO2|Industrial Sector,reduce_offset_2150_cov
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|EU-15,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|EU-15,Emissions|CO2|Industrial Sector,reduce_offset_2150_cov
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Europe_Eastern,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Europe_Eastern,Emissions|CO2|Industrial Sector,reduce_offset_2150_cov
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Europe_Non_EU,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Europe_Non_EU,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|European Free Trade Association,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|European Free Trade Association,Emissions|CO2|Industrial Sector,reduce_offset_2150_cov
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|India,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|India,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Indonesia,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Indonesia,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Japan,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Japan,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Mexico,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Mexico,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Middle East,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Middle East,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Pakistan,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Pakistan,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Russia,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Russia,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|South Africa,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|South Africa,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|South America_Northern,Emissions|CO2|Energy Sector,reduce_offset_2150_cov
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|South America_Northern,Emissions|CO2|Industrial Sector,reduce_offset_2150_cov
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|South America_Southern,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|South America_Southern,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|South Asia,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|South Asia,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|South Korea,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|South Korea,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Southeast Asia,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Southeast Asia,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Taiwan,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|Taiwan,Emissions|CO2|Industrial Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|USA,Emissions|CO2|Energy Sector,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,GCAM 8s|USA,Emissions|CO2|Industrial Sector,reduce_ratio_2080

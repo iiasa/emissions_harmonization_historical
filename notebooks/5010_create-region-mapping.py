@@ -40,26 +40,20 @@ nomenclature.__version__
 # ## Set common definitions to right commit
 
 # %%
+print(f"{COMMON_DEFINITIONS_COMMIT=}")
+
+# %%
 if COMMON_DEFINITIONS_PATH.exists():
     repo = Repo(COMMON_DEFINITIONS_PATH)
     print("Fetching latest updates")
     repo.remotes.origin.fetch()
+
 else:
     print("Cloning common-definitions")
     repo = Repo.clone_from("https://github.com/IAMconsortium/common-definitions", COMMON_DEFINITIONS_PATH)
 
 repo.remotes["origin"].fetch()
 repo.git.checkout(COMMON_DEFINITIONS_COMMIT)
-
-# %%
-origin = repo.remotes.origin
-origin.fetch()
-
-# Resolve origin/HEAD to a commit hash
-latest_commit = repo.commit("origin/HEAD").hexsha
-COMMON_DEFINITIONS_COMMIT = latest_commit
-
-print(f"Checking out latest commit: {COMMON_DEFINITIONS_COMMIT}")
 
 # %% [markdown]
 # ## Create the region mapping
@@ -81,7 +75,7 @@ regionmapping = pd.read_csv(REGION_MAPPING_FILE, index_col=0)
 
 # %%
 models = [
-    "GCAM 7.1",
+    "GCAM 8s",
     "IMAGE 3.4",
     "WITCH 6.0",
     "COFFEE 1.6",
@@ -98,3 +92,5 @@ for model in models:
     output = data.explode("iso3").reset_index(drop=True)
 
     output.to_csv(REGION_MAPPING_PATH / f"region_definitions_{model}.csv", index=False)
+
+# %%

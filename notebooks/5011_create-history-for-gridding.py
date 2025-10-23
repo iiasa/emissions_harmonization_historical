@@ -27,7 +27,6 @@ import pandas_openscm
 import tqdm.auto
 from gcages.cmip7_scenariomip.gridding_emissions import get_complete_gridding_index
 from gcages.completeness import assert_all_groups_are_complete
-from gcages.index_manipulation import split_sectors
 from loguru import logger
 
 from emissions_harmonization_historical.constants_5000 import (
@@ -83,6 +82,7 @@ ceds_processed_data = CEDS_PROCESSED_DB.load(pix.isin(stage="iso3c_ish")).reset_
 # %%
 gfed4_processed_data = BB4CMIP7_PROCESSED_DB.load(pix.isin(stage="iso3c")).reset_index("stage", drop=True)
 # gfed4_processed_data
+BB4CMIP7_PROCESSED_DB
 
 # %% [markdown]
 # ### export country-level interim history for use in gridding repo
@@ -147,14 +147,7 @@ history_for_gridding = pix.concat(history_for_gridding_l).rename_axis("year", ax
 history_for_gridding
 
 # %%
-split_sectors(history_for_gridding.loc[pix.ismatch(variable="**|OC|**Burning", region="AIM**")]).openscm.groupby_except(
-    ["region", "sectors"]
-).sum(min_count=1)
-
-# %%
-split_sectors(history_for_gridding.loc[pix.ismatch(variable="**|CH4|**", region="AIM**")]).openscm.groupby_except(
-    ["region", "sectors"]
-).sum(min_count=1)
+ceds_processed_data.loc[pix.isin(region="global") & pix.ismatch(variable=["**Aircraft", "**International Shipping"])]
 
 # %% [markdown]
 # ### Add synthetic history for CDR sectors
@@ -172,11 +165,37 @@ history_for_gridding_incl_cdr = pix.concat(
     [
         history_for_gridding,
         cdr_sectors_template.pix.assign(variable="Emissions|CO2|BECCS"),
-        cdr_sectors_template.pix.assign(variable="Emissions|CO2|Other non-Land CDR"),
+        cdr_sectors_template.pix.assign(variable="Emissions|CO2|Enhanced Weathering"),
+        cdr_sectors_template.pix.assign(variable="Emissions|CO2|Direct Air Capture"),
+        cdr_sectors_template.pix.assign(variable="Emissions|CO2|Ocean"),
     ]
 )
 
-history_for_gridding_incl_cdr
+# %%
+# Emissions|*|Other CDR
+species_list = [
+    "CO2",
+    "CH4",
+    "N2O",
+    "BC",
+    "CO",
+    "NH3",
+    "OC",
+    "NOx",
+    "Sulfur",
+    "VOC",
+]
+
+other_cdr_sector_templates = []
+for sp in species_list:
+    # Use any existing sector as a template for structure
+    template = history_for_gridding.loc[pix.ismatch(variable=[f"Emissions|{sp}|Energy Sector"])].copy()
+    template = template.pix.assign(model="Synthetic", variable=f"Emissions|{sp}|Other CDR")
+    template.loc[:, :] = 0.0  # or your actual "Other" values
+    other_cdr_sector_templates.append(template)
+
+# Add all "Other" sectors to the dataset
+history_for_gridding_incl_cdr = pix.concat([history_for_gridding_incl_cdr, *other_cdr_sector_templates])
 
 # %% [markdown]
 # ## Last checks
@@ -216,10 +235,11 @@ gridding.to_csv(out_file_grid)
 out_file_grid
 
 # %%
+gridding[gridding.index.get_level_values("variable").str.contains("CDR")]
+
+# %%
 logger.configure(handlers=[dict(sink=sys.stderr, level="INFO")])
 logger.enable("openscm_zenodo")
 
 # %%
 upload_to_zenodo([out_file_grid], remove_existing=False, update_metadata=True)
-
-# %%
