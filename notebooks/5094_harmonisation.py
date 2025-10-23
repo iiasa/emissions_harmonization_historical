@@ -174,6 +174,30 @@ if model.startswith("IMAGE"):
             "**Forest Burning**",
         ]
     )
+    user_overrides_gridding.loc[mask] = "constant_offset"
+
+    region_list = (
+        "IMAGE 3.4|Brazil",
+        "IMAGE 3.4|Central America",
+        "IMAGE 3.4|China Region",
+        "IMAGE 3.4|Eastern Africa",
+        "IMAGE 3.4|India",
+        "IMAGE 3.4|Indonesia Region",
+        "IMAGE 3.4|Japan",
+        "IMAGE 3.4|Rest of South America",
+        "IMAGE 3.4|Rest of Southern Africa",
+        "IMAGE 3.4|South Africa",
+        "IMAGE 3.4|Southeastern Asia",
+        "IMAGE 3.4|Western Africa",
+        "IMAGE 3.4|Western Europe",
+    )
+
+    mask = pix.ismatch(
+        variable=[
+            "**Forest Burning**",
+        ]
+    ) & user_overrides_gridding.index.get_level_values("region").str.endswith(region_list)
+
     user_overrides_gridding.loc[mask] = "reduce_offset_2030"
 
     mask = pix.ismatch(
@@ -809,9 +833,6 @@ harmonised_gridding_aggregate = to_global_workflow_emissions(
 # harmonised_gridding_aggregate
 
 # %%
-res["gridding"].timeseries
-
-# %%
 gridding_aggregates = pix.concat(
     [
         history_gridding_aggregate,
@@ -1126,6 +1147,12 @@ if make_region_sector_plots:
                     ]
                 )
                 snsdf = sdf.openscm.to_long_data().dropna()
+                col_order = ["Total", *sorted(set(snsdf["sectors"].unique()) - {"Total"})]
+
+                if species == "CO2":
+                    col_order = [*sorted(set(snsdf["sectors"].unique()) - {"Total"})]
+                    snsdf = snsdf[snsdf["sectors"] != "Total"]
+
                 fg = sns.relplot(
                     data=snsdf,
                     x="time",
@@ -1140,7 +1167,7 @@ if make_region_sector_plots:
                     },
                     col="sectors",
                     col_wrap=min(3, len(snsdf["sectors"].unique())),
-                    col_order=["Total", *sorted(set(snsdf["sectors"].unique()) - {"Total"})],
+                    col_order=col_order,
                     kind="line",
                     facet_kws=dict(sharey=False),
                 )

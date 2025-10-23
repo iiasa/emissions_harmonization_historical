@@ -98,21 +98,22 @@ props = conn_ssp.properties().reset_index()
 to_download = props[props["model"].str.contains(model_search)]
 
 if model_search == "REMIND":
-    ssp = ("SSP1 - Very Low Emissions", "SSP2 - Low Emissions", "SSP2 - Medium Emissions", "SSP3 - High Emissions")
+    ssp = ("SSP1 - Very Low Emissions",)  # "SSP2 - Low Emissions", "SSP2 - Medium Emissions", "SSP3 - High Emissions")
     to_download = to_download[to_download["scenario"].str.endswith(ssp)]
 if model_search == "AIM":
     to_download = to_download[to_download["scenario"].str.contains("- Low Overshoot")]
 if model_search == "MESSAGE":
     to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Low Emissions_f")]
 if model_search == "IMAGE":
-    skip = (
-        "SSP1 - Very Low Emissions",
-        "SSP2 - Low Emissions",
-        "SSP2 - Medium-Low Emissions",
-        "SSP2 - Very Low Emissions",
-        "SSP2 - Very Low Emissions_a",
-    )
-    to_download = to_download[~to_download["scenario"].str.endswith(skip)]
+    # skip = (
+    #     "SSP1 - Very Low Emissions",
+    #     "SSP2 - Low Emissions",
+    #     "SSP2 - Medium-Low Emissions",
+    #     "SSP2 - Very Low Emissions",
+    #     "SSP2 - Very Low Emissions_a",
+    # )
+    # to_download = to_download[~to_download["scenario"].str.endswith(skip)]
+    to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Medium Emissions")]
 if model_search == "COFFEE":
     to_download = to_download[to_download["scenario"].str.endswith("- Medium-Low Emissions")]
 if model_search == "GCAM":
