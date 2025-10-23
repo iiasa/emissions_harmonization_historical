@@ -52,7 +52,7 @@ from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR,
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "MESSAGE"
+model: str = "IMAGE"
 
 make_region_sector_plots: bool = False
 output_to_pdf: bool = False
@@ -169,46 +169,19 @@ if model.startswith("IMAGE"):
         name="method",
     ).astype(str)
 
-    mask = pix.ismatch(
-        variable=[
-            "**Forest Burning**",
-        ]
-    )
-    user_overrides_gridding.loc[mask] = "constant_offset"
+    for idx, model_harm_year_value in model_pre_processed_for_gridding[
+        model_pre_processed_for_gridding[HARMONISATION_YEAR].index.get_level_values("variable").str.contains("Forest")
+    ][HARMONISATION_YEAR].items():
+        mask_history = (history_for_gridding_harmonisation.index.get_level_values("variable") == idx[3]) & (
+            history_for_gridding_harmonisation.index.get_level_values("region") == idx[2]
+        )
 
-    region_list = (
-        "IMAGE 3.4|Brazil",
-        "IMAGE 3.4|Central America",
-        "IMAGE 3.4|China Region",
-        "IMAGE 3.4|Eastern Africa",
-        "IMAGE 3.4|India",
-        "IMAGE 3.4|Indonesia Region",
-        "IMAGE 3.4|Japan",
-        "IMAGE 3.4|Rest of South America",
-        "IMAGE 3.4|Rest of Southern Africa",
-        "IMAGE 3.4|South Africa",
-        "IMAGE 3.4|Southeastern Asia",
-        "IMAGE 3.4|Western Africa",
-        "IMAGE 3.4|Western Europe",
-    )
-
-    mask = pix.ismatch(
-        variable=[
-            "**Forest Burning**",
-        ]
-    ) & user_overrides_gridding.index.get_level_values("region").str.endswith(region_list)
-
-    user_overrides_gridding.loc[mask] = "reduce_offset_2030"
-
-    mask = pix.ismatch(
-        variable=[
-            "**CO|Energy Sector**",
-        ]
-    ) & user_overrides_gridding.index.get_level_values("region").str.contains(
-        "Eastern Africa|India|Rest of Southern Africa|Western Africa"
-    )
-
-    user_overrides_gridding.loc[mask] = "reduce_offset_2080"
+        if model_harm_year_value > 1.5 * history_for_gridding_harmonisation[mask_history][HARMONISATION_YEAR].item():
+            user_overrides_gridding.loc[(idx[0], idx[1], idx[2], idx[3])] = "constant_ratio"
+        elif model_harm_year_value < 0.8 * history_for_gridding_harmonisation[mask_history][HARMONISATION_YEAR].item():
+            user_overrides_gridding.loc[(idx[0], idx[1], idx[2], idx[3])] = "constant_offset"
+        else:
+            user_overrides_gridding.loc[(idx[0], idx[1], idx[2], idx[3])] = "reduce_offset_2030"
 
     user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
 
