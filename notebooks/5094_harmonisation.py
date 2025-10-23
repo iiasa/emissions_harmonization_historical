@@ -347,6 +347,81 @@ if model.startswith("MESSAGE"):
 
     user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
 
+if model.startswith("GCAM"):
+    # 29 September 2025 - Switch to file overrides
+    # READING form the CSV file located at "./data/raw/harmonisation_overrides/."
+    file_overrides = DATA_ROOT / "raw/harmonisation_overrides/harmonisation-methods_gridding_GCAM.csv"
+
+    # 22 October 2025 - add in aviation override
+    # and create initial overrides with code.
+    # From email with subject "OC emissions from forest fires"
+    # "Doing the aviation harmonization with reduce_ratio_2050 as discussed"
+    # ==> use reduce_ratio_2050 for harmonisation
+    # "For CO2... in general for all regions
+    # use the same harmonization rule for industry that is used for the supply sector"
+    # ==> use same harmonisation rule for energy and industrial sectors for CO2
+    #
+    # # Creating the override sheet in the first place
+    # harmonise_result_default = harmonise(
+    #     scenarios=model_pre_processed_for_gridding.reset_index("stage", drop=True),
+    #     history=history_for_harmonisation,
+    #     harmonisation_year=HARMONISATION_YEAR,
+    #     user_overrides=None,
+    # )
+    # default_methods = harmonise_result_default.overrides
+
+    # tmpa = (
+    #     default_methods.pix.extract(variable="{table}|{species}|{sector}")
+    #     .loc[pix.isin(sector=["Energy Sector", "Industrial Sector"]) & pix.isin(species="CO2")]
+    #     .unstack("sector")
+    # )
+    # tmpa["Industrial Sector"] = tmpa["Energy Sector"]
+    # tmpa = tmpa.stack("sector").pix.format(variable="{table}|{species}|{sector}", drop=True)
+
+    # tmp = default_methods.loc[pix.ismatch(variable="**Air**")]
+    # tmp.loc[:] = "reduce_ratio_2050"
+
+    # overrides = pix.concat([tmp, tmpa])
+    # overrides.name = "method"
+    # overrides.to_csv(file_overrides)
+
+    override_df = pd.read_csv(file_overrides)
+
+    user_overrides_gridding = pd.Series(
+        np.nan,
+        index=model_pre_processed_for_gridding.index.droplevel(
+            model_pre_processed_for_gridding.index.names.difference(["model", "scenario", "region", "variable"])
+        ),
+        name="method",
+    ).astype(str)
+
+    model_zero_in_harmyear = model_pre_processed_for_gridding[model_pre_processed_for_gridding[2023] == 0].index
+    model_zero_in_harmyear_for_overrides = model_zero_in_harmyear.droplevel(
+        model_zero_in_harmyear.names.difference(user_overrides_gridding.index.names)
+    ).unique()
+
+    # Looping over input df rows separating the behaviour in case of "constant_ratio" or "reduced_ratio_{year}"
+    for _, row in override_df.iterrows():
+        # Find all entries in user_overrides_gridding with matching variable
+        matching_idx = (user_overrides_gridding.index.get_level_values("variable") == row["variable"]) & (
+            user_overrides_gridding.index.get_level_values("region") == row["region"]
+        )
+
+        valid_overrides_idx = user_overrides_gridding.index[matching_idx]
+
+        if "ratio" in row["method"].lower():
+            # If method is a "ratio" type, exclude combinations where the model is zero in 2023
+            non_zero_idx = ~valid_overrides_idx.isin(model_zero_in_harmyear_for_overrides)
+            to_override = valid_overrides_idx[non_zero_idx]
+        else:
+            # For non-ratio methods, apply override unconditionally
+            to_override = valid_overrides_idx
+
+        # Apply the method
+        user_overrides_gridding.loc[to_override] = row["method"]
+
+    user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
+
 # additional method tweaks advised by Shinichiro on 17 July 2025
 if model.startswith("AIM"):
     user_overrides_gridding = pd.Series(
@@ -731,9 +806,6 @@ harmonised_gridding_aggregate = to_global_workflow_emissions(
 # harmonised_gridding_aggregate
 
 # %%
-res["gridding"].timeseries
-
-# %%
 gridding_aggregates = pix.concat(
     [
         history_gridding_aggregate,
@@ -1048,6 +1120,12 @@ if make_region_sector_plots:
                     ]
                 )
                 snsdf = sdf.openscm.to_long_data().dropna()
+                col_order = ["Total", *sorted(set(snsdf["sectors"].unique()) - {"Total"})]
+
+                if species == "CO2":
+                    col_order = [*sorted(set(snsdf["sectors"].unique()) - {"Total"})]
+                    snsdf = snsdf[snsdf["sectors"] != "Total"]
+
                 fg = sns.relplot(
                     data=snsdf,
                     x="time",
@@ -1062,7 +1140,7 @@ if make_region_sector_plots:
                     },
                     col="sectors",
                     col_wrap=min(3, len(snsdf["sectors"].unique())),
-                    col_order=["Total", *sorted(set(snsdf["sectors"].unique()) - {"Total"})],
+                    col_order=col_order,
                     kind="line",
                     facet_kws=dict(sharey=False),
                 )
