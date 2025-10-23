@@ -243,5 +243,3 @@ logger.enable("openscm_zenodo")
 
 # %%
 upload_to_zenodo([out_file_grid], remove_existing=False, update_metadata=True)
-
-# %%

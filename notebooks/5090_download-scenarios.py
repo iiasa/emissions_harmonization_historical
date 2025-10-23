@@ -116,7 +116,8 @@ if model_search == "IMAGE":
 if model_search == "COFFEE":
     to_download = to_download[to_download["scenario"].str.endswith("- Medium-Low Emissions")]
 if model_search == "GCAM":
-    to_download = to_download[to_download["scenario"].str.endswith("- High Emissions")]
+    to_download = to_download[to_download["model"].str.startswith("GCAM 8")]
+    to_download = to_download[to_download["scenario"].str.endswith("SSP3 - High Emissions")]
 if model_search == "WITCH":
     to_download = to_download[to_download["scenario"].str.contains("- Medium-Low Emissions")]
 
