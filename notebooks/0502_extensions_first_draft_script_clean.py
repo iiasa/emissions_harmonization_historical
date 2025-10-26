@@ -1,4 +1,5 @@
 import glob
+import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,6 +22,7 @@ from general_utils_for_extensions import (
     glue_with_historical,
     interpolate_to_annual,
 )
+from helper_functions_postprocess import calculate_nonco2_ghgs_gwp
 
 from emissions_harmonization_historical.constants_5000 import (
     HARMONISED_SCENARIO_DB,
@@ -219,7 +221,7 @@ component_global_targets = {
 }
 
 
-def do_all_non_co2_extensions(scenarios_complete_global, history):
+def do_all_non_co2_extensions(scenarios_complete_global, history):  # noqa: PLR0912
     """
     Extend all non-CO2 emission variables across scenarios and models using historical data and global targets.
 
@@ -265,8 +267,9 @@ def do_all_non_co2_extensions(scenarios_complete_global, history):
                 history,
                 global_target=global_target,
             )
+            if "workflow" in df_comp_scen_model.index.names:
+                df_comp_scen_model = df_comp_scen_model.reset_index("workflow", drop=True)
             total_df_list.append(df_comp_scen_model)
-            # print(df_comp_scen_model.columns)
             if look_at_all:
                 pdf = df_comp_scen_model.openscm.to_long_data()
                 fg = sns.relplot(
@@ -310,26 +313,38 @@ def do_all_non_co2_extensions(scenarios_complete_global, history):
                     scenarios_regional=scenarios_regional,
                 )
             # sys.exit(4)
-    df_all = pd.concat(total_df_list)
+    df_all = pd.concat(total_df_list, axis=0)
     return df_all
 
 
-do_and_write_to_csv = False
+do_and_write_to_csv = True
 if do_and_write_to_csv:
     df_all = do_all_non_co2_extensions(scenarios_complete_global, history)
     df_all.to_csv("first_draft_extended_nonCO2_all.csv")
     afolu_dfs = calculate_afolu_extensions(scenarios_complete_global, history, cumulative_history_afolu, plot=True)
-    print(df_all)
+    print(df_all.index)
+
     for name, afolu_df in afolu_dfs.items():
+        print(afolu_df.index)
         afolu_df.to_csv(f"first_draft_extended_afolu_{name}.csv")
     # sys.exit(4)
-# else:
-df_all = pd.read_csv("first_draft_extended_nonCO2_all.csv")
-afolu_dfs = {}
-for afolu_file in glob.glob("first_draft_extended_afolu_*.csv"):
-    name = afolu_file.split("first_draft_extended_")[-1].split(".csv")[0]
-    afolu_dfs[name] = pd.read_csv(afolu_file)
+
+else:
+    df_all = pd.read_csv(
+        "first_draft_extended_nonCO2_all.csv", index_col=["variable", "unit", "scenario", "model", "region"]
+    )
+    afolu_dfs = {}
+    for afolu_file in glob.glob("first_draft_extended_afolu_*.csv"):
+        name = afolu_file.split("first_draft_extended_")[-1].split(".csv")[0]
+        afolu_dfs[name] = pd.read_csv(afolu_file)
 # sys.exit(4)
+
+res_gwps = calculate_nonco2_ghgs_gwp(
+    df_all.loc[pix.ismatch(region="World"), ~pix.ismatch(variable="**Shipping"), ~pix.ismatch(variable="**Aircraft")],
+    gwp="AR6GWP100",
+)
+print(res_gwps.head())
+sys.exit(4)
 
 fossil_evolution_dictionary = {
     "VLLO": ["CS", 2300, 2350],
@@ -365,7 +380,10 @@ for name, df_afolu in afolu_dfs.items():
                 pix.ismatch(variable="Emissions|CO2|Energy and Industrial Processes", model=meta[1], scenario=meta[0])
             ]
         )
-        co2_afolu = df_afolu.loc[(df_afolu["model"] == meta[1]) & (df_afolu["scenario"] == meta[0])]
+        try:
+            co2_afolu = df_afolu.loc[(df_afolu["model"] == meta[1]) & (df_afolu["scenario"] == meta[0])]
+        except:  # noqa: E722
+            co2_afolu = df_afolu.loc[pix.ismatch(model=meta[1], scenario=meta[0])]
         co2_total_extend, co2_fossil_extend, extend_years = extend_co2_for_scen_storyline(
             co2_afolu, co2_fossil, fossil_evolution_dictionary[s]
         )

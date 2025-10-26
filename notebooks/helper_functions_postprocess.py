@@ -175,3 +175,55 @@ def calculate_ghgs_gwp(indf: pd.DataFrame, gwp: str = "AR6GWP100"):  # noqa: D10
         )
 
     return res
+
+
+def rename_varaiables(indf: pd.DataFrame, gwp: str = "AR6GWP100") -> pd.DataFrame:  # noqa: D103
+    indf = indf.copy()
+
+    # Build rename dictionary
+    rename_dict = {}
+    for variable in indf.pix.unique("variable"):
+        if variable == "Emissions|HFC|HFC43-10":
+            print(f"Renaming {variable} to Emissions|HFC4310mee")
+            rename_dict[variable] = "Emissions|HFC4310mee"
+        elif "|HFC|" in variable:
+            rename_dict[variable] = variable.replace("|HFC|", "|")
+        elif variable == "Emissions|Sulfur":
+            rename_dict[variable] = "Emissions|SOx"
+        elif variable == "Emissions|VOC":
+            rename_dict[variable] = "Emissions|NMVOC"
+
+    # Apply all renamings at once
+    if rename_dict:
+        indf = indf.rename(rename_dict, level="variable")
+
+    return indf
+
+
+def calculate_nonco2_ghgs_gwp(indf: pd.DataFrame, gwp: str = "AR6GWP100"):  # noqa: D103
+    indf = rename_varaiables(indf)
+    not_handled = set(indf.pix.unique("variable")) - set(ALL_GHGS) - {"Emissions|CO2"}
+    not_handled_problematic = not_handled - {
+        "Emissions|OC",
+        "Emissions|SOx",
+        "Emissions|CO2|Biosphere",
+        "Emissions|CO",
+        "Emissions|NMVOC",
+        "Emissions|BC",
+        "Emissions|CO2|Fossil",
+        "Emissions|NOx",
+        "Emissions|NH3",
+    }
+    if not_handled_problematic:
+        raise AssertionError(not_handled_problematic)
+
+    with pint.get_application_registry().context(gwp):
+        res = (
+            indf.loc[pix.isin(variable=ALL_GHGS)]
+            .pix.convert_unit("MtCO2 / yr")
+            .openscm.groupby_except("variable")
+            .sum(min_count=2)
+            .pix.assign(variable=f"Emissions|GHG {gwp}")
+        )
+
+    return res

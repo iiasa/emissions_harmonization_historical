@@ -115,6 +115,7 @@ def do_single_component_for_scenario_model_regionally(  # noqa: PLR0913
             # 2150 + sigmoid_shift,
             # full_years[len(data.columns) :],
             df_regional = pd.DataFrame(data=[data_extend], columns=full_years, index=data.index)
+
             if total_sector is None:
                 total_sector = data_extend
                 world_sector = data_extend

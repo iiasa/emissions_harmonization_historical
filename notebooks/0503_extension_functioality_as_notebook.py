@@ -13,6 +13,7 @@ import pandas_openscm
 import seaborn as sns
 import tqdm.auto
 
+# +
 # Package imports
 # +
 from afolu_extension_functions import (
