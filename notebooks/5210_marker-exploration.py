@@ -55,11 +55,11 @@ pd.set_option("display.max_columns", 100)
 # %%
 scenarios_to_analyse = [
     ("WITCH 6.0", "SSP5 - Medium-Low Emissions_a"),
-    ("GCAM 7.1 scenarioMIP", "SSP3 - High Emissions_a"),
-    ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions"),
+    ("GCAM 8s", "SSP3 - High Emissions"),
+    ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions_f"),
     ("COFFEE 1.6", "SSP2 - Medium-Low Emissions"),
     ("IMAGE 3.4", "SSP2 - Medium Emissions"),
-    ("AIM 3.0", "SSP2 - Low Overshoot"),
+    ("AIM 3.0", "SSP2 - Low Overshoot_a"),
     ("REMIND-MAgPIE 3.5-4.11", "SSP1 - Very Low Emissions"),
 ]
 
@@ -167,7 +167,7 @@ pdf_temperature = add_model_scenario_column(pdf_temperature, ms_separator=ms_sep
 # %%
 model_colours = {
     "WITCH 6.0": "#800080",
-    "GCAM 7.1 scenarioMIP": "#7f3e3e",
+    "GCAM 8s": "#7f3e3e",
     "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12": "#f7a84f",
     "COFFEE 1.6": "#e1ad01",
     "IMAGE 3.4": "#2e9e68",
@@ -211,7 +211,6 @@ for i, (ax, yticks) in enumerate(zip(axes, [np.arange(0.5, 4.01, 0.5), np.arange
     ax.set_ylim(ymin=yticks.min(), ymax=yticks.max())
     # ax.set_ylim(ymax=ymax)
     ax.grid()
-fig.savefig("All_AIM_base.png", bbox_inches="tight")
 
 
 # %%
@@ -286,6 +285,7 @@ for i, variable_to_plot in enumerate(erfs_to_plot):
 # ax.set_ylim(ymin=yticks.min(), ymax=yticks.max())
 # # ax.set_ylim(ymax=ymax)
 # ax.grid()
+fig.savefig("erfs.pdf", format="pdf", bbox_inches="tight")
 
 # %% [markdown]
 # ### Emissions
@@ -338,6 +338,7 @@ for i, variable_to_plot in enumerate(emissions_to_plot):
         ax.legend().remove()
 
     ax.grid()
+fig.savefig("emissions.pdf", format="pdf", bbox_inches="tight")
 
 # %%
 
