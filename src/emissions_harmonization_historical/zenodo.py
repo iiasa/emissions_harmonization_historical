@@ -120,7 +120,7 @@ def upload_to_zenodo(
     load_dotenv()
 
     if "ZENODO_TOKEN" not in os.environ:
-        msg = "Please copy the `.env.sample` file to `.env` " "and ensure you have set your ZENODO_TOKEN."
+        msg = "Please copy the `.env.sample` file to `.env` and ensure you have set your ZENODO_TOKEN."
         raise KeyError(msg)
 
     zenodo_interactor = ZenodoInteractor(token=os.environ["ZENODO_TOKEN"])

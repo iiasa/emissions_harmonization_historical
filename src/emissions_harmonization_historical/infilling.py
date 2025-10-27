@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pandas as pd
 import pandas_indexing as pix
+import pyam
 import tqdm.auto
 
 if TYPE_CHECKING:
@@ -47,8 +48,6 @@ def get_silicone_based_infiller(
     :
         Function which can be used to infill `follower_variable` in scenarios
     """
-    import pyam
-
     silicone_infiller = silicone_db_cruncher(pyam.IamDataFrame(infilling_db)).derive_relationship(
         variable_follower=follower_variable,
         variable_leaders=lead_variables,

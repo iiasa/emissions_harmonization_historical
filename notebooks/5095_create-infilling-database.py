@@ -38,7 +38,6 @@ from emissions_harmonization_historical.harmonisation import (
     HARMONISATION_YEAR,
     harmonise,
 )
-from emissions_harmonization_historical.zenodo import upload_to_zenodo
 
 # %% [markdown]
 # ## Set up
@@ -170,4 +169,4 @@ out.to_csv(out_file_infilling_db)
 out_file_infilling_db
 
 # %%
-upload_to_zenodo([out_file_infilling_db], remove_existing=False, update_metadata=True)
+# upload_to_zenodo([out_file_infilling_db], remove_existing=False, update_metadata=True)

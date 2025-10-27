@@ -91,13 +91,13 @@ def main():
                 .sum(min_count=1)
                 .pix.assign(model="historical-sources")
             )
-            historical_sum_r10 = (
+            (
                 sdf.loc[pix.ismatch(region=["World", "**R10**"])]
                 .openscm.groupby_except(["model", "region"])
                 .sum(min_count=1)
                 .pix.assign(model="historical-sources")
             )
-            historical_sum_rm = (
+            (
                 sdf.loc[pix.ismatch(region=["World", "REMIND-MAgPIE 3.5-4.10|*"])]
                 .openscm.groupby_except(["model", "region"])
                 .sum(min_count=1)

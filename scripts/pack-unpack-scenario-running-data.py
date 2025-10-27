@@ -19,7 +19,7 @@ from emissions_harmonization_historical.constants_5000 import (
 )
 
 
-def main(pack: bool = True) -> None:
+def main(pack: bool = False) -> None:
     """Unpack or pack data"""
     REPO_ROOT = Path(__file__).parents[1]
 
@@ -35,11 +35,23 @@ def main(pack: bool = True) -> None:
 
         for data, gzip in (
             # (raw_scenario_data, REPO_ROOT / f"raw-scenarios_{DOWNLOAD_SCENARIOS_ID}.tar.gz"),
-            (harmonisation_history, REPO_ROOT / f"harmonisation-history_{HISTORY_FOR_HARMONISATION_ID}.tar.gz"),
+            (
+                harmonisation_history,
+                REPO_ROOT / f"harmonisation-history_{HISTORY_FOR_HARMONISATION_ID}.tar.gz",
+            ),
             # (infilling_db_data, REPO_ROOT / f"infilling-db_{INFILLING_DB_DIR.name}.tar.gz"),
-            (cmip_processed, REPO_ROOT / f"cmip-processed_{CMIP7_GHG_PROCESSING_ID}.tar.gz"),
-            (wmo_processed, REPO_ROOT / f"wmo-processed_{WMO_2022_PROCESSING_ID}.tar.gz"),
-            (rcmip_processed, REPO_ROOT / f"rcmip-processed_{RCMIP_PROCESSING_ID}.tar.gz"),
+            (
+                cmip_processed,
+                REPO_ROOT / f"cmip-processed_{CMIP7_GHG_PROCESSING_ID}.tar.gz",
+            ),
+            (
+                wmo_processed,
+                REPO_ROOT / f"wmo-processed_{WMO_2022_PROCESSING_ID}.tar.gz",
+            ),
+            (
+                rcmip_processed,
+                REPO_ROOT / f"rcmip-processed_{RCMIP_PROCESSING_ID}.tar.gz",
+            ),
         ):
             tmp_dir = Path(tempfile.mkdtemp())
             tmp_db_dir = tmp_dir / "db"
@@ -64,9 +76,18 @@ def main(pack: bool = True) -> None:
             #    REPO_ROOT / f"infilling-db_{INFILLING_DB_DIR.name}.tar.gz",
             #    INFILLING_DB.db_dir,
             # ),
-            (REPO_ROOT / f"cmip-processed_{CMIP7_GHG_PROCESSING_ID}.tar.gz", CMIP7_GHG_PROCESSED_DB.db_dir),
-            (REPO_ROOT / f"wmo-processed_{WMO_2022_PROCESSING_ID}.tar.gz", WMO_2022_PROCESSED_DB.db_dir),
-            (REPO_ROOT / f"rcmip-processed_{RCMIP_PROCESSING_ID}.tar.gz", RCMIP_PROCESSED_DB.db_dir),
+            (
+                REPO_ROOT / f"cmip-processed_{CMIP7_GHG_PROCESSING_ID}.tar.gz",
+                CMIP7_GHG_PROCESSED_DB.db_dir,
+            ),
+            (
+                REPO_ROOT / f"wmo-processed_{WMO_2022_PROCESSING_ID}.tar.gz",
+                WMO_2022_PROCESSED_DB.db_dir,
+            ),
+            (
+                REPO_ROOT / f"rcmip-processed_{RCMIP_PROCESSING_ID}.tar.gz",
+                RCMIP_PROCESSED_DB.db_dir,
+            ),
         ):
             OpenSCMDB.from_gzipped_tar_archive(
                 tar_archive=gzip,

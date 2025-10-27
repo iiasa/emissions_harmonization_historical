@@ -81,6 +81,9 @@ data/national/cams/data_raw/
 # PRIMAP-hist data
 data/national/primap-hist/data_raw
 
+data/fair-inputs/emissions_1750-2500.csv
+data/fair-inputs/calibrated_constrained_parameters_1.4.1.csv
+
 # pixi stuff
 .pixi
 
@@ -222,3 +225,8 @@ dmypy.json
 
 # Mac stuff
 *.DS_Store
+
+
+notebooks/continuous_emissions_timeseries_1750_2500_20251027_190047.csv
+notebooks/first_draft_extended_nonCO2_all.csv
+notebooks/continuous_emissions_timeseries_1750_2500.csv

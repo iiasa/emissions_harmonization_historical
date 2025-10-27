@@ -75,7 +75,7 @@ def run_notebook(notebook: Path, run_notebooks_dir: Path, parameters: dict[str, 
     output_notebook = run_notebooks_dir / f"{notebook.stem}_{idn}.ipynb"
     output_notebook.parent.mkdir(exist_ok=True, parents=True)
 
-    print(f"Executing {notebook.name=} with {parameters=} from {in_notebook=}. " f"Writing to {output_notebook=}")
+    print(f"Executing {notebook.name=} with {parameters=} from {in_notebook=}. Writing to {output_notebook=}")
     # Execute to specific directory
     pm.execute_notebook(in_notebook, output_notebook, parameters=parameters)
 
@@ -86,7 +86,12 @@ def run_notebook_iam(notebook: Path, run_notebooks_dir: Path, iam: str) -> None:
     """
     parameters = get_notebook_parameters(notebook.name, iam=iam)
 
-    run_notebook(notebook=notebook, run_notebooks_dir=run_notebooks_dir, parameters=parameters, idn=iam)
+    run_notebook(
+        notebook=notebook,
+        run_notebooks_dir=run_notebooks_dir,
+        parameters=parameters,
+        idn=iam,
+    )
 
 
 def run_notebook_with_scm(notebook: Path, run_notebooks_dir: Path, iam: str, scm: str) -> None:
@@ -95,7 +100,12 @@ def run_notebook_with_scm(notebook: Path, run_notebooks_dir: Path, iam: str, scm
     """
     parameters = get_notebook_parameters(notebook.name, iam=iam, scm=scm)
 
-    run_notebook(notebook=notebook, run_notebooks_dir=run_notebooks_dir, parameters=parameters, idn=f"{iam}_{scm}")
+    run_notebook(
+        notebook=notebook,
+        run_notebooks_dir=run_notebooks_dir,
+        parameters=parameters,
+        idn=f"{iam}_{scm}",
+    )
 
 
 def main():  # noqa: PLR0912
@@ -160,12 +170,12 @@ def main():  # noqa: PLR0912
     # ]
     # All
     iams = [
-        # "IMAGE",
-        # "WITCH",
-        # "REMIND",
-        # "MESSAGE",
-        # "GCAM",
-        # "COFFEE",
+        "IMAGE",
+        "WITCH",
+        "REMIND",
+        "MESSAGE",
+        "GCAM",
+        "COFFEE",
         "AIM",
     ]
     # iams = ["COFFEE"]
@@ -178,9 +188,9 @@ def main():  # noqa: PLR0912
     # # # Downloading and reporting checking
     # # notebook_prefixes = ["5090", "5091", "5092"]
     # Everything
-    notebook_prefixes = ["5090", "5091", "5092", "5093", "5094"]
+    # notebook_prefixes = ["5090", "5091", "5092", "5093", "5094"]
     # # Skip this step
-    # notebook_prefixes = []
+    notebook_prefixes = []
 
     for iam in tqdm.tqdm(iams, desc="IAMs pre infilling"):
         for notebook in all_notebooks:
@@ -198,9 +208,9 @@ def main():  # noqa: PLR0912
     # (and even then only to a limited degree because it is mostly for F-gases)
     # so this shouldn't make such a big impact.
     # Run the notebook
-    notebook_prefixes = ["5095"]
+    # notebook_prefixes = ["5095"]
     # # Skip this step
-    # notebook_prefixes = []
+    notebook_prefixes = []
     for notebook in all_notebooks:
         if any(notebook.name.startswith(np) for np in notebook_prefixes):
             run_notebook(
@@ -216,9 +226,9 @@ def main():  # noqa: PLR0912
     # only infilling
     # notebook_prefixes = ["5191"]
     # infilling & post-processing emissions
-    notebook_prefixes = ["5190", "5191"]
+    # notebook_prefixes = ["5190", "5191"]
     # Skip this step
-    # notebook_prefixes = []
+    notebook_prefixes = []
     for iam in iams:
         for notebook in all_notebooks:
             if any(notebook.name.startswith(np) for np in notebook_prefixes):

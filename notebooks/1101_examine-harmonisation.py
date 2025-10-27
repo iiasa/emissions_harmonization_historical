@@ -544,8 +544,8 @@ for variable, vdf in ar6_history_non_zero_start.groupby("variable"):
         plt.show()
         # for model, scenario in to_plot.pix.unique(["model", "scenario"]):
         #     has_issues.append((model, scenario, variable))
-        for model in to_plot.pix.unique(["model"]):
-            has_issues.append((model, variable))
+        for model_name in to_plot.pix.unique(["model"]):
+            has_issues.append((model_name, variable))
 
 has_issues
 
