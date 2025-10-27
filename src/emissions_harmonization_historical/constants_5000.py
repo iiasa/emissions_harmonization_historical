@@ -23,8 +23,6 @@ from pandas_openscm.db import (
     OpenSCMDB,
 )
 
-from emissions_harmonization_historical.region_mapping import get_latest_commit_hash
-
 # Chosen to match the CMIP experiment ID
 HISTORY_SCENARIO_NAME = "historical"
 
@@ -236,11 +234,11 @@ RCMIP_PROCESSED_DB = OpenSCMDB(
 
 
 # Commit from https://github.com/IAMconsortium/common-definitions
-
-COMMON_DEFINITIONS_COMMIT = get_latest_commit_hash(
-    "IAMconsortium", "common-definitions", fallback_commit="cc69ed0a415a63c7ce7372d5a36c088d9cbee055"
-)
-COMMON_DEFINITIONS_COMMIT = "3e85a57cf491180e36eac2dd588b43f250d612c7"
+# COMMON_DEFINITIONS_COMMIT = get_latest_commit_hash(
+#     "IAMconsortium", "common-definitions", fallback_commit="cc69ed0a415a63c7ce7372d5a36c088d9cbee055"
+# )
+# Hard-code to ensure stability
+COMMON_DEFINITIONS_COMMIT = "7e32405ade790677a6022ff498395bff00d9792d"
 COMMON_DEFINITIONS_PATH = REPO_ROOT / "common-definitions"
 
 
@@ -309,17 +307,7 @@ DOWNLOAD_SCENARIOS_ID = "20250602-123212"
 DOWNLOAD_SCENARIOS_ID = "08Snapshot"
 DOWNLOAD_SCENARIOS_ID = "20250818"
 # Run by Marco
-DOWNLOAD_SCENARIOS_ID = "20250915"
-# Local latest run by Marit
-DOWNLOAD_SCENARIOS_ID = "20251009-154352"
-# Local latest run by Marit
-DOWNLOAD_SCENARIOS_ID = "20251014-retry"
-# Local latest run by Marit
-DOWNLOAD_SCENARIOS_ID = "20251015"
-# Current on main
-# DOWNLOAD_SCENARIOS_ID = "gcages_test"
-DOWNLOAD_SCENARIOS_ID = "IMAGE_20251021"
-DOWNLOAD_SCENARIOS_ID = "20251026_test"
+DOWNLOAD_SCENARIOS_ID = "All_23Oct"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(
