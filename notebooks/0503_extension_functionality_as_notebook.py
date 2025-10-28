@@ -40,6 +40,8 @@ from general_utils_for_extensions import (
 )
 
 from emissions_harmonization_historical.constants_5000 import (
+    EXTENSIONS_OUT_DIR,
+    EXTENSIONS_OUTPUT_DB,
     HARMONISED_SCENARIO_DB,
     HISTORY_HARMONISATION_DB,
     INFILLED_SCENARIOS_DB,
@@ -779,6 +781,47 @@ def merge_historical_future_timeseries(history_data, extensions_data, overlap_ye
 # Execute the concise merge
 continuous_timeseries_concise = merge_historical_future_timeseries(history, df_everything)
 
+# %%
+print(continuous_timeseries_concise.head())
+print(continuous_timeseries_concise.index.levels)
+# print(continuous_timeseries_concise.index)
+
+# %%
+print(history.head())
+
+# %%
+print(scenarios_complete_global.head())
+print(scenarios_complete_global.index)
+
+# %% [markdown]
+# ## Dump per model to database
+
+
+# %%
+def dump_data_per_model(extended_data, model):
+    """
+    Dump extended data for a specific model to CSV.
+
+    Parameters
+    ----------
+    extended_data : pd.DataFrame
+        The complete extended data with MultiIndex.
+    model : str
+        The model name to filter and dump data for.
+    """
+    model_short = model.split(" ")[0]
+    if model.startswith("MESSAGE"):
+        model_short = "MESSAGE"
+    print(f"=== DUMPING DATA FOR MODEL: {model} ({model_short}) ===")
+    output_dir_model = EXTENSIONS_OUT_DIR / model_short
+    output_dir_model.mkdir(exist_ok=True, parents=True)
+    model_data = extended_data.loc[extended_data.index.get_level_values("model") == model]
+    EXTENSIONS_OUTPUT_DB.save(model_data, allow_overwrite=True)
+
+
+for model in continuous_timeseries_concise.pix.unique("model"):
+    dump_data_per_model(continuous_timeseries_concise, model)
+
 
 # %%
 # Simple CSV output
@@ -839,6 +882,10 @@ def save_continuous_timeseries_to_csv(data, filename="continuous_timeseries_hist
 
 # Execute the simple CSV save
 result = save_continuous_timeseries_to_csv(continuous_timeseries_concise, "continuous_emissions_timeseries_1750_2500")
+
+
+# %% [markdown]
+# ## Plotting various
 
 
 # %%
