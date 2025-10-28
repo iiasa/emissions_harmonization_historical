@@ -227,6 +227,4 @@ dmypy.json
 *.DS_Store
 
 
-notebooks/continuous_emissions_timeseries_1750_2500_20251027_190047.csv
-notebooks/first_draft_extended_nonCO2_all.csv
-notebooks/continuous_emissions_timeseries_1750_2500.csv
+notebooks/*.csv
