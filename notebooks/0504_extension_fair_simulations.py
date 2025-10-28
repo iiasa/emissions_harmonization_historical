@@ -1,11 +1,10 @@
 # %% [markdown]
 # # FaIR Climate Model Simulations with Extended Emissions Scenarios
 #
-# This notebook runs the FaIR v1.4.1 climate model with extended emissions scenarios
-# (1750-2501) to generate climate projections. It processes emissions through
-# CO2-equivalent calculations, applies blending for smooth transitions, and produces
-# temperature and concentration projections across seven scenarios ranging from very
-# low (VL) to very high (HL) emissions.
+# This notebook runs the FaIR v1.4.1 climate model with extended emissions scenarios (1750-2501)
+# to generate climate projections. It processes emissions through CO2-equivalent calculations,
+# applies blending for smooth transitions, and produces temperature and concentration projections
+# across seven scenarios ranging from very low (VL) to very high (HL) emissions.
 
 # %%
 import os
@@ -24,7 +23,7 @@ f = FAIR()
 #
 
 # %% [markdown]
-# Need to pull the calibrated_constrained_parameters_1.4.1.csv from https://zenodo.org/records/8399112
+# Need to pull the calibrated_constrained_parameters_1.4.1.csv from https://zenodo.org/records/8399112 repo
 # and place here:
 # ../data/fair-inputs/calibrated_constrained_parameters_1.4.1.csv
 #
@@ -79,8 +78,8 @@ df_emis.head()
 # %% [markdown]
 # ## Setup and Configuration
 #
-# **Scenarios**: Seven emissions scenarios (VL, LN, L, ML, M, H, HL) representing very
-# low to very high emissions pathways
+# **Scenarios**: Seven emissions scenarios (VL, LN, L, ML, M, H, HL) representing very low
+# to very high emissions pathways
 # **Time range**: 1750-2501 (752 years)
 # **Species**: CO2 (FFI & AFOLU), CH4, N2O, plus 37 other GHGs and aerosols
 # **FaIR configuration**: Using calibrated parameters from Smith et al. with legacy CH4 lifetime method
@@ -125,12 +124,11 @@ scens_shrt = [ldict[s] for s in scens]
 # %% [markdown]
 # ## CO2-Equivalent Emissions Calculation
 #
-# Convert all GHG emissions to CO2-equivalents using 100-year Global Warming Potentials
-# (GWP100). This aggregates the climate forcing from all greenhouse gases into a single
-# metric for comparison across scenarios.
+# Convert all GHG emissions to CO2-equivalents using 100-year Global Warming Potentials (GWP100).
+# This aggregates the climate forcing from all greenhouse gases into a single metric for
+# comparison across scenarios.
 #
-# **Method**: Multiply each species' emissions by its GWP (e.g., CH4 = 29.8, N2O = 273)
-# and sum to get total CO2e.
+# **Method**: Multiply each species' emissions by its GWP (e.g., CH4 = 29.8, N2O = 273) and sum to get total CO2e.
 
 # %% [markdown]
 #
@@ -190,14 +188,15 @@ scens_out = pd.concat(scens_out)
 # Calculate CO2e
 
 # %%
-co2eo = f.emissions.sel(specie="CO2 FFI")[:, :, 0].copy()
+co2eo = f.emissions.sel(specie="CO2 FFI")[:, :, 0].copy() * 0
 for specie in f.emissions.specie.values:
     try:
-        gwp = gwpmat[specie]
+        gwp = gwpmat["ar6_gwp_mass_adjusted"][specie]
+        print(gwp)
     except KeyError:
         gwp = np.nan
     if ~np.isnan(gwp):
-        co2eo = co2eo + f.emissions.sel(specie=specie)[:, :, 0] * gwp
+        co2eo = co2eo + f.emissions.sel(specie=specie)[:, :, 0] * gwp / 1000000
     else:
         0
 co2e = co2eo * 1e6  # -co2eo.loc[dict(timepoints=2019.5)].values+53.e6
@@ -256,14 +255,12 @@ f.run()
 # ## Results Visualization
 #
 # Generate comprehensive plots showing:
-# 1. **GHG emissions** (CO2e) trajectories with uncertainty bands (33rd-66th percentiles
-#    until 2100, extended projections 2100-2150)
-# 2. **Temperature anomalies** relative to 1850-1900 baseline with 5th-95th percentile
-#    ranges
+# 1. **GHG emissions** (CO2e) trajectories with uncertainty bands (33rd-66th percentiles until 2100,
+# extended projections 2100-2150)
+# 2. **Temperature anomalies** relative to 1850-1900 baseline with 5th-95th percentile ranges
 # 3. **Multi-panel diagnostics**: CO2 emissions, cumulative CO2, CO2e, radiative forcing,
-#    CO2 concentrations, and temperature
-# 4. **Probability distributions**: Temperature outcomes at 2100, 2300, and peak warming
-#    across scenarios
+# CO2 concentrations, and temperature
+# 4. **Probability distributions**: Temperature outcomes at 2100, 2300, and peak warming across scenarios
 
 # %% [markdown]
 #
@@ -311,7 +308,7 @@ ax[0].set_ylabel("GHG emissions, GtCO$_2$eq yr$^{-1}$")
 ax[0].axhline(ls=":", color="k", lw=0.5)
 # ax[1].legend()
 ax[0].set_xlim(2000, 2150)
-ax[0].set_ylim(-50, 80)
+ax[0].set_ylim(-50, 100)
 
 ax[0].grid()
 ax[0].set_title("(a)")

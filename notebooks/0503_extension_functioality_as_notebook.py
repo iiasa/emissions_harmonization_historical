@@ -24,9 +24,7 @@ import pandas_openscm
 import seaborn as sns
 import tqdm.auto
 
-# %%
 # Package imports
-# %%
 from afolu_extension_functions import (
     get_cumulative_afolu,
     get_cumulative_afolu_fill_from_hist,
@@ -57,11 +55,11 @@ from emissions_harmonization_historical.extension_functionality import (
 )
 
 # Constants
-HISTORICAL_FUTURE_SPLIT_YEAR = 2023.0
-MIN_YEAR = 1900
-MAX_YEAR = 2100
+FUTURE_START_YEAR = 2023.0
+HISTORICAL_START_YEAR = 1900
+SCENARIO_END_YEAR = 2100
 TUPLE_LENGTH_WITH_STAGE = 6
-MARKER_SIZE_THRESHOLD = 50
+MAX_YEARS_FOR_MARKERS = 50
 
 # %% [markdown]
 # More preamble
@@ -430,32 +428,55 @@ for afolu_file in glob.glob("first_draft_extended_afolu_*.csv"):
 # sys.exit(4)
 
 # %% [markdown]
-# ## Finally Fossil CO2 extensions
-
-# %% [markdown]
-# Storyline dictionaries
+# # Total CO2 Storyline dictionaries
+# These dictionaries define how total CO2 emissions evolve from 2023 to 2500
+# Each storyline type has specific parameters that control the transition phases
+# ## Storyline Types (from extensions_fossil_co2_storyline_functions.py):
+# - "CS": Constant-then-Sigmoid - holds constant emissions, then smooth transition to zero
+# - "ECS": Exponential/linear-then-Constant-then-Sigmoid - initial decay/growth, plateau, then transition to zero
+# - "CSCS": Constant-Sigmoid-Constant-Sigmoid - two-phase transition with intermediate plateau
+# ## Parameter meanings:
+# ### CS storyline: ["CS", stop_const, end_sig, roll_in, roll_out]
+# - stop_const: year when constant phase ends
+# - end_sig: year when sigmoid transition to zero completes
+# - roll_in: years for smooth roll-in to sigmoid (transition smoothing)
+# - roll_out: years for smooth roll-out from sigmoid (transition smoothing)
+# ### ECS storyline: ["ECS", exp_end, exp_targ, sig_start, sig_end, roll_in, roll_out]
+# - exp_end: year when initial exponential/linear phase ends
+# - exp_targ: target emission value at exp_end (None = auto-calculated from data trend)
+# - sig_start: year when sigmoid transition begins
+# - sig_end: year when sigmoid transition to zero completes
+# - roll_in, roll_out: transition smoothing parameters (years)
+# ### CSCS storyline: ["CSCS", stop_const, sig_targ, end_sig1, start_sig2, end_sig2, roll_in, roll_out]
+# - stop_const: year when first constant phase ends
+# - sig_targ: target value for intermediate plateau (between two sigmoids)
+# - end_sig1: year when first sigmoid completes
+# - start_sig2: year when second sigmoid begins
+# - end_sig2: year when final sigmoid to zero completes
+# - roll_in, roll_out: transition smoothing parameters (years)
 
 # %%
+# ["CS",stop_const,end_sig,roll_in,roll_out]
+# ["ECS",exp_end,exp_targ,sig_start,sig_end,roll_in,roll_out]
+# ["CSCS",stop_const,sig_targ,end_sig1,start_sig2,end_sig2,roll_in,roll_out]
 
-# Updated:
 fossil_evolution_dictionary = {
-    "VL": ["CS", 2300, 2350],
-    "LN": ["ECS", 2150, None, 2200, 2300],
-    "L": ["ECS", 2150, None, 2240, 2300],
-    "ML": ["ECS", 2150, -13e3, 2250, 2300],
-    "M": ["CS", 2100, 2200],
-    "MOS": ["CSCS", 2105, -20e3, 2175, 2300, 2350],
-    "H": ["ECS", 2150, None, 2175, 2275],
-    "HL": ["CSCS", 2100, -36e3, 2200, 2400, 2450],
-}
-fossil_evolution_dictionary = {
-    "VL": ["CS", 2100, 2200],
-    "LN": ["CSCS", 2100, -24e3, 2120, 2200, 2300],  # ["ECS", 2120, -24e3, 2200, 2300],
-    "L": ["ECS", 2120, None, 2130, 2280],
-    "ML": ["ECS", 2150, -13e3, 2230, 2300],
-    "M": ["ECS", 2130, 34.5e3, 2130, 2200],
-    "H": ["ECS", 2150, None, 2175, 2300],
-    "HL": ["ECS", 2150, -22e3, 2200, 2300],
+    "VL": ["ECS", 2170, None, 2450, 2500, 20, 20],
+    "LN": [
+        "CSCS",
+        2100,
+        -24e3,
+        2120,
+        2200,
+        2300,
+        20,
+        20,
+    ],  # ["ECS", 2120, -24e3, 2200, 2300],
+    "L": ["ECS", 2160, None, 2160, 2260, 40, 20],
+    "ML": ["ECS", 2150, -13e3, 2230, 2300, 20, 20],
+    "M": ["CS", 2100, 2240, 20, 20],
+    "H": ["ECS", 2150, None, 2175, 2300, 20, 20],
+    "HL": ["ECS", 2150, -22e3, 2200, 2300, 20, 20],
 }
 
 
@@ -482,18 +503,20 @@ for s, meta in scenario_model_match.items():
     year_cols = [
         col
         for col in co2_fossil.columns
-        if (isinstance(col, int | float) and col >= HISTORICAL_FUTURE_SPLIT_YEAR)
-        or (re.match(r"^\d{4}(?:\.0)?$", str(col)) and float(col) >= HISTORICAL_FUTURE_SPLIT_YEAR)
+        if (isinstance(col, int | float) and col >= FUTURE_START_YEAR)
+        or (re.match(r"^\d{4}(?:\.0)?$", str(col)) and float(col) >= FUTURE_START_YEAR)
     ]
     non_year_cols = [
         col
         for col in co2_fossil.columns
         if not (
-            (isinstance(col, int | float) and (MIN_YEAR <= col <= MAX_YEAR)) or re.match(r"^\d{4}(?:\.0)?$", str(col))
+            (isinstance(col, int | float) and (HISTORICAL_START_YEAR <= col <= SCENARIO_END_YEAR))
+            or re.match(r"^\d{4}(?:\.0)?$", str(col))
         )
     ]
     co2_fossil = co2_fossil[non_year_cols + year_cols]
     co2_afolu = df_afolu.loc[(df_afolu["model"] == meta[1]) & (df_afolu["scenario"] == meta[0])]
+
     co2_total_extend, co2_fossil_extend, extend_years = extend_co2_for_scen_storyline(
         co2_afolu, co2_fossil, fossil_evolution_dictionary[s]
     )
@@ -568,7 +591,7 @@ if "Unnamed: 0" in df_all.columns:
         index_names = ["model", "scenario", "region", "variable", "unit", "stage"]
     else:
         index_names = ["model", "scenario", "region", "variable", "unit"]
-    parsed_tuples = [i[0:TUPLE_LENGTH_WITH_STAGE] for i in parsed_tuples]
+    parsed_tuples = [i[0:6] for i in parsed_tuples]
 
     # Create MultiIndex and new dataframe
     multi_index = pd.MultiIndex.from_tuples(parsed_tuples, names=index_names)
@@ -621,10 +644,6 @@ fossil_extension_df_fixed = standardize_year_columns(fossil_extension_df)
 df_afolu_fixed_standardized = standardize_year_columns(df_afolu_fixed)
 df_all_fixed_standardized = standardize_year_columns(df_all_fixed)
 
-print("Column types after standardization:")
-print(f"fossil: {type(fossil_extension_df_fixed.columns[0])}")
-print(f"afolu: {type(df_afolu_fixed_standardized.columns[0])}")
-print(f"all: {type(df_all_fixed_standardized.columns[0])}")
 
 # Now concatenate with properly standardized dataframes
 df_everything = pix.concat(
@@ -635,11 +654,6 @@ df_everything = pix.concat(
     ]
 )
 
-print(f"\n✅ Fixed concatenation successful! df_everything shape: {df_everything.shape}")
-print("Index compatibility verified and column types standardized.")
-
-# %%
-df_everything
 
 # %%
 # Check for and handle duplicate metadata (CSV preparation only)
@@ -756,7 +770,7 @@ def merge_historical_future_timeseries(history_data, extensions_data, overlap_ye
     # Step 7: Concatenate along time axis
     continuous_data = pd.concat([hist_common, future_common], axis=1).sort_index(axis=1)
 
-    print(f"✅ Merged data: {continuous_data.shape} ({len(common_vars)} variables, {len(scenarios)} scenarios)")
+    print(f"Merged data: {continuous_data.shape} ({len(common_vars)} variables, {len(scenarios)} scenarios)")
     print(f"Time range: {continuous_data.columns[0]}-{continuous_data.columns[-1]}")
 
     return continuous_data
@@ -833,7 +847,7 @@ def plot_total_co2_emissions(data, scenario_colors=None):
     """
     Plot total CO2 emissions (AFOLU + Energy & Industrial) for each scenario.
 
-    From the continuous timeseries spanning 1750-2500.
+    Plot emissions from the continuous timeseries spanning 1750-2500.
     """
     print("=== PLOTTING TOTAL CO2 EMISSIONS BY SCENARIO ===")
 
@@ -1018,8 +1032,8 @@ def plot_co2_transition_period(data, scenario_colors=None, start_year=1990, end_
             color=color,
             linewidth=2.5,
             alpha=0.8,
-            marker="o" if len(years) < MARKER_SIZE_THRESHOLD else None,
-            markersize=3 if len(years) < MARKER_SIZE_THRESHOLD else 0,
+            marker="o" if len(years) < MAX_YEARS_FOR_MARKERS else None,
+            markersize=3 if len(years) < MAX_YEARS_FOR_MARKERS else 0,
         )
 
     # Add vertical line at historical/future boundary
@@ -1070,28 +1084,19 @@ def plot_co2_transition_period(data, scenario_colors=None, start_year=1990, end_
 fig_transition, ax_transition = plot_co2_transition_period(continuous_timeseries_concise, scenario_model_match)
 
 # %%
-scenario_model_match.keys()
-
-# %%
 native_emissions = copy.deepcopy(continuous_timeseries_concise)
-
-# %%
-
 
 # %%
 # Remove leading 'Emissions|' from variable names in the index of continuous_timeseries_concise
 if "variable" in continuous_timeseries_concise.index.names:
+    var_idx = continuous_timeseries_concise.index.names.index("variable")
     new_index = [
         tuple(
-            (
-                *v[0 : continuous_timeseries_concise.index.names.index("variable")],
-                (
-                    v[continuous_timeseries_concise.index.names.index("variable")].replace("Emissions|", "", 1)
-                    if v[continuous_timeseries_concise.index.names.index("variable")].startswith("Emissions|")
-                    else v[continuous_timeseries_concise.index.names.index("variable")]
-                ),
-                *v[continuous_timeseries_concise.index.names.index("variable") + 1 :],
-            )
+            [
+                *v[:var_idx],
+                (v[var_idx].replace("Emissions|", "", 1) if v[var_idx].startswith("Emissions|") else v[var_idx]),
+                *v[var_idx + 1 :],
+            ]
         )
         for v in continuous_timeseries_concise.index
     ]
@@ -1169,14 +1174,11 @@ mapping["Halon1202"] = "Halon-1202"
 for k, v in mapping.items():
     print(f"{k} → {v}")
 
-# %%
-mapping
-
 
 # %%
 # Update the DataFrame to use the FaIR variable names in the 'variable' index level
 def map_variable_name(var):
-    """Map variable name using the mapping dictionary."""
+    """Map variable name to FaIR variable name using mapping dictionary."""
     return mapping.get(var, var)  # fallback to original if no mapping found
 
 
@@ -1203,7 +1205,7 @@ continuous_timeseries_concise.index.get_level_values("variable").unique()
 # %%
 # Update year columns to be float and add 0.5 to each (e.g., 1750.5, 1751.5, ...)
 def shift_year_columns(df):
-    """Shift year columns by adding 0.5 to each year value."""
+    """Update year columns to be float and add 0.5 to each (e.g., 1750.5, 1751.5, ...)."""
     new_columns = []
     for col in df.columns:
         try:
@@ -1217,12 +1219,6 @@ def shift_year_columns(df):
 
 continuous_timeseries_concise = shift_year_columns(continuous_timeseries_concise)
 print("Year columns updated to float and shifted by 0.5.")
-
-# %%
-continuous_timeseries_concise.head()
-
-# %%
-
 
 # %%
 # Remove all rows where the combination of scenario (column) and variable (index) is not unique
