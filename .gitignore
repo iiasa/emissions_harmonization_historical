@@ -226,5 +226,6 @@ dmypy.json
 # Mac stuff
 *.DS_Store
 
-
+# Notebook output dumps
 notebooks/*.csv
+notebooks/*.json
