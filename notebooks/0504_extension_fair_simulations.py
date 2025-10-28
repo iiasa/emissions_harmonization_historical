@@ -9,6 +9,7 @@
 # %%
 import os
 
+import matplotlib.patheffects as pe
 import matplotlib.pyplot as pl
 import numpy as np
 import pandas as pd
@@ -55,13 +56,13 @@ for i, s in enumerate(snames):
 
 # %%
 colors = {
-    snames[6]: "#800000",
-    snames[5]: "#ff0000",
-    snames[4]: "#fc7b03",
-    snames[3]: "#d3a640",
-    snames[2]: "#098740",
-    snames[1]: "#0080d0",
-    snames[0]: "#100060",
+    snames[6]: "#E744F6",  # HL
+    snames[5]: "#a41212",  # H
+    snames[4]: "#fc7b03",  # M
+    snames[3]: "#dec820",  # ML
+    snames[2]: "#20A359",  # L
+    snames[1]: "#22e5db",  # LN
+    snames[0]: "#16188F",  # VL
 }
 
 # %%
@@ -296,8 +297,7 @@ for scenario in nohos:
     ax[0].plot(
         f.timepoints[:275],
         co2e.sel(scenario=scenario)[:275] / 1e6,
-        label=ldict21[scenario],
-        color=colors[scenario],
+        color="k",
     )
     # ax[0].plot(
     #     f.timepoints[350:],
@@ -329,6 +329,7 @@ for i, scenario in enumerate(nohos):
         color=colors[scenario],
         lw=0,
         alpha=0.3,
+        label=snames_short[i],
     )
     ax[1].fill_between(
         f.timebounds[350:],
@@ -344,9 +345,20 @@ for i, scenario in enumerate(nohos):
         hatch="XXX",
         lw=0,
         alpha=0.1,
-        label=snames_short[i],
     )
-
+ax[1].fill_between(
+    f.timebounds[:274],
+    (
+        f.temperature.sel(scenario=scenario, layer=0)[:274]
+        - f.temperature.sel(scenario=scenario, layer=0, timebounds=np.arange(1850, 1902)).mean(dim="timebounds")
+    ).quantile(0.33, dim="config"),
+    (
+        f.temperature.sel(scenario=scenario, layer=0)[:274]
+        - f.temperature.sel(scenario=scenario, layer=0, timebounds=np.arange(1850, 1902)).mean(dim="timebounds")
+    ).quantile(0.66, dim="config"),
+    color="k",
+    alpha=0.5,
+)
 ax[1].axhline(0, ls=":", color="k", lw=0.5)
 ax[1].set_ylabel("temperature above 1850-1900, K")
 ax[1].set_ylim(0, 5)
@@ -359,7 +371,7 @@ ax[1].set_title("(b)")
 pl.savefig("../plots/temperature_emis.png")
 
 # %%
-fig, ax = pl.subplots(nrows=3, ncols=2, figsize=(14, 15))
+fig, ax = pl.subplots(nrows=4, ncols=2, figsize=(14, 16))
 ax = ax.flatten()
 for scenario in f.scenarios:
     ax[0].plot(
@@ -371,10 +383,20 @@ for scenario in f.scenarios:
         label=ldict[scenario],
         color=colors[scenario],
     )
+# Add black historical line for CO2 emissions
+ax[0].plot(
+    f.timepoints[0:273],
+    (
+        f.emissions.sel(scenario=scenario, specie="CO2 FFI", config=f.configs[0])[0:273]
+        + f.emissions.sel(scenario=scenario, specie="CO2 AFOLU", config=f.configs[0])[0:273]
+    ),
+    color="k",
+)
 ax[0].set_ylabel("CO$_2$ emissions, GtCO$_2$ yr$^{-1}$")
 ax[0].axhline(ls=":", color="k", lw=0.5)
 ax[0].legend()
 ax[0].grid()
+
 for scenario in f.scenarios:
     ax[1].plot(
         f.timepoints,
@@ -385,7 +407,16 @@ for scenario in f.scenarios:
         label=scenario,
         color=colors[scenario],
     )
-ax[1].set_ylabel("Cumulative CO$_2$ emissions, GtCO$_2$ yr")
+# Add black historical line for cumulative CO2 emissions
+ax[1].plot(
+    f.timepoints[0:273],
+    (
+        f.emissions.sel(scenario=scenario, specie="CO2 FFI", config=f.configs[0])
+        + f.emissions.sel(scenario=scenario, specie="CO2 AFOLU", config=f.configs[0])
+    ).cumsum()[0:273],
+    color="k",
+)
+ax[1].set_ylabel("Cumulative CO$_2$ emissions, GtCO$_2$")
 ax[1].axhline(ls=":", color="k", lw=0.5)
 # ax[1].legend()
 ax[1].grid()
@@ -393,28 +424,91 @@ ax[1].grid()
 for scenario in f.scenarios:
     ax[2].plot(
         f.timepoints,
-        co2e.sel(scenario=scenario) / 1e6,
+        f.emissions.sel(scenario=scenario, specie="CH4", config=f.configs[0]),
         label=scenario,
         color=colors[scenario],
     )
-ax[2].set_ylabel("GHG emissions, GtCO$_2$eq yr$^{-1}$")
+# Add black historical line for CH4 emissions
+ax[2].plot(
+    f.timepoints[0:273],
+    f.emissions.sel(scenario=scenario, specie="CH4", config=f.configs[0])[0:273],
+    color="k",
+)
+ax[2].set_ylabel("CH$_4$ emissions, MtCH$_4$ yr$^{-1}$")
 ax[2].axhline(ls=":", color="k", lw=0.5)
 # ax[2].legend()
 ax[2].grid()
 
 for scenario in f.scenarios:
     ax[3].plot(
+        f.timepoints,
+        f.emissions.sel(scenario=scenario, specie="Sulfur", config=f.configs[0]),
+        label=scenario,
+        color=colors[scenario],
+    )
+# Add black historical line for sulfate emissions
+ax[3].plot(
+    f.timepoints[0:273],
+    f.emissions.sel(scenario=scenario, specie="Sulfur", config=f.configs[0])[0:273],
+    color="k",
+)
+ax[3].set_ylabel("SO$_2$ emissions, MtS yr$^{-1}$")
+ax[3].axhline(ls=":", color="k", lw=0.5)
+# ax[3].legend()
+ax[3].grid()
+
+for scenario in f.scenarios:
+    ax[4].plot(
+        f.timepoints,
+        co2e.sel(scenario=scenario) / 1e6,
+        label=scenario,
+        color=colors[scenario],
+    )
+# Add black historical line for GHG emissions
+ax[4].plot(
+    f.timepoints[0:273],
+    co2e.sel(scenario=scenario)[0:273] / 1e6,
+    color="k",
+)
+ax[4].set_ylabel("GHG emissions, GtCO$_2$eq yr$^{-1}$")
+ax[4].axhline(ls=":", color="k", lw=0.5)
+# ax[4].legend()
+ax[4].grid()
+
+for scenario in f.scenarios:
+    ax[5].fill_between(
+        f.timebounds,
+        f.forcing_sum.sel(scenario=scenario).quantile(0.05, dim="config"),
+        f.forcing_sum.sel(scenario=scenario).quantile(0.95, dim="config"),
+        color=colors[scenario],
+        lw=0,
+        alpha=0.1,
+    )
+    ax[5].plot(
+        f.timebounds[274:],
+        f.forcing_sum.sel(scenario=scenario).median(dim="config")[274:],
+        path_effects=[pe.Stroke(linewidth=4, foreground="w", alpha=0.8), pe.Normal()],
+        color=colors[scenario],
+    )
+for scenario in f.scenarios:
+    ax[5].plot(
         f.timebounds,
         f.forcing_sum.sel(scenario=scenario).median(dim="config"),
         label=scenario,
         color=colors[scenario],
     )
-ax[3].set_ylabel("Effective radiative forcing, W m$^{-2}$")
+# Add black historical line for radiative forcing
+ax[5].plot(
+    f.timebounds[0:273],
+    f.forcing_sum.sel(scenario=scenario).median(dim="config")[0:273],
+    color="k",
+)
+ax[5].set_ylabel("Effective radiative forcing, W m$^{-2}$")
 # pl.legend();
-ax[3].grid()
+ax[5].grid()
 
 for scenario in f.scenarios:
-    ax[4].fill_between(
+    ax[6].fill_between(
         f.timebounds,
         (
             f.concentration.sel(specie="CO2").sel(
@@ -426,18 +520,33 @@ for scenario in f.scenarios:
         lw=0,
         alpha=0.1,
     )
-    ax[4].plot(
+    ax[6].plot(
+        f.timebounds[274:],
+        (f.concentration.sel(specie="CO2").sel(scenario=scenario)).median(dim="config")[274:],
+        label=scenario,
+        path_effects=[pe.Stroke(linewidth=5, foreground="w", alpha=0.8), pe.Normal()],
+        color=colors[scenario],
+    )
+for scenario in f.scenarios:
+    ax[6].plot(
         f.timebounds,
         (f.concentration.sel(specie="CO2").sel(scenario=scenario)).median(dim="config"),
         label=scenario,
         color=colors[scenario],
     )
-ax[4].axhline(0, ls=":", color="k", lw=0.5)
-ax[4].set_ylabel("Atmospheric CO2 concentration, ppm")
-ax[4].set_ylim(0, 1500)
-ax[4].grid()
+# Add black historical line for CO2 concentration
+ax[6].plot(
+    f.timebounds[0:273],
+    (f.concentration.sel(specie="CO2").sel(scenario=scenario)).median(dim="config")[0:273],
+    color="k",
+)
+ax[6].axhline(0, ls=":", color="k", lw=0.5)
+ax[6].set_ylabel("Atmospheric CO2 concentration, ppm")
+ax[6].set_ylim(0, 1500)
+ax[6].grid()
+
 for scenario in f.scenarios:
-    ax[5].fill_between(
+    ax[7].fill_between(
         f.timebounds,
         (
             f.temperature.sel(scenario=scenario, layer=0)
@@ -451,7 +560,17 @@ for scenario in f.scenarios:
         lw=0,
         alpha=0.1,
     )
-    ax[5].plot(
+    ax[7].plot(
+        f.timebounds[274:],
+        (
+            f.temperature.sel(scenario=scenario, layer=0)[274:]
+            - f.temperature.sel(scenario=scenario, layer=0, timebounds=np.arange(1850, 1902)).mean(dim="timebounds")
+        ).median(dim="config"),
+        path_effects=[pe.Stroke(linewidth=4, foreground="w", alpha=0.8), pe.Normal()],
+        color=colors[scenario],
+    )
+for scenario in f.scenarios:
+    ax[7].plot(
         f.timebounds,
         (
             f.temperature.sel(scenario=scenario, layer=0)
@@ -460,14 +579,24 @@ for scenario in f.scenarios:
         label=ldict[scenario],
         color=colors[scenario],
     )
-ax[5].axhline(0, ls=":", color="k", lw=0.5)
-ax[5].set_ylabel("temperature above 1850-1900, K")
-ax[5].set_ylim(-3, 8)
-ax[5].legend()
+ax[7].plot(
+    f.timebounds[0:273],
+    (
+        f.temperature.sel(scenario=scenario, layer=0)[0:273]
+        - f.temperature.sel(scenario=scenario, layer=0, timebounds=np.arange(1850, 1902)).mean(dim="timebounds")
+    ).median(dim="config"),
+    color="k",
+)
+ax[7].axhline(0, ls=":", color="k", lw=0.5)
+ax[7].set_ylabel("temperature above 1850-1900, K")
+ax[7].set_ylim(-3, 8)
+ax[7].legend()
 
-ax[5].grid()
+ax[7].grid()
 
 pl.savefig("../plots/extensions.png")
+
+# %%
 
 # %%
 f21c = scens
