@@ -132,6 +132,7 @@ def _apply_ecs_storyline(co2_fossil_extend, co2_total_extend, storyline, start, 
 
     if exp_targ is None:
         exp_targ = get_exp_targ_from_current_data(co2_total_extend[: 2101 - start], exp_end - start)
+    print(f"Derived exp_targ: {exp_targ}")
     sig_end = storyline[4]
     roll_in = storyline[5]
     roll_out = storyline[6]

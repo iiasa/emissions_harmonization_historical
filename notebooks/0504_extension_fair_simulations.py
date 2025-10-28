@@ -23,8 +23,8 @@ f = FAIR()
 #
 
 # %% [markdown]
-# Need to pull the calibrated_constrained_parameters_1.4.1.csv from https://zenodo.org/records/8399112 repo
-# and place here:
+# Need to pull the calibrated_constrained_parameters.csv from https://zenodo.org/records/10566813 repo,
+# rename and place here:
 # ../data/fair-inputs/calibrated_constrained_parameters_1.4.1.csv
 #
 
@@ -236,6 +236,8 @@ ax[1].set_ylim(-50, 100)
 
 ax[1].grid()
 pl.savefig("../plots/ghg_emissions.png")
+
+# %%
 
 # %% [markdown]
 # ## Run FaIR
