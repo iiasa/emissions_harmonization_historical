@@ -611,6 +611,27 @@ ax[7].grid()
 pl.savefig("../plots/extensions.png")
 
 # %%
+fig, ax = pl.subplots(nrows=1, ncols=2, figsize=(14, 4))
+ax = ax.flatten()
+for scenario in f.scenarios:
+    ax[0].plot(
+        f.timepoints,
+        (f.emissions.sel(scenario=scenario, specie="CO2 AFOLU", config=f.configs[0])),
+        label=ldict[scenario],
+        color=colors[scenario],
+    )
+# Add black historical line for CO2 emissions
+ax[0].plot(
+    f.timepoints[0:273],
+    (f.emissions.sel(scenario=scenario, specie="CO2 AFOLU", config=f.configs[0])[0:273]),
+    color="k",
+)
+ax[0].set_ylabel("AFOLU CO$_2$ emissions, GtCO$_2$ yr$^{-1}$")
+ax[0].axhline(ls=":", color="k", lw=0.5)
+ax[0].legend()
+ax[0].grid()
+ax[0].set_xlim(1750, 2300)
+
 
 # %%
 f21c = scens
