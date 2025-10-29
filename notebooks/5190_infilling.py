@@ -68,7 +68,7 @@ Q = UR.Quantity
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "GCAM"
+model: str = "REMIND"
 
 # %% editable=true slideshow={"slide_type": ""}
 output_dir_model = INFILLED_OUT_DIR / model
@@ -145,6 +145,15 @@ infilling_db_silicone = infilling_db.loc[~wmo_locator]
 
 # %% [markdown]
 # ## Infill
+
+# %% [markdown]
+# ### Very low marker should use F-gas emissions in line with Kigali
+#
+# We get these from [Velders et al., 2022](https://zenodo.org/records/6520707)
+# (processed in a previous notebook)
+
+# %%
+assert False, "Add very low marker exception"
 
 # %% [markdown]
 # ### Silicone
