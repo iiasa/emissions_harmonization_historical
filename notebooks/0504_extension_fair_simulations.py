@@ -19,12 +19,14 @@ from fair.io import read_properties
 
 # %%
 f = FAIR()
+memory_limited = True
 
 # %% [markdown]
 #
 
 # %% [markdown]
-# Need to pull the calibrated_constrained_parameters.csv from https://zenodo.org/records/10566813 repo,
+# Need to pull the calibrated_constrained_parameters.csv from https://zenodo.org/records/10566813 repo
+# (make sure to use version 1.5 or later of the upload),
 # rename and place here:
 # ../data/fair-inputs/calibrated_constrained_parameters_1.4.1.csv
 #
@@ -40,7 +42,18 @@ species, properties = read_properties("../data/fair-inputs/species_configs_prope
 f.define_species(species, properties)
 f.ch4_method = "Thornhill2021"
 df_configs = pd.read_csv("../data/fair-inputs/calibrated_constrained_parameters_1.4.1.csv", index_col=0)
-f.define_configs(df_configs.index)
+
+# %%
+if memory_limited:
+    df_configs_short = df_configs.iloc[:5, :]
+    df_configs_short.to_csv(
+        "../data/fair-inputs/calibrated_constrained_parameters_1.4.1_short.csv",
+    )
+    f.define_configs(df_configs_short.index)
+else:
+    f.define_configs(df_configs.index)
+
+# %%
 f.allocate()
 
 # %%
@@ -178,7 +191,7 @@ pl.savefig("../plots/co2_emissions.png")
 # %%
 scens_out = []
 for s in scens:
-    df_scen = f.emissions.sel(scenario=s, config=1234).to_pandas().T
+    df_scen = f.emissions.sel(scenario=s, config=df_configs.index[0]).to_pandas().T
     df_scen.insert(loc=0, column="Scenario", value=s)
     df_scen.dropna(inplace=True)
     scens_out.append(df_scen)
@@ -238,14 +251,15 @@ ax[1].set_ylim(-50, 100)
 ax[1].grid()
 pl.savefig("../plots/ghg_emissions.png")
 
-# %%
-
 # %% [markdown]
 # ## Run FaIR
 
 # %%
 f.fill_species_configs("../data/fair-inputs/species_configs_properties_1.4.1.csv")
-f.override_defaults("../data/fair-inputs/calibrated_constrained_parameters_1.4.1.csv")
+if memory_limited:
+    f.override_defaults("../data/fair-inputs/calibrated_constrained_parameters_1.4.1_short.csv")
+else:
+    f.override_defaults("../data/fair-inputs/calibrated_constrained_parameters_1.4.1.csv")
 initialise(f.concentration, f.species_configs["baseline_concentration"])
 initialise(f.forcing, 0)
 initialise(f.temperature, 0)
@@ -677,3 +691,86 @@ ax[2].set_xlim([-1, 10])
 ax[2].legend(loc="upper right")
 ax[2].grid()
 pl.tight_layout()
+
+# %% [markdown]
+# ## Ozone exploratory plots
+
+# %%
+fig, ax = pl.subplots(3, 2, figsize=(12, 8), sharex=True)
+
+for scenario in f21c:
+    ax[0, 0].fill_between(
+        f.timebounds,
+        (f.forcing.sel(scenario=scenario, specie="Ozone")).quantile(0.05, dim="config"),
+        (f.forcing.sel(scenario=scenario, specie="Ozone")).quantile(0.95, dim="config"),
+        color=colors[scenario],
+        lw=0,
+        alpha=0.1,
+    )
+    ax[0, 0].plot(
+        f.timebounds,
+        (f.forcing.sel(scenario=scenario, specie="Ozone")).median(dim="config"),
+        label=ldict[scenario],
+        color=colors[scenario],
+    )
+    ax[0, 1].plot(
+        f.timepoints,
+        (f.emissions.sel(scenario=scenario, specie="NOx")).median(dim="config"),
+        label=ldict[scenario],
+        color=colors[scenario],
+    )
+    ax[1, 0].fill_between(
+        f.timebounds,
+        (f.concentration.sel(scenario=scenario, specie="CH4")).quantile(0.05, dim="config"),
+        (f.concentration.sel(scenario=scenario, specie="CH4")).quantile(0.95, dim="config"),
+        color=colors[scenario],
+        lw=0,
+        alpha=0.1,
+    )
+    ax[1, 0].plot(
+        f.timebounds,
+        (f.concentration.sel(scenario=scenario, specie="CH4")).median(dim="config"),
+        label=ldict[scenario],
+        color=colors[scenario],
+    )
+    ax[1, 1].plot(
+        f.timepoints,
+        (f.emissions.sel(scenario=scenario, specie="VOC")).median(dim="config"),
+        label=ldict[scenario],
+        color=colors[scenario],
+    )
+    ax[2, 0].plot(
+        f.timepoints,
+        (f.emissions.sel(scenario=scenario, specie="CO")).median(dim="config"),
+        label=ldict[scenario],
+        color=colors[scenario],
+    )
+    ax[2, 1].plot(
+        f.timebounds,
+        (f.concentration.sel(scenario=scenario, specie="Equivalent effective stratospheric chlorine")).median(
+            dim="config"
+        ),
+        label=ldict[scenario],
+        color=colors[scenario],
+    )
+
+
+ax[0, 0].set_title("Ozone ERF, W/m2")
+ax[0, 0].set_xlabel("W/m2")
+ax[0, 1].set_title("Emissions NOx")
+ax[0, 1].set_xlabel("MtNOx/yr")
+ax[1, 0].set_title("Methane concentration, ppb")
+ax[1, 0].set_xlabel("ppb")
+ax[1, 1].set_title("Emissions VOC, MtVOC/yr")
+ax[1, 1].set_xlabel("MtVOC/yr")
+ax[2, 0].set_title("Emissions CO, MtCO/yr")
+ax[2, 0].set_xlabel("MtCO/yr")
+ax[2, 1].set_title("Equivalent effective stratospheric chlorine, ?")
+ax[2, 1].set_xlabel("?")
+for i in range(6):
+    ax_now = ax[i // 2, i % 2]
+    ax_now.set_ylabel("Year")
+    ax_now.legend()
+    ax_now.grid()
+pl.tight_layout()
+pl.savefig("ozone_exploration_extensions.png")

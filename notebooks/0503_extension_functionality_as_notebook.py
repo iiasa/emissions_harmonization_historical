@@ -40,6 +40,8 @@ from general_utils_for_extensions import (
 )
 
 from emissions_harmonization_historical.constants_5000 import (
+    EXTENSIONS_OUT_DIR,
+    EXTENSIONS_OUTPUT_DB,
     HARMONISED_SCENARIO_DB,
     HISTORY_HARMONISATION_DB,
     INFILLED_SCENARIOS_DB,
@@ -66,6 +68,7 @@ MAX_YEARS_FOR_MARKERS = 50
 
 # %%
 save_plots = True
+dump_with_full_scenario_names = True
 
 pandas_openscm.register_pandas_accessor()
 
@@ -1165,6 +1168,68 @@ def merge_historical_future_timeseries(history_data, extensions_data, overlap_ye
 # Execute the concise merge
 continuous_timeseries_concise = merge_historical_future_timeseries(history, df_everything)
 
+# %%
+print(continuous_timeseries_concise.head())
+print(continuous_timeseries_concise.index.levels)
+# print(continuous_timeseries_concise.index)
+
+# %%
+print(history.head())
+
+# %%
+print(scenarios_complete_global.head())
+print(scenarios_complete_global.index)
+
+# %% [markdown]
+# ## Dump per model to database
+
+
+# %%
+def dump_data_per_model(extended_data, model):
+    """
+    Dump extended data for a specific model to CSV.
+
+    Parameters
+    ----------
+    extended_data : pd.DataFrame
+        The complete extended data with MultiIndex.
+    model : str
+        The model name to filter and dump data for.
+    """
+    model_short = model.split(" ")[0]
+    if model.startswith("MESSAGE"):
+        model_short = "MESSAGE"
+    print(f"=== DUMPING DATA FOR MODEL: {model} ({model_short}) ===")
+    output_dir_model = EXTENSIONS_OUT_DIR / model_short
+    output_dir_model.mkdir(exist_ok=True, parents=True)
+    model_data = extended_data.loc[extended_data.index.get_level_values("model") == model].copy()
+    print(model_data.head())
+
+    if not dump_with_full_scenario_names:
+        # Build mapping from long scenario names to short codes
+        long_to_short = {v[0]: k for k, v in scenario_model_match.items()}
+        if "scenario" in model_data.index.names:
+            # Get index level number for 'scenario'
+            scenario_level = model_data.index.names.index("scenario")
+            # Create new MultiIndex with scenario values mapped
+            new_index = [
+                tuple(
+                    long_to_short.get(idx[scenario_level], idx[scenario_level]) if i == scenario_level else v
+                    for i, v in enumerate(idx)
+                )
+                for idx in model_data.index
+            ]
+            model_data.index = pd.MultiIndex.from_tuples(new_index, names=model_data.index.names)
+            print("Renamed scenario values in index using scenario_model_match mapping.")
+        else:
+            print("No 'scenario' level in index; skipping scenario renaming.")
+    print(model_data.head())
+    EXTENSIONS_OUTPUT_DB.save(model_data, allow_overwrite=True)
+
+
+for model in continuous_timeseries_concise.pix.unique("model"):
+    dump_data_per_model(continuous_timeseries_concise, model)
+
 
 # %%
 # Plot Gross Removals for all scenarios
@@ -1330,6 +1395,10 @@ def save_continuous_timeseries_to_csv(data, filename="continuous_timeseries_hist
 result = save_continuous_timeseries_to_csv(continuous_timeseries_concise, "continuous_emissions_timeseries_1750_2500")
 
 
+# %% [markdown]
+# ## Plotting various
+
+
 # %%
 # Create a zoomed-in plot focusing on the historical-future transition period
 def plot_co2_transition_period(data, scenario_colors=None, start_year=1990, end_year=2150):
@@ -1451,28 +1520,6 @@ fig_transition, ax_transition = plot_co2_transition_period(continuous_timeseries
 native_emissions = copy.deepcopy(continuous_timeseries_concise)
 
 # %%
-# Remove leading 'Emissions|' from variable names in the index of continuous_timeseries_concise
-if "variable" in continuous_timeseries_concise.index.names:
-    var_idx = continuous_timeseries_concise.index.names.index("variable")
-    new_index = [
-        tuple(
-            [
-                *v[:var_idx],
-                (v[var_idx].replace("Emissions|", "", 1) if v[var_idx].startswith("Emissions|") else v[var_idx]),
-                *v[var_idx + 1 :],
-            ]
-        )
-        for v in continuous_timeseries_concise.index
-    ]
-    continuous_timeseries_concise.index = pd.MultiIndex.from_tuples(
-        new_index, names=continuous_timeseries_concise.index.names
-    )
-    print("Removed leading 'Emissions|' from variable names in index.")
-else:
-    print("No 'variable' level in index.")
-continuous_timeseries_concise.head()
-
-# %%
 # Rename the 'scenario' index level to 'long_scenario' in continuous_timeseries_concise
 if "scenario" in continuous_timeseries_concise.index.names:
     continuous_timeseries_concise.index = continuous_timeseries_concise.index.set_names(
@@ -1500,7 +1547,28 @@ if "long_scenario" in continuous_timeseries_concise.index.names:
     print("Added 'scenario' column with short names.")
 else:
     print("No 'long_scenario' level in index.")
-continuous_timeseries_concise
+
+# %%
+# Remove leading 'Emissions|' from variable names in the index of continuous_timeseries_concise
+if "variable" in continuous_timeseries_concise.index.names:
+    var_idx = continuous_timeseries_concise.index.names.index("variable")
+    new_index = [
+        tuple(
+            [
+                *v[:var_idx],
+                (v[var_idx].replace("Emissions|", "", 1) if v[var_idx].startswith("Emissions|") else v[var_idx]),
+                *v[var_idx + 1 :],
+            ]
+        )
+        for v in continuous_timeseries_concise.index
+    ]
+    continuous_timeseries_concise.index = pd.MultiIndex.from_tuples(
+        new_index, names=continuous_timeseries_concise.index.names
+    )
+    print("Removed leading 'Emissions|' from variable names in index.")
+else:
+    print("No 'variable' level in index.")
+continuous_timeseries_concise.head()
 
 # %%
 

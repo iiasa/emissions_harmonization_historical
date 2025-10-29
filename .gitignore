@@ -226,6 +226,6 @@ dmypy.json
 # Mac stuff
 *.DS_Store
 
-
+# Notebook output dumps
 notebooks/*.csv
-notebooks/continuous_emissions_timeseries_1750_2500_metadata.json
+notebooks/*.json
