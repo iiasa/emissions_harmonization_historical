@@ -464,7 +464,7 @@ for afolu_file in glob.glob("first_draft_extended_afolu_*.csv"):
 # ["CSCS",stop_const,sig_targ,end_sig1,start_sig2,end_sig2,roll_in,roll_out]
 
 fossil_evolution_dictionary = {
-    "VL": ["ECS", 2170, -3.5e3, 2450, 2500, 20, 20],
+    "VL": ["ECS", 2200, -3.5e3, 2450, 2500, 20, 20],
     "LN": ["ECS", 2120, -24e3, 2200, 2300, 20, 20],
     "L": ["ECS", 2160, None, 2160, 2260, 40, 20],
     "ML": ["ECS", 2150, -13e3, 2230, 2300, 20, 20],
