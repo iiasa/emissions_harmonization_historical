@@ -1,7 +1,7 @@
 # %% [markdown]
 # # FaIR Climate Model Simulations with Extended Emissions Scenarios
 #
-# This notebook runs the FaIR v1.4.1 climate model with extended emissions scenarios (1750-2501)
+# This notebook runs the FaIR v2.2 climate model with extended emissions scenarios (1750-2501)
 # to generate climate projections. It processes emissions through CO2-equivalent calculations,
 # applies blending for smooth transitions, and produces temperature and concentration projections
 # across seven scenarios ranging from very low (VL) to very high (HL) emissions.
@@ -13,22 +13,16 @@ import matplotlib.patheffects as pe
 import matplotlib.pyplot as pl
 import numpy as np
 import pandas as pd
+import pooch
 from fair import FAIR
 from fair.interface import initialise
 from fair.io import read_properties
 
 # %%
 f = FAIR()
-memory_limited = True
+memory_limited = False
 
 # %% [markdown]
-#
-
-# %% [markdown]
-# Need to pull the calibrated_constrained_parameters.csv from https://zenodo.org/records/10566813 repo
-# (make sure to use version 1.5 or later of the upload),
-# rename and place here:
-# ../data/fair-inputs/calibrated_constrained_parameters_1.4.1.csv
 #
 
 # %%
@@ -41,16 +35,42 @@ f.define_scenarios(snames)
 species, properties = read_properties("../data/fair-inputs/species_configs_properties_1.4.1.csv")
 f.define_species(species, properties)
 f.ch4_method = "Thornhill2021"
-df_configs = pd.read_csv("../data/fair-inputs/calibrated_constrained_parameters_1.4.1.csv", index_col=0)
+
+
+# %% [markdown]
+# 'memory_limited' is for testing, runs only 5 ensemble members.
+#
+# If running full AR6 ensemble, need to
+# - set 'memory_limited' to False
+# - config file will be pulled from zenodo
+#
+
+# %%
+if ~memory_limited:
+    # Define the Zenodo record DOI and the specific file you want
+    ZENODO_DOI = "10.5281/zenodo.7112539"  # Replace with your Zenodo DOI
+    FILE_NAME = "calibrated_constrained_parameters.csv"  # Replace with your file name on Zenodo
+    FILE_HASH = "md5:8a70a3fb05d0e0cf35e136de382582a5"  # Replace with the actual SHA256 hash of your file
+
+    # Create a Pooch instance
+    data_pooch = pooch.create(
+        path="../data/fair-inputs",  # Local cache directory
+        base_url=f"doi:{ZENODO_DOI}",  # Zenodo DOI as base URL
+        version="1.5.0",
+        registry={FILE_NAME: FILE_HASH},
+    )
+
+    # Fetch the file
+    local_file_path = data_pooch.fetch(FILE_NAME)
+
+    print(f"Config file downloaded to: {local_file_path}")
 
 # %%
 if memory_limited:
-    df_configs_short = df_configs.iloc[:5, :]
-    df_configs_short.to_csv(
-        "../data/fair-inputs/calibrated_constrained_parameters_1.4.1_short.csv",
-    )
+    df_configs_short = pd.read_csv("../data/fair-inputs/1.5.0/calibrated_constrained_parameters_short.csv")
     f.define_configs(df_configs_short.index)
 else:
+    df_configs = pd.read_csv("../data/fair-inputs/1.5.0/calibrated_constrained_parameters.csv", index_col=0)
     f.define_configs(df_configs.index)
 
 # %%
@@ -206,7 +226,7 @@ co2eo = f.emissions.sel(specie="CO2 FFI")[:, :, 0].copy() * 0
 for specie in f.emissions.specie.values:
     try:
         gwp = gwpmat["ar6_gwp_mass_adjusted"][specie]
-        print(gwp)
+
     except KeyError:
         gwp = np.nan
     if ~np.isnan(gwp):
@@ -257,9 +277,9 @@ pl.savefig("../plots/ghg_emissions.png")
 # %%
 f.fill_species_configs("../data/fair-inputs/species_configs_properties_1.4.1.csv")
 if memory_limited:
-    f.override_defaults("../data/fair-inputs/calibrated_constrained_parameters_1.4.1_short.csv")
+    f.override_defaults("../data/fair-inputs/1.5.0/calibrated_constrained_parameters_short.csv")
 else:
-    f.override_defaults("../data/fair-inputs/calibrated_constrained_parameters_1.4.1.csv")
+    f.override_defaults("../data/fair-inputs/1.5.0/calibrated_constrained_parameters.csv")
 initialise(f.concentration, f.species_configs["baseline_concentration"])
 initialise(f.forcing, 0)
 initialise(f.temperature, 0)
@@ -285,6 +305,8 @@ f.run()
 # %%
 # nohos=[x for x in f.scenarios if x != "high-overshoot"]
 nohos = [x for x in f.scenarios]
+
+# %%
 
 # %%
 fig, ax = pl.subplots(1, 2, figsize=(12, 5))

@@ -81,18 +81,12 @@ Q = UR.Quantity
 # %%
 scenarios_complete_global = INFILLED_SCENARIOS_DB.load(pix.isin(stage="complete")).reset_index("stage", drop=True)
 scenarios_complete_global  # TODO: drop 2100 end once we have usable scenario data post-2100
-for model in scenarios_complete_global.pix.unique("model").values:
-    print(model)
-    print(scenarios_complete_global.loc[pix.ismatch(model=f"{model}")].pix.unique("scenario"))
-
 history = HISTORY_HARMONISATION_DB.load(pix.ismatch(purpose="global_workflow_emissions")).reset_index(
     "purpose", drop=True
 )
 
 scenarios_regional = HARMONISED_SCENARIO_DB.load()
 history_regional = HISTORY_HARMONISATION_DB.load()
-# sys.exit(4)
-# scenarios_complete_global
 
 
 # %% [markdown]
@@ -109,10 +103,7 @@ scenario_model_match = {
     "L": ["SSP2 - Low Emissions_f", "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "tab:green"],
     "ML": ["SSP2 - Medium-Low Emissions", "COFFEE 1.6", "tab:pink"],
     "M": ["SSP2 - Medium Emissions", "IMAGE 3.4", "tab:purple"],
-    # "MOS": ["SSP2 - Medium Emissions - Overshoot", "IMAGE 3.4", "tab:olive"],
     "H": ["SSP3 - High Emissions", "GCAM 8s", "tab:red"],
-    # "H": ["SSP3 - High Emissions_a", "GCAM 7.1 scenarioMIP", "tab:red"],
-    # "HL": ["SSP5 - High Emissions", "WITCH 6.0", "tab:brown"],
     "HL": ["SSP5 - Medium-Low Emissions_a", "WITCH 6.0", "tab:brown"],
 }
 
@@ -121,9 +112,7 @@ for stype, model_scen_match in scenario_model_match.items():
     model = model_scen_match[1]
     scenario = model_scen_match[0]
     print(f"{stype}: {model=} {scenario=}")
-    print(len(scenarios_regional.loc[pix.ismatch(model=f"{model}", scenario=f"{scenario}")].pix.unique("region")))
-    print(scenarios_regional.loc[pix.ismatch(model=f"{model}", scenario=f"{scenario}")].shape)
-    print(scenarios_complete_global.loc[pix.ismatch(model=f"{model}", scenario=f"{scenario}")].shape)
+
 
 scenarios_regional = scenarios_regional.sort_index(axis="columns").T.interpolate("index").T
 
@@ -409,15 +398,12 @@ if do_and_write_to_csv:
 df_all = pd.read_csv("first_draft_extended_nonCO2_all.csv")
 afolu_dfs = {}
 for afolu_file in glob.glob("first_draft_extended_afolu_*.csv"):
-    print(afolu_file)
+    print("writing " + afolu_file)
     name = afolu_file.split("first_draft_extended_")[-1].split(".csv")[0]
-    print(name)
-    afolu_dfs[name] = pd.read_csv(afolu_file)
-    print(afolu_dfs[name].shape)
-    print(afolu_dfs[name])
-# sys.exit(4)
 
-# %%
+    afolu_dfs[name] = pd.read_csv(afolu_file)
+
+# sys.exit(4)
 
 # %% [markdown]
 # # Total CO2 Storyline dictionaries
@@ -680,14 +666,14 @@ last_year = 2100
 target_year = 2500
 years_extension = np.arange(last_year + 1, target_year + 1)
 
-# Initialize extension DataFrames
-co2_gross_positive_ext = co2_gross_positive.copy()
-global_cdr_ext = global_cdr.copy()
+# Initialize extension DataFrames with all new columns at once
+# Create empty DataFrames for the extension years with same index
+extension_cols_gross_pos = pd.DataFrame(np.nan, index=co2_gross_positive.index, columns=years_extension)
+extension_cols_cdr = pd.DataFrame(np.nan, index=global_cdr.index, columns=years_extension)
 
-# Add extension years as new columns
-for year in years_extension:
-    co2_gross_positive_ext[year] = np.nan
-    global_cdr_ext[year] = np.nan
+# Concatenate original data with extension columns
+co2_gross_positive_ext = pd.concat([co2_gross_positive, extension_cols_gross_pos], axis=1)
+global_cdr_ext = pd.concat([global_cdr, extension_cols_cdr], axis=1)
 
 print(f"Extension setup complete. Extending from {last_year + 1} to {target_year}")
 print(f"Number of extension years: {len(years_extension)}")
@@ -759,10 +745,9 @@ for idx in co2_gross_positive.index:
         print(f"Unknown strategy {strategy} for scenario {scenario}, skipping.")
         continue
 
-    # Apply extensions to DataFrames
-    for i, year in enumerate(years_extension):
-        co2_gross_positive_ext.loc[idx, year] = gross_pos_extension[i]
-        global_cdr_ext.loc[cdr_idx, year] = cdr_extension[i]
+    # Apply extensions to DataFrames using vectorized assignment
+    co2_gross_positive_ext.loc[idx, years_extension] = gross_pos_extension
+    global_cdr_ext.loc[cdr_idx, years_extension] = cdr_extension
 
     processed_count += 1
 
@@ -884,11 +869,6 @@ fig.suptitle(
 
 plt.tight_layout()
 plt.show()
-
-
-# %%
-for v in history.pix.unique("variable"):
-    print(v)
 
 
 # %% [markdown]
@@ -1055,10 +1035,6 @@ df_everything.rename(columns={col: float(col) for col in year_cols}, inplace=Tru
 df_everything.head()
 
 # %%
-for v in history.pix.unique("variable"):
-    print(v)
-
-# %%
 # Add Gross Positive Emissions and Gross Removals to history dataframe
 # For historical period:
 # - Gross Positive Emissions = CO2|AFOLU (assuming all historical AFOLU emissions are gross positive)
@@ -1168,18 +1144,6 @@ def merge_historical_future_timeseries(history_data, extensions_data, overlap_ye
 # Execute the concise merge
 continuous_timeseries_concise = merge_historical_future_timeseries(history, df_everything)
 
-# %%
-print(continuous_timeseries_concise.head())
-print(continuous_timeseries_concise.index.levels)
-# print(continuous_timeseries_concise.index)
-
-# %%
-print(history.head())
-
-# %%
-print(scenarios_complete_global.head())
-print(scenarios_complete_global.index)
-
 # %% [markdown]
 # ## Dump per model to database
 
@@ -1203,7 +1167,6 @@ def dump_data_per_model(extended_data, model):
     output_dir_model = EXTENSIONS_OUT_DIR / model_short
     output_dir_model.mkdir(exist_ok=True, parents=True)
     model_data = extended_data.loc[extended_data.index.get_level_values("model") == model].copy()
-    print(model_data.head())
 
     if not dump_with_full_scenario_names:
         # Build mapping from long scenario names to short codes
@@ -1223,12 +1186,24 @@ def dump_data_per_model(extended_data, model):
             print("Renamed scenario values in index using scenario_model_match mapping.")
         else:
             print("No 'scenario' level in index; skipping scenario renaming.")
-    print(model_data.head())
+
+    # Fix mixed column types warning by converting ALL columns to strings
+    # This ensures consistent typing for PyArrow/database storage
+    model_data.columns = [str(col) for col in model_data.columns]
+
     EXTENSIONS_OUTPUT_DB.save(model_data, allow_overwrite=True)
 
 
 for model in continuous_timeseries_concise.pix.unique("model"):
     dump_data_per_model(continuous_timeseries_concise, model)
+
+# %%
+data = continuous_timeseries_concise
+gross_removals_data = data.loc[
+    (data.index.get_level_values("variable") == "Emissions|CO2|Gross Positive Emissions")
+    & (data.index.get_level_values("region") == "World")
+]
+gross_removals_data.head
 
 
 # %%
@@ -1571,20 +1546,16 @@ else:
 continuous_timeseries_concise.head()
 
 # %%
-
-
-# %%
-# Output a list of all unique variable names in the DataFrame
-unique_variables = continuous_timeseries_concise.index.get_level_values("variable").unique()
-continuous_timeseries_concise.index.get_level_values("variable").unique()
-
-
-# %%
 fair_vars = pd.read_csv("../data/fair-inputs/species_configs_properties_1.4.1.csv")["name"]
 
 
 # %%
-
+# Extract unique variables from continuous_timeseries_concise
+unique_variables = continuous_timeseries_concise.pix.unique("variable")
+print(f"Number of unique variables: {len(unique_variables)}")
+print("Unique variables in continuous_timeseries_concise:")
+for var in sorted(unique_variables):
+    print(f"  {var}")
 
 # %%
 # Attempt to map unique_variables to their likely pairing in fair_vars
@@ -1626,12 +1597,6 @@ continuous_timeseries_concise.index = pd.MultiIndex.from_tuples(
     new_index, names=continuous_timeseries_concise.index.names
 )
 print("Updated DataFrame to use FaIR variable names in the index.")
-
-# %%
-continuous_timeseries_concise
-
-# %%
-continuous_timeseries_concise.index.get_level_values("variable").unique()
 
 
 # %%
