@@ -1851,10 +1851,10 @@ def _get_color_scheme_with_afolu():
     """Get color scheme including AFOLU."""
     return {
         "Gross_Positive": "#8B4513",
-        "BECCS": "#2E8B57",
-        "DACCS": "#4682B4",
-        "Ocean": "#20B2AA",
-        "Enhanced_Weathering": "#9370DB",
+        "BECCS": "#BEDB3C",
+        "DACCS": "#434343",
+        "Ocean": "#2E4C98",
+        "Enhanced_Weathering": "#515151",
         "AFOLU": "#2E8B57",
     }
 
