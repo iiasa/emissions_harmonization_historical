@@ -108,13 +108,21 @@ scenario_model_match = {
 }
 
 # %%
-for stype, model_scen_match in scenario_model_match.items():
-    model = model_scen_match[1]
-    scenario = model_scen_match[0]
-    print(f"{stype}: {model=} {scenario=}")
-
 
 scenarios_regional = scenarios_regional.sort_index(axis="columns").T.interpolate("index").T
+
+# %%
+# Create inverse dictionaries for scenario_model_match
+scenario_to_code = {}  # Maps scenario name to short code
+model_to_code = {}  # Maps model name to short code
+code_to_color = {}  # Maps short code to color
+
+for code, info in scenario_model_match.items():
+    scenario_name, model_name, color = info
+    scenario_to_code[scenario_name] = code
+    model_to_code[model_name] = code
+    code_to_color[code] = color
+
 
 # %% [markdown]
 # Finally get cumulative CO2 history
@@ -872,6 +880,203 @@ plt.show()
 
 
 # %% [markdown]
+# # Generate regional CDR fluxes
+
+# %%
+# --- Extension of individual CDR components maintaining 2100 ratios ---
+
+# First, let's understand the structure of our CDR DataFrames
+print("=== CDR DataFrames Structure Check ===")
+print(f"co2_beccs shape: {co2_beccs.shape}")
+print(f"co2_dacc shape: {co2_dacc.shape}")
+print(f"co2_ocean shape: {co2_ocean.shape}")
+print(f"co2_ew shape: {co2_ew.shape}")
+print(f"global_cdr_ext shape: {global_cdr_ext.shape}")
+
+print(f"\nco2_beccs index names: {co2_beccs.index.names}")
+print(f"global_cdr_ext index names: {global_cdr_ext.index.names}")
+
+
+# Check scenarios overlap
+beccs_scenarios = set(co2_beccs.index.get_level_values("scenario").unique())
+global_scenarios = set(global_cdr_ext.index.get_level_values("scenario").unique())
+common_scenarios = beccs_scenarios & global_scenarios
+print(f"\nCommon scenarios between CDR components and global_cdr_ext: {len(common_scenarios)}")
+print(f"Scenarios: {sorted(common_scenarios)}")
+
+
+# %%
+
+
+def extend_cdr_components_vectorized(cdr_components_dict, global_cdr_ext, baseline_year=2100):
+    """
+    Ultra-efficient CDR extension using pure vectorized operations.
+
+    Eliminates all DataFrame fragmentation warnings by using bulk operations.
+
+    FIXED: Handles MultiIndex alignment properly for regional fraction calculations.
+    """
+    extension_years = [col for col in global_cdr_ext.columns if isinstance(col, int | float) and col > baseline_year]
+
+    print(f"Extension: {len(extension_years)} years ({min(extension_years)}-{max(extension_years)})")
+
+    extended_components = {}
+
+    for component_name, cdr_df in cdr_components_dict.items():
+        print(component_name)
+
+        # Validate inputs and find common scenarios
+        validation_result = _validate_extension_inputs(cdr_df, global_cdr_ext, baseline_year)
+        if not validation_result["is_valid"]:
+            extended_components[component_name] = cdr_df.copy()
+            continue
+
+        # Calculate baseline ratios
+        ratios = _calculate_baseline_ratios(cdr_df, global_cdr_ext, baseline_year)
+
+        # Build extension data
+        extension_data = _build_extension_data(
+            extension_years,
+            global_cdr_ext,
+            ratios["baseline_data"],
+            ratios["component_fractions"],
+            ratios["regional_fractions"],
+        )
+
+        # Construct final DataFrame
+        final_df = _construct_final_dataframe(cdr_df, extension_data, baseline_year)
+        extended_components[component_name] = final_df
+
+    return extended_components
+
+
+def _validate_extension_inputs(cdr_df, global_cdr_ext, baseline_year):
+    """Validate inputs and find common scenarios."""
+    if baseline_year not in cdr_df.columns:
+        print(f"  ⚠️  {baseline_year} not found, copying original")
+        return {"is_valid": False}
+
+    cdr_scenarios = set(cdr_df.index.get_level_values("scenario"))
+    global_scenarios = set(global_cdr_ext.index.get_level_values("scenario"))
+    common_scenarios = cdr_scenarios & global_scenarios
+
+    if not common_scenarios:
+        print("  ⚠️  No common scenarios, copying original")
+        return {"is_valid": False}
+
+    return {"is_valid": True, "common_scenarios": common_scenarios}
+
+
+def _calculate_baseline_ratios(cdr_df, global_cdr_ext, baseline_year):
+    """Calculate baseline ratios for component and regional fractions."""
+    baseline_data = cdr_df[baseline_year]
+    component_totals_2100 = baseline_data.groupby("scenario").sum()
+    global_data_2100 = global_cdr_ext[baseline_year].groupby("scenario").first()
+    component_fractions = (component_totals_2100 / global_data_2100).fillna(0)
+
+    # Calculate regional fractions
+    regional_fractions = baseline_data.copy()
+    for scenario in baseline_data.index.get_level_values("scenario").unique():
+        scenario_mask = baseline_data.index.get_level_values("scenario") == scenario
+        scenario_data = baseline_data[scenario_mask]
+        component_total = component_totals_2100[scenario]
+
+        if component_total != 0:
+            regional_fractions[scenario_mask] = scenario_data / component_total
+        else:
+            regional_fractions[scenario_mask] = 0
+
+    regional_fractions = regional_fractions.fillna(0)
+
+    return {
+        "baseline_data": baseline_data,
+        "component_fractions": component_fractions,
+        "regional_fractions": regional_fractions,
+    }
+
+
+def _build_extension_data(
+    extension_years,
+    global_cdr_ext,
+    baseline_data,
+    component_fractions,
+    regional_fractions,
+):
+    """Build extension data for all years."""
+    extension_data_dict = {}
+
+    for year in extension_years:
+        if year in global_cdr_ext.columns:
+            global_year_totals = global_cdr_ext[year].groupby("scenario").first()
+            component_year_totals = global_year_totals * component_fractions
+
+            year_values = baseline_data.copy()
+            for scenario in baseline_data.index.get_level_values("scenario").unique():
+                scenario_mask = baseline_data.index.get_level_values("scenario") == scenario
+                if scenario in component_year_totals.index:
+                    component_total_year = component_year_totals[scenario]
+                    year_values[scenario_mask] = regional_fractions[scenario_mask] * component_total_year
+                else:
+                    year_values[scenario_mask] = 0
+
+            extension_data_dict[year] = year_values
+
+    return extension_data_dict
+
+
+def _construct_final_dataframe(cdr_df, extension_data_dict, baseline_year):
+    """Construct final DataFrame with original and extension data."""
+    if extension_data_dict:
+        original_years = [col for col in cdr_df.columns if isinstance(col, int | float) and col <= baseline_year]
+        original_data = cdr_df[original_years]
+
+        extension_df = pd.DataFrame(extension_data_dict, index=cdr_df.index)
+        all_year_data = pd.concat([original_data, extension_df], axis=1)
+
+        non_year_cols = [col for col in cdr_df.columns if not isinstance(col, int | float)]
+
+        final_df = pd.concat([all_year_data, cdr_df[non_year_cols]], axis=1)
+    else:
+        final_df = cdr_df.copy()
+        print("  ⚠️  No extension data created")
+
+    return final_df
+
+
+# === EXECUTE VECTORIZED EXTENSION ===
+
+# Define CDR components
+cdr_components = {
+    "BECCS": co2_beccs,
+    "DACCS": co2_dacc,
+    "Ocean": co2_ocean,
+    "Enhanced_Weathering": co2_ew,
+}
+
+extended_cdr_components = extend_cdr_components_vectorized(cdr_components, global_cdr_ext)
+
+# Extract extended DataFrames
+co2_beccs_ext = extended_cdr_components["BECCS"]
+co2_dacc_ext = extended_cdr_components["DACCS"]
+co2_ocean_ext = extended_cdr_components["Ocean"]
+co2_ew_ext = extended_cdr_components["Enhanced_Weathering"]
+
+
+# === VERIFICATION ===
+test_year = 2200.0
+if test_year in co2_beccs_ext.columns:
+    # Sum all CDR components for verification
+    total_sum = (
+        co2_beccs_ext[test_year].groupby("scenario").sum()
+        + co2_dacc_ext[test_year].groupby("scenario").sum()
+        + co2_ocean_ext[test_year].groupby("scenario").sum()
+        + co2_ew_ext[test_year].groupby("scenario").sum()
+    )
+
+    global_reference = global_cdr_ext[test_year].groupby("scenario").first()
+
+
+# %% [markdown]
 # # Merge dataframes into df_everything
 
 # %%
@@ -1144,6 +1349,9 @@ def merge_historical_future_timeseries(history_data, extensions_data, overlap_ye
 # Execute the concise merge
 continuous_timeseries_concise = merge_historical_future_timeseries(history, df_everything)
 
+# %%
+raw_output = copy.deepcopy(continuous_timeseries_concise)
+
 # %% [markdown]
 # ## Dump per model to database
 
@@ -1177,7 +1385,7 @@ def dump_data_per_model(extended_data, model):
             # Create new MultiIndex with scenario values mapped
             new_index = [
                 tuple(
-                    long_to_short.get(idx[scenario_level], idx[scenario_level]) if i == scenario_level else v
+                    (long_to_short.get(idx[scenario_level], idx[scenario_level]) if i == scenario_level else v)
                     for i, v in enumerate(idx)
                 )
                 for idx in model_data.index
@@ -1196,14 +1404,6 @@ def dump_data_per_model(extended_data, model):
 
 for model in continuous_timeseries_concise.pix.unique("model"):
     dump_data_per_model(continuous_timeseries_concise, model)
-
-# %%
-data = continuous_timeseries_concise
-gross_removals_data = data.loc[
-    (data.index.get_level_values("variable") == "Emissions|CO2|Gross Positive Emissions")
-    & (data.index.get_level_values("region") == "World")
-]
-gross_removals_data.head
 
 
 # %%
@@ -1307,6 +1507,582 @@ def plot_gross_removals(data, scenario_colors=None):
 
 # Execute the plotting function
 fig_removals, ax_removals = plot_gross_removals(continuous_timeseries_concise, scenario_model_match)
+
+# %%
+# === Comprehensive CO2 Flux Analysis: Annual vs Cumulative ===
+
+# Constants
+BASELINE_YEAR = 2100
+BASELINE_YEAR_FLOAT = 2100.0
+YEAR_GRID_COLS = 3
+
+
+# Configuration classes for reducing function arguments
+class HistoryPlotConfig:
+    """Configuration for plotting scenarios with historical data."""
+
+    def __init__(self, all_years, future_years, axes, colors):
+        self.all_years = all_years
+        self.future_years = future_years
+        self.axes = axes
+        self.colors = colors
+
+
+class SanityCheckConfig:
+    """Configuration for sanity check plotting."""
+
+    def __init__(self, year_cols, axes, colors, n_rows):
+        self.year_cols = year_cols
+        self.axes = axes
+        self.colors = colors
+        self.n_rows = n_rows
+
+
+def plot_comprehensive_co2_analysis():
+    """
+    Create dual-column plot showing annual fluxes (left) and cumulative fluxes (right).
+
+    For each scenario, with gross positive and CDR components.
+    """
+    # Get year columns (numeric only)
+    year_cols = [col for col in co2_gross_positive_ext.columns if isinstance(col, int | float)]
+    year_cols.sort()
+
+    # Get scenarios that exist in all datasets
+    scenarios = (
+        set(co2_gross_positive_ext.index.get_level_values("scenario"))
+        & set(co2_beccs_ext.index.get_level_values("scenario"))
+        & set(co2_dacc_ext.index.get_level_values("scenario"))
+        & set(co2_ocean_ext.index.get_level_values("scenario"))
+        & set(co2_ew_ext.index.get_level_values("scenario"))
+        & set(fossil_extension_df.index.get_level_values("scenario"))
+    )
+
+    scenarios = sorted(list(scenarios))
+    n_scenarios = len(scenarios)
+
+    print(f"Creating comprehensive flux analysis for {n_scenarios} scenarios across {len(year_cols)} years")
+
+    # Create subplot grid: 2 columns (annual, cumulative), n_scenarios rows
+    _fig, axes = plt.subplots(n_scenarios, 2, figsize=(10, 3 * n_scenarios))
+    if n_scenarios == 1:
+        axes = axes.reshape(1, -1)
+
+    # Colors for components
+    colors = {
+        "Gross_Positive": "#8B4513",  # Brown
+        "BECCS": "#2E8B57",  # Sea Green
+        "DACCS": "#4682B4",  # Steel Blue
+        "Ocean": "#20B2AA",  # Light Sea Green
+        "Enhanced_Weathering": "#9370DB",  # Medium Purple
+    }
+
+    return _plot_scenarios_comprehensive(scenarios, year_cols, axes, colors)
+
+
+def _plot_scenarios_comprehensive(scenarios, year_cols, axes, colors):
+    """Plot all scenarios with comprehensive analysis."""
+    for i, scenario in enumerate(scenarios):
+        _plot_single_scenario_comprehensive(i, scenario, year_cols, axes, colors)
+
+    plt.tight_layout()
+    fig = axes[0, 0].figure
+    return fig
+
+
+def _plot_single_scenario_comprehensive(i, scenario, year_cols, axes, colors):
+    """Plot a single scenario with annual and cumulative views."""
+    # === LEFT COLUMN: ANNUAL FLUXES ===
+    ax_annual = axes[i, 0]
+
+    # Get annual data for this scenario - sum over regions
+    annual_data = _get_annual_data_for_scenario(scenario, year_cols)
+
+    # Stack the data for annual plot
+    years = np.array(year_cols)
+
+    # Positive fluxes (above zero)
+    y1_pos = annual_data["gross_pos"].values
+
+    # Negative fluxes (below zero) - stack downwards
+    y1_neg = annual_data["beccs"].values
+    y2_neg = y1_neg + annual_data["daccs"].values
+    y3_neg = y2_neg + annual_data["ocean"].values
+    y4_neg = y3_neg + annual_data["ew"].values
+
+    # Plot annual stacked areas
+    ax_annual.fill_between(
+        years,
+        0,
+        y1_pos,
+        alpha=0.7,
+        color=colors["Gross_Positive"],
+        label="Gross Positive",
+    )
+    ax_annual.fill_between(years, 0, y1_neg, alpha=0.7, color=colors["BECCS"], label="BECCS")
+    ax_annual.fill_between(years, y1_neg, y2_neg, alpha=0.7, color=colors["DACCS"], label="DACCS")
+    ax_annual.fill_between(years, y2_neg, y3_neg, alpha=0.7, color=colors["Ocean"], label="Ocean CDR")
+    ax_annual.fill_between(
+        years,
+        y3_neg,
+        y4_neg,
+        alpha=0.7,
+        color=colors["Enhanced_Weathering"],
+        label="Enhanced Weathering",
+    )
+
+    # Overlay fossil extension line
+    if annual_data["fossil"] is not None:
+        ax_annual.plot(
+            years,
+            annual_data["fossil"].values,
+            "k-",
+            linewidth=2,
+            alpha=0.8,
+            label="Net Fossil (Total)",
+        )
+
+    # === RIGHT COLUMN: CUMULATIVE FLUXES ===
+    ax_cumul = axes[i, 1]
+
+    _plot_cumulative_fluxes(ax_cumul, annual_data, years, colors)
+
+    # === FORMATTING FOR BOTH COLUMNS ===
+    _format_both_axes(ax_annual, ax_cumul, scenario, i)
+
+
+def _get_annual_data_for_scenario(scenario, year_cols):
+    """Get all annual data for a scenario."""
+    gross_pos_annual = co2_gross_positive_ext.loc[
+        co2_gross_positive_ext.index.get_level_values("scenario") == scenario
+    ][year_cols].sum()
+
+    beccs_annual = co2_beccs_ext.loc[co2_beccs_ext.index.get_level_values("scenario") == scenario][year_cols].sum()
+
+    daccs_annual = co2_dacc_ext.loc[co2_dacc_ext.index.get_level_values("scenario") == scenario][year_cols].sum()
+
+    ocean_annual = co2_ocean_ext.loc[co2_ocean_ext.index.get_level_values("scenario") == scenario][year_cols].sum()
+
+    ew_annual = co2_ew_ext.loc[co2_ew_ext.index.get_level_values("scenario") == scenario][year_cols].sum()
+
+    # Get fossil extension data for comparison
+    fossil_annual = fossil_extension_df.loc[fossil_extension_df.index.get_level_values("scenario") == scenario][
+        year_cols
+    ]
+    if len(fossil_annual) > 0:
+        fossil_annual = fossil_annual.iloc[0]
+    else:
+        fossil_annual = None
+
+    return {
+        "gross_pos": gross_pos_annual,
+        "beccs": beccs_annual,
+        "daccs": daccs_annual,
+        "ocean": ocean_annual,
+        "ew": ew_annual,
+        "fossil": fossil_annual,
+    }
+
+
+def _plot_cumulative_fluxes(ax_cumul, annual_data, years, colors):
+    """Plot cumulative fluxes for a scenario."""
+    # Calculate cumulative sums
+    gross_pos_cumul = annual_data["gross_pos"].cumsum()
+    beccs_cumul = annual_data["beccs"].cumsum()
+    daccs_cumul = annual_data["daccs"].cumsum()
+    ocean_cumul = annual_data["ocean"].cumsum()
+    ew_cumul = annual_data["ew"].cumsum()
+
+    if annual_data["fossil"] is not None:
+        fossil_cumul = annual_data["fossil"].cumsum()
+    else:
+        fossil_cumul = None
+
+    # Stack cumulative data
+    y1_pos_cumul = gross_pos_cumul.values
+    y1_neg_cumul = beccs_cumul.values
+    y2_neg_cumul = y1_neg_cumul + daccs_cumul.values
+    y3_neg_cumul = y2_neg_cumul + ocean_cumul.values
+    y4_neg_cumul = y3_neg_cumul + ew_cumul.values
+
+    # Plot cumulative stacked areas
+    ax_cumul.fill_between(
+        years,
+        0,
+        y1_pos_cumul,
+        alpha=0.7,
+        color=colors["Gross_Positive"],
+        label="Gross Positive",
+    )
+    ax_cumul.fill_between(years, 0, y1_neg_cumul, alpha=0.7, color=colors["BECCS"], label="BECCS")
+    ax_cumul.fill_between(
+        years,
+        y1_neg_cumul,
+        y2_neg_cumul,
+        alpha=0.7,
+        color=colors["DACCS"],
+        label="DACCS",
+    )
+    ax_cumul.fill_between(
+        years,
+        y2_neg_cumul,
+        y3_neg_cumul,
+        alpha=0.7,
+        color=colors["Ocean"],
+        label="Ocean CDR",
+    )
+    ax_cumul.fill_between(
+        years,
+        y3_neg_cumul,
+        y4_neg_cumul,
+        alpha=0.7,
+        color=colors["Enhanced_Weathering"],
+        label="Enhanced Weathering",
+    )
+
+    # Overlay cumulative fossil line
+    if fossil_cumul is not None:
+        ax_cumul.plot(
+            years,
+            fossil_cumul.values,
+            "k-",
+            linewidth=2,
+            alpha=0.8,
+            label="Net Fossil (Cumulative)",
+        )
+
+
+def _format_both_axes(ax_annual, ax_cumul, scenario, i):
+    """Format both annual and cumulative axes."""
+    for ax, title_suffix in [
+        (ax_annual, "Annual Fluxes"),
+        (ax_cumul, "Cumulative Fluxes"),
+    ]:
+        ax.set_title(
+            scenario_to_code[scenario] + " " + title_suffix,
+            fontsize=12,
+            fontweight="bold",
+        )
+        ax.set_xlabel("Year", fontsize=11)
+        ax.set_ylabel(
+            "CO₂ Flux (Gt CO₂/yr)" if ax == ax_annual else "Cumulative CO₂ (Gt CO₂)",
+            fontsize=11,
+        )
+        ax.tick_params(axis="both", which="major", labelsize=10)
+        ax.grid(True, alpha=0.3)
+        ax.set_xlim(2020, 2500)
+
+        # Add vertical line at baseline year
+        ax.axvline(x=BASELINE_YEAR, color="red", linestyle="--", alpha=0.5, linewidth=1)
+        ax.axhline(y=0, color="black", linestyle="-", alpha=0.3, linewidth=0.5)
+
+        # Add legend for first row only
+        if i == 0:
+            if ax == ax_annual:
+                ax.legend(loc="upper right", fontsize=10)
+
+
+# Create the comprehensive plot
+fig_comprehensive = plot_comprehensive_co2_analysis()
+plt.show()
+
+# %%
+raw_output.pix.unique("variable").values
+
+# %%
+# Constants for historical plotting
+CDR_LIMIT = -1460  # Gt CO2
+PROVED_FOSSIL_RESERVES = 2032 + 2400  # Gt CO2
+PROBABLE_FOSSIL_RESERVES = 8036 + 2400  # Gt CO2
+
+
+def plot_comprehensive_co2_analysis_with_history():
+    """
+    Plot annual and cumulative CO₂ fluxes including historical period.
+
+    Gross positive emissions use the full historical+future timeseries.
+    CDR components are zero in the historical period.
+    """
+    # Get all year columns from raw_output
+    all_years = [col for col in raw_output.columns if isinstance(col, int | float)]
+    all_years.sort()
+
+    # Get future-only year columns (from CDR extension)
+    future_years = [col for col in co2_beccs_ext.columns if isinstance(col, int | float)]
+    future_years.sort()
+
+    # Get scenarios that exist in all datasets
+    scenarios = _get_common_scenarios_with_history()
+    n_scenarios = len(scenarios)
+
+    print(
+        f"Creating comprehensive flux analysis (with history) for {n_scenarios} scenarios "
+        f"across {len(all_years)} years"
+    )
+
+    fig, axes = plt.subplots(n_scenarios, 2, figsize=(10, 4 * n_scenarios))
+    if n_scenarios == 1:
+        axes = axes.reshape(1, -1)
+
+    colors = _get_color_scheme_with_afolu()
+
+    config = HistoryPlotConfig(all_years, future_years, axes, colors)
+    for i, scenario in enumerate(scenarios):
+        _plot_single_scenario_with_history(i, scenario, config)
+
+    plt.tight_layout()
+    return fig
+
+
+def _get_common_scenarios_with_history():
+    """Get scenarios common to all datasets including historical."""
+    scenarios = (
+        set(co2_gross_positive_ext.index.get_level_values("scenario"))
+        & set(co2_beccs_ext.index.get_level_values("scenario"))
+        & set(co2_dacc_ext.index.get_level_values("scenario"))
+        & set(co2_ocean_ext.index.get_level_values("scenario"))
+        & set(co2_ew_ext.index.get_level_values("scenario"))
+        & set(fossil_extension_df.index.get_level_values("scenario"))
+    )
+    return sorted(list(scenarios))
+
+
+def _get_color_scheme_with_afolu():
+    """Get color scheme including AFOLU."""
+    return {
+        "Gross_Positive": "#8B4513",
+        "BECCS": "#2E8B57",
+        "DACCS": "#4682B4",
+        "Ocean": "#20B2AA",
+        "Enhanced_Weathering": "#9370DB",
+        "AFOLU": "#2E8B57",
+    }
+
+
+def _plot_single_scenario_with_history(i, scenario, config):
+    """Plot a single scenario with historical data."""
+    # --- Annual fluxes ---
+    ax_annual = config.axes[i, 0]
+
+    # Get historical + future data
+    historical_data = _get_historical_data_for_scenario(scenario, config.all_years, config.future_years)
+    years = np.array(config.all_years)
+
+    # Plot annual data
+    _plot_annual_fluxes_with_history(ax_annual, historical_data, years, config.colors)
+
+    # --- Cumulative fluxes ---
+    ax_cumul = config.axes[i, 1]
+    _plot_cumulative_fluxes_with_history(ax_cumul, historical_data, years, config.colors)
+
+    # --- Formatting ---
+    _format_axes_with_history(ax_annual, ax_cumul, scenario, i, config.all_years)
+
+
+def _get_historical_data_for_scenario(scenario, all_years, future_years):
+    """Get all data for scenario including historical padding."""
+    # Gross positive: full historical+future
+    gross_pos_annual = (
+        raw_output.loc[
+            (
+                slice(None),
+                scenario,
+                slice(None),
+                "Emissions|CO2|Gross Positive Emissions",
+                slice(None),
+            ),
+            all_years,
+        ].sum()
+        / 1000
+    )
+
+    # CDR components: zero for historical, then future values
+    def pad_future_with_zeros(df_ext):
+        zeros = np.zeros(len(all_years) - len(future_years))
+        vals = df_ext.loc[df_ext.index.get_level_values("scenario") == scenario][future_years].sum().values
+        return np.concatenate([zeros, vals])
+
+    beccs_annual = pad_future_with_zeros(co2_beccs_ext) / 1000
+    daccs_annual = pad_future_with_zeros(co2_dacc_ext) / 1000
+    ocean_annual = pad_future_with_zeros(co2_ocean_ext) / 1000
+    ew_annual = pad_future_with_zeros(co2_ew_ext) / 1000
+
+    # Fossil and AFOLU data
+    fossil_annual = (
+        raw_output.loc[
+            (
+                slice(None),
+                scenario,
+                slice(None),
+                "Emissions|CO2|Energy and Industrial Processes",
+                slice(None),
+            ),
+            all_years,
+        ].T
+        / 1000
+    )
+    afolu_annual = (
+        raw_output.loc[
+            (slice(None), scenario, slice(None), "Emissions|CO2|AFOLU", slice(None)),
+            all_years,
+        ].T
+        / 1000
+    )
+
+    return {
+        "gross_pos": gross_pos_annual,
+        "beccs": beccs_annual,
+        "daccs": daccs_annual,
+        "ocean": ocean_annual,
+        "ew": ew_annual,
+        "fossil": fossil_annual,
+        "afolu": afolu_annual,
+    }
+
+
+def _plot_annual_fluxes_with_history(ax_annual, data, years, colors):
+    """Plot annual fluxes including historical data."""
+    afolu_pos = np.clip(data["afolu"].values[:, 0], 0, None)
+    afolu_neg = np.clip(data["afolu"].values[:, 0], None, 0)
+
+    # Stack for annual plot
+    y1_pos = data["gross_pos"].values
+    y2_pos = afolu_pos + y1_pos
+    y1_neg = data["beccs"]
+    y2_neg = y1_neg + data["daccs"]
+    y3_neg = y2_neg + data["ocean"]
+    y4_neg = y3_neg + data["ew"]
+    y5_neg = y4_neg + afolu_neg
+
+    # Plot stacked areas
+    ax_annual.fill_between(years, 0, y1_pos, alpha=0.7, color=colors["Gross_Positive"], label="Gross FF&I")
+    ax_annual.fill_between(years, y1_pos, y2_pos, alpha=0.7, color=colors["AFOLU"], label="AFOLU")
+    ax_annual.fill_between(years, 0, y1_neg, alpha=0.7, color=colors["BECCS"], label="BECCS")
+    ax_annual.fill_between(years, y1_neg, y2_neg, alpha=0.7, color=colors["DACCS"], label="DACCS")
+    ax_annual.fill_between(years, y2_neg, y3_neg, alpha=0.7, color=colors["Ocean"], label="Ocean CDR")
+    ax_annual.fill_between(
+        years,
+        y3_neg,
+        y4_neg,
+        alpha=0.7,
+        color=colors["Enhanced_Weathering"],
+        label="Enhanced Weathering",
+    )
+    ax_annual.fill_between(years, y4_neg, y5_neg, alpha=0.7, color=colors["AFOLU"])
+
+    if data["fossil"] is not None:
+        ax_annual.plot(
+            years,
+            data["fossil"] + data["afolu"].values,
+            "k-",
+            linewidth=2,
+            alpha=0.8,
+            label="Net Emissions (Total)",
+        )
+
+
+def _plot_cumulative_fluxes_with_history(ax_cumul, data, years, colors):
+    """Plot cumulative fluxes including historical data."""
+    afolu_pos = np.clip(data["afolu"].values[:, 0], 0, None)
+    afolu_neg = np.clip(data["afolu"].values[:, 0], None, 0)
+
+    gross_pos_cumul = np.cumsum(data["gross_pos"].values)
+    afolu_cumul = np.cumsum(afolu_pos + afolu_neg)
+    beccs_cumul = np.cumsum(data["beccs"])
+    daccs_cumul = np.cumsum(data["daccs"])
+    ocean_cumul = np.cumsum(data["ocean"])
+    ew_cumul = np.cumsum(data["ew"])
+
+    if data["fossil"] is not None:
+        fossil_cumul = np.cumsum(data["fossil"])
+    else:
+        fossil_cumul = None
+
+    y1_pos_cumul = gross_pos_cumul
+    y2_pos_cumul = afolu_cumul + y1_pos_cumul
+    y1_neg_cumul = beccs_cumul
+    y2_neg_cumul = y1_neg_cumul + daccs_cumul
+    y3_neg_cumul = y2_neg_cumul + ocean_cumul
+    y4_neg_cumul = y3_neg_cumul + ew_cumul
+
+    ax_cumul.fill_between(years, 0, y1_pos_cumul, alpha=0.7, color=colors["Gross_Positive"])
+    ax_cumul.fill_between(years, y1_pos_cumul, y2_pos_cumul, alpha=0.7, color=colors["AFOLU"])
+    ax_cumul.fill_between(years, 0, y1_neg_cumul, alpha=0.7, color=colors["BECCS"])
+    ax_cumul.fill_between(years, y1_neg_cumul, y2_neg_cumul, alpha=0.7, color=colors["DACCS"])
+    ax_cumul.fill_between(years, y2_neg_cumul, y3_neg_cumul, alpha=0.7, color=colors["Ocean"])
+    ax_cumul.fill_between(
+        years,
+        y3_neg_cumul,
+        y4_neg_cumul,
+        alpha=0.7,
+        color=colors["Enhanced_Weathering"],
+    )
+
+    ax_cumul.plot(
+        years,
+        fossil_cumul.values[:, 0] + afolu_cumul,
+        "k-",
+        linewidth=2,
+        alpha=0.8,
+        label="Net Emissions (Cumulative)",
+    )
+
+
+def _format_axes_with_history(ax_annual, ax_cumul, scenario, i, all_years):
+    """Format axes for historical plots."""
+    for ax, title_suffix in [
+        (ax_annual, "Annual Gross Fluxes"),
+        (ax_cumul, "Cumulative Gross Fluxes"),
+    ]:
+        ax.set_title(
+            scenario_to_code[scenario] + " " + title_suffix,
+            fontsize=12,
+            fontweight="bold",
+        )
+        ax.set_xlabel("Year", fontsize=11)
+        ax.set_ylabel(
+            "CO₂ Flux (Gt CO₂/yr)" if ax == ax_annual else "Cumulative CO₂ (Gt CO₂)",
+            fontsize=11,
+        )
+        ax.tick_params(axis="both", which="major", labelsize=10)
+        ax.grid(True, alpha=0.3)
+        ax.set_xlim(all_years[0], all_years[-1])
+        ax.axvline(x=BASELINE_YEAR, color="red", linestyle="--", alpha=0.5, linewidth=1)
+        ax.axhline(y=0, color="black", linestyle="-", alpha=0.3, linewidth=2)
+
+        if ax == ax_cumul:
+            ax.axhline(
+                y=CDR_LIMIT,
+                color="green",
+                linestyle="-",
+                alpha=0.3,
+                linewidth=3,
+                label="Cumulative CDR limit",
+            )
+            ax.axhline(
+                y=PROVED_FOSSIL_RESERVES,
+                color="red",
+                linestyle="-",
+                alpha=0.3,
+                linewidth=3,
+                label="Proved Fossil Reserves",
+            )
+            ax.axhline(
+                y=PROBABLE_FOSSIL_RESERVES,
+                color="red",
+                linestyle="--",
+                alpha=0.3,
+                linewidth=3,
+                label="Proved + Probable Fossil Reserves",
+            )
+
+        if i == 0:
+            ax.legend(loc="upper right", fontsize=10)
+
+
+# Create the comprehensive plot with history
+fig_comprehensive_history = plot_comprehensive_co2_analysis_with_history()
+plt.show()
 
 
 # %%
