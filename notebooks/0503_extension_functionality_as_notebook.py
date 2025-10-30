@@ -869,8 +869,7 @@ axes[7].set_visible(False)
 
 # Add overall title
 fig.suptitle(
-    "Gross Positive vs CDR vs Net FFI Emissions by Scenario\n"
-    "Brown = Positive, Green = CDR, Black lines = Net result",
+    "Gross Positive vs CDR vs Net FFI Emissions by Scenario\nBrown = Positive, Green = CDR, Black lines = Net result",
     fontsize=16,
     fontweight="bold",
 )
@@ -1816,8 +1815,7 @@ def plot_comprehensive_co2_analysis_with_history():
     n_scenarios = len(scenarios)
 
     print(
-        f"Creating comprehensive flux analysis (with history) for {n_scenarios} scenarios "
-        f"across {len(all_years)} years"
+        f"Creating comprehensive flux analysis (with history) for {n_scenarios} scenarios across {len(all_years)} years"
     )
 
     fig, axes = plt.subplots(n_scenarios, 2, figsize=(10, 4 * n_scenarios))
@@ -2058,6 +2056,276 @@ def _format_axes_with_history(ax_annual, ax_cumul, scenario, i, all_years):
                 alpha=0.3,
                 linewidth=3,
                 label="Cumulative CDR limit",
+            )
+            ax.axhline(
+                y=PROVED_FOSSIL_RESERVES,
+                color="red",
+                linestyle="-",
+                alpha=0.3,
+                linewidth=3,
+                label="Proved Fossil Reserves",
+            )
+            ax.axhline(
+                y=PROBABLE_FOSSIL_RESERVES,
+                color="red",
+                linestyle="--",
+                alpha=0.3,
+                linewidth=3,
+                label="Proved + Probable Fossil Reserves",
+            )
+
+        if i == 0:
+            ax.legend(loc="upper right", fontsize=10)
+
+
+# Create the comprehensive plot with history
+fig_comprehensive_history = plot_comprehensive_co2_analysis_with_history()
+plt.show()
+
+# %%
+# Constants for historical plotting
+CDR_LIMIT = -1460  # Gt CO2
+PROVED_FOSSIL_RESERVES = 2032 + 2400  # Gt CO2
+PROBABLE_FOSSIL_RESERVES = 8036 + 2400  # Gt CO2
+
+
+def plot_bulk_co2_analysis_with_history():
+    """
+    Plot annual and cumulative CO₂ fluxes including historical period.
+
+    Gross positive emissions use the full historical+future timeseries.
+    CDR components are zero in the historical period.
+    """
+    # Get all year columns from raw_output
+    all_years = [col for col in raw_output.columns if isinstance(col, int | float)]
+    all_years.sort()
+
+    # Get future-only year columns (from CDR extension)
+    future_years = [col for col in co2_beccs_ext.columns if isinstance(col, int | float)]
+    future_years.sort()
+
+    # Get scenarios that exist in all datasets
+    scenarios = _get_common_scenarios_with_history()
+    n_scenarios = len(scenarios)
+
+    print(
+        f"Creating comprehensive flux analysis (with history) for {n_scenarios} scenarios across {len(all_years)} years"
+    )
+
+    fig, axes = plt.subplots(n_scenarios, 2, figsize=(10, 4 * n_scenarios))
+    if n_scenarios == 1:
+        axes = axes.reshape(1, -1)
+
+    colors = _get_color_scheme_with_afolu()
+
+    config = HistoryPlotConfig(all_years, future_years, axes, colors)
+    for i, scenario in enumerate(scenarios):
+        _plot_single_scenario_with_history(i, scenario, config)
+
+    plt.tight_layout()
+    return fig
+
+
+def _get_common_scenarios_with_history():
+    """Get scenarios common to all datasets including historical."""
+    scenarios = (
+        set(co2_gross_positive_ext.index.get_level_values("scenario"))
+        & set(global_cdr_ext_fixed.index.get_level_values("scenario"))
+        & set(fossil_extension_df.index.get_level_values("scenario"))
+    )
+    return sorted(list(scenarios))
+
+
+def _get_color_scheme_with_afolu():
+    """Get color scheme including AFOLU."""
+    return {
+        "Gross_Positive": "#8B4513",
+        "Gross_CDR": "#DDD729",
+        "AFOLU": "#2E8B57",
+    }
+
+
+def _plot_single_scenario_with_history(i, scenario, config):
+    """Plot a single scenario with historical data."""
+    # --- Annual fluxes ---
+    ax_annual = config.axes[i, 0]
+
+    # Get historical + future data
+    historical_data = _get_historical_data_for_scenario(scenario, config.all_years, config.future_years)
+    years = np.array(config.all_years)
+
+    # Plot annual data
+    _plot_annual_fluxes_with_history(ax_annual, historical_data, years, config.colors)
+
+    # --- Cumulative fluxes ---
+    ax_cumul = config.axes[i, 1]
+    _plot_cumulative_fluxes_with_history(ax_cumul, historical_data, years, config.colors)
+
+    # --- Formatting ---
+    _format_axes_with_history(ax_annual, ax_cumul, scenario, i, config.all_years)
+
+
+def _get_historical_data_for_scenario(scenario, all_years, future_years):
+    """Get all data for scenario including historical padding."""
+    # Gross positive: full historical+future
+    gross_pos_annual = (
+        raw_output.loc[
+            (
+                slice(None),
+                scenario,
+                slice(None),
+                "Emissions|CO2|Gross Positive Emissions",
+                slice(None),
+            ),
+            all_years,
+        ].sum()
+        / 1000
+    )
+    gross_neg_annual = (
+        raw_output.loc[
+            (
+                slice(None),
+                scenario,
+                slice(None),
+                "Emissions|CO2|Gross Removals",
+                slice(None),
+            ),
+            all_years,
+        ].sum()
+        / 1000
+    )
+
+    # CDR components: zero for historical, then future values
+    def pad_future_with_zeros(df_ext):
+        zeros = np.zeros(len(all_years) - len(future_years))
+        vals = df_ext.loc[df_ext.index.get_level_values("scenario") == scenario][future_years].sum().values
+        return np.concatenate([zeros, vals])
+
+    # Fossil and AFOLU data
+    fossil_annual = (
+        raw_output.loc[
+            (
+                slice(None),
+                scenario,
+                slice(None),
+                "Emissions|CO2|Energy and Industrial Processes",
+                slice(None),
+            ),
+            all_years,
+        ].T
+        / 1000
+    )
+    afolu_annual = (
+        raw_output.loc[
+            (slice(None), scenario, slice(None), "Emissions|CO2|AFOLU", slice(None)),
+            all_years,
+        ].T
+        / 1000
+    )
+
+    return {
+        "gross_pos": gross_pos_annual,
+        "gross_neg": gross_neg_annual,
+        "fossil": fossil_annual,
+        "afolu": afolu_annual,
+    }
+
+
+def _plot_annual_fluxes_with_history(ax_annual, data, years, colors):
+    """Plot annual fluxes including historical data."""
+    afolu_pos = np.clip(data["afolu"].values[:, 0], 0, None)
+    afolu_neg = np.clip(data["afolu"].values[:, 0], None, 0)
+
+    # Stack for annual plot
+    y1_pos = data["gross_pos"].values
+    y2_pos = afolu_pos + y1_pos
+    y1_neg = data["gross_neg"].values
+    y2_neg = y1_neg + afolu_neg
+
+    # Plot stacked areas
+    ax_annual.fill_between(years, 0, y1_pos, alpha=0.7, color=colors["Gross_Positive"], label="Gross FF&I")
+    ax_annual.fill_between(years, y1_pos, y2_pos, alpha=0.7, color=colors["AFOLU"], label="AFOLU")
+    ax_annual.fill_between(years, 0, y1_neg, alpha=0.7, color=colors["Gross_CDR"], label="Gross CDR")
+    ax_annual.fill_between(years, y1_neg, y2_neg, alpha=0.7, color=colors["AFOLU"])
+
+    if data["fossil"] is not None:
+        ax_annual.plot(
+            years,
+            data["fossil"] + data["afolu"].values,
+            "k-",
+            linewidth=2,
+            alpha=0.8,
+            label="Net Emissions (Total)",
+        )
+
+
+def _plot_cumulative_fluxes_with_history(ax_cumul, data, years, colors):
+    """Plot cumulative fluxes including historical data."""
+    afolu_pos = np.clip(data["afolu"].values[:, 0], 0, None)
+    afolu_neg = np.clip(data["afolu"].values[:, 0], None, 0)
+
+    gross_pos_cumul = np.cumsum(data["gross_pos"].values)
+    gross_neg_cumul = np.cumsum(data["gross_neg"].values)
+
+    afolu_cumul = np.cumsum(afolu_pos + afolu_neg)
+
+    if data["fossil"] is not None:
+        np.cumsum(data["fossil"])
+    else:
+        pass
+
+    y1_pos_cumul = gross_pos_cumul
+    y2_pos_cumul = afolu_cumul + y1_pos_cumul
+    y1_neg_cumul = gross_neg_cumul
+
+    ax_cumul.fill_between(
+        years, 0, y1_pos_cumul, alpha=0.7, color=colors["Gross_Positive"], label="Cumulative Gross FF&I"
+    )
+    ax_cumul.fill_between(years, y1_pos_cumul, y2_pos_cumul, alpha=0.7, color=colors["AFOLU"], label="Cumulative AFOLU")
+    ax_cumul.fill_between(years, 0, y1_neg_cumul, alpha=0.7, label="Cumulative Gross CDR", color=colors["Gross_CDR"])
+
+    ax_cumul.plot(
+        years,
+        gross_pos_cumul + gross_neg_cumul + afolu_cumul,
+        "k-",
+        linewidth=2,
+        alpha=0.8,
+        label="Cumulative Net Emissions (Total)",
+    )
+
+
+def _format_axes_with_history(ax_annual, ax_cumul, scenario, i, all_years):
+    """Format axes for historical plots."""
+    for ax, title_suffix in [
+        (ax_annual, "Annual Gross Fluxes"),
+        (ax_cumul, "Cumulative Gross Fluxes"),
+    ]:
+        ax.set_title(
+            scenario_to_code[scenario] + " " + title_suffix,
+            fontsize=12,
+            fontweight="bold",
+        )
+        ax.set_xlabel("Year", fontsize=11)
+        ax.set_ylabel(
+            "CO₂ Flux (Gt CO₂/yr)" if ax == ax_annual else "Cumulative CO₂ (Gt CO₂)",
+            fontsize=11,
+        )
+        ax.tick_params(axis="both", which="major", labelsize=10)
+        ax.grid(True, alpha=0.3)
+        ax.set_xlim(all_years[0], all_years[-1])
+        if ax == ax_annual:
+            ax.set_ylim(-30, 60)
+        ax.axvline(x=BASELINE_YEAR, color="red", linestyle="--", alpha=0.5, linewidth=1)
+        ax.axhline(y=0, color="black", linestyle="-", alpha=0.3, linewidth=2)
+
+        if ax == ax_cumul:
+            ax.axhline(
+                y=CDR_LIMIT,
+                color="green",
+                linestyle="-",
+                alpha=0.3,
+                linewidth=3,
+                label="Sequestration capacity limit",
             )
             ax.axhline(
                 y=PROVED_FOSSIL_RESERVES,
