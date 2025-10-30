@@ -869,7 +869,8 @@ axes[7].set_visible(False)
 
 # Add overall title
 fig.suptitle(
-    "Gross Positive vs CDR vs Net FFI Emissions by Scenario\nBrown = Positive, Green = CDR, Black lines = Net result",
+    "Gross Positive vs CDR vs Net FFI Emissions by Scenario\n"
+    "Brown = Positive, Green = CDR, Black lines = Net result",
     fontsize=16,
     fontweight="bold",
 )
@@ -1815,10 +1816,11 @@ def plot_comprehensive_co2_analysis_with_history():
     n_scenarios = len(scenarios)
 
     print(
-        f"Creating comprehensive flux analysis (with history) for {n_scenarios} scenarios across {len(all_years)} years"
+        f"Creating comprehensive flux analysis (with history) for {n_scenarios} scenarios "
+        f"across {len(all_years)} years"
     )
 
-    fig, axes = plt.subplots(n_scenarios, 2, figsize=(10, 4 * n_scenarios))
+    fig, axes = plt.subplots(n_scenarios, 2, figsize=(10, 3 * n_scenarios))
     if n_scenarios == 1:
         axes = axes.reshape(1, -1)
 
@@ -1850,10 +1852,10 @@ def _get_color_scheme_with_afolu():
     return {
         "Gross_Positive": "#8B4513",
         "BECCS": "#BEDB3C",
-        "DACCS": "#434343",
-        "Ocean": "#2E4C98",
-        "Enhanced_Weathering": "#515151",
-        "AFOLU": "#2E8B57",
+        "DACCS": "#DF23D9",
+        "Ocean": "#4D3EBD",
+        "Enhanced_Weathering": "#A6A6A6",
+        "AFOLU": "#51E390",
     }
 
 
@@ -2084,9 +2086,20 @@ plt.show()
 
 # %%
 # Constants for historical plotting
-CDR_LIMIT = -1460  # Gt CO2
-PROVED_FOSSIL_RESERVES = 2032 + 2400  # Gt CO2
-PROBABLE_FOSSIL_RESERVES = 8036 + 2400  # Gt CO2
+CDR_LIMIT = -1460  # Gt CO2, Gidden, M.J., Joshi, S., Armitage, J.J. et al.
+# A prudent planetary limit for geologic carbon storage. Nature 645, 124-132 (2025).
+# https://doi.org/10.1038/s41586-025-09423-y
+
+PROVED_FOSSIL_RESERVES = (
+    2032 + 2400
+)  # Gt CO2, McGlade, C., Ekins, P. The geographical distribution of fossil fuels unused
+# when limiting global warming to 2 °C. Nature 517, 187-190 (2015).
+# https://doi.org/10.1038/nature14016
+PROBABLE_FOSSIL_RESERVES = (
+    8036 + 2400
+)  # Gt CO2, McGlade, C., Ekins, P. The geographical distribution of fossil fuels unused
+# when limiting global warming to 2 °C. Nature 517, 187-190 (2015).
+# https://doi.org/10.1038/nature14016
 
 
 def plot_bulk_co2_analysis_with_history():
@@ -2109,7 +2122,8 @@ def plot_bulk_co2_analysis_with_history():
     n_scenarios = len(scenarios)
 
     print(
-        f"Creating comprehensive flux analysis (with history) for {n_scenarios} scenarios across {len(all_years)} years"
+        f"Creating comprehensive flux analysis (with history) for {n_scenarios} scenarios "
+        f"across {len(all_years)} years"
     )
 
     fig, axes = plt.subplots(n_scenarios, 2, figsize=(10, 4 * n_scenarios))
@@ -2279,10 +2293,20 @@ def _plot_cumulative_fluxes_with_history(ax_cumul, data, years, colors):
     y1_neg_cumul = gross_neg_cumul
 
     ax_cumul.fill_between(
-        years, 0, y1_pos_cumul, alpha=0.7, color=colors["Gross_Positive"], label="Cumulative Gross FF&I"
+        years,
+        0,
+        y1_pos_cumul,
+        alpha=0.7,
+        color=colors["Gross_Positive"],
     )
-    ax_cumul.fill_between(years, y1_pos_cumul, y2_pos_cumul, alpha=0.7, color=colors["AFOLU"], label="Cumulative AFOLU")
-    ax_cumul.fill_between(years, 0, y1_neg_cumul, alpha=0.7, label="Cumulative Gross CDR", color=colors["Gross_CDR"])
+    ax_cumul.fill_between(
+        years,
+        y1_pos_cumul,
+        y2_pos_cumul,
+        alpha=0.7,
+        color=colors["AFOLU"],
+    )
+    ax_cumul.fill_between(years, 0, y1_neg_cumul, alpha=0.7, color=colors["Gross_CDR"])
 
     ax_cumul.plot(
         years,
