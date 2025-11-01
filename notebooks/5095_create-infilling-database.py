@@ -21,17 +21,24 @@
 # ## Imports
 
 # %%
+from functools import partial
+
 import numpy as np
 import pandas as pd
 import pandas.io.excel
 import pandas_indexing as pix
+import seaborn as sns
+from gcages.renaming import SupportedNamingConventions, convert_variable_name
+from pandas_openscm.comparison import compare_close
+from pandas_openscm.index_manipulation import update_index_levels_func
 
 from emissions_harmonization_historical.constants_5000 import (
+    HARMONISED_SCENARIO_DB,
     HISTORY_HARMONISATION_DB,
     INFILLED_OUT_DIR,
     INFILLED_OUT_DIR_ID,
     INFILLING_DB,
-    PRE_PROCESSED_SCENARIO_DB,
+    VELDERS_ET_AL_2022_PROCESSED_DB,
     WMO_2022_PROCESSED_DB,
 )
 from emissions_harmonization_historical.harmonisation import (
@@ -58,36 +65,17 @@ pd.set_option("display.max_colwidth", None)
 # %%
 # Only World level data for specific variables
 # is used for infilling.
-scenarios_for_infilling_db = PRE_PROCESSED_SCENARIO_DB.load(
-    pix.isin(region="World", stage="global_workflow_emissions_raw_names"), progress=True
-).reset_index("stage", drop=True)
+scenarios_for_infilling_db = HARMONISED_SCENARIO_DB.load(
+    pix.isin(region="World", workflow="for_scms"), progress=True
+).reset_index("workflow", drop=True)
 if scenarios_for_infilling_db.empty:
     raise AssertionError
 
 # scenarios_for_infilling_db
 
-# %% [markdown]
-# #### Temporary hack: interpolate scenario data to annual to allow harmonisation
-#
-# Make sure this stays consistent with 5094
-
 # %%
-if (
-    HARMONISATION_YEAR not in scenarios_for_infilling_db
-    or scenarios_for_infilling_db[HARMONISATION_YEAR].isnull().any()
-):
-    scenarios_for_infilling_db = scenarios_for_infilling_db.T.interpolate(method="index").T
-
-# Drop out any timeseries that contain NaN too
-scenarios_for_infilling_db = scenarios_for_infilling_db.dropna()
-scenarios_for_infilling_db
-
-# %% [markdown]
-# #### Temporary hack: remove carbon removal from raw scenarios
-
-# %%
-scenarios_for_infilling_db = scenarios_for_infilling_db.loc[~pix.ismatch(variable="Carbon Removal**")]
-scenarios_for_infilling_db
+if scenarios_for_infilling_db.isnull().any().any():
+    raise AssertionError
 
 # %% [markdown]
 # ### WMO 2022
@@ -103,7 +91,25 @@ if wmo_2022_scenarios.empty:
 # ### Velders et al., 2022
 
 # %%
-assert False, "Add these to infilling DB"
+velders_2022_scenarios = VELDERS_ET_AL_2022_PROCESSED_DB.load(~pix.ismatch(scenario="history"))
+if velders_2022_scenarios.empty:
+    raise AssertionError
+
+velders_2022_scenarios = update_index_levels_func(
+    velders_2022_scenarios,
+    updates={
+        "variable": partial(
+            convert_variable_name,
+            from_convention=SupportedNamingConventions.GCAGES,
+            to_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+        )
+    },
+)
+velders_2022_scenarios = update_index_levels_func(
+    velders_2022_scenarios, {"unit": lambda x: x.replace("HFC4310mee", "HFC4310")}
+)
+
+# velders_2022_scenarios
 
 # %% [markdown]
 # ### History
@@ -120,14 +126,9 @@ history = history.dropna(axis="columns")
 # ## Harmonise
 
 # %%
-infilling_db_raw = pix.concat([scenarios_for_infilling_db, wmo_2022_scenarios]).sort_index(axis="columns")
-# infilling_db_raw
-
-# %% [markdown]
-# ### Temporary hack: linearly interpolate to ensure harmonisation works
-
-# %%
-infilling_db_raw = infilling_db_raw.T.interpolate(method="index").T
+infilling_db_raw = pix.concat([scenarios_for_infilling_db, wmo_2022_scenarios, velders_2022_scenarios]).sort_index(
+    axis="columns"
+)
 # infilling_db_raw
 
 # %%
@@ -143,7 +144,37 @@ harmonise_res = harmonise(
     harmonisation_year=HARMONISATION_YEAR,
     user_overrides=user_overrides,
 )
-# harmonise_res
+if harmonise_res.timeseries.isnull().any().any():
+    raise AssertionError
+
+# %%
+compare_infilling_harmonisation = compare_close(
+    harmonise_res.timeseries,
+    infilling_db_raw.loc[:, harmonise_res.timeseries.columns],
+    "harmonised",
+    "input",
+    isclose=partial(np.isclose, rtol=1e-4),
+)
+models_reharmonised = compare_infilling_harmonisation.index.get_level_values("model").unique().tolist()
+if models_reharmonised != ["Velders et al., 2022"]:
+    msg = f"Data from {models_reharmonised} was re-harmonised. This shouldn't happen?"
+    raise AssertionError(msg)
+
+# %%
+tmp = compare_infilling_harmonisation
+tmp.columns.name = "stage"
+tmp = tmp.stack().to_frame("value").reset_index()
+sns.relplot(
+    data=tmp,
+    x="year",
+    y="value",
+    col="variable",
+    col_wrap=3,
+    hue="scenario",
+    style="stage",
+    facet_kws=dict(sharey=False),
+    kind="line",
+)
 
 # %% [markdown]
 # ## Save

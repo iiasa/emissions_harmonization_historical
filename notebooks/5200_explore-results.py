@@ -205,7 +205,7 @@ scratch_selection_l = [
     ("#2e9e68", ("IMAGE 3.4", "SSP2 - Low Emissions")),
     # # VLHO
     # # ("#4b3d89", ("REMIND-MAgPIE 3.5-4.10", "SSP2 - Low Overshoot_d")),
-    ("#4b3d89", ("AIM 3.0", "SSP2 - Low Overshoot")),
+    ("#4b3d89", ("AIM 3.0", "SSP2 - Low Overshoot_a")),
     # # ("#4b3d89", ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Overshoot_a")),
     # # ("#4b3d89", ("GCAM 7.1 scenarioMIP", "SSP1 - Low Overshoot")),
     # # ("#4b3d89", ("GCAM 7.1 scenarioMIP", "SSP2 - Low Overshoot")),

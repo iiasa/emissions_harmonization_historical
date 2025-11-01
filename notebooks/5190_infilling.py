@@ -68,7 +68,7 @@ Q = UR.Quantity
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "REMIND"
+model: str = "MESSAGE"
 
 # %% editable=true slideshow={"slide_type": ""}
 output_dir_model = INFILLED_OUT_DIR / model
@@ -140,7 +140,11 @@ assert_harmonised(infilling_db, history, species_tolerances=species_tolerances)
 # %%
 wmo_locator = pix.ismatch(model="WMO**")
 infilling_db_wmo = infilling_db.loc[wmo_locator]
-infilling_db_silicone = infilling_db.loc[~wmo_locator]
+
+velders_locator = pix.ismatch(model="Velders**")
+infilling_db_velders = infilling_db.loc[velders_locator]
+
+infilling_db_silicone = infilling_db.loc[~wmo_locator & ~velders_locator]
 
 
 # %% [markdown]
@@ -153,7 +157,24 @@ infilling_db_silicone = infilling_db.loc[~wmo_locator]
 # (processed in a previous notebook)
 
 # %%
-assert False, "Add very low marker exception"
+vl_model = "REMIND-MAgPIE 3.5-4.11"
+vl_scenario = "SSP1 - Very Low Emissions"
+
+# %%
+vl_marker = harmonised.loc[pix.isin(model=vl_model) & pix.isin(scenario=vl_scenario)]
+
+if not vl_marker.empty:
+    print("Infilling with Velders lower Kigali scenario")
+    infilled_vl_exception = infilling_db.loc[
+        pix.isin(model="Velders et al., 2022", scenario="Kigali2022-lower")
+    ].pix.assign(model=vl_model, scenario=vl_scenario)
+
+else:
+    print("Not the vl marker")
+    infilled_vl_exception = None
+
+# %%
+complete_vl_exception = get_complete(harmonised, infilled_vl_exception)
 
 # %% [markdown]
 # ### Silicone
@@ -172,11 +193,11 @@ for variable in tqdm.auto.tqdm([v for v in infilling_db_silicone.pix.unique("var
 
 # %%
 infilled_silicone = infill(
-    harmonised,
+    complete_vl_exception,
     # harmonised.loc[~pix.isin(variable=infill_silicone_gcages[:3]) | pix.isin(variable=lead)],
     infillers_silicone,
 )
-complete_silicone = get_complete(harmonised, infilled_silicone)
+complete_silicone = get_complete(complete_vl_exception, infilled_silicone)
 # complete_silicone
 
 # %%

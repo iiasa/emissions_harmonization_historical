@@ -52,7 +52,7 @@ from emissions_harmonization_historical.constants_5000 import (
 # ## Set up
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model_search: str = "REMIND"
+model_search: str = "MESSAGE"
 
 # %%
 output_dir_model = DATA_ROOT / "raw" / "scenarios" / DOWNLOAD_SCENARIOS_ID / model_search
@@ -103,7 +103,7 @@ if model_search == "REMIND":
 if model_search == "AIM":
     to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Low Overshoot_a")]
 if model_search == "MESSAGE":
-    to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Low Emissions_f")]
+    to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Low Emissions")]
 if model_search == "IMAGE":
     # skip = (
     #     "SSP1 - Very Low Emissions",

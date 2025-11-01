@@ -56,7 +56,7 @@ pd.set_option("display.max_columns", 100)
 scenarios_to_analyse = [
     ("WITCH 6.0", "SSP5 - Medium-Low Emissions_a"),
     ("GCAM 8s", "SSP3 - High Emissions"),
-    ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions_f"),
+    ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions"),
     ("COFFEE 1.6", "SSP2 - Medium-Low Emissions"),
     ("IMAGE 3.4", "SSP2 - Medium Emissions"),
     ("AIM 3.0", "SSP2 - Low Overshoot_a"),
@@ -339,7 +339,3 @@ for i, variable_to_plot in enumerate(emissions_to_plot):
 
     ax.grid()
 fig.savefig("emissions.pdf", format="pdf", bbox_inches="tight")
-
-# %%
-
-# %%
