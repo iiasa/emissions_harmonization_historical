@@ -112,12 +112,6 @@ history_for_gridding_harmonisation_aggregated = to_global_workflow_emissions(
 history_for_gridding_harmonisation_aggregated = to_gcages_names(history_for_gridding_harmonisation_aggregated)
 history_for_gridding_harmonisation_aggregated
 
-# %% [markdown]
-# TODO: use CEDS's extensions
-#
-# 1. load up the extensions at the world level
-# 2. add them to the values above
-
 # %%
 # Weird that it isn't easier to figure this out. Anyway.
 tmp = history_for_gridding_harmonisation.loc[pix.ismatch(variable="**CH4|Energy Sector", region="OECD & EU (R5)"), :]
@@ -336,8 +330,9 @@ sns.relplot(
 # ### Velders et al., 2022
 
 # %%
-velders_et_al_2022 = VELDERS_ET_AL_2022_PROCESSED_DB.load()
-# velders_et_al_2022
+velders_et_al_2022_all = VELDERS_ET_AL_2022_PROCESSED_DB.load()
+velders_et_al_2022 = velders_et_al_2022_all.loc[pix.ismatch(scenario="history")].dropna(axis="columns", how="all")
+velders_et_al_2022
 
 # %%
 velders_et_al_2022_ext = extend_with_inversions(velders_et_al_2022, cmip_inversions)
