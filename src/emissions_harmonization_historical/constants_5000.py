@@ -23,6 +23,24 @@ from pandas_openscm.db import (
     OpenSCMDB,
 )
 
+MARKERS = (
+    # (model, scenario, ScenarioMIP name)
+    ("REMIND-MAgPIE 3.5-4.11", "SSP1 - Very Low Emissions", "vl"),
+    ("AIM 3.0", "SSP2 - Low Overshoot_a", "ln"),
+    ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions", "l"),
+    ("COFFEE 1.6", "SSP2 - Medium-Low Emissions", "ml"),
+    ("IMAGE 3.4", "SSP2 - Medium Emissions", "m"),
+    ("WITCH 6.0", "SSP5 - Medium-Low Emissions_a", "hl"),
+    ("GCAM 8s", "SSP3 - High Emissions", "h"),
+)
+MARKERS_BY_SCENARIOMIP_NAME = {
+    scenariomip_name: {
+        "model": model,
+        "scenario": scenario,
+    }
+    for model, scenario, scenariomip_name in MARKERS
+}
+
 # Chosen to match the CMIP experiment ID
 HISTORY_SCENARIO_NAME = "historical"
 
@@ -278,6 +296,7 @@ HISTORY_HARMONISATION_DB = OpenSCMDB(
 # # ID for the scenario download step
 # Run by Marco
 DOWNLOAD_SCENARIOS_ID = "All_23Oct"
+DOWNLOAD_SCENARIOS_ID = "202511011723"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(
@@ -328,6 +347,8 @@ HARMONISED_SCENARIO_DB = OpenSCMDB(
 # INFILLING_DB_CREATION_ID = "0001"
 # Moved to portable OpenSCMDB
 INFILLING_DB_CREATION_ID = "0002"
+# Moved to using Velders' scenario for VL marker
+INFILLING_DB_CREATION_ID = "202511011452"
 
 INFILLING_DB_DIR = (
     DATA_ROOT

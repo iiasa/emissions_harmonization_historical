@@ -43,6 +43,7 @@ from emissions_harmonization_historical.constants_5000 import (
     INFILLED_OUT_DIR,
     INFILLED_SCENARIOS_DB,
     INFILLING_DB,
+    MARKERS_BY_SCENARIOMIP_NAME,
     WMO_2022_PROCESSED_DB,
 )
 from emissions_harmonization_historical.harmonisation import (
@@ -68,7 +69,7 @@ Q = UR.Quantity
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "MESSAGE"
+model: str = "AIM"
 
 # %% editable=true slideshow={"slide_type": ""}
 output_dir_model = INFILLED_OUT_DIR / model
@@ -157,23 +158,22 @@ infilling_db_silicone = infilling_db.loc[~wmo_locator & ~velders_locator]
 # (processed in a previous notebook)
 
 # %%
-vl_model = "REMIND-MAgPIE 3.5-4.11"
-vl_scenario = "SSP1 - Very Low Emissions"
+vl_model = MARKERS_BY_SCENARIOMIP_NAME["vl"]["model"]
+vl_scenario = MARKERS_BY_SCENARIOMIP_NAME["vl"]["scenario"]
 
 # %%
 vl_marker = harmonised.loc[pix.isin(model=vl_model) & pix.isin(scenario=vl_scenario)]
 
 if not vl_marker.empty:
-    print("Infilling with Velders lower Kigali scenario")
+    print(f"Infilling {vl_model} {vl_scenario} with Velders lower Kigali scenario")
     infilled_vl_exception = infilling_db.loc[
         pix.isin(model="Velders et al., 2022", scenario="Kigali2022-lower")
     ].pix.assign(model=vl_model, scenario=vl_scenario)
 
 else:
-    print("Not the vl marker")
+    print("vl marker is not in the input scenarios")
     infilled_vl_exception = None
 
-# %%
 complete_vl_exception = get_complete(harmonised, infilled_vl_exception)
 
 # %% [markdown]

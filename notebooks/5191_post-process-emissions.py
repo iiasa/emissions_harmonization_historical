@@ -49,7 +49,7 @@ pandas_openscm.register_pandas_accessor()
 pix.set_openscm_registry_as_default()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "MESSAGE"
+model: str = "AIM"
 output_to_pdf: bool = False
 
 # %% [markdown]
