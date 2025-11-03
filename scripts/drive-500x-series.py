@@ -146,29 +146,20 @@ def main():  # noqa: PLR0912
     # iams = ["AIM"]
     # Combos
     # iams = ["COFFEE", "WITCH"]
-    # iams = [
-    #     "WITCH",
-    #     "REMIND",
-    #     "IMAGE",
-    #     "AIM",
-    #     "MESSAGE",
-    #     "COFFEE",
-    # ]
     # # Waiting for submission
     # iams = [
     #     "GCAM",
     # ]
     # All
     iams = [
-        # "IMAGE",
-        # "WITCH",
-        # "REMIND",
-        # "MESSAGE",
-        # "GCAM",
-        # "COFFEE",
+        "IMAGE",
+        "WITCH",
+        "REMIND",
+        "MESSAGE",
+        "GCAM",
+        "COFFEE",
         "AIM",
     ]
-    # iams = ["COFFEE"]
 
     #### downloading and processing
     # Single notebook
