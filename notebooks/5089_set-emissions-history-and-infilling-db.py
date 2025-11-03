@@ -69,14 +69,14 @@ for prefix, purpose in (
         "gridding_emissions",
     ),
 ):
-    file_info_l = [download_urls[k] for k in download_urls if (k.startswith(prefix) and k.endswith(".feather"))]
+    file_info_l = [download_urls[k] for k in download_urls if (k.startswith(prefix) and k.endswith(".parquet.gzip"))]
     if len(file_info_l) != 1:
         raise AssertionError(file_info_l)
 
     file_info = file_info_l[0]
 
     print(f"Downloading {purpose} emissions")
-    with tempfile.NamedTemporaryFile(suffix=".feather") as tf:
+    with tempfile.NamedTemporaryFile(suffix=".parquet.gzip") as tf:
         download_zenodo_url(
             file_info["url"],
             # We require the interactor while the record's files are embargoed.
@@ -84,7 +84,7 @@ for prefix, purpose in (
             fh=tf,
             size=file_info["size"],
         )
-        df = pd.read_feather(tf.name)
+        df = pd.read_parquet(tf.name)
 
     print(f"Adding {purpose} emissions to the history for harmonisation database")
     HISTORY_HARMONISATION_DB.save(
@@ -106,14 +106,14 @@ download_urls = {
 # download_urls
 
 # %% editable=true slideshow={"slide_type": ""}
-file_info_l = [download_urls[k] for k in download_urls if (k.startswith("infiling-db") and k.endswith(".feather"))]
+file_info_l = [download_urls[k] for k in download_urls if (k.startswith("infiling-db") and k.endswith(".parquet.gzip"))]
 if len(file_info_l) != 1:
     raise AssertionError(file_info_l)
 
 file_info = file_info_l[0]
 
 print("Downloading infilling database")
-with tempfile.NamedTemporaryFile(suffix=".feather") as tf:
+with tempfile.NamedTemporaryFile(suffix=".parquet.gzip") as tf:
     download_zenodo_url(
         file_info["url"],
         # We require the interactor while the record's files are embargoed.
@@ -121,7 +121,7 @@ with tempfile.NamedTemporaryFile(suffix=".feather") as tf:
         fh=tf,
         size=file_info["size"],
     )
-    df = pd.read_feather(tf.name)
+    df = pd.read_parquet(tf.name)
 
 print("Saving infilling database")
 INFILLING_DB.save(
