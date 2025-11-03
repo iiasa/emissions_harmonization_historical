@@ -144,7 +144,7 @@ repo = git.Repo(REPO_ROOT)
 if not repo.is_dirty():
     readme_txt = f"""{readme_txt}
 The files were produced with the following commit:
-{repo.head.object.hexsha}"""
+[{repo.head.object.hexsha}](https://github.com/iiasa/emissions_harmonization_historical/tree/{repo.head.object.hexsha})"""
 
 # %%
 readme_file = HISTORY_HARMONISATION_INTERIM_DIR / "README.md"
