@@ -48,7 +48,7 @@ from emissions_harmonization_historical.zenodo import upload_to_zenodo
 # ## Setup
 
 # %% [markdown]
-# ## Save in varous formats
+# ## Save in various formats
 
 # %%
 files_for_zenodo = []
@@ -263,9 +263,9 @@ logger.enable("openscm_zenodo")
 
 # %%
 # # Useful if you're trying to figure out metadata fields
-# from openscm_zenodo.zenodo import ZenodoInteractor
-# import os
-# zenodo_interactor = ZenodoInteractor(token=os.environ["ZENODO_TOKEN"])
+# from emissions_harmonization_historical.zenodo import get_zenodo_interactor
+#
+# zenodo_interactor = get_zenodo_interactor()
 # zenodo_interactor.get_metadata(
 #     zenodo_interactor.get_draft_deposition_id("15357373")
 # )

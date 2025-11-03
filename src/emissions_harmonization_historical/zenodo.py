@@ -9,11 +9,33 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
-import pandas as pd
 from dotenv import load_dotenv
 from openscm_zenodo.zenodo import ZenodoInteractor
 
-pd.set_option("display.max_rows", 100)
+
+def get_zenodo_interactor() -> ZenodoInteractor:
+    """
+    Get zenodo interactor
+
+    Returns
+    -------
+    :
+        Initialised [openscm_zenodo.zenodo.ZenodoInteractor][]
+
+    Raises
+    ------
+    KeyError
+        The `ZENODO_TOKEN` environment variable is not set
+    """
+    load_dotenv()
+
+    if "ZENODO_TOKEN" not in os.environ:
+        msg = "Please copy the `.env.sample` file to `.env` " "and ensure you have set your ZENODO_TOKEN."
+        raise KeyError(msg)
+
+    zenodo_interactor = ZenodoInteractor(token=os.environ["ZENODO_TOKEN"])
+
+    return zenodo_interactor
 
 
 def upload_to_zenodo(
@@ -39,13 +61,7 @@ def upload_to_zenodo(
     remove_existing
         Should existing files in the deposit be removed?
     """
-    load_dotenv()
-
-    if "ZENODO_TOKEN" not in os.environ:
-        msg = "Please copy the `.env.sample` file to `.env` " "and ensure you have set your ZENODO_TOKEN."
-        raise KeyError(msg)
-
-    zenodo_interactor = ZenodoInteractor(token=os.environ["ZENODO_TOKEN"])
+    zenodo_interactor = get_zenodo_interactor()
 
     latest_deposition_id = zenodo_interactor.get_latest_deposition_id(
         any_deposition_id=any_deposition_id,
