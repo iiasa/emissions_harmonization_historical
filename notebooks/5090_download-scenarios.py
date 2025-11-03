@@ -98,21 +98,13 @@ props = conn_ssp.properties().reset_index()
 to_download = props[props["model"].str.contains(model_search)]
 
 if model_search == "REMIND":
-    ssp = ("SSP1 - Very Low Emissions",)  # "SSP2 - Low Emissions", "SSP2 - Medium Emissions", "SSP3 - High Emissions")
+    ssp = ("SSP1 - Very Low Emissions",)
     to_download = to_download[to_download["scenario"].str.endswith(ssp)]
 if model_search == "AIM":
     to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Low Overshoot_a")]
 if model_search == "MESSAGE":
-    to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Low Emissions_f")]
+    to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Low Emissions")]
 if model_search == "IMAGE":
-    # skip = (
-    #     "SSP1 - Very Low Emissions",
-    #     "SSP2 - Low Emissions",
-    #     "SSP2 - Medium-Low Emissions",
-    #     "SSP2 - Very Low Emissions",
-    #     "SSP2 - Very Low Emissions_a",
-    # )
-    # to_download = to_download[~to_download["scenario"].str.endswith(skip)]
     to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Medium Emissions")]
 if model_search == "COFFEE":
     to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Medium-Low Emissions")]
@@ -214,6 +206,8 @@ def check_negatives(df):  # noqa : D103
 
 
 # %%
+warnings.simplefilter("always")
+
 for _, row in tqdm.auto.tqdm(to_download.iterrows(), total=to_download.shape[0]):
     model = row.model
     scenario = row.scenario
