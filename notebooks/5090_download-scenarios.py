@@ -12,7 +12,7 @@
 #     name: python3
 # ---
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # # Download scenarios
 #
 # Here we download scenarios from a given integrated assessment model (IAM).

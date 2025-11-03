@@ -21,7 +21,6 @@
 # ## Imports
 
 # %%
-import sys
 from functools import partial
 
 import matplotlib.pyplot as plt
@@ -34,7 +33,6 @@ import seaborn as sns
 from gcages.cmip7_scenariomip.gridding_emissions import to_global_workflow_emissions
 from gcages.index_manipulation import set_new_single_value_levels
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
-from loguru import logger
 from pandas_openscm.index_manipulation import update_index_levels_func
 from scipy import optimize
 
@@ -45,9 +43,6 @@ from emissions_harmonization_historical.constants_5000 import (
     CREATE_HISTORY_FOR_GLOBAL_WORKFLOW_ID,
     CREATE_HISTORY_FOR_GRIDDING_ID,
     GCB_PROCESSED_DB,
-    HISTORY_FOR_HARMONISATION_ID,
-    HISTORY_HARMONISATION_DB,
-    HISTORY_HARMONISATION_DIR,
     HISTORY_HARMONISATION_INTERIM_DIR,
     HISTORY_SCENARIO_NAME,
     RCMIP_PROCESSED_DB,
@@ -55,7 +50,6 @@ from emissions_harmonization_historical.constants_5000 import (
     WMO_2022_PROCESSED_DB,
 )
 from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR
-from emissions_harmonization_historical.zenodo import upload_to_zenodo
 
 # %% [markdown]
 # ## Setup
@@ -594,27 +588,3 @@ global_workflow_harmonisation_emissions_reporting_names.reorder_levels(
         "unit",
     ]
 ).to_feather(out_file)
-
-# %%
-assert False, "Use this after retrieving files from Zenodo"
-HISTORY_HARMONISATION_DB.save(
-    global_workflow_harmonisation_emissions_reporting_names.pix.assign(purpose="global_workflow_emissions"),
-    allow_overwrite=True,
-)
-
-# %% [markdown]
-# ## Upload to Zenodo
-
-# %%
-# Rewrite as single file
-out_file_gwe = HISTORY_HARMONISATION_DIR / f"history-for-global-workflow_{HISTORY_FOR_HARMONISATION_ID}.csv"
-gwe = HISTORY_HARMONISATION_DB.load(pix.isin(purpose="global_workflow_emissions")).loc[:, :HARMONISATION_YEAR]
-gwe.to_csv(out_file_gwe)
-out_file_gwe
-
-# %%
-logger.configure(handlers=[dict(sink=sys.stderr, level="INFO")])
-logger.enable("openscm_zenodo")
-
-# %%
-upload_to_zenodo([out_file_gwe], remove_existing=False, update_metadata=True)

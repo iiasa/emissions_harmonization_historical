@@ -7,8 +7,10 @@ from __future__ import annotations
 import os
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 
+import httpx
+import tqdm.auto
 from dotenv import load_dotenv
 from openscm_zenodo.zenodo import ZenodoInteractor
 
@@ -84,3 +86,79 @@ def upload_to_zenodo(
         )
 
     print(f"You can preview the draft upload at https://zenodo.org/uploads/{draft_deposition_id}")
+
+
+# TODO: move into openscm_zenodo
+
+
+class Writable(Protocol):
+    """A writable object"""
+
+    def write(self, chunk: bytes) -> Any:
+        """
+        Write chunk
+        """
+        ...
+
+
+def download_zenodo_url(
+    url: str,
+    zenodo_interactor: ZenodoInteractor,
+    fh: Writable,
+    # zenodo_interactor: ZenodoInteractor,
+    max_desc_width: int = 100,
+    size: int | None = None,
+) -> Writable:
+    """
+    Download a Zenodo URL to a file
+
+    Parameters
+    ----------
+    url
+        URL to download
+
+    zenodo_interactor
+        Zenodo interactor to use for authorisation
+
+    fh
+        File handle to write to
+
+    max_desc_width
+        Maximum width to show in the progress bar description
+
+    size
+        Size of the file being download.
+
+        If not known, the progress bar will not show a total size
+
+    Returns
+    -------
+    :
+        File handle
+    """
+    if len(url) > max_desc_width:
+        desc = f"{url[:30]}...{url[-70:]}"
+    else:
+        desc = url
+
+    with (
+        httpx.stream("GET", url, follow_redirects=True, params={"access_token": zenodo_interactor.token}) as request,
+    ):
+        with (
+            tqdm.auto.tqdm(
+                desc=desc,
+                total=size,
+                miniters=1,
+                unit="B",
+                unit_scale=True,
+                unit_divisor=2**10,
+                # Useful things if we ever want to make this parallel
+                # position=thread_positions[thread_id],
+                # leave=False,
+            ) as pbar,
+        ):
+            for chunk in request.iter_bytes(chunk_size=2**17):
+                fh.write(chunk)
+                pbar.update(len(chunk))
+
+    return fh

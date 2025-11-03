@@ -289,9 +289,12 @@ HISTORY_HARMONISATION_INTERIM_DIR = DATA_ROOT / "interim" / "history-for-harmoni
 # for use in the rest of the pipeline i.e. after being retrieved from Zenodo
 HISTORY_HARMONISATION_DIR = DATA_ROOT / "processed" / "history-for-harmonisation" / HISTORY_FOR_HARMONISATION_ID
 
+# ID of the Zenodo record that contains the harmonised historical emissions to use
+HISTORY_ZENODO_RECORD_ID = "17514201"
+
 # Database to hold historical emissions for harmonisation
 HISTORY_HARMONISATION_DB = OpenSCMDB(
-    db_dir=HISTORY_HARMONISATION_DIR / "db",
+    db_dir=DATA_ROOT / "processed" / "history-for-harmonisation" / f"zenodo_{HISTORY_ZENODO_RECORD_ID}" / "db",
     backend_data=FeatherDataBackend(),
     backend_index=FeatherIndexBackend(),
 )
