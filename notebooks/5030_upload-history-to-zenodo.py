@@ -38,6 +38,7 @@ from pandas_openscm.io import load_timeseries_csv
 from emissions_harmonization_historical.constants_5000 import (
     COUNTRY_LEVEL_HISTORY,
     CREATE_HISTORY_FOR_GLOBAL_WORKFLOW_ID,
+    CREATE_HISTORY_FOR_GRIDDING_ID,
     HISTORY_HARMONISATION_INTERIM_DIR,
     REPO_ROOT,
 )
@@ -71,8 +72,7 @@ for in_file, loader in (
             out_columns_type=int,
         ),
     ),
-    # (HISTORY_HARMONISATION_INTERIM_DIR / f"gridding-history_{CREATE_HISTORY_FOR_GRIDDING_ID}.feather",
-    # pd.read_feather),
+    (HISTORY_HARMONISATION_INTERIM_DIR / f"gridding-history_{CREATE_HISTORY_FOR_GRIDDING_ID}.feather", pd.read_feather),
 ):
     df = loader(in_file)
     display(df.head(2))  # noqa: F821
