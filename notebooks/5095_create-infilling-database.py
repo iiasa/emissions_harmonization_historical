@@ -15,29 +15,38 @@
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # # Create infilling database
 #
-# Here we create the infilling database.
+# Here we create the infilling database,
+# including uploading it to Zenodo.
+# Note that the result depends on the scenarios
+# you have processed and harmonised, be careful.
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Imports
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
+import datetime as dt
+import sys
 from functools import partial
 
+import git
 import numpy as np
 import pandas as pd
 import pandas.io.excel
 import pandas_indexing as pix
 import seaborn as sns
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
+from loguru import logger
+from markdown_it import MarkdownIt
 from pandas_openscm.comparison import compare_close
 from pandas_openscm.index_manipulation import update_index_levels_func
 
 from emissions_harmonization_historical.constants_5000 import (
+    DATA_ROOT,
+    DOWNLOAD_SCENARIOS_ID,
     HARMONISED_SCENARIO_DB,
     HISTORY_HARMONISATION_DB,
-    INFILLED_OUT_DIR,
-    INFILLED_OUT_DIR_ID,
-    INFILLING_DB,
+    INFILLING_DB_INTERIM_DIR,
+    REPO_ROOT,
     VELDERS_ET_AL_2022_PROCESSED_DB,
     WMO_2022_PROCESSED_DB,
 )
@@ -64,18 +73,33 @@ pd.set_option("display.max_colwidth", None)
 
 # %%
 # Only World level data for specific variables
-# is used for infilling.
+# is used for infilling
+# (we deliberately don't include all variables
+# so people don't think that the infilling database
+# is the full scenario set,
+# if people want that they have to go to the scenario explorer).
+variables_not_for_infilling = [
+    "Emissions|BC",
+    "Emissions|CH4",
+    "Emissions|CO",
+    "Emissions|N2O",
+    "Emissions|NH3",
+    "Emissions|NOx",
+    "Emissions|OC",
+    "Emissions|Sulfur",
+    "Emissions|VOC",
+    "Emissions|CO2|AFOLU",
+]
 scenarios_for_infilling_db = HARMONISED_SCENARIO_DB.load(
-    pix.isin(region="World", workflow="for_scms"), progress=True
+    pix.isin(region="World", workflow="for_scms") & ~pix.isin(variable=variables_not_for_infilling), progress=True
 ).reset_index("workflow", drop=True)
 if scenarios_for_infilling_db.empty:
     raise AssertionError
 
-# scenarios_for_infilling_db
-
-# %%
 if scenarios_for_infilling_db.isnull().any().any():
     raise AssertionError
+
+# scenarios_for_infilling_db
 
 # %% [markdown]
 # ### WMO 2022
@@ -177,7 +201,7 @@ sns.relplot(
 )
 
 # %% [markdown]
-# ## Save
+# ## Save in various formats
 
 # %%
 # Linearly interpolate the output so we get sensible infilling
@@ -192,19 +216,161 @@ out = out.sort_index(axis="columns")
 out = out.T.interpolate(method="index").T
 # out
 
+# %% editable=true slideshow={"slide_type": ""}
+INFILLING_DB_INTERIM_DIR.mkdir(exist_ok=True, parents=True)
+
+files_for_zenodo = []
+for suffix, method, kwargs in (
+    (".csv", "to_csv", {}),
+    (".feather", "to_feather", {}),
+    (".parquet.gzip", "to_parquet", dict(compression="gzip")),
+):
+    out_file = INFILLING_DB_INTERIM_DIR / f"infiling-db_{INFILLING_DB_INTERIM_DIR.stem}{suffix}"
+
+    getattr(out, method)(out_file, **kwargs)
+    files_for_zenodo.append(out_file)
+    print(f"Wrote {out_file.relative_to(REPO_ROOT)}")
+
+# %% [markdown]
+# ## Write README
+
+# %% editable=true slideshow={"slide_type": ""}
+readme_txt = """# Infilling database for CMIP7 ScenarioMIP simple climate model assessment
+
+The files here are infilling databases.
+They are used for the 'infilling' step
+of simple climate model assessment.
+This involves inferring emissions of one species (e.g. HFC32)
+based on emissions of another species (e.g. CO2)
+and relationships between these two species seen in other scenarios.
+For more details about infilling, see
+[Lamboll et al., 2020](https://doi.org/10.5194/gmd-13-5259-2020).
+
+The database is provided in three different formats.
+The versions of the scenarios used to compile this database
+is provided in the `versions.json` file.
+
+The database was derived using the code in this repository:
+https://github.com/iiasa/emissions_harmonization_historical.
+The filenames are composed of identifiers related to the processing
+of each of the different input data sources.
+To identify the exact meaning of these identifiers,
+please see the processing code in
+https://github.com/iiasa/emissions_harmonization_historical.
+"""
+
 # %%
-INFILLING_DB.save(out, allow_overwrite=True)
+repo = git.Repo(REPO_ROOT)
+if not repo.is_dirty():
+    readme_txt = f"""{readme_txt}
+The files were produced with the following commit:
+[{repo.head.object.hexsha}](https://github.com/iiasa/emissions_harmonization_historical/tree/{repo.head.object.hexsha})"""
+
+# %%
+readme_file = INFILLING_DB_INTERIM_DIR / "README.md"
+with open(readme_file, "w") as fh:
+    fh.write(readme_txt)
+
+files_for_zenodo.append(readme_file)
+
+# %%
+# # !tail {readme_file}
+
+# %% editable=true slideshow={"slide_type": ""}
+versions_json = DATA_ROOT / "raw" / "scenarios" / DOWNLOAD_SCENARIOS_ID / "versions.json"
+if not versions_json.exists():
+    raise AssertionError
+
+files_for_zenodo.append(versions_json)
+
+# %% [markdown]
+# ## Set metadata
+#
+# We can be a bit more relaxed about this
+# because it can be updated after publication.
+# To save ourselves some typing and clicking,
+# we automate the initial values.
+
+# %%
+metadata = {
+    "metadata": {
+        "version": dt.datetime.utcnow().strftime("%Y.%m.%d"),
+        "title": "CMIP7 ScenarioMIP infilling database for simple climate model workflow",
+        "description": MarkdownIt().render(readme_txt),
+        "upload_type": "dataset",
+        # Sometime in the future.
+        # We can make it open manually sooner,
+        # but using embargo here means it will be open
+        # eventually, even if we forget.
+        "access_right": "embargoed",
+        "embargo_date": "2026-06-30",
+        # TODO: check
+        # Note: you can't set None, so you have to go in
+        # and manually remove the license before publishing.
+        # "license": "cc-by-4.0",
+        "creators": [
+            {
+                "name": "Nicholls, Zebedee",
+                "affiliation": ";".join(
+                    [
+                        "Climate Resource S GmbH",
+                        "International Institute for Applied Systems Analysis",
+                        "University of Melbourne",
+                    ]
+                ),
+                "orcid": "0000-0002-4767-2723",
+            },
+            {
+                "name": "Kikstra, Jarmo",
+                "affiliation": "International Institute for Applied Systems Analysis",
+                "orcid": "0000-0001-9405-1228",
+            },
+            {
+                "name": "Zecchetto, Marco",
+                "affiliation": "International Institute for Applied Systems Analysis",
+                "orcid": "0000-0002-7506-2631",
+            },
+            {
+                "name": "Hoegner, Annika",
+                "affiliation": "International Institute for Applied Systems Analysis",
+                "orcid": "0000-0002-4178-9664",
+            },
+        ],
+        "related_identifiers": [
+            # TODO: add these.
+            # e.g. WMO 2022, Velders
+            # (I can get these from the concentration references sometime)
+            # and scenario references.
+        ],
+        "custom": {
+            "code:codeRepository": "https://github.com/iiasa/emissions_harmonization_historical",
+            "code:developmentStatus": {"id": "active", "title": {"en": "Active"}},
+            "code:programmingLanguage": [{"id": "python", "title": {"en": "Python"}}],
+        },
+    }
+}
 
 # %% [markdown]
 # ## Upload to Zenodo
 
-# %%
-# Rewrite as single file
-INFILLED_OUT_DIR.mkdir(exist_ok=True, parents=True)
-out_file_infilling_db = INFILLED_OUT_DIR / f"infilling-db_{INFILLED_OUT_DIR_ID}.csv"
-out = INFILLING_DB.load()
-out.to_csv(out_file_infilling_db)
-out_file_infilling_db
+
+# %% editable=true slideshow={"slide_type": ""}
+logger.configure(handlers=[dict(sink=sys.stderr, level="INFO")])
+logger.enable("openscm_zenodo")
+
+# %% editable=true slideshow={"slide_type": ""}
+# # Useful if you're trying to figure out metadata fields
+# from emissions_harmonization_historical.zenodo import get_zenodo_interactor
+#
+# zenodo_interactor = get_zenodo_interactor()
+# zenodo_interactor.get_metadata(
+#     zenodo_interactor.get_draft_deposition_id("17514979")
+# )
 
 # %%
-upload_to_zenodo([out_file_infilling_db], remove_existing=False, update_metadata=True)
+upload_to_zenodo(
+    files_for_zenodo,
+    any_deposition_id="17514979",
+    remove_existing=True,
+    metadata=metadata,
+)

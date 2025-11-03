@@ -12,7 +12,7 @@
 #     name: python3
 # ---
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # # Upload history files to Zenodo
 #
 # Upload the history files to Zenodo.
@@ -25,7 +25,7 @@
 # %% [markdown]
 # ## Imports
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 import datetime as dt
 import sys
 from functools import partial
@@ -51,7 +51,7 @@ from emissions_harmonization_historical.zenodo import upload_to_zenodo
 # %% [markdown]
 # ## Save in various formats
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 files_for_zenodo = []
 for in_file, loader in (
     (
@@ -91,11 +91,11 @@ for in_file, loader in (
         files_for_zenodo.append(out_file)
         print(f"Wrote {out_file.relative_to(REPO_ROOT)}")
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Write README
 
-# %%
-readme_txt = """# History for ScenarioMIP emissions harmonisation
+# %% editable=true slideshow={"slide_type": ""}
+readme_txt = """# History for CMIP7 ScenarioMIP emissions harmonisation
 
 The files here are compiled historical experiment timeseries.
 They were compiled for use as part of the CMIP7 ScenarioMIP exercise
@@ -140,24 +140,24 @@ please see the processing code in
 https://github.com/iiasa/emissions_harmonization_historical.
 """
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 repo = git.Repo(REPO_ROOT)
 if not repo.is_dirty():
     readme_txt = f"""{readme_txt}
 The files were produced with the following commit:
 [{repo.head.object.hexsha}](https://github.com/iiasa/emissions_harmonization_historical/tree/{repo.head.object.hexsha})"""
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 readme_file = HISTORY_HARMONISATION_INTERIM_DIR / "README.md"
 with open(readme_file, "w") as fh:
     fh.write(readme_txt)
 
 files_for_zenodo.append(readme_file)
 
-# %%
-# !tail {readme_file}
+# %% editable=true slideshow={"slide_type": ""}
+# # !tail {readme_file}
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Set metadata
 #
 # We can be a bit more relaxed about this
@@ -165,14 +165,14 @@ files_for_zenodo.append(readme_file)
 # To save ourselves some typing and clicking,
 # we automate the initial values.
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 metadata = {
     "metadata": {
         "version": dt.datetime.utcnow().strftime("%Y.%m.%d"),
         "title": "CMIP7 ScenarioMIP historical timeseries for harmonisation and simple climate model workflow",
         "description": MarkdownIt().render(readme_txt),
         "upload_type": "dataset",
-        # Long in future.
+        # Sometime in the future.
         # We can make it open manually sooner,
         # but using embargo here means it will be open
         # eventually, even if we forget.
@@ -254,11 +254,11 @@ metadata = {
 # %% [markdown]
 # ## Upload to Zenodo
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 logger.configure(handlers=[dict(sink=sys.stderr, level="INFO")])
 logger.enable("openscm_zenodo")
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 # # Useful if you're trying to figure out metadata fields
 # from emissions_harmonization_historical.zenodo import get_zenodo_interactor
 #
@@ -267,7 +267,7 @@ logger.enable("openscm_zenodo")
 #     zenodo_interactor.get_draft_deposition_id("15357373")
 # )
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 upload_to_zenodo(
     files_for_zenodo,
     any_deposition_id="15357373",

@@ -98,7 +98,7 @@ def run_notebook_with_scm(notebook: Path, run_notebooks_dir: Path, iam: str, scm
     run_notebook(notebook=notebook, run_notebooks_dir=run_notebooks_dir, parameters=parameters, idn=f"{iam}_{scm}")
 
 
-def main():  # noqa: PLR0912
+def main():
     """
     Run the 500x series of notebooks
     """
@@ -112,8 +112,8 @@ def main():  # noqa: PLR0912
     ### Download inputs from Zenodo
     # Run the notebook
     notebook_prefixes = ["5089"]
-    # # Skip this step
-    # notebook_prefixes = []
+    # Skip this step
+    notebook_prefixes = []
     for notebook in all_notebooks:
         if any(notebook.name.startswith(np) for np in notebook_prefixes):
             run_notebook(
@@ -144,66 +144,31 @@ def main():  # noqa: PLR0912
     # ]
     # All
     iams = [
-        # "IMAGE",
-        # "WITCH",
-        # "REMIND",
-        # "MESSAGE",
-        # "GCAM",
-        # "COFFEE",
+        "IMAGE",
+        "WITCH",
+        "REMIND",
+        "MESSAGE",
+        "GCAM",
+        "COFFEE",
         "AIM",
     ]
     # iams = ["COFFEE"]
 
-    #### downloading and processing
+    #### Emissions downloading, pre-processing, harmonisation, infilling and post-processing
     # Single notebook
     # notebook_prefixes = ["5090"]
     # # Everything except downloads and reporting checking
     # notebook_prefixes = ["5093","5094"]
     # # # Downloading and reporting checking
     # # notebook_prefixes = ["5090", "5091", "5092"]
-    # Everything
+    # Everything up to infilling
     notebook_prefixes = ["5090", "5091", "5092", "5093", "5094"]
+    # # Everything
+    # notebook_prefixes = ["5090", "5091", "5092", "5093", "5094", "5190", "5191"]
     # # Skip this step
     # notebook_prefixes = []
 
     for iam in tqdm.tqdm(iams, desc="IAMs pre infilling"):
-        for notebook in all_notebooks:
-            if any(notebook.name.startswith(np) for np in notebook_prefixes):
-                run_notebook_iam(
-                    notebook=notebook,
-                    run_notebooks_dir=RUN_NOTEBOOKS_DIR,
-                    iam=iam,
-                )
-
-    ### Infilling database creation
-    # This just creates a database based on whatever you have run above.
-    # Hence, this can change depend on order of running, which isn't ideal.
-    # However, infilling only really matters for some models
-    # (and even then only to a limited degree because it is mostly for F-gases)
-    # so this shouldn't make such a big impact.
-    # Run the notebook
-    notebook_prefixes = ["5095"]
-    # # Skip this step
-    # notebook_prefixes = []
-    for notebook in all_notebooks:
-        if any(notebook.name.startswith(np) for np in notebook_prefixes):
-            run_notebook(
-                notebook=notebook,
-                run_notebooks_dir=RUN_NOTEBOOKS_DIR,
-                parameters={},
-                idn="only",
-            )
-
-    ### Infilling & Post-processing of emissions
-    # only infilling
-    # notebook_prefixes = ["5190"]
-    # only infilling
-    # notebook_prefixes = ["5191"]
-    # infilling & post-processing emissions
-    notebook_prefixes = ["5190", "5191"]
-    # Skip this step
-    # notebook_prefixes = []
-    for iam in iams:
         for notebook in all_notebooks:
             if any(notebook.name.startswith(np) for np in notebook_prefixes):
                 run_notebook_iam(
@@ -220,7 +185,7 @@ def main():  # noqa: PLR0912
     # Single notebook: run post-processing of climate outputs
     # notebook_prefixes = ["5196"]
     # Skip this step
-    # notebook_prefixes = []
+    notebook_prefixes = []
     scms = ["MAGICCv7.6.0a3", "MAGICCv7.5.3"]
     for iam, scm in tqdm.tqdm(itertools.product(iams, scms), desc="IAM SCM runs"):
         for notebook in all_notebooks:

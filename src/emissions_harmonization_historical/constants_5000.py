@@ -357,6 +357,14 @@ INFILLING_DB_CREATION_ID = "0002"
 # Moved to using Velders' scenario for VL marker
 INFILLING_DB_CREATION_ID = "202511011452"
 
+# Directory in which the infilling DB lives
+# before being uploaded to zenodo
+INFILLING_DB_INTERIM_DIR = (
+    DATA_ROOT
+    / "interim"
+    / "infilling-db"
+    / f"{DOWNLOAD_SCENARIOS_ID}_{WMO_2022_PROCESSING_ID}_{HARMONISATION_ID}_{INFILLING_DB_CREATION_ID}"
+)
 INFILLING_DB_DIR = (
     DATA_ROOT
     / "processed"
@@ -364,9 +372,12 @@ INFILLING_DB_DIR = (
     / f"{DOWNLOAD_SCENARIOS_ID}_{WMO_2022_PROCESSING_ID}_{HARMONISATION_ID}_{INFILLING_DB_CREATION_ID}"
 )
 
+# ID of the Zenodo record that contains the infilling database to use
+INFILLING_DB_ZENODO_RECORD_ID = "17514995"
+
 # Database into which infilled emissions are saved
 INFILLING_DB = OpenSCMDB(
-    db_dir=INFILLING_DB_DIR / "db",
+    db_dir=DATA_ROOT / "processed" / "infilling-db" / f"zenodo_{INFILLING_DB_ZENODO_RECORD_ID}" / "db",
     backend_data=FeatherDataBackend(),
     backend_index=FeatherIndexBackend(),
 )
