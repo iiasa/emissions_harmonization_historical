@@ -179,9 +179,11 @@ See README for further details.""".replace("\n", "<br>")
         # We can make it open manually sooner,
         # but using embargo here means it will be open
         # eventually, even if we forget.
-        "visibility": "restricted",
-        "embargo_date": "2026-07-01",
-        # # TODO: check
+        "access_right": "embargoed",
+        "embargo_date": "2026-06-30",
+        # TODO: check
+        # Note: you can't set None, so you have to go in
+        # and manually remove the license before publishing.
         # "license": "cc-by-4.0",
         "creators": [
             {
