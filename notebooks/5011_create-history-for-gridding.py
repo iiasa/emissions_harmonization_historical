@@ -19,6 +19,7 @@
 # ## Imports
 
 # %%
+import sys
 
 import pandas as pd
 import pandas_indexing as pix
@@ -26,16 +27,22 @@ import pandas_openscm
 import tqdm.auto
 from gcages.cmip7_scenariomip.gridding_emissions import get_complete_gridding_index
 from gcages.completeness import assert_all_groups_are_complete
+from loguru import logger
 
 from emissions_harmonization_historical.constants_5000 import (
     BB4CMIP7_PROCESSED_DB,
     CEDS_PROCESSED_DB,
     COUNTRY_LEVEL_HISTORY,
-    CREATE_HISTORY_FOR_GRIDDING_ID,
-    HISTORY_HARMONISATION_INTERIM_DIR,
+    HISTORY_FOR_HARMONISATION_ID,
+    HISTORY_HARMONISATION_DB,
+    HISTORY_HARMONISATION_DIR,
     REGION_MAPPING_FILE,
 )
 from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR
+from emissions_harmonization_historical.zenodo import upload_to_zenodo
+
+# %%
+COUNTRY_LEVEL_HISTORY
 
 # %% [markdown]
 # ## Setup
@@ -213,7 +220,26 @@ if history_for_gridding_incl_cdr[HARMONISATION_YEAR].isnull().any():
 # ## Save
 
 # %%
-out_file = HISTORY_HARMONISATION_INTERIM_DIR / f"gridding-history_{CREATE_HISTORY_FOR_GRIDDING_ID}.feather"
-out_file.parent.mkdir(exist_ok=True, parents=True)
+HISTORY_HARMONISATION_DB.save(
+    history_for_gridding_incl_cdr.pix.assign(purpose="gridding_emissions"), allow_overwrite=True
+)
 
-history_for_gridding_incl_cdr.to_feather(out_file)
+# %% [markdown]
+# ## Upload to Zenodo
+
+# %%
+# Rewrite as single file
+out_file_grid = HISTORY_HARMONISATION_DIR / f"history-for-gridding-workflow_{HISTORY_FOR_HARMONISATION_ID}.csv"
+gridding = HISTORY_HARMONISATION_DB.load(pix.isin(purpose="gridding_emissions")).loc[:, :HARMONISATION_YEAR]
+gridding.to_csv(out_file_grid)
+out_file_grid
+
+# %%
+gridding[gridding.index.get_level_values("variable").str.contains("CDR")]
+
+# %%
+logger.configure(handlers=[dict(sink=sys.stderr, level="INFO")])
+logger.enable("openscm_zenodo")
+
+# %%
+upload_to_zenodo([out_file_grid], remove_existing=False, update_metadata=True)
