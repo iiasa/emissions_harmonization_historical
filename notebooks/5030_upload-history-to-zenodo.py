@@ -33,6 +33,7 @@ from functools import partial
 import git
 import pandas as pd
 from loguru import logger
+from markdown_it import MarkdownIt
 from pandas_openscm.io import load_timeseries_csv
 
 from emissions_harmonization_historical.constants_5000 import (
@@ -169,11 +170,7 @@ metadata = {
     "metadata": {
         "version": dt.datetime.utcnow().strftime("%Y.%m.%d"),
         "title": "CMIP7 ScenarioMIP historical timeseries for harmonisation and simple climate model workflow",
-        "description": (
-            """Harmonisation data set used in creating input for CMIP7's ScenarioMIP
-
-See README for further details.""".replace("\n", "<br>")
-        ),
+        "description": MarkdownIt().render(readme_txt),
         "upload_type": "dataset",
         # Long in future.
         # We can make it open manually sooner,
