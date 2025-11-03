@@ -29,6 +29,8 @@ import pandas_openscm
 import seaborn as sns
 
 from emissions_harmonization_historical.constants_5000 import (
+    MARKERS,
+    MARKERS_BY_SCENARIOMIP_NAME,
     POST_PROCESSED_METADATA_CATEGORIES_DB,
     POST_PROCESSED_METADATA_QUANTILE_DB,
     POST_PROCESSED_TIMESERIES_DB,
@@ -53,15 +55,8 @@ pd.set_option("display.max_columns", 100)
 # ## Load data
 
 # %%
-scenarios_to_analyse = [
-    ("WITCH 6.0", "SSP5 - Medium-Low Emissions_a"),
-    ("GCAM 8s", "SSP3 - High Emissions"),
-    ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions"),
-    ("COFFEE 1.6", "SSP2 - Medium-Low Emissions"),
-    ("IMAGE 3.4", "SSP2 - Medium Emissions"),
-    ("AIM 3.0", "SSP2 - Low Overshoot_a"),
-    ("REMIND-MAgPIE 3.5-4.11", "SSP1 - Very Low Emissions"),
-]
+scenarios_to_analyse = [(v[0], v[1]) for v in MARKERS]
+scenarios_to_analyse
 
 # %%
 scenario_locator = None
@@ -75,8 +70,35 @@ for model, scenario in scenarios_to_analyse:
 climate_model_locator = pix.ismatch(climate_model="MAGICCv7.6**")
 
 # %%
+POST_PROCESSED_METADATA_CATEGORIES_DB
+
+
+# %%
+def add_marker_index_level(inv):
+    """
+    Add a marker index level to the input value (a pandas object)
+    """
+    markers_mapping = pd.DataFrame(MARKERS, columns=["model", "scenario", "marker"]).set_index(["model", "scenario"])[
+        "marker"
+    ]
+    res = pd.concat(
+        [
+            pd.Series(
+                inv.index.droplevel(inv.index.names.difference(["model", "scenario"])).map(markers_mapping),
+                index=inv.index,
+                name="marker",
+            ),
+            inv,
+        ],
+        axis="columns",
+    ).set_index("marker", append=True)
+
+    return res
+
+
+# %%
 categories = POST_PROCESSED_METADATA_CATEGORIES_DB.load(scenario_locator & climate_model_locator)["value"]
-categories
+add_marker_index_level(categories)
 
 # %%
 metadata_quantile = POST_PROCESSED_METADATA_QUANTILE_DB.load(scenario_locator & climate_model_locator)["value"]
@@ -165,18 +187,25 @@ pdf_temperature = add_model_scenario_column(pdf_temperature, ms_separator=ms_sep
 # pdf_temperature
 
 # %%
-model_colours = {
-    "WITCH 6.0": "#800080",
-    "GCAM 8s": "#7f3e3e",
-    "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12": "#f7a84f",
-    "COFFEE 1.6": "#e1ad01",
-    "IMAGE 3.4": "#2e9e68",
-    "AIM 3.0": "#4b3d89",
-    "REMIND-MAgPIE 3.5-4.11": "#499edb",
+marker_colours = {
+    "vl": "#499edb",
+    "ln": "#4b3d89",
+    "l": "#f7a84f",
+    "ml": "#e1ad01",
+    "m": "#2e9e68",
+    "hl": "#800080",
+    "h": "#7f3e3e",
 }
+
+# %%
+# model_colours = {
+#     MARKERS_BY_SCENARIOMIP_NAME[marker]["model"]: colour
+#     for marker, colour in marker_colours.items()
+# }
+
 palette = {}
-for model, scenario in scenarios_to_analyse:
-    palette[f"{model}{ms_separator}{scenario}"] = model_colours[model]
+for marker, info in MARKERS_BY_SCENARIOMIP_NAME.items():
+    palette[f"{info['model']}{ms_separator}{info['scenario']}"] = marker_colours[marker]
 
 palette
 
@@ -240,6 +269,7 @@ erfs_to_plot = [
     "Effective Radiative Forcing|Greenhouse Gases",
     "Effective Radiative Forcing|CO2",
     "Effective Radiative Forcing|CH4",
+    "Effective Radiative Forcing|F-Gases",
 ]
 pdf_erfs = add_model_scenario_column(
     erfs.loc[pix.isin(variable=erfs_to_plot)], ms_separator=ms_separator, ms_level=ms_level
@@ -291,6 +321,9 @@ fig.savefig("erfs.pdf", format="pdf", bbox_inches="tight")
 # ### Emissions
 
 # %%
+emissions.loc[pix.ismatch(variable="**HFC**")].pix.unique("variable")
+
+# %%
 emissions_to_plot = [
     "Emissions|CO2|Energy and Industrial Processes",
     "Emissions|GHG AR6GWP100",
@@ -306,6 +339,17 @@ emissions_to_plot = [
     "Emissions|NOx",
     "Emissions|NH3",
     "Emissions|VOC",
+    "Emissions|HFC|HFC125",
+    "Emissions|HFC|HFC134a",
+    "Emissions|HFC|HFC143a",
+    "Emissions|HFC|HFC227ea",
+    "Emissions|HFC|HFC23",
+    "Emissions|HFC|HFC245fa",
+    "Emissions|HFC|HFC32",
+    "Emissions|HFC|HFC43-10",
+    "Emissions|HFC|HFC236fa",
+    "Emissions|HFC|HFC152a",
+    "Emissions|HFC|HFC365mfc",
 ]
 pdf_emissions = add_model_scenario_column(
     emissions.loc[pix.isin(variable=emissions_to_plot, stage="complete")], ms_separator=ms_separator, ms_level=ms_level
@@ -339,7 +383,3 @@ for i, variable_to_plot in enumerate(emissions_to_plot):
 
     ax.grid()
 fig.savefig("emissions.pdf", format="pdf", bbox_inches="tight")
-
-# %%
-
-# %%

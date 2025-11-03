@@ -52,7 +52,7 @@ from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR,
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "GCAM"
+model: str = "REMIND"
 
 make_region_sector_plots: bool = False
 output_to_pdf: bool = False
@@ -90,21 +90,25 @@ if model_pre_processed_for_global_workflow.empty:
 # model_pre_processed_for_global_workflow
 
 # %% [markdown]
-# #### Temporary hack: interpolate scenario data to annual to allow harmonisation
+# Interpolate scenario data to annual to ensure no NaNs in future.
 
 # %%
-if HARMONISATION_YEAR not in model_pre_processed_for_gridding:
-    model_pre_processed_for_gridding[HARMONISATION_YEAR] = np.nan
-    model_pre_processed_for_gridding = model_pre_processed_for_gridding.sort_index(axis="columns")
-    model_pre_processed_for_gridding = model_pre_processed_for_gridding.T.interpolate(method="index").T
+for y in range(HARMONISATION_YEAR, 2100 + 1):
+    if y not in model_pre_processed_for_gridding:
+        model_pre_processed_for_gridding[y] = np.nan
+
+model_pre_processed_for_gridding = model_pre_processed_for_gridding.sort_index(axis="columns")
+model_pre_processed_for_gridding = model_pre_processed_for_gridding.T.interpolate(method="index").T
 
 # model_pre_processed_for_gridding.sort_values(by=HARMONISATION_YEAR)
 
 # %%
-if HARMONISATION_YEAR not in model_pre_processed_for_global_workflow:
-    model_pre_processed_for_global_workflow[HARMONISATION_YEAR] = np.nan
-    model_pre_processed_for_global_workflow = model_pre_processed_for_global_workflow.sort_index(axis="columns")
-    model_pre_processed_for_global_workflow = model_pre_processed_for_global_workflow.T.interpolate(method="index").T
+for y in range(HARMONISATION_YEAR, 2100 + 1):
+    if y not in model_pre_processed_for_global_workflow:
+        model_pre_processed_for_global_workflow[y] = np.nan
+
+model_pre_processed_for_global_workflow = model_pre_processed_for_global_workflow.sort_index(axis="columns")
+model_pre_processed_for_global_workflow = model_pre_processed_for_global_workflow.T.interpolate(method="index").T
 
 # model_pre_processed_for_global_workflow.sort_values(by=HARMONISATION_YEAR)
 
