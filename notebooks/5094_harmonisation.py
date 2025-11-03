@@ -52,7 +52,7 @@ from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR,
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "GCAM"
+model: str = "IMAGE"
 
 make_region_sector_plots: bool = False
 output_to_pdf: bool = False
@@ -182,6 +182,18 @@ if model.startswith("IMAGE"):
             user_overrides_gridding.loc[(idx[0], idx[1], idx[2], idx[3])] = "constant_offset"
         else:
             user_overrides_gridding.loc[(idx[0], idx[1], idx[2], idx[3])] = "reduce_offset_2030"
+
+    mask = (
+        user_overrides_gridding.index.get_level_values("region").astype(str).str.contains("India|Western Africa")
+    ) & (
+        pix.ismatch(
+            variable=[
+                "Emissions|CO|Energy Sector",
+            ]
+        )
+    )
+
+    user_overrides_gridding.loc[mask] = "constant_offset"
 
     user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
 
