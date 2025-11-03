@@ -12,7 +12,7 @@
 #     name: python3
 # ---
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # # Infilling
 #
 # Here we infill each model's data.
@@ -69,7 +69,7 @@ Q = UR.Quantity
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "AIM"
+model: str = "REMIND"
 
 # %% editable=true slideshow={"slide_type": ""}
 output_dir_model = INFILLED_OUT_DIR / model
@@ -161,7 +161,7 @@ infilling_db_silicone = infilling_db.loc[~wmo_locator & ~velders_locator]
 vl_model = MARKERS_BY_SCENARIOMIP_NAME["vl"]["model"]
 vl_scenario = MARKERS_BY_SCENARIOMIP_NAME["vl"]["scenario"]
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 vl_marker = harmonised.loc[pix.isin(model=vl_model) & pix.isin(scenario=vl_scenario)]
 
 if not vl_marker.empty:
@@ -180,7 +180,7 @@ complete_vl_exception = get_complete(harmonised, infilled_vl_exception)
 # ### Silicone
 
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 lead = "Emissions|CO2|Energy and Industrial Processes"
 infillers_silicone = {}
 for variable in tqdm.auto.tqdm([v for v in infilling_db_silicone.pix.unique("variable") if v != lead]):

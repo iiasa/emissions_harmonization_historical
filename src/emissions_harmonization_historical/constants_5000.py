@@ -130,6 +130,26 @@ BB4CMIP7_PROCESSED_DB = OpenSCMDB(
 # the creation of historical emissions dataset for gridding
 # Gcages CDR split
 MOD_HISTORY_FOR_GRIDDING_ID = "0001"
+
+# Commit from https://github.com/IAMconsortium/common-definitions
+# COMMON_DEFINITIONS_COMMIT = get_latest_commit_hash(
+#     "IAMconsortium", "common-definitions", fallback_commit="cc69ed0a415a63c7ce7372d5a36c088d9cbee055"
+# )
+# Hard-code to ensure stability
+COMMON_DEFINITIONS_COMMIT = "7e32405ade790677a6022ff498395bff00d9792d"
+COMMON_DEFINITIONS_PATH = REPO_ROOT / "common-definitions"
+
+
+REGION_MAPPING_FILE = (
+    DATA_ROOT
+    / "processed"
+    / "region-mapping"
+    / COMMON_DEFINITIONS_COMMIT
+    / f"region-mapping_{COMMON_DEFINITIONS_COMMIT}.csv"
+)
+
+REGION_MAPPING_PATH = DATA_ROOT / "processed" / "region-mapping" / COMMON_DEFINITIONS_COMMIT
+
 # ID for the creation of a historical emissions dataset for gridding
 # CREATE_HISTORY_FOR_GRIDDING_ID = "0001"
 # Update to make the smoothing consistent with CMIP7
@@ -141,10 +161,11 @@ CREATE_HISTORY_FOR_GRIDDING_ID = "_".join(
         BB4CMIP7_ANNUAL_SECTORAL_COUNTRY_ID,
         BB4CMIP7_FORMATTING_ID,
         MOD_HISTORY_FOR_GRIDDING_ID,
+        COMMON_DEFINITIONS_COMMIT,
     ]
 )
 
-COUNTRY_LEVEL_HISTORY = DATA_ROOT / "processed" / "cmip7_history_countrylevel_250721.csv"
+COUNTRY_LEVEL_HISTORY = DATA_ROOT / "processed" / f"country-history_{CREATE_HISTORY_FOR_GRIDDING_ID}.csv"
 
 GCB_VERSION = "2024v1.0"
 
@@ -253,41 +274,27 @@ RCMIP_PROCESSED_DB = OpenSCMDB(
 )
 
 
-# Commit from https://github.com/IAMconsortium/common-definitions
-# COMMON_DEFINITIONS_COMMIT = get_latest_commit_hash(
-#     "IAMconsortium", "common-definitions", fallback_commit="cc69ed0a415a63c7ce7372d5a36c088d9cbee055"
-# )
-# Hard-code to ensure stability
-COMMON_DEFINITIONS_COMMIT = "7e32405ade790677a6022ff498395bff00d9792d"
-COMMON_DEFINITIONS_PATH = REPO_ROOT / "common-definitions"
-
-
-REGION_MAPPING_FILE = (
-    DATA_ROOT
-    / "processed"
-    / "region-mapping"
-    / COMMON_DEFINITIONS_COMMIT
-    / f"region-mapping_{COMMON_DEFINITIONS_COMMIT}.csv"
-)
-
-REGION_MAPPING_PATH = DATA_ROOT / "processed" / "region-mapping" / COMMON_DEFINITIONS_COMMIT
-
-
 # ID for the created history for harmonisation
 HISTORY_FOR_HARMONISATION_ID = "_".join(
     [
         CREATE_HISTORY_FOR_GRIDDING_ID,
         CREATE_HISTORY_FOR_GLOBAL_WORKFLOW_ID,
-        COMMON_DEFINITIONS_COMMIT,
     ]
 )
 
 # Directory in which the history for harmonisation information lives
+# before being uploaded to zenodo
+HISTORY_HARMONISATION_INTERIM_DIR = DATA_ROOT / "interim" / "history-for-harmonisation" / HISTORY_FOR_HARMONISATION_ID
+# Directory in which the history for harmonisation information lives
+# for use in the rest of the pipeline i.e. after being retrieved from Zenodo
 HISTORY_HARMONISATION_DIR = DATA_ROOT / "processed" / "history-for-harmonisation" / HISTORY_FOR_HARMONISATION_ID
+
+# ID of the Zenodo record that contains the harmonised historical emissions to use
+HISTORY_ZENODO_RECORD_ID = "17514201"
 
 # Database to hold historical emissions for harmonisation
 HISTORY_HARMONISATION_DB = OpenSCMDB(
-    db_dir=HISTORY_HARMONISATION_DIR / "db",
+    db_dir=DATA_ROOT / "processed" / "history-for-harmonisation" / f"zenodo_{HISTORY_ZENODO_RECORD_ID}" / "db",
     backend_data=FeatherDataBackend(),
     backend_index=FeatherIndexBackend(),
 )
@@ -351,6 +358,14 @@ INFILLING_DB_CREATION_ID = "0002"
 # Moved to using Velders' scenario for VL marker
 INFILLING_DB_CREATION_ID = "202511011452"
 
+# Directory in which the infilling DB lives
+# before being uploaded to zenodo
+INFILLING_DB_INTERIM_DIR = (
+    DATA_ROOT
+    / "interim"
+    / "infilling-db"
+    / f"{DOWNLOAD_SCENARIOS_ID}_{WMO_2022_PROCESSING_ID}_{HARMONISATION_ID}_{INFILLING_DB_CREATION_ID}"
+)
 INFILLING_DB_DIR = (
     DATA_ROOT
     / "processed"
@@ -358,9 +373,12 @@ INFILLING_DB_DIR = (
     / f"{DOWNLOAD_SCENARIOS_ID}_{WMO_2022_PROCESSING_ID}_{HARMONISATION_ID}_{INFILLING_DB_CREATION_ID}"
 )
 
+# ID of the Zenodo record that contains the infilling database to use
+INFILLING_DB_ZENODO_RECORD_ID = "17514995"
+
 # Database into which infilled emissions are saved
 INFILLING_DB = OpenSCMDB(
-    db_dir=INFILLING_DB_DIR / "db",
+    db_dir=DATA_ROOT / "processed" / "infilling-db" / f"zenodo_{INFILLING_DB_ZENODO_RECORD_ID}" / "db",
     backend_data=FeatherDataBackend(),
     backend_index=FeatherIndexBackend(),
 )
