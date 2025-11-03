@@ -585,7 +585,15 @@ out_file = (
 )
 out_file.parent.mkdir(exist_ok=True, parents=True)
 
-global_workflow_harmonisation_emissions_reporting_names.to_feather(out_file)
+global_workflow_harmonisation_emissions_reporting_names.reorder_levels(
+    [
+        "model",
+        "scenario",
+        "region",
+        "variable",
+        "unit",
+    ]
+).to_feather(out_file)
 
 # %%
 assert False, "Use this after retrieving files from Zenodo"

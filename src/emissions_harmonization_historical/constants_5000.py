@@ -165,7 +165,7 @@ CREATE_HISTORY_FOR_GRIDDING_ID = "_".join(
     ]
 )
 
-COUNTRY_LEVEL_HISTORY = DATA_ROOT / "processed" / f"cmip7_history_countrylevel_{CREATE_HISTORY_FOR_GRIDDING_ID}.csv"
+COUNTRY_LEVEL_HISTORY = DATA_ROOT / "processed" / f"country-history_{CREATE_HISTORY_FOR_GRIDDING_ID}.csv"
 
 GCB_VERSION = "2024v1.0"
 
