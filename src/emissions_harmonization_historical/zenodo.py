@@ -18,9 +18,9 @@ from emissions_harmonization_historical.constants_5000 import INFILLED_OUT_DIR_I
 pd.set_option("display.max_rows", 100)
 
 
-def create_metadata() -> dict[str, dict[str, Any]]:
+def create_metadata_zenodo_history() -> dict[str, dict[str, Any]]:
     """
-    Create metadata for Zenodo deposit
+    Create metadata for Zenodo deposit of history data
     """
     return {
         "metadata": {
@@ -96,8 +96,8 @@ as well as for creating 'complete' scenarios for running simple climate models
 
 def upload_to_zenodo(
     files_to_upload: Iterable[Path],
-    update_metadata: bool = True,
-    any_deposition_id: int = 15357373,
+    any_deposition_id: int,
+    metadata: dict[str, Any] | None = None,
     remove_existing: bool = False,
 ) -> None:
     """
@@ -108,11 +108,11 @@ def upload_to_zenodo(
     files_to_upload
         Files to upload
 
-    update_metadata
-        Should the metadata be updated?
-
     any_deposition_id
         Any deposition ID in the series of uploads to contribute to
+
+    metadata
+        If supplied, used to update the deposition's metadata
 
     remove_existing
         Should existing files in the deposit be removed?
@@ -130,9 +130,7 @@ def upload_to_zenodo(
     )
     draft_deposition_id = zenodo_interactor.get_draft_deposition_id(latest_deposition_id=latest_deposition_id)
 
-    if update_metadata:
-        metadata = create_metadata()
-
+    if metadata:
         zenodo_interactor.update_metadata(deposition_id=draft_deposition_id, metadata=metadata)
 
     if remove_existing:

@@ -42,10 +42,13 @@ from emissions_harmonization_historical.constants_5000 import (
     ADAM_ET_AL_2024_PROCESSED_DB,
     CEDS_RAW_PATH,
     CMIP7_GHG_PROCESSED_DB,
+    CREATE_HISTORY_FOR_GLOBAL_WORKFLOW_ID,
+    CREATE_HISTORY_FOR_GRIDDING_ID,
     GCB_PROCESSED_DB,
     HISTORY_FOR_HARMONISATION_ID,
     HISTORY_HARMONISATION_DB,
     HISTORY_HARMONISATION_DIR,
+    HISTORY_HARMONISATION_INTERIM_DIR,
     HISTORY_SCENARIO_NAME,
     RCMIP_PROCESSED_DB,
     VELDERS_ET_AL_2022_PROCESSED_DB,
@@ -73,9 +76,9 @@ Q = openscm_units.unit_registry.Quantity
 # ### History data
 
 # %%
-history_for_gridding_harmonisation = HISTORY_HARMONISATION_DB.load(
-    pix.ismatch(purpose="gridding_emissions")
-).rename_axis("year", axis="columns")
+history_for_gridding_harmonisation = pd.read_feather(
+    HISTORY_HARMONISATION_INTERIM_DIR / f"gridding-history_{CREATE_HISTORY_FOR_GRIDDING_ID}.feather"
+)
 # history_for_gridding_harmonisation
 
 # %% [markdown]
@@ -103,9 +106,9 @@ to_gcages_names = partial(
 
 # %%
 history_for_gridding_harmonisation_aggregated = to_global_workflow_emissions(
-    history_for_gridding_harmonisation.loc[pix.isin(region=["World", *model_regions])]
-    .pix.assign(model="gridding-emissions")
-    .reset_index("purpose", drop=True),
+    history_for_gridding_harmonisation.loc[pix.isin(region=["World", *model_regions])].pix.assign(
+        model="gridding-emissions"
+    ),
     global_workflow_co2_fossil_sector="Energy and Industrial Processes",
     global_workflow_co2_biosphere_sector="AFOLU",
 )
@@ -486,7 +489,7 @@ for variable, source in global_variable_sources.items():
 
 global_workflow_harmonisation_emissions = (
     pix.concat(global_workflow_harmonisation_emissions_l).sort_index().sort_index(axis="columns")
-)
+).loc[:, :HARMONISATION_YEAR]
 
 global_workflow_harmonisation_emissions_reporting_names = to_reporting_names(global_workflow_harmonisation_emissions)
 global_workflow_harmonisation_emissions_reporting_names = update_index_levels_func(
@@ -577,6 +580,15 @@ fg.fig.savefig("global-workflow-history-over-cmip-phases.pdf", bbox_inches="tigh
 # ## Save
 
 # %%
+out_file = (
+    HISTORY_HARMONISATION_INTERIM_DIR / f"global-workflow-history_{CREATE_HISTORY_FOR_GLOBAL_WORKFLOW_ID}.feather"
+)
+out_file.parent.mkdir(exist_ok=True, parents=True)
+
+global_workflow_harmonisation_emissions_reporting_names.to_feather(out_file)
+
+# %%
+assert False, "Use this after retrieving files from Zenodo"
 HISTORY_HARMONISATION_DB.save(
     global_workflow_harmonisation_emissions_reporting_names.pix.assign(purpose="global_workflow_emissions"),
     allow_overwrite=True,

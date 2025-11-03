@@ -33,16 +33,15 @@ from emissions_harmonization_historical.constants_5000 import (
     BB4CMIP7_PROCESSED_DB,
     CEDS_PROCESSED_DB,
     COUNTRY_LEVEL_HISTORY,
+    CREATE_HISTORY_FOR_GRIDDING_ID,
     HISTORY_FOR_HARMONISATION_ID,
     HISTORY_HARMONISATION_DB,
     HISTORY_HARMONISATION_DIR,
+    HISTORY_HARMONISATION_INTERIM_DIR,
     REGION_MAPPING_FILE,
 )
 from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR
 from emissions_harmonization_historical.zenodo import upload_to_zenodo
-
-# %%
-COUNTRY_LEVEL_HISTORY
 
 # %% [markdown]
 # ## Setup
@@ -220,6 +219,13 @@ if history_for_gridding_incl_cdr[HARMONISATION_YEAR].isnull().any():
 # ## Save
 
 # %%
+out_file = HISTORY_HARMONISATION_INTERIM_DIR / f"gridding-history_{CREATE_HISTORY_FOR_GRIDDING_ID}.feather"
+out_file.parent.mkdir(exist_ok=True, parents=True)
+
+history_for_gridding_incl_cdr.to_feather(out_file)
+
+# %%
+assert False, "Use this after retrieving files from Zenodo"
 HISTORY_HARMONISATION_DB.save(
     history_for_gridding_incl_cdr.pix.assign(purpose="gridding_emissions"), allow_overwrite=True
 )
