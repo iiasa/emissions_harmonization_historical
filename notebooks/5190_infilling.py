@@ -69,7 +69,7 @@ Q = UR.Quantity
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "AIM"
+model: str = "REMIND"
 
 # %% editable=true slideshow={"slide_type": ""}
 output_dir_model = INFILLED_OUT_DIR / model
@@ -455,7 +455,7 @@ assert_all_groups_are_complete(complete, complete_index_reporting_names)
 # %% [markdown]
 # ## Save
 
-# %% editable=true slideshow={"slide_type": ""}
+# %%
 for ids, df in (
     ("silicone", infilled_silicone),
     ("wmo", infilled_wmo),

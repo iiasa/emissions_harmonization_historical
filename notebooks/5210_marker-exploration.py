@@ -12,7 +12,7 @@
 #     name: python3
 # ---
 
-# %% [markdown] editable=true slideshow={"slide_type": ""}
+# %% [markdown]
 # # Marker exploration
 
 # %% [markdown]
@@ -96,7 +96,7 @@ def add_marker_index_level(inv):
     return res
 
 
-# %% editable=true slideshow={"slide_type": ""}
+# %%
 categories = POST_PROCESSED_METADATA_CATEGORIES_DB.load(scenario_locator & climate_model_locator)["value"]
 add_marker_index_level(categories)
 
@@ -186,7 +186,7 @@ pdf_temperature = temperatures_in_line_with_assessment.loc[pix.isin(climate_mode
 pdf_temperature = add_model_scenario_column(pdf_temperature, ms_separator=ms_separator, ms_level=ms_level)
 # pdf_temperature
 
-# %% editable=true slideshow={"slide_type": ""}
+# %%
 marker_colours = {
     "vl": "#499edb",
     "ln": "#4b3d89",
@@ -356,7 +356,7 @@ pdf_emissions = add_model_scenario_column(
 )
 # pdf_emissions
 
-# %% editable=true slideshow={"slide_type": ""}
+# %%
 ncols = 2
 nrows = len(emissions_to_plot) // ncols + len(emissions_to_plot) % ncols
 fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(14, nrows * 5))

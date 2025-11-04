@@ -37,8 +37,8 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
     elif notebook_name in [
         "5094_harmonisation.py",
     ]:
-        # res = {"model": iam, "make_region_sector_plots": True, "output_to_pdf": True}
-        res = {"model": iam, "make_region_sector_plots": False, "output_to_pdf": False}
+        res = {"model": iam, "make_region_sector_plots": True, "output_to_pdf": True}
+        # res = {"model": iam, "make_region_sector_plots": False, "output_to_pdf": False}
 
     elif notebook_name in [
         "5190_infilling.py",
