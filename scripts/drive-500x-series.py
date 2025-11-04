@@ -37,8 +37,8 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
     elif notebook_name in [
         "5094_harmonisation.py",
     ]:
-        res = {"model": iam, "make_region_sector_plots": True, "output_to_pdf": True}
-    #    res = {"model": iam, "make_region_sector_plots": False, "output_to_pdf": False}
+        # res = {"model": iam, "make_region_sector_plots": True, "output_to_pdf": True}
+        res = {"model": iam, "make_region_sector_plots": False, "output_to_pdf": False}
 
     elif notebook_name in [
         "5190_infilling.py",
@@ -144,10 +144,10 @@ def main():
     # ]
     # All
     iams = [
-        "IMAGE",
         "WITCH",
         "REMIND",
         "MESSAGE",
+        "IMAGE",
         "GCAM",
         "COFFEE",
         "AIM",
@@ -163,6 +163,8 @@ def main():
     # # notebook_prefixes = ["5090", "5091", "5092"]
     # Everything up to infilling
     notebook_prefixes = ["5090", "5091", "5092", "5093", "5094"]
+    # Infilling and post-processing
+    notebook_prefixes = ["5190", "5191"]
     # # Everything
     # notebook_prefixes = ["5090", "5091", "5092", "5093", "5094", "5190", "5191"]
     # # Skip this step

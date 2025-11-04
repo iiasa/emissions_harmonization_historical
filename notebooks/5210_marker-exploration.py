@@ -186,7 +186,7 @@ pdf_temperature = temperatures_in_line_with_assessment.loc[pix.isin(climate_mode
 pdf_temperature = add_model_scenario_column(pdf_temperature, ms_separator=ms_separator, ms_level=ms_level)
 # pdf_temperature
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 marker_colours = {
     "vl": "#499edb",
     "ln": "#4b3d89",

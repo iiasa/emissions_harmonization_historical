@@ -94,7 +94,7 @@ props = conn_ssp.properties().reset_index()
 # %% [markdown]
 # ### Find scenarios to download
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 to_download = props[props["model"].str.contains(model_search)]
 
 # if model_search == "REMIND":
@@ -116,8 +116,8 @@ to_download = props[props["model"].str.contains(model_search)]
 #     to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Medium Emissions")]
 # if model_search == "COFFEE":
 #     to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Medium-Low Emissions")]
-# if model_search == "GCAM":
-#     to_download = to_download[to_download["model"].str.startswith("GCAM 8")]
+if model_search == "GCAM":
+    to_download = to_download[to_download["model"].str.startswith("GCAM 8")]
 #     to_download = to_download[to_download["scenario"].str.endswith("SSP3 - High Emissions")]
 # if model_search == "WITCH":
 #     to_download = to_download[to_download["scenario"].str.endswith("SSP5 - Medium-Low Emissions_a")]

@@ -54,7 +54,6 @@ from emissions_harmonization_historical.harmonisation import (
     HARMONISATION_YEAR,
     harmonise,
 )
-from emissions_harmonization_historical.zenodo import upload_to_zenodo
 
 # %% [markdown]
 # ## Set up
@@ -367,10 +366,15 @@ logger.enable("openscm_zenodo")
 #     zenodo_interactor.get_draft_deposition_id("17514979")
 # )
 
-# %%
-upload_to_zenodo(
-    files_for_zenodo,
-    any_deposition_id="17514979",
-    remove_existing=True,
-    metadata=metadata,
-)
+# %% editable=true slideshow={"slide_type": ""}
+# upload_to_zenodo(
+#     files_for_zenodo,
+#     any_deposition_id="17514979",
+#     remove_existing=True,
+#     metadata=metadata,
+# )
+
+# %% editable=true slideshow={"slide_type": ""}
+# # Hack in local
+# from emissions_harmonization_historical.constants_5000 import INFILLING_DB
+# INFILLING_DB.save(out, allow_overwrite=True)
