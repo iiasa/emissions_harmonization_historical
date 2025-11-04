@@ -482,8 +482,10 @@ for variable, source in global_variable_sources.items():
     global_workflow_harmonisation_emissions_l.append(to_keep)
 
 global_workflow_harmonisation_emissions = (
-    pix.concat(global_workflow_harmonisation_emissions_l).sort_index().sort_index(axis="columns")
-).loc[:, :HARMONISATION_YEAR]
+    (pix.concat(global_workflow_harmonisation_emissions_l).sort_index().sort_index(axis="columns"))
+    .loc[:, :HARMONISATION_YEAR]
+    .pix.assign(scenario=HISTORY_SCENARIO_NAME)
+)
 
 global_workflow_harmonisation_emissions_reporting_names = to_reporting_names(global_workflow_harmonisation_emissions)
 global_workflow_harmonisation_emissions_reporting_names = update_index_levels_func(
@@ -573,7 +575,7 @@ fg.fig.savefig("global-workflow-history-over-cmip-phases.pdf", bbox_inches="tigh
 # %% [markdown]
 # ## Save
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 out_file = (
     HISTORY_HARMONISATION_INTERIM_DIR / f"global-workflow-history_{CREATE_HISTORY_FOR_GLOBAL_WORKFLOW_ID}.feather"
 )
