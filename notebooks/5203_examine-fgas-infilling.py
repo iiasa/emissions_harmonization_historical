@@ -12,27 +12,54 @@
 #     name: python3
 # ---
 
+# %% [markdown]
+# # Examine f-gas infilling
+
+# %% [markdown]
+# ## Imports
+
 # %% editable=true slideshow={"slide_type": ""}
 import matplotlib.pyplot as plt
+import pandas as pd
 import pandas_indexing as pix
 import pandas_openscm
+import pint
 import seaborn as sns
+from openscm_units import unit_registry as ur
 
 from emissions_harmonization_historical.constants_5000 import (
+    HISTORY_HARMONISATION_DB,
     INFILLED_SCENARIOS_DB,
     INFILLING_DB,
     MARKERS_BY_SCENARIOMIP_NAME,
 )
 
+# %% [markdown]
+# ## Setup
+
 # %%
 pandas_openscm.register_pandas_accessor()
+
+# %% [markdown]
+# ## Load data
 
 # %%
 complete_scenarios = INFILLED_SCENARIOS_DB.load(pix.isin(stage="complete"))
 # complete_scenarios
 
 # %%
-plotting_df_l = []
+infilling_db = INFILLING_DB.load()
+# infilling_db
+
+# %%
+history = HISTORY_HARMONISATION_DB.load(pix.isin(purpose="global_workflow_emissions"))
+# history
+
+# %% [markdown]
+# ## Process
+
+# %%
+plotting_df_l = [history.pix.assign(source="history").reset_index("purpose", drop=True)]
 markers_of_interest = ["vl", "ln"]
 for marker, info in MARKERS_BY_SCENARIOMIP_NAME.items():
     if markers_of_interest is not None and marker not in markers_of_interest:
@@ -44,10 +71,6 @@ for marker, info in MARKERS_BY_SCENARIOMIP_NAME.items():
         continue
 
     plotting_df_l.append(marker_df.pix.assign(source=marker).reset_index("stage", drop=True))
-
-# %% editable=true slideshow={"slide_type": ""}
-infilling_db = INFILLING_DB.load()
-infilling_db
 
 # %%
 velders_locator = pix.ismatch(model="Velders*")
@@ -62,10 +85,8 @@ velders_scenario = infilling_db.loc[velders_locator & pix.ismatch(scenario="Kiga
 plotting_df = pix.concat(plotting_df_l)
 plotting_df
 
+
 # %%
-import pandas as pd
-
-
 # TODO: put something like this in openscm
 def get_variable_relation_df(
     df: pd.DataFrame,
@@ -73,10 +94,13 @@ def get_variable_relation_df(
     unit_level: str = "unit",
     variable_unit_level: str = "variable_unit",
 ) -> tuple[pd.DataFrame, str, str]:
+    """
+    Get a dataframe for showing the relationship between two variables
+    """
     variable_unit = df.index.droplevel(df.index.names.difference([variable_level, unit_level])).drop_duplicates()
-    if variable_unit.shape[0] != 2:
+    allowed_n_variable_unit_combos = 2
+    if variable_unit.shape[0] != allowed_n_variable_unit_combos:
         msg = "Unit conversion required"
-        display(variable_unit)
         raise AssertionError(msg)
 
     res = df.pix.format(variable_unit=f"{{{variable_level}}} ({{{unit_level}}})", drop=True)
@@ -95,7 +119,7 @@ def get_variable_relation_df(
 
 
 # %%
-plotting_df.pix.unique("variable")
+# plotting_df.pix.unique("variable")
 
 # %%
 marker_colours = {
@@ -116,29 +140,68 @@ model_colours = {
     "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12": "tab:blue",
 }
 
-palette = {**marker_colours, **model_colours}
+palette = {**marker_colours, **model_colours, "history": "k"}
 
 # %%
 gases_to_plot = [
-    "Emissions|HFC|HFC134a",
     "Emissions|HFC|HFC125",
+    "Emissions|HFC|HFC134a",
+    "Emissions|HFC|HFC143a",
+    "Emissions|HFC|HFC152a",
+    "Emissions|HFC|HFC227ea",
     "Emissions|HFC|HFC23",
-    "Emissions|SF6",
-    "Emissions|CF4",
+    "Emissions|HFC|HFC236fa",
+    "Emissions|HFC|HFC245fa",
     "Emissions|HFC|HFC32",
+    "Emissions|HFC|HFC365mfc",
+    "Emissions|HFC|HFC43-10",
+    "Emissions|NF3",
+    "Emissions|SF6",
+    "Emissions|SO2F2",
     "Emissions|C2F6",
+    "Emissions|C3F8",
+    "Emissions|C4F10",
+    "Emissions|C5F12",
+    "Emissions|C6F14",
+    "Emissions|C7F16",
+    "Emissions|C8F18",
+    "Emissions|CF4",
+    "Emissions|cC4F8",
 ]
 
+# %% editable=true slideshow={"slide_type": ""}
+ur.enable_contexts("AR6GWP100")
+pint.set_application_registry(ur)
+
 # %%
-pdf = plotting_df.loc[pix.isin(variable=gases_to_plot)]
-pdf = pdf.openscm.set_index_levels(
-    {
-        "ms": [
-            f"{model} -- {scenario}"
-            for model, scenario in pdf.index.droplevel(pdf.index.names.difference(["model", "scenario"]))
-        ]
-    }
-).openscm.to_long_data()
+pdf = plotting_df.loc[pix.ismatch(variable=gases_to_plot)].pix.convert_unit("Mt CO2/yr")
+
+missing = set(gases_to_plot) - set(pdf.pix.unique("variable"))
+if missing:
+    raise AssertionError(missing)
+
+gas_order = (
+    pdf.loc[pix.ismatch(scenario="historical"), 2022]
+    .sort_values(ascending=False)
+    .index.get_level_values("variable")
+    .tolist()
+)
+missing = set(gases_to_plot) - set(gas_order)
+if missing:
+    raise AssertionError(missing)
+
+pdf = (
+    pdf.loc[:, 1990:]
+    .openscm.set_index_levels(
+        {
+            "ms": [
+                f"{model} -- {scenario}"
+                for model, scenario in pdf.index.droplevel(pdf.index.names.difference(["model", "scenario"]))
+            ]
+        }
+    )
+    .openscm.to_long_data()
+)
 
 sizes = {v: 0.25 if v not in MARKERS_BY_SCENARIOMIP_NAME else 4 for v in pdf["source"].unique()}
 sns.relplot(
@@ -146,7 +209,45 @@ sns.relplot(
     y="value",
     x="time",
     col="variable",
-    col_order=gases_to_plot,
+    col_order=gas_order,
+    col_wrap=3,
+    hue="source",
+    size="source",
+    sizes=sizes,
+    palette=palette,
+    kind="line",
+    units="ms",
+    estimator=None,
+    facet_kws=dict(sharey=True),
+)
+
+# %% editable=true slideshow={"slide_type": ""}
+pdf = plotting_df.loc[pix.ismatch(variable=gases_to_plot)]
+
+missing = set(gases_to_plot) - set(pdf.pix.unique("variable"))
+if missing:
+    raise AssertionError(missing)
+
+pdf = (
+    pdf.loc[:, 1990:]
+    .openscm.set_index_levels(
+        {
+            "ms": [
+                f"{model} -- {scenario}"
+                for model, scenario in pdf.index.droplevel(pdf.index.names.difference(["model", "scenario"]))
+            ]
+        }
+    )
+    .openscm.to_long_data()
+)
+
+sizes = {v: 0.25 if v not in MARKERS_BY_SCENARIOMIP_NAME else 4 for v in pdf["source"].unique()}
+sns.relplot(
+    data=pdf,
+    y="value",
+    x="time",
+    col="variable",
+    col_order=gas_order,
     col_wrap=3,
     hue="source",
     size="source",
@@ -162,7 +263,7 @@ sns.relplot(
 lead = "Emissions|CO2|Energy and Industrial Processes"
 years_to_plot = [2023, 2025, 2030, 2050, 2100]
 
-for g in gases_to_plot:
+for g in gas_order:
     print(g)
     pdf, x, y = get_variable_relation_df(plotting_df.loc[pix.isin(variable=[lead, g]), years_to_plot])
     # Drop anything which can't be used for infilling this gas

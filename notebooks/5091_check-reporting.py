@@ -44,7 +44,7 @@ from emissions_harmonization_historical.excel_writing import set_cell
 # ## Set up
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "REMIND"
+model: str = "AIM"
 
 # %%
 output_dir_model = DATA_ROOT / "raw" / "scenarios" / DOWNLOAD_SCENARIOS_ID / model
@@ -367,3 +367,5 @@ with pd.ExcelWriter(out_file, engine="openpyxl", mode="a", if_sheet_exists="over
         if not missing_model_region_specific_scenarios_regions.empty:
             print("The following timeseries are missing for specifc regions and scenarios")
             display(missing_model_region_specific_scenarios_regions)  # noqa: F821
+
+# %%

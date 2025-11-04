@@ -277,7 +277,7 @@ complete_openscm_runner = update_index_levels_func(
 complete_openscm_runner
 
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 class db_hack:
     """Save files in groups while we can't pass groupby through the function below"""
 
@@ -296,12 +296,13 @@ class db_hack:
 # %%
 db = db_hack(SCM_OUTPUT_DB)
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 # if scm in ["FAIRv2.2.2"]:
 #    some custom code
 # else:
 run_scms(
-    scenarios=complete_openscm_runner,
+    # scenarios=complete_openscm_runner,
+    scenarios=complete_openscm_runner.loc[pix.ismatch(scenario="SSP1 - Very Low Emissions")],
     climate_models_cfgs=climate_models_cfgs,
     output_variables=output_variables,
     scenario_group_levels=["model", "scenario"],
@@ -319,5 +320,5 @@ run_scms(
 # The SCM output is already saved in the db.
 # Here we also save the emissions that were actually used by the SCM.
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 SCM_OUTPUT_DB.save(complete_scm.pix.assign(climate_model=scm), allow_overwrite=True)

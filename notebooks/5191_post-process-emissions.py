@@ -77,7 +77,7 @@ infilled_emms = INFILLED_SCENARIOS_DB.load(
 # %% [markdown]
 # ### Helper functions
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 KYOTO_GHGS = [
     # 'Emissions|CO2|AFOLU',
     # 'Emissions|CO2|Energy and Industrial Processes',

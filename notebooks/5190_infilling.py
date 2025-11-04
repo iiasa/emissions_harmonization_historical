@@ -447,10 +447,6 @@ for follower, leader in tqdm.auto.tqdm(scaling_leaders.items()):
 # ## Check completeness
 
 # %%
-# Urgh
-complete = complete.loc[~pix.isin(scenario=["SSP1 - Very Low Emissions_a", "SSP2 - Low Emissions_a"])]
-
-# %%
 assert_all_groups_are_complete(complete, complete_index_reporting_names)
 
 # %%

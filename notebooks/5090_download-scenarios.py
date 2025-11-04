@@ -52,7 +52,7 @@ from emissions_harmonization_historical.constants_5000 import (
 # ## Set up
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model_search: str = "REMIND"
+model_search: str = "AIM"
 
 # %%
 output_dir_model = DATA_ROOT / "raw" / "scenarios" / DOWNLOAD_SCENARIOS_ID / model_search
@@ -100,8 +100,12 @@ to_download = props[props["model"].str.contains(model_search)]
 # if model_search == "REMIND":
 #     ssp = ("SSP1 - Very Low Emissions",)
 #     to_download = to_download[to_download["scenario"].str.endswith(ssp)]
-# if model_search == "AIM":
-#     to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Low Overshoot_a")]
+if model_search == "AIM":
+    to_download = to_download[
+        # No CO2 AFOLU for some reason
+        ~to_download["scenario"].isin(["SSP1 - Very Low Emissions_a", "SSP2 - Low Emissions_a"])
+    ]
+
 # if model_search == "MESSAGE":
 #     to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Low Emissions")]
 # if model_search == "IMAGE":
@@ -199,7 +203,8 @@ def check_negatives(df):  # noqa : D103
         warnings.warn(msg)
 
         for idx, row in tmp_not_co2[negative_rows].iterrows():
-            neg_rows = row.where(row < -0.5).dropna()
+            minimum_allowed = -0.5
+            neg_rows = row.where(row < minimum_allowed).dropna()
 
             if not neg_rows.empty:
                 err = [(idx, col, val) for col, val in zip(neg_rows.index, neg_rows.tolist())]
@@ -227,11 +232,15 @@ for _, row in tqdm.auto.tqdm(to_download.iterrows(), total=to_download.shape[0])
 
     check_negatives(df_ts)
 
+    if "Emissions|CO2|AFOLU" not in df_ts.index.get_level_values("variable"):
+        msg = f"No Emissions|CO2|AFOLU data for {model=} {scenario=}"
+        raise AssertionError(msg)
+
     # If we got to this stage, we are fine with an overwrite
     RAW_SCENARIO_DB.save(df_ts, allow_overwrite=True)
 
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 db_metadata = RAW_SCENARIO_DB.load_metadata().to_frame(index=False)
 db_metadata[["model", "scenario"]][db_metadata["model"].str.contains(model_search)].drop_duplicates().reset_index(
     drop=True
