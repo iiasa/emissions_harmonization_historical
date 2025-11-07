@@ -333,7 +333,6 @@ climate_models_cfgs = load_magicc_cfgs(
     output_variables=output_variables,
     startyear=1750,
 )
-# climate_models_cfgs["MAGICC7"] = climate_models_cfgs["MAGICC7"][:5]
 
 # %%
 to_run_openscm_runner = update_index_levels_func(
@@ -349,10 +348,8 @@ to_run_openscm_runner = update_index_levels_func(
 to_run_openscm_runner
 
 # %%
-
-db.delete()
-
-# %%
+# If you need a clean start
+# db.delete()
 run_scms(
     scenarios=to_run_openscm_runner,
     climate_models_cfgs=climate_models_cfgs,
@@ -371,7 +368,7 @@ gsat_out_runs_raw = db.load(
     pix.isin(variable="Surface Air Temperature Change") & pix.isin(model=to_run_openscm_runner.pix.unique("model"))
     # & pix.isin(scenario=[*base.get_level_values("scenario"), *others.get_level_values("scenario")]),
 )
-gsat_out_runs_raw
+# gsat_out_runs_raw
 
 
 # %%
@@ -393,7 +390,7 @@ gsat_out_runs = update_index_levels_func(
     get_assessed_gsat(gsat_out_runs_raw),
     {"variable": lambda x: assessed_gsat_variable},
 )
-# temperatures_in_line_with_assessment
+# gsat_out_runs
 
 # %%
 gsat_out_normal_workflow_raw = SCM_OUTPUT_DB.load(
@@ -412,13 +409,14 @@ gsat_out_normal_workflow = update_index_levels_func(
     get_assessed_gsat(gsat_out_normal_workflow_raw),
     {"variable": lambda x: assessed_gsat_variable},
 )
-# temperatures_in_line_with_assessment
+gsat_out_normal_workflow = gsat_out_normal_workflow.loc[pix.isin(run_id=gsat_out_runs.index.get_level_values("run_id"))]
+# gsat_out_normal_workflow
 
 # %%
 deltas_total = gsat_out_normal_workflow.openscm.mi_loc(others) - gsat_out_normal_workflow.openscm.mi_loc(
     base
 ).reset_index(["model", "scenario"], drop=True)
-deltas_total.head(1)
+deltas_total
 
 # %%
 gsat_out_runs = gsat_out_runs.pix.format(component="{scenario}").pix.extract(
@@ -433,7 +431,7 @@ deltas_components_total
 
 # %%
 deltas_residual = (deltas_total - deltas_components_total).pix.assign(component="residual")
-# deltas_residual
+deltas_residual
 
 # %%
 deltas_all_components = pix.concat([deltas_residual, deltas_components])
@@ -451,7 +449,7 @@ pd.testing.assert_frame_equal(
 deltas_all_components_median = deltas_all_components.groupby(
     deltas_all_components.index.names.difference(["run_id"])
 ).median()
-# deltas_all_components_median
+deltas_all_components_median
 
 # %%
 plot_years = range(2000, 2100 + 1)
@@ -488,5 +486,3 @@ for (model, scenario), msdf in erfs_deltas_median.groupby(["model", "scenario"])
     fig = ax.get_figure()
     fig.savefig(f"{model}vs{base_model}_erf_deltas_median.pdf", format="pdf", bbox_inches="tight")
     plt.show()
-
-# %%
