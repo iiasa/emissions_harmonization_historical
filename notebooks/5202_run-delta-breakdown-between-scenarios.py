@@ -42,7 +42,12 @@ from loguru import logger
 from pandas_openscm.db import FeatherDataBackend, FeatherIndexBackend, OpenSCMDB
 from pandas_openscm.index_manipulation import update_index_levels_func
 
-from emissions_harmonization_historical.constants_5000 import DATA_ROOT, REPO_ROOT, SCM_OUTPUT_DB
+from emissions_harmonization_historical.constants_5000 import (
+    DATA_ROOT,
+    MARKERS_BY_SCENARIOMIP_NAME,
+    REPO_ROOT,
+    SCM_OUTPUT_DB,
+)
 from emissions_harmonization_historical.scm_running import load_magicc_cfgs
 
 # %%
@@ -57,8 +62,8 @@ logger.disable("gcages")
 # ## General set up
 
 # %%
-base_model = "REMIND-MAgPIE 3.5-4.11"
-base_scenario = "SSP1 - Very Low Emissions"
+base_model = MARKERS_BY_SCENARIOMIP_NAME["vl"]["model"]
+base_scenario = MARKERS_BY_SCENARIOMIP_NAME["vl"]["scenario"]
 # base_model = "GCAM 7.1 scenarioMIP"
 # base_scenario = "SSP3 - High Emissions"
 # base_model = "AIM 3.0"
@@ -76,9 +81,11 @@ base
 # %%
 others = pd.MultiIndex.from_tuples(
     (
-        ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions"),
-        ("AIM 3.0", "SSP2 - Low Overshoot_a"),
-        # ("REMIND-MAgPIE 3.5-4.11", "SSP1 - Very Low Emissions"),
+        (MARKERS_BY_SCENARIOMIP_NAME["ln"]["model"], MARKERS_BY_SCENARIOMIP_NAME["ln"]["scenario"]),
+        (MARKERS_BY_SCENARIOMIP_NAME["l"]["model"], MARKERS_BY_SCENARIOMIP_NAME["l"]["scenario"]),
+        # (MARKERS_BY_SCENARIOMIP_NAME["l"]["model"], MARKERS_BY_SCENARIOMIP_NAME["l"]["scenario"]),
+        # ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions"),
+        # ("AIM 3.0", "SSP2 - Low Overshoot"),
         # ("WITCH 6.0", "SSP5 - Medium-Low Emissions_a"),
     ),
     name=["model", "scenario"],
