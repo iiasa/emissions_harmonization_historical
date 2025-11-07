@@ -55,6 +55,7 @@ CEDS_VERSION_ID = "v_2025_03_18"
 CEDS_PROCESSING_ID = "0002"
 # Updated Aircraft handling
 CEDS_PROCESSING_ID = "0003"
+CEDS_PROCESSING_ID = "202511040855"
 
 CEDS_TOP_LEVEL_RAW_PATH = DATA_ROOT / "raw" / "ceds"
 CEDS_RAW_PATH = CEDS_TOP_LEVEL_RAW_PATH / CEDS_VERSION_ID
@@ -75,7 +76,7 @@ GFED4_INTERIM_OUTPUT_DIR = DATA_ROOT / "interim" / "gfed4"
 # Split into multiple steps now
 
 # ID for the GFED4 annual sum step
-GFED4_ANNUAL_SUM_ID = "0001"
+GFED4_ANNUAL_SUM_ID = "202511040855"
 GFED4_ANNUAL_SUM_OUTPUT_DIR = GFED4_INTERIM_OUTPUT_DIR / GFED4_ANNUAL_SUM_ID
 
 # ID for the GFED4 regridding, smoothing and extension step
@@ -108,6 +109,7 @@ BB4CMIP7_INTERIM_OUTPUT_DIR = DATA_ROOT / "interim" / "bb4cmip7"
 # BB4CMIP7_ANNUAL_SECTORAL_COUNTRY_ID = "0001"
 # Process all the way back to 1750
 BB4CMIP7_ANNUAL_SECTORAL_COUNTRY_ID = "0002"
+BB4CMIP7_ANNUAL_SECTORAL_COUNTRY_ID = "202511040855"
 BB4CMIP7_ANNUAL_SECTORAL_COUNTRY_OUTPUT_DIR = BB4CMIP7_INTERIM_OUTPUT_DIR / BB4CMIP7_ANNUAL_SECTORAL_COUNTRY_ID
 
 # ID for formatting BB4CMIP7 data into the required format
@@ -116,7 +118,7 @@ BB4CMIP7_ANNUAL_SECTORAL_COUNTRY_OUTPUT_DIR = BB4CMIP7_INTERIM_OUTPUT_DIR / BB4C
 BB4CMIP7_FORMATTING_ID = "0002"
 # Update after investigation of Annika in https://github.com/iiasa/emissions_harmonization_historical/pull/110/files
 # ... not because of content changes, but because the current version was produced on that branch
-BB4CMIP7_FORMATTING_ID = "0003"
+BB4CMIP7_FORMATTING_ID = "202511040855"
 
 # Database into which the processed BB4CMIP7 data is saved
 BB4CMIP7_PROCESSED_DIR = DATA_ROOT / "processed" / "bb4cmip7" / BB4CMIP7_FORMATTING_ID
@@ -129,7 +131,7 @@ BB4CMIP7_PROCESSED_DB = OpenSCMDB(
 # ID for including other modifications that affect
 # the creation of historical emissions dataset for gridding
 # Gcages CDR split
-MOD_HISTORY_FOR_GRIDDING_ID = "0001"
+MOD_HISTORY_FOR_GRIDDING_ID = "202511040855"
 
 # Commit from https://github.com/IAMconsortium/common-definitions
 # COMMON_DEFINITIONS_COMMIT = get_latest_commit_hash(
@@ -173,6 +175,7 @@ GCB_VERSION = "2024v1.0"
 # GCB_PROCESSING_ID = "0001"
 # Moved to portable OpenSCMDB
 GCB_PROCESSING_ID = "0002"
+GCB_PROCESSING_ID = "202511040855"
 
 GCB_RAW_PATH = DATA_ROOT / "raw" / "gcb" / GCB_VERSION
 
@@ -191,6 +194,7 @@ WMO_2022_RAW_PATH = DATA_ROOT / "raw" / "wmo-2022"
 # WMO_2022_PROCESSING_ID = "0002"
 # Moved to portable OpenSCMDB
 WMO_2022_PROCESSING_ID = "0003"
+WMO_2022_PROCESSING_ID = "202511040855"
 
 WMO_2022_PROCESSED_DB = OpenSCMDB(
     db_dir=DATA_ROOT / "processed" / "wmo-2022" / WMO_2022_PROCESSING_ID / "db",
@@ -205,7 +209,7 @@ VELDERS_ET_AL_2022_RAW_PATH = DATA_ROOT / "raw" / "velders-et-al-2022"
 # Moved to portable OpenSCMDB
 VELDERS_ET_AL_2022_PROCESSING_ID = "0002"
 # Add all Velders scenarios
-VELDERS_ET_AL_2022_PROCESSING_ID = "202510290925"
+VELDERS_ET_AL_2022_PROCESSING_ID = "202511040855"
 
 VELDERS_ET_AL_2022_PROCESSED_DB = OpenSCMDB(
     db_dir=DATA_ROOT / "processed" / "velders-et-al-2022" / VELDERS_ET_AL_2022_PROCESSING_ID / "db",
@@ -218,7 +222,7 @@ ADAM_ET_AL_2024_RAW_PATH = DATA_ROOT / "raw" / "adam-et-al-2024"
 # ID for the adam et al. 2024 processing step
 # ADAM_ET_AL_2024_PROCESSING_ID = "0001"
 # Moved to portable OpenSCMDB
-ADAM_ET_AL_2024_PROCESSING_ID = "0002"
+ADAM_ET_AL_2024_PROCESSING_ID = "202511040855"
 
 ADAM_ET_AL_2024_PROCESSED_DB = OpenSCMDB(
     db_dir=DATA_ROOT / "processed" / "adam-et-al-2024" / ADAM_ET_AL_2024_PROCESSING_ID / "db",
@@ -264,7 +268,7 @@ RCMIP_RAW_PATH = DATA_ROOT / "raw" / "rcmip" / RCMIP_VERSION_ID
 # ID for the CMIP7 GHG processing step
 # RCMIP_PROCESSING_ID = "0001"
 # Moved to portable OpenSCMDB
-RCMIP_PROCESSING_ID = "0002"
+RCMIP_PROCESSING_ID = "202511040855"
 
 RCMIP_PROCESSED_DIR = DATA_ROOT / "processed" / "rcmip" / RCMIP_PROCESSING_ID
 RCMIP_PROCESSED_DB = OpenSCMDB(
@@ -290,7 +294,7 @@ HISTORY_HARMONISATION_INTERIM_DIR = DATA_ROOT / "interim" / "history-for-harmoni
 HISTORY_HARMONISATION_DIR = DATA_ROOT / "processed" / "history-for-harmonisation" / HISTORY_FOR_HARMONISATION_ID
 
 # ID of the Zenodo record that contains the harmonised historical emissions to use
-HISTORY_ZENODO_RECORD_ID = "17514201"
+HISTORY_ZENODO_RECORD_ID = "17527153"
 
 # Database to hold historical emissions for harmonisation
 HISTORY_HARMONISATION_DB = OpenSCMDB(
@@ -303,7 +307,7 @@ HISTORY_HARMONISATION_DB = OpenSCMDB(
 # # ID for the scenario download step
 # Run by Marco
 DOWNLOAD_SCENARIOS_ID = "All_23Oct"
-DOWNLOAD_SCENARIOS_ID = "202511011723"
+DOWNLOAD_SCENARIOS_ID = "202511040855"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(
@@ -320,7 +324,7 @@ PRE_PROCESSING_ID = "0002"
 PRE_PROCESSING_ID = "0003"
 # Upgrade to gcages which puts CDR in the Emissions tree
 PRE_PROCESSING_ID = "0004"
-PRE_PROCESSING_ID = "0005"
+PRE_PROCESSING_ID = "202511040855"
 
 # Database into which pre-processed scenarios are saved
 PRE_PROCESSED_SCENARIO_DB = OpenSCMDB(
@@ -334,7 +338,7 @@ PRE_PROCESSED_SCENARIO_DB = OpenSCMDB(
 # Fixed up override passing
 # HARMONISATION_ID = "0002"
 # Moved to portable OpenSCMDB
-HARMONISATION_ID = "0003"
+HARMONISATION_ID = "202511040855"
 
 HARMONISED_OUT_DIR = (
     DATA_ROOT
@@ -355,7 +359,7 @@ HARMONISED_SCENARIO_DB = OpenSCMDB(
 # Moved to portable OpenSCMDB
 INFILLING_DB_CREATION_ID = "0002"
 # Moved to using Velders' scenario for VL marker
-INFILLING_DB_CREATION_ID = "202511011452"
+INFILLING_DB_CREATION_ID = "202511040855"
 
 # Directory in which the infilling DB lives
 # before being uploaded to zenodo
@@ -373,7 +377,7 @@ INFILLING_DB_DIR = (
 )
 
 # ID of the Zenodo record that contains the infilling database to use
-INFILLING_DB_ZENODO_RECORD_ID = "17514995"
+INFILLING_DB_ZENODO_RECORD_ID = "17540023"
 
 # Database into which infilled emissions are saved
 INFILLING_DB = OpenSCMDB(
@@ -389,6 +393,7 @@ INFILLING_DB = OpenSCMDB(
 # INFILLING_ID = "0002"
 # Moved to portable OpenSCMDB
 INFILLING_ID = "0003"
+INFILLING_ID = "202511040855"
 
 INFILLED_OUT_DIR_ID = "_".join(
     [
@@ -413,6 +418,7 @@ INFILLED_SCENARIOS_DB = OpenSCMDB(
 # SCM_RUNNING_ID = "0001"
 # Moved to portable OpenSCMDB
 SCM_RUNNING_ID = "0002"
+SCM_RUNNING_ID = "202511040855"
 
 SCM_OUT_DIR = (
     DATA_ROOT
@@ -440,7 +446,7 @@ SCM_OUTPUT_DB = OpenSCMDB(
 # ID for the post-processing step
 # POST_PROCESSING_ID = "0001"
 # Moved to portable OpenSCMDB
-POST_PROCESSING_ID = "0002"
+POST_PROCESSING_ID = "202511040855"
 
 POST_PROCESSING_DIR = (
     DATA_ROOT

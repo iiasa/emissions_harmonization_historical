@@ -125,7 +125,9 @@ tmp = (
                 ("max", 0.33),
                 ("max", 0.5),
                 ("max", 0.67),
+                ("2100", 0.33),
                 ("2100", 0.5),
+                ("2100", 0.67),
             ]
         ],
     ]
@@ -138,7 +140,17 @@ tmp = (
 vllo_peak = 1.66
 l_min_diff = 0.1
 l_max_diff = 0.4
-tmp.loc[
+desired = [
+    ("WITCH 6.0", "SSP5 - Medium-Low Emissions_a"),
+    ("GCAM 8s", "SSP3 - High Emissions"),
+    ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions"),
+    ("COFFEE 1.6", "SSP2 - Medium-Low Emissions"),
+    ("IMAGE 3.4", "SSP2 - Medium Emissions"),
+    ("AIM 3.0", "SSP2 - Low Overshoot_a"),
+    ("REMIND-MAgPIE 3.5-4.11", "SSP1 - Very Low Emissions"),
+]
+
+filtered_tmp = tmp.loc[
     # :, :
     (tmp[("max", "K", 0.33)] > 0.0) & (tmp[("max", "K", 0.33)] < 6.6)  # noqa: PLR2004
     # ((tmp[("max", "K", 0.5)] > vllo_peak - 0.01) & (tmp[("max", "K", 0.5)] < vllo_peak + 0.01))
@@ -150,7 +162,10 @@ tmp.loc[
     # # (tmp[("2100", "K", 0.5)] > 2.5)
     # # & (tmp[("2100", "K", 0.5)] < 3.0)
     # (tmp[("2100", "K", 0.5)] > 3.0) & (tmp[("2100", "K", 0.5)] < 30.6)
-].loc[pix.ismatch(model=["REMIND*", "AIM*", "IMAGE*"], climate_model="MAGICCv7.6*")]
+].loc[pix.ismatch(climate_model="MAGICCv7.6*")]
+
+filtered_tmp = filtered_tmp[tmp.apply(lambda row: (row.name[0], row.name[1]) in desired, axis=1)]
+filtered_tmp
 
 # %%
 tmp = (
@@ -179,10 +194,10 @@ tmp
 # %%
 scratch_selection_l = [
     # # # HL
-    ("#7f3e3e", ("WITCH 6.0", "SSP5 - Medium-Low Emissions_a")),
+    ("#BA55D3", ("WITCH 6.0", "SSP5 - Medium-Low Emissions_a")),
     # # # H
     # # # ("#7f3e3e", ("REMIND-MAgPIE 3.5-4.10", "SSP3 - High Emissions")),
-    ("#7f3e3e", ("GCAM 7.1 scenarioMIP", "SSP3 - High Emissions_a")),
+    ("#7f3e3e", ("GCAM 8s", "SSP3 - High Emissions")),
     # # ("#7f3e3e", ("IMAGE 3.4", "SSP3 - High Emissions")),
     # # ("#7f3e3e", ("WITCH 6.0", "SSP5 - High Emissions")),
     # # ("#7f3e3e", ("AIM 3.0", "SSP5 - High Emissions")),
@@ -190,7 +205,7 @@ scratch_selection_l = [
     # # # ("#f7a84f", ("REMIND-MAgPIE 3.5-4.10", "SSP2 - Medium Emissions")),
     # # ("#f7a84f", ("GCAM 7.1 scenarioMIP", "SSP2 - Medium Emissions")),
     # # # ("#f7a84f", ("IMAGE 3.4", "SSP2 - Medium Emissions")),
-    ("#f7a84f", ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Medium Emissions")),
+    ("#f7a84f", ("IMAGE 3.4", "SSP2 - Medium Emissions")),
     # # ("#f7a84f", ("WITCH 6.0", "SSP2 - Medium Emissions")),
     # # # ML
     # # # ("#e1ad01", ("REMIND-MAgPIE 3.5-4.10", "SSP3 - Medium-Low Emissions")),
@@ -202,7 +217,7 @@ scratch_selection_l = [
     # # ("#2e9e68", ("REMIND-MAgPIE 3.5-4.10", "SSP2 - Low Emissions")),
     # # ("#2e9e68", ("COFFEE 1.6", "SSP2 - Low Emissions")),
     # # ("#2e9e68", ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions")),
-    ("#2e9e68", ("IMAGE 3.4", "SSP2 - Low Emissions")),
+    ("#2e9e68", ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions")),
     # # VLHO
     # # ("#4b3d89", ("REMIND-MAgPIE 3.5-4.10", "SSP2 - Low Overshoot_d")),
     ("#4b3d89", ("AIM 3.0", "SSP2 - Low Overshoot_a")),
@@ -218,7 +233,7 @@ scratch_selection_l = [
     # # ("#899edb", ("WITCH 6.0", "SSP1 - Low Overshoot")),
     # # ("#899edb", ("WITCH 6.0", "SSP2 - Low Overshoot")),
     # # ("#899edb", ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP4 - Very Low Emissions")),
-    ("#499edb", ("REMIND-MAgPIE 3.5-4.10", "SSP1 - Very Low Emissions")),
+    ("#499edb", ("REMIND-MAgPIE 3.5-4.11", "SSP1 - Very Low Emissions")),
     # # VLLOD
     # # ("#499edb", ("AIM 3.0", "SSP1 - Very Low Emissions_a")),
     # # ("#499edb", ("AIM 3.0", "SSP1 - Very Low Emissions")),
@@ -311,6 +326,7 @@ for i, (ax, yticks) in enumerate(zip(axes, [np.arange(0.5, 4.01, 0.5), np.arange
     ax.set_ylim(ymin=yticks.min(), ymax=yticks.max())
     # ax.set_ylim(ymax=ymax)
     ax.grid()
+fig.savefig("Temperature_markers(GSAT).pdf", format="pdf", bbox_inches="tight")
 
 # %%
 pdf_emissions = add_model_scenario_column(
@@ -378,6 +394,8 @@ for ax in fg.axes.flatten():
         ax.set_ylim(ymin=0.0)
 
     ax.grid()
+
+fg.savefig("Emissions_markers.pdf", format="pdf")
 
 # %%
 pdf_raw_scm_output = add_model_scenario_column(

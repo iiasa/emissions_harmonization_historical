@@ -168,7 +168,7 @@ def main():
     # # Everything
     # notebook_prefixes = ["5090", "5091", "5092", "5093", "5094", "5190", "5191"]
     # # Skip this step
-    # notebook_prefixes = []
+    notebook_prefixes = []
 
     for iam in tqdm.tqdm(iams, desc="IAMs pre infilling"):
         for notebook in all_notebooks:
@@ -187,7 +187,7 @@ def main():
     # Single notebook: run post-processing of climate outputs
     # notebook_prefixes = ["5196"]
     # Skip this step
-    notebook_prefixes = []
+    # notebook_prefixes = []
     scms = ["MAGICCv7.6.0a3", "MAGICCv7.5.3"]
     for iam, scm in tqdm.tqdm(itertools.product(iams, scms), desc="IAM SCM runs"):
         for notebook in all_notebooks:

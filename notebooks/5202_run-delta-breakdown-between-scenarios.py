@@ -61,6 +61,10 @@ base_model = "REMIND-MAgPIE 3.5-4.11"
 base_scenario = "SSP1 - Very Low Emissions"
 # base_model = "GCAM 7.1 scenarioMIP"
 # base_scenario = "SSP3 - High Emissions"
+# base_model = "AIM 3.0"
+# base_scenario = "SSP2 - Low Overshoot"
+# base_model = "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12"
+# base_scenario = "SSP2 - Low Emissions"
 
 # %%
 base = pd.MultiIndex.from_tuples(
@@ -73,7 +77,8 @@ base
 others = pd.MultiIndex.from_tuples(
     (
         ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions"),
-        ("AIM 3.0", "SSP2 - Low Overshoot"),
+        ("AIM 3.0", "SSP2 - Low Overshoot_a"),
+        # ("REMIND-MAgPIE 3.5-4.11", "SSP1 - Very Low Emissions"),
         # ("WITCH 6.0", "SSP5 - Medium-Low Emissions_a"),
     ),
     name=["model", "scenario"],
@@ -129,7 +134,10 @@ for (model, scenario), msdf in erfs_deltas_median.groupby(["model", "scenario"])
     )
     ax.set_title(f"{model} {scenario}\nrel. to\n{base_model} {base_scenario}")
     ax.axhline(0.0, color="k")
+    fig = ax.get_figure()
+    fig.savefig(f"{model}vs{base_model}_erf_diff.pdf", format="pdf", bbox_inches="tight")
     plt.show()
+
 
 # %%
 plt_years = [2030, 2040, 2050, 2060, 2080, 2100]
@@ -151,7 +159,10 @@ for (model, scenario), msdf in pdf.groupby(["model", "scenario"]):
     ax.legend(loc="center left", bbox_to_anchor=(1.05, 0.5))
     ax.set_title(f"{model} {scenario}\nrel. to\n{base_model} {base_scenario}")
     ax.axhline(0.0, color="tab:gray", zorder=1.2)
+    fig = ax.get_figure()
+    fig.savefig(f"{model}vs{base_model}_erf_years_diff.pdf", format="pdf")
     plt.show()
+
 
 # %% [markdown]
 # ## Load complete scenario data
@@ -445,6 +456,8 @@ for (model, scenario), msdf in deltas_all_components_median.groupby(["model", "s
     ax.axhline(0.0, color="k")
     ax.set_yticks(np.arange(-0.4, 0.6, 0.1))
     ax.grid()
+    fig = ax.get_figure()
+    fig.savefig(f"{model}vs{base_model}_erf_deltas_components.pdf", format="pdf", bbox_inches="tight")
     plt.show()
 
 # %%
@@ -460,6 +473,8 @@ for (model, scenario), msdf in erfs_deltas_median.groupby(["model", "scenario"])
     )
     ax.set_title(f"{model} {scenario}\nrel. to\n{base_model} {base_scenario}")
     ax.axhline(0.0, color="k")
+    fig = ax.get_figure()
+    fig.savefig(f"{model}vs{base_model}_erf_deltas_median.pdf", format="pdf", bbox_inches="tight")
     plt.show()
 
 # %%
