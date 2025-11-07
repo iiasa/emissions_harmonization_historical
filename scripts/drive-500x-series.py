@@ -25,7 +25,8 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
     and I can't see a better solution (maybe someone else can).
     """
     if notebook_name == "5090_download-scenarios.py":
-        res = {"model_search": iam}
+        # res = {"model_search": iam, "markers_only": True}
+        res = {"model_search": iam, "markers_only": False}
 
     elif notebook_name in [
         "5091_check-reporting.py",

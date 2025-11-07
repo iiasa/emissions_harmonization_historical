@@ -261,14 +261,14 @@ if not_attributed:
 # %%
 to_run_l = []
 for i in range(others.size):
-    other_idx = others[[i]]
+    other_idx_mi = others[[i]]
+    other_idx_tuple = others[i]
     for label, emms in to_attribute:
-        model = other_idx[0][other_idx.names.index("model")]
-        scenario = other_idx[0][other_idx.names.index("scenario")]
+        model = other_idx_tuple[others.names.index("model")]
+        scenario = other_idx_tuple[others.names.index("scenario")]
 
-        other_idx = others[[i]]
         variable_loc = pix.isin(variable=emms)
-        start = complete_scenarios.openscm.mi_loc(other_idx).loc[~variable_loc]
+        start = complete_scenarios.openscm.mi_loc(other_idx_mi).loc[~variable_loc]
         replace = base_scen.loc[variable_loc]
         to_run_tmp = pix.concat([start, replace]).pix.assign(
             model=f"{model} -- {scenario} --- {base_model} -- {base_scenario}",
@@ -333,6 +333,7 @@ climate_models_cfgs = load_magicc_cfgs(
     output_variables=output_variables,
     startyear=1750,
 )
+# climate_models_cfgs["MAGICC7"] = climate_models_cfgs["MAGICC7"][:5]
 
 # %%
 to_run_openscm_runner = update_index_levels_func(
@@ -346,6 +347,10 @@ to_run_openscm_runner = update_index_levels_func(
     },
 )
 to_run_openscm_runner
+
+# %%
+
+db.delete()
 
 # %%
 run_scms(
