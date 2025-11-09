@@ -24,10 +24,12 @@
 # ## Imports
 
 # %% editable=true slideshow={"slide_type": ""}
+import sys
 import tempfile
 
 import pandas as pd
 import pandas_indexing  # noqa: F401
+from loguru import logger
 
 from emissions_harmonization_historical.constants_5000 import (
     HISTORY_HARMONISATION_DB,
@@ -41,6 +43,10 @@ from emissions_harmonization_historical.zenodo import download_zenodo_url, get_z
 # ## Setup
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
+
+# %%
+logger.configure(handlers=[dict(sink=sys.stderr, level="INFO")])
+logger.enable("openscm_zenodo")
 
 # %% editable=true slideshow={"slide_type": ""}
 zenodo_interactor = get_zenodo_interactor()
@@ -75,7 +81,7 @@ for prefix, purpose in (
 
     file_info = file_info_l[0]
 
-    print(f"Downloading {purpose} emissions")
+    print(f"Downloading {purpose} emissions from https://zenodo.org/uploads/{HISTORY_ZENODO_RECORD_ID}")
     with tempfile.NamedTemporaryFile(suffix=".parquet.gzip") as tf:
         download_zenodo_url(
             file_info["url"],
@@ -112,7 +118,7 @@ if len(file_info_l) != 1:
 
 file_info = file_info_l[0]
 
-print("Downloading infilling database")
+print(f"Downloading infilling database from https://zenodo.org/uploads/{INFILLING_DB_ZENODO_RECORD_ID}")
 with tempfile.NamedTemporaryFile(suffix=".parquet.gzip") as tf:
     download_zenodo_url(
         file_info["url"],

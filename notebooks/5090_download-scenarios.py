@@ -39,12 +39,14 @@ import tempfile
 import warnings
 from pathlib import Path
 
+import pandas as pd
 import pyam
 import tqdm.auto
 
 from emissions_harmonization_historical.constants_5000 import (
     DATA_ROOT,
     DOWNLOAD_SCENARIOS_ID,
+    MARKERS,
     RAW_SCENARIO_DB,
 )
 
@@ -52,7 +54,8 @@ from emissions_harmonization_historical.constants_5000 import (
 # ## Set up
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model_search: str = "AIM"
+model_search: str = "MESSAGE"
+markers_only: bool = True
 
 # %%
 output_dir_model = DATA_ROOT / "raw" / "scenarios" / DOWNLOAD_SCENARIOS_ID / model_search
@@ -125,6 +128,15 @@ if model_search == "GCAM":
 #     to_download = to_download[to_download["scenario"].str.endswith("SSP3 - High Emissions")]
 # if model_search == "WITCH":
 #     to_download = to_download[to_download["scenario"].str.endswith("SSP5 - Medium-Low Emissions_a")]
+
+if markers_only:
+    markers_l = []
+    for model, scenario, _ in MARKERS:
+        tmp = to_download[(to_download["model"] == model) & (to_download["scenario"] == scenario)]
+        if not tmp.empty:
+            markers_l.append(tmp)
+
+    to_download = pd.concat(markers_l)
 
 to_download.shape[0]
 

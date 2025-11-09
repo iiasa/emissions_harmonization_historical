@@ -49,7 +49,7 @@ pandas_openscm.register_pandas_accessor()
 pix.set_openscm_registry_as_default()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "AIM"
+model: str = "MESSAGE"
 output_to_pdf: bool = False
 
 # %% [markdown]
@@ -291,9 +291,7 @@ pre_processed_emms_scms_out = pix.concat(
 
 # %%
 ax = sns.lineplot(
-    data=pre_processed_emms_scms_out.loc[
-        pix.ismatch(variable="Emissions|CO2**", scenario="SSP2*")
-    ].openscm.to_long_data(),
+    data=pre_processed_emms_scms_out.loc[pix.ismatch(variable="Emissions|CO2**")].openscm.to_long_data(),
     x="time",
     y="value",
     hue="scenario",
@@ -304,7 +302,7 @@ ax.axhline(0.0, linestyle="--", color="tab:gray")
 
 # %%
 ax = sns.lineplot(
-    data=pre_processed_emms_scms_out.loc[pix.ismatch(variable="Cumulative**", scenario="SSP2*")].openscm.to_long_data(),
+    data=pre_processed_emms_scms_out.loc[pix.ismatch(variable="Cumulative**")].openscm.to_long_data(),
     x="time",
     y="value",
     hue="scenario",
@@ -315,7 +313,7 @@ ax.axhline(0.0, linestyle="--", color="tab:gray")
 
 # %%
 ax = sns.lineplot(
-    data=pre_processed_emms_scms_out.loc[pix.ismatch(variable="**GHG**", scenario="SSP2*")].openscm.to_long_data(),
+    data=pre_processed_emms_scms_out.loc[pix.ismatch(variable="**GHG**")].openscm.to_long_data(),
     x="time",
     y="value",
     hue="scenario",
@@ -359,7 +357,7 @@ harmonised_emms_scms_out = pix.concat(
 
 # %%
 ax = sns.lineplot(
-    data=harmonised_emms_scms_out.loc[pix.ismatch(variable="Cumulative**", scenario="SSP2*")].openscm.to_long_data(),
+    data=harmonised_emms_scms_out.loc[pix.ismatch(variable="Cumulative**")].openscm.to_long_data(),
     x="time",
     y="value",
     hue="scenario",
@@ -370,7 +368,7 @@ ax.axhline(0.0, linestyle="--", color="tab:gray")
 
 # %%
 ax = sns.lineplot(
-    data=harmonised_emms_scms_out.loc[pix.ismatch(variable="**GHG**", scenario="SSP2*")].openscm.to_long_data(),
+    data=harmonised_emms_scms_out.loc[pix.ismatch(variable="**GHG**")].openscm.to_long_data(),
     x="time",
     y="value",
     hue="scenario",
@@ -410,7 +408,7 @@ complete_emissions_out = pix.concat(
 
 # %%
 ax = sns.lineplot(
-    data=complete_emissions_out.loc[pix.ismatch(variable="**GHG**", scenario="SSP2*")].openscm.to_long_data(),
+    data=complete_emissions_out.loc[pix.ismatch(variable="**GHG**")].openscm.to_long_data(),
     x="time",
     y="value",
     hue="scenario",
