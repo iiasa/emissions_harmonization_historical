@@ -42,7 +42,12 @@ from loguru import logger
 from pandas_openscm.db import FeatherDataBackend, FeatherIndexBackend, OpenSCMDB
 from pandas_openscm.index_manipulation import update_index_levels_func
 
-from emissions_harmonization_historical.constants_5000 import DATA_ROOT, REPO_ROOT, SCM_OUTPUT_DB
+from emissions_harmonization_historical.constants_5000 import (
+    DATA_ROOT,
+    MARKERS_BY_SCENARIOMIP_NAME,
+    REPO_ROOT,
+    SCM_OUTPUT_DB,
+)
 from emissions_harmonization_historical.scm_running import load_magicc_cfgs
 
 # %%
@@ -57,8 +62,8 @@ logger.disable("gcages")
 # ## General set up
 
 # %%
-base_model = "REMIND-MAgPIE 3.5-4.11"
-base_scenario = "SSP1 - Very Low Emissions"
+base_model = MARKERS_BY_SCENARIOMIP_NAME["vl"]["model"]
+base_scenario = MARKERS_BY_SCENARIOMIP_NAME["vl"]["scenario"]
 # base_model = "GCAM 7.1 scenarioMIP"
 # base_scenario = "SSP3 - High Emissions"
 # base_model = "AIM 3.0"
@@ -76,9 +81,11 @@ base
 # %%
 others = pd.MultiIndex.from_tuples(
     (
-        ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions"),
-        ("AIM 3.0", "SSP2 - Low Overshoot_a"),
-        # ("REMIND-MAgPIE 3.5-4.11", "SSP1 - Very Low Emissions"),
+        (MARKERS_BY_SCENARIOMIP_NAME["ln"]["model"], MARKERS_BY_SCENARIOMIP_NAME["ln"]["scenario"]),
+        (MARKERS_BY_SCENARIOMIP_NAME["l"]["model"], MARKERS_BY_SCENARIOMIP_NAME["l"]["scenario"]),
+        # (MARKERS_BY_SCENARIOMIP_NAME["l"]["model"], MARKERS_BY_SCENARIOMIP_NAME["l"]["scenario"]),
+        # ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions"),
+        # ("AIM 3.0", "SSP2 - Low Overshoot"),
         # ("WITCH 6.0", "SSP5 - Medium-Low Emissions_a"),
     ),
     name=["model", "scenario"],
@@ -254,14 +261,14 @@ if not_attributed:
 # %%
 to_run_l = []
 for i in range(others.size):
-    other_idx = others[[i]]
+    other_idx_mi = others[[i]]
+    other_idx_tuple = others[i]
     for label, emms in to_attribute:
-        model = other_idx[0][other_idx.names.index("model")]
-        scenario = other_idx[0][other_idx.names.index("scenario")]
+        model = other_idx_tuple[others.names.index("model")]
+        scenario = other_idx_tuple[others.names.index("scenario")]
 
-        other_idx = others[[i]]
         variable_loc = pix.isin(variable=emms)
-        start = complete_scenarios.openscm.mi_loc(other_idx).loc[~variable_loc]
+        start = complete_scenarios.openscm.mi_loc(other_idx_mi).loc[~variable_loc]
         replace = base_scen.loc[variable_loc]
         to_run_tmp = pix.concat([start, replace]).pix.assign(
             model=f"{model} -- {scenario} --- {base_model} -- {base_scenario}",
@@ -341,6 +348,8 @@ to_run_openscm_runner = update_index_levels_func(
 to_run_openscm_runner
 
 # %%
+# If you need a clean start
+# db.delete()
 run_scms(
     scenarios=to_run_openscm_runner,
     climate_models_cfgs=climate_models_cfgs,
@@ -359,7 +368,7 @@ gsat_out_runs_raw = db.load(
     pix.isin(variable="Surface Air Temperature Change") & pix.isin(model=to_run_openscm_runner.pix.unique("model"))
     # & pix.isin(scenario=[*base.get_level_values("scenario"), *others.get_level_values("scenario")]),
 )
-gsat_out_runs_raw
+# gsat_out_runs_raw
 
 
 # %%
@@ -381,7 +390,7 @@ gsat_out_runs = update_index_levels_func(
     get_assessed_gsat(gsat_out_runs_raw),
     {"variable": lambda x: assessed_gsat_variable},
 )
-# temperatures_in_line_with_assessment
+# gsat_out_runs
 
 # %%
 gsat_out_normal_workflow_raw = SCM_OUTPUT_DB.load(
@@ -400,13 +409,14 @@ gsat_out_normal_workflow = update_index_levels_func(
     get_assessed_gsat(gsat_out_normal_workflow_raw),
     {"variable": lambda x: assessed_gsat_variable},
 )
-# temperatures_in_line_with_assessment
+gsat_out_normal_workflow = gsat_out_normal_workflow.loc[pix.isin(run_id=gsat_out_runs.index.get_level_values("run_id"))]
+# gsat_out_normal_workflow
 
 # %%
 deltas_total = gsat_out_normal_workflow.openscm.mi_loc(others) - gsat_out_normal_workflow.openscm.mi_loc(
     base
 ).reset_index(["model", "scenario"], drop=True)
-deltas_total.head(1)
+deltas_total
 
 # %%
 gsat_out_runs = gsat_out_runs.pix.format(component="{scenario}").pix.extract(
@@ -421,7 +431,7 @@ deltas_components_total
 
 # %%
 deltas_residual = (deltas_total - deltas_components_total).pix.assign(component="residual")
-# deltas_residual
+deltas_residual
 
 # %%
 deltas_all_components = pix.concat([deltas_residual, deltas_components])
@@ -439,7 +449,7 @@ pd.testing.assert_frame_equal(
 deltas_all_components_median = deltas_all_components.groupby(
     deltas_all_components.index.names.difference(["run_id"])
 ).median()
-# deltas_all_components_median
+deltas_all_components_median
 
 # %%
 plot_years = range(2000, 2100 + 1)
@@ -476,5 +486,3 @@ for (model, scenario), msdf in erfs_deltas_median.groupby(["model", "scenario"])
     fig = ax.get_figure()
     fig.savefig(f"{model}vs{base_model}_erf_deltas_median.pdf", format="pdf", bbox_inches="tight")
     plt.show()
-
-# %%
