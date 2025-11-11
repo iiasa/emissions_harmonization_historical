@@ -131,14 +131,6 @@ def main():
     # iams = ["AIM"]
     # Combos
     # iams = ["COFFEE", "WITCH"]
-    # iams = [
-    #     "WITCH",
-    #     "REMIND",
-    #     "IMAGE",
-    #     "AIM",
-    #     "MESSAGE",
-    #     "COFFEE",
-    # ]
     # # Waiting for submission
     # iams = [
     #     "GCAM",
@@ -153,7 +145,6 @@ def main():
         "COFFEE",
         "AIM",
     ]
-    # iams = ["COFFEE"]
 
     #### Emissions downloading, pre-processing, harmonisation, infilling and post-processing
     # Single notebook
