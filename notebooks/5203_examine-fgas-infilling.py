@@ -174,6 +174,9 @@ ur.enable_contexts("AR6GWP100")
 pint.set_application_registry(ur)
 
 # %%
+
+
+# %%
 pdf = plotting_df.loc[pix.ismatch(variable=gases_to_plot)].pix.convert_unit("Mt CO2/yr")
 
 missing = set(gases_to_plot) - set(pdf.pix.unique("variable"))
@@ -190,6 +193,9 @@ missing = set(gases_to_plot) - set(gas_order)
 if missing:
     raise AssertionError(missing)
 
+gas_order = gas_order[: gas_order.index("Emissions|HFC|HFC32") + 1]
+gases_to_plot = gas_order
+
 pdf = (
     pdf.loc[:, 1990:]
     .openscm.set_index_levels(
@@ -204,13 +210,13 @@ pdf = (
 )
 
 sizes = {v: 0.25 if v not in MARKERS_BY_SCENARIOMIP_NAME else 4 for v in pdf["source"].unique()}
-sns.relplot(
+fg = sns.relplot(
     data=pdf,
     y="value",
     x="time",
     col="variable",
     col_order=gas_order,
-    col_wrap=3,
+    col_wrap=4,
     hue="source",
     size="source",
     sizes=sizes,
@@ -220,6 +226,8 @@ sns.relplot(
     estimator=None,
     facet_kws=dict(sharey=True),
 )
+for ax in fg.axes.flatten():
+    ax.set_ylim(ymax=800)
 
 # %% editable=true slideshow={"slide_type": ""}
 pdf = plotting_df.loc[pix.ismatch(variable=gases_to_plot)]

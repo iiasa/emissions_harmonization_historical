@@ -36,6 +36,8 @@ from gcages.completeness import assert_all_groups_are_complete
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from pandas_openscm.index_manipulation import update_index_levels_func
 
+# ## Set up
+# %%
 from emissions_harmonization_historical.constants_5000 import (
     CMIP7_GHG_PROCESSED_DB,
     HARMONISED_SCENARIO_DB,
@@ -43,6 +45,7 @@ from emissions_harmonization_historical.constants_5000 import (
     INFILLED_OUT_DIR,
     INFILLED_SCENARIOS_DB,
     INFILLING_DB,
+    INFILLING_ID,
     MARKERS_BY_SCENARIOMIP_NAME,
     WMO_2022_PROCESSED_DB,
 )
@@ -59,7 +62,7 @@ from emissions_harmonization_historical.infilling import (
 )
 from emissions_harmonization_historical.scm_running import complete_index_reporting_names
 
-# ## Set up
+INFILLING_ID
 
 # %%
 UR = openscm_units.unit_registry
@@ -169,6 +172,8 @@ if not vl_marker.empty:
     infilled_vl_exception = infilling_db.loc[
         pix.isin(model="Velders et al., 2022", scenario="Kigali2022-lower")
     ].pix.assign(model=vl_model, scenario=vl_scenario)
+    # TODO: remove me
+    infilled_vl_exception = None
 
 else:
     print("vl marker is not in the input scenarios")

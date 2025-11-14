@@ -38,11 +38,19 @@ vl_loc = pix.isin(model=MARKERS_BY_SCENARIOMIP_NAME["vl"]["model"]) & pix.isin(
     scenario=MARKERS_BY_SCENARIOMIP_NAME["vl"]["scenario"]
 )
 
+ln_loc = pix.isin(model=MARKERS_BY_SCENARIOMIP_NAME["ln"]["model"]) & pix.isin(
+    scenario=MARKERS_BY_SCENARIOMIP_NAME["ln"]["scenario"]
+)
+
 # %%
 emissions_l = []
 scm_output_l = []
 metadata_l = []
-for infilling_id, label in (("202511040855", "velders-kigali-low"),):
+for infilling_id, label, locator in (
+    ("202511040855", "velders-kigali-low", vl_loc),
+    ("202511040855", "ln", ln_loc),
+    ("202511040855-vl-standard-infilling", "standard-infilling", vl_loc),
+):
     infilled_out_dir = (
         DATA_ROOT
         / "processed"
@@ -110,16 +118,16 @@ for infilling_id, label in (("202511040855", "velders-kigali-low"),):
     )
 
     emissions_tmp = infilled_scenarios_db.load(
-        vl_loc & pix.isin(stage="complete") & pix.ismatch(variable="**HFC**")
+        locator & pix.isin(stage="complete") & pix.ismatch(variable="**HFC**")
     ).pix.assign(label=label)
     emissions_l.append(emissions_tmp)
 
     scm_output_tmp = scm_output_db.load(
-        vl_loc & pix.ismatch(variable=["Surface Air Temperature Change", "Effective Radiative Forcing|F-Gases"])
+        locator & pix.ismatch(variable=["Surface Air Temperature Change", "Effective Radiative Forcing|F-Gases"])
     ).pix.assign(label=label)
     scm_output_l.append(scm_output_tmp)
 
-    metadata_tmp = post_processed_metadata_quantile_db.load(vl_loc).pix.assign(label=label)
+    metadata_tmp = post_processed_metadata_quantile_db.load(locator).pix.assign(label=label)
     metadata_l.append(metadata_tmp)
 
 emissions = pix.concat(emissions_l)

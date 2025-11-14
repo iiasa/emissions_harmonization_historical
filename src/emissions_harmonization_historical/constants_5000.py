@@ -394,6 +394,7 @@ INFILLING_DB = OpenSCMDB(
 # Moved to portable OpenSCMDB
 INFILLING_ID = "0003"
 INFILLING_ID = "202511040855"
+INFILLING_ID = "202511040855-vl-standard-infilling"
 
 INFILLED_OUT_DIR_ID = "_".join(
     [
