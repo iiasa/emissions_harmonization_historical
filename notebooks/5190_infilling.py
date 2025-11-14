@@ -34,6 +34,7 @@ import silicone.database_crunchers
 import tqdm.auto
 from gcages.completeness import assert_all_groups_are_complete
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
+from IPython.display import display
 from pandas_openscm.index_manipulation import update_index_levels_func
 
 # ## Set up
@@ -193,8 +194,9 @@ for variable in tqdm.auto.tqdm([v for v in infilling_db_silicone.pix.unique("var
         infilling_db=infilling_db_silicone,
         follower_variable=variable,
         lead_variables=[lead],
-        silicone_db_cruncher=silicone.database_crunchers.QuantileRollingWindows,
-        derive_relationship_kwargs=dict(quantile=0.5),
+        silicone_db_cruncher=silicone.database_crunchers.RMSClosest,
+        # silicone_db_cruncher=silicone.database_crunchers.QuantileRollingWindows,
+        # derive_relationship_kwargs=dict(quantile=0.5),
     )
 
 # %%
@@ -205,6 +207,19 @@ infilled_silicone = infill(
 )
 complete_silicone = get_complete(complete_vl_exception, infilled_silicone)
 # complete_silicone
+
+# %%
+for variable, vdf in infilled_silicone.groupby("variable"):
+    tmp = (
+        infilling_db_silicone.loc[pix.ismatch(variable=variable)]
+        .subtract(vdf.reset_index(["model", "scenario"], drop=True), axis="rows")
+        .dropna(how="all", axis="rows")
+        .sum(axis="columns")
+        .abs()
+        .sort_values()
+    )
+    display(tmp[tmp == 0.0])  # nqoa: F821
+    print(f"{variable} infilled from {tmp.index.droplevel(tmp.index.names.difference(['model', 'scenario']))[0]}")
 
 # %%
 if infilled_silicone is None:
