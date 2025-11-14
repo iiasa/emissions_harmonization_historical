@@ -193,8 +193,8 @@ missing = set(gases_to_plot) - set(gas_order)
 if missing:
     raise AssertionError(missing)
 
-gas_order = gas_order[: gas_order.index("Emissions|HFC|HFC32") + 1]
-gases_to_plot = gas_order
+# gas_order = gas_order[: gas_order.index("Emissions|HFC|HFC32") + 1]
+# gases_to_plot = gas_order
 
 pdf = (
     pdf.loc[:, 1990:]
