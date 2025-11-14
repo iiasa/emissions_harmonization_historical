@@ -193,7 +193,8 @@ for variable in tqdm.auto.tqdm([v for v in infilling_db_silicone.pix.unique("var
         infilling_db=infilling_db_silicone,
         follower_variable=variable,
         lead_variables=[lead],
-        silicone_db_cruncher=silicone.database_crunchers.RMSClosest,
+        silicone_db_cruncher=silicone.database_crunchers.QuantileRollingWindows,
+        derive_relationship_kwargs=dict(quantile=0.5),
     )
 
 # %%

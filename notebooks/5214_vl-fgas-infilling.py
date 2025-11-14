@@ -48,8 +48,10 @@ scm_output_l = []
 metadata_l = []
 for infilling_id, label, locator in (
     ("202511040855", "velders-kigali-low", vl_loc),
+    ("202511040855-vl-standard-infilling", "use-closest-co2-fossil-infilling", vl_loc),
+    ("202511040855-vl-5th-infilling", "5th-percentile-infilling", vl_loc),
+    ("202511040855-vl-50th-infilling", "50th-percentile-infilling", vl_loc),
     ("202511040855", "ln", ln_loc),
-    ("202511040855-vl-standard-infilling", "standard-infilling", vl_loc),
 ):
     infilled_out_dir = (
         DATA_ROOT
@@ -118,17 +120,20 @@ for infilling_id, label, locator in (
     )
 
     emissions_tmp = infilled_scenarios_db.load(
-        locator & pix.isin(stage="complete") & pix.ismatch(variable="**HFC**")
+        locator & pix.isin(stage="complete") & pix.ismatch(variable="**HFC**") & ~pix.ismatch(variable="**HFC23")
     ).pix.assign(label=label)
     emissions_l.append(emissions_tmp)
 
-    scm_output_tmp = scm_output_db.load(
-        locator & pix.ismatch(variable=["Surface Air Temperature Change", "Effective Radiative Forcing|F-Gases"])
-    ).pix.assign(label=label)
-    scm_output_l.append(scm_output_tmp)
+    try:
+        scm_output_tmp = scm_output_db.load(
+            locator & pix.ismatch(variable=["Surface Air Temperature Change", "Effective Radiative Forcing|F-Gases"])
+        ).pix.assign(label=label)
+        scm_output_l.append(scm_output_tmp)
 
-    metadata_tmp = post_processed_metadata_quantile_db.load(locator).pix.assign(label=label)
-    metadata_l.append(metadata_tmp)
+        metadata_tmp = post_processed_metadata_quantile_db.load(locator).pix.assign(label=label)
+        metadata_l.append(metadata_tmp)
+    except ValueError:
+        print(f"Missing SCM runs for {infilling_id}")
 
 emissions = pix.concat(emissions_l)
 scm_output = pix.concat(scm_output_l)
@@ -141,16 +146,20 @@ metadata.loc[pix.isin(metric=["max", "2100"]) & pix.isin(quantile=0.5)].unstack(
 
 # %%
 emissions_pdf = emissions.openscm.to_long_data()
+emissions_pdf["ln"] = emissions_pdf["label"] == "ln"
 
 fg = sns.relplot(
     data=emissions_pdf,
     x="time",
     y="value",
     col="variable",
-    col_wrap=3,
+    col_wrap=4,
     hue="label",
+    size="ln",
     facet_kws=dict(sharey=False),
     alpha=0.7,
+    height=2.0,
+    aspect=2.0,
 )
 
 for ax in fg.axes.flatten():
@@ -158,6 +167,7 @@ for ax in fg.axes.flatten():
 
 # %%
 scm_output_pdf = scm_output.loc[:, 2015:].openscm.groupby_except("run_id").median().openscm.to_long_data()
+scm_output_pdf["ln"] = scm_output_pdf["label"] == "ln"
 
 fg = sns.relplot(
     data=scm_output_pdf,
@@ -166,9 +176,12 @@ fg = sns.relplot(
     col="variable",
     # col_wrap=3,
     hue="label",
+    size="ln",
     facet_kws=dict(sharey=False),
     alpha=0.7,
 )
 
 # for ax in fg.axes.flatten():
 #     ax.set_ylim(ymin=0)
+
+# %%

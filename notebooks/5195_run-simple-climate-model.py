@@ -70,14 +70,6 @@ output_dir_model
 # ### Complete scenarios
 
 # %%
-# TODO: make the db portable
-# complete_scenarios = pd.concat([
-#     pd.read_feather(f) for f in INFILLED_SCENARIOS_DB.db_dir.glob("*.feather")
-#     if "index" not in f.name and "filemap" not in f.name
-# ]).loc[pix.isin(stage="complete")].reset_index("stage", drop=True)
-# complete_scenarios
-
-# %%
 complete_scenarios = INFILLED_SCENARIOS_DB.load(
     pix.isin(stage="complete") & pix.ismatch(model=f"*{model}*")
 ).reset_index("stage", drop=True)
@@ -86,14 +78,6 @@ complete_scenarios = INFILLED_SCENARIOS_DB.load(
 # ### History
 #
 # Just in case we need it for MAGICC
-
-# %%
-# TODO: make the db portable
-# history = pd.concat([
-#     pd.read_feather(f) for f in HISTORY_HARMONISATION_DB.db_dir.glob("*.feather")
-#     if "index" not in f.name and "filemap" not in f.name
-# ]).loc[pix.isin(purpose="global_workflow_emissions")].reset_index("purpose", drop=True)
-# history
 
 # %%
 history = HISTORY_HARMONISATION_DB.load(pix.ismatch(purpose="global_workflow_emissions")).reset_index(
