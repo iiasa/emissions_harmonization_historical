@@ -123,7 +123,7 @@ def main():  # noqa : PLR0912
     # Run the notebook
     notebook_prefixes = ["5089"]
     # Skip this step
-    notebook_prefixes = []
+    # notebook_prefixes = []
     for notebook in all_notebooks:
         if any(notebook.name.startswith(np) for np in notebook_prefixes):
             run_notebook(
@@ -165,7 +165,7 @@ def main():  # noqa : PLR0912
     # Everything
     notebook_prefixes = ["5090", "5091", "5092", "5093", "5094"]
     # # Skip this step
-    notebook_prefixes = []
+    # notebook_prefixes = []
 
     for iam in tqdm.tqdm(iams, desc="IAMs pre infilling"):
         for notebook in all_notebooks:
@@ -221,7 +221,7 @@ def main():  # noqa : PLR0912
     # Single notebook: run post-processing of climate outputs
     # notebook_prefixes = ["5196"]
     # Skip this step
-    notebook_prefixes = []
+    # notebook_prefixes = []
     scms = ["MAGICCv7.6.0a3", "MAGICCv7.5.3"]
     for iam, scm in tqdm.tqdm(itertools.product(iams, scms), desc="IAM SCM runs"):
         for notebook in all_notebooks:
