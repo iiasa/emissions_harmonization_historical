@@ -108,7 +108,7 @@ def run_notebook_with_scm(notebook: Path, run_notebooks_dir: Path, iam: str, scm
     )
 
 
-def main():  # noqa: PLR0912
+def main():  # noqa : PLR0912
     """
     Run the 500x series of notebooks
     """
@@ -119,35 +119,19 @@ def main():  # noqa: PLR0912
     notebooks_dir = DEFAULT_NOTEBOOKS_DIR
     all_notebooks = tuple(sorted(notebooks_dir.glob("*.py")))
 
-    ### Processing of biomass burning (surprise bonus as running this by hand is annoying)
-    species = ["CH4"]
-    # # All species
-    species = [
-        ("BC", "BC"),
-        ("CH4", "CH4"),
-        ("CO", "CO"),
-        ("CO2", "CO2"),
-        ("N2O", "N2O"),  # new, to have regional, was global in CMIP6
-        ("NH3", "NH3"),
-        ("NMVOC", "NMVOCbulk"),  # assumed to be equivalent to IAMC-style reported VOC
-        ("NOx", "NOx"),
-        ("OC", "OC"),
-        ("SO2", "SO2"),
-    ]
-
+    ### Download inputs from Zenodo
     # Run the notebook
-    notebook_prefixes = ["5006"]
+    notebook_prefixes = ["5089"]
     # Skip this step
     notebook_prefixes = []
-    for sp, sp_esgf in species[::-1]:
-        for notebook in all_notebooks:
-            if any(notebook.name.startswith(np) for np in notebook_prefixes):
-                run_notebook(
-                    notebook=notebook,
-                    run_notebooks_dir=RUN_NOTEBOOKS_DIR,
-                    parameters={"species": sp, "species_esgf": sp_esgf},
-                    idn=sp,
-                )
+    for notebook in all_notebooks:
+        if any(notebook.name.startswith(np) for np in notebook_prefixes):
+            run_notebook(
+                notebook=notebook,
+                run_notebooks_dir=RUN_NOTEBOOKS_DIR,
+                parameters={},
+                idn="only",
+            )
 
     ### Individual IAM downloading and processing
     # iams = ["REMIND"]
@@ -156,14 +140,6 @@ def main():  # noqa: PLR0912
     # iams = ["AIM"]
     # Combos
     # iams = ["COFFEE", "WITCH"]
-    # iams = [
-    #     "WITCH",
-    #     "REMIND",
-    #     "IMAGE",
-    #     "AIM",
-    #     "MESSAGE",
-    #     "COFFEE",
-    # ]
     # # Waiting for submission
     # iams = [
     #     "GCAM",
@@ -178,9 +154,8 @@ def main():  # noqa: PLR0912
         "COFFEE",
         "AIM",
     ]
-    # iams = ["COFFEE"]
 
-    #### downloading and processing
+    #### Emissions downloading, pre-processing, harmonisation, infilling and post-processing
     # Single notebook
     # notebook_prefixes = ["5090"]
     # # Everything except downloads and reporting checking
@@ -188,7 +163,7 @@ def main():  # noqa: PLR0912
     # # # Downloading and reporting checking
     # # notebook_prefixes = ["5090", "5091", "5092"]
     # Everything
-    # notebook_prefixes = ["5090", "5091", "5092", "5093", "5094"]
+    notebook_prefixes = ["5090", "5091", "5092", "5093", "5094"]
     # # Skip this step
     notebook_prefixes = []
 
@@ -208,9 +183,9 @@ def main():  # noqa: PLR0912
     # (and even then only to a limited degree because it is mostly for F-gases)
     # so this shouldn't make such a big impact.
     # Run the notebook
-    # notebook_prefixes = ["5095"]
+    notebook_prefixes = ["5095"]
     # # Skip this step
-    notebook_prefixes = []
+    # notebook_prefixes = []
     for notebook in all_notebooks:
         if any(notebook.name.startswith(np) for np in notebook_prefixes):
             run_notebook(
@@ -226,9 +201,9 @@ def main():  # noqa: PLR0912
     # only infilling
     # notebook_prefixes = ["5191"]
     # infilling & post-processing emissions
-    # notebook_prefixes = ["5190", "5191"]
+    notebook_prefixes = ["5190", "5191"]
     # Skip this step
-    notebook_prefixes = []
+    # notebook_prefixes = []
     for iam in iams:
         for notebook in all_notebooks:
             if any(notebook.name.startswith(np) for np in notebook_prefixes):
@@ -246,7 +221,7 @@ def main():  # noqa: PLR0912
     # Single notebook: run post-processing of climate outputs
     # notebook_prefixes = ["5196"]
     # Skip this step
-    # notebook_prefixes = []
+    notebook_prefixes = []
     scms = ["MAGICCv7.6.0a3", "MAGICCv7.5.3"]
     for iam, scm in tqdm.tqdm(itertools.product(iams, scms), desc="IAM SCM runs"):
         for notebook in all_notebooks:

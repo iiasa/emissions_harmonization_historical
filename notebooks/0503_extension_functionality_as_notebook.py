@@ -89,6 +89,9 @@ scenarios_regional = HARMONISED_SCENARIO_DB.load()
 history_regional = HISTORY_HARMONISATION_DB.load()
 
 
+# %%
+scenarios_regional.pix.unique("region")
+
 # %% [markdown]
 # Marker definitions
 
