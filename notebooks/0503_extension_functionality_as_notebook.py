@@ -92,6 +92,16 @@ history_regional = HISTORY_HARMONISATION_DB.load()
 # %%
 scenarios_regional.pix.unique("region")
 
+# %%
+unique_model_scenario_pairs = scenarios_complete_global.index.droplevel(
+    ["region", "variable", "unit"]
+).drop_duplicates()
+
+print(f"Number of unique model-scenario pairs: {len(unique_model_scenario_pairs)}")
+print("\nUnique model-scenario pairs:")
+for i, (model, scenario) in enumerate(unique_model_scenario_pairs, 1):
+    print(f"{i:2d}. {model} | {scenario}")
+
 # %% [markdown]
 # Marker definitions
 
@@ -103,7 +113,7 @@ scenario_model_match = {
         "tab:blue",
     ],  # old VLLO
     "LN": ["SSP2 - Low Overshoot_a", "AIM 3.0", "tab:cyan"],  # old VLHO
-    "L": ["SSP2 - Low Emissions_f", "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "tab:green"],
+    "L": ["SSP2 - Low Emissions", "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "tab:green"],
     "ML": ["SSP2 - Medium-Low Emissions", "COFFEE 1.6", "tab:pink"],
     "M": ["SSP2 - Medium Emissions", "IMAGE 3.4", "tab:purple"],
     "H": ["SSP3 - High Emissions", "GCAM 8s", "tab:red"],
@@ -393,7 +403,7 @@ def do_all_non_co2_extensions(scenarios_complete_global, history):
 # ## Do main block of non-fossil CO2 extensions first
 
 # %%
-do_and_write_to_csv = False
+do_and_write_to_csv = True
 if do_and_write_to_csv:
     df_all = do_all_non_co2_extensions(scenarios_complete_global, history)
     df_all.to_csv("first_draft_extended_nonCO2_all.csv")

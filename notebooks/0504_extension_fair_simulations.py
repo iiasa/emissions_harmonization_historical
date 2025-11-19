@@ -307,8 +307,6 @@ f.run()
 nohos = [x for x in f.scenarios]
 
 # %%
-
-# %%
 fig, ax = pl.subplots(1, 2, figsize=(12, 5))
 
 unc = np.tanh((co2e.sel(scenario=nohos[0]) - co2e.sel(scenario=nohos[-2])) / 1e6 / 10) * 8

@@ -2,6 +2,12 @@
   "AIM 3.0": {
     "SSP2 - Low Overshoot_a": 20
   },
+  "COFFEE 1.6": {
+    "SSP2 - Medium-Low Emissions": 9
+  },
+  "GCAM 8s": {
+    "SSP3 - High Emissions": 2
+  },
   "IMAGE 3.4": {
     "SSP2 - Medium Emissions": 23
   },
