@@ -165,21 +165,38 @@ vl_scenario = MARKERS_BY_SCENARIOMIP_NAME["vl"]["scenario"]
 vl_marker = harmonised.loc[pix.isin(model=vl_model) & pix.isin(scenario=vl_scenario)]
 
 if not vl_marker.empty:
-    print(f"Infilling {vl_model} {vl_scenario} with Velders lower Kigali scenario")
-    infilled_vl_exception = infilling_db.loc[
-        pix.isin(model="Velders et al., 2022", scenario="Kigali2022-lower")
-    ].pix.assign(model=vl_model, scenario=vl_scenario)
-    # TODO: implement whatever the final decision is
-    infilled_vl_exception = None
-    # for variable in tqdm.auto.tqdm([v for v in infilling_db_silicone.pix.unique("variable") if v != lead]):
-    #     infillers_silicone[variable] = get_silicone_based_infiller(
-    #         infilling_db=infilling_db_silicone,
-    #         follower_variable=variable,
-    #         lead_variables=[lead],
-    #         silicone_db_cruncher=silicone.database_crunchers.RMSClosest,
-    #         # silicone_db_cruncher=silicone.database_crunchers.QuantileRollingWindows,
-    #         # derive_relationship_kwargs=dict(quantile=0.5),
-    #     )
+    # print(f"Infilling {vl_model} {vl_scenario} with Velders lower Kigali scenario")
+    # infilled_vl_exception = infilling_db.loc[
+    #     pix.isin(model="Velders et al., 2022", scenario="Kigali2022-lower")
+    # ].pix.assign(model=vl_model, scenario=vl_scenario)
+
+    print(f"Infilling {vl_model} {vl_scenario} with RMS closest")
+    lead_vl_marker = "Emissions|CO2|Energy and Industrial Processes"
+    infillers_silicone_vl_marker = {}
+    for variable in tqdm.auto.tqdm([v for v in infilling_db_silicone.pix.unique("variable") if v != lead_vl_marker]):
+        infillers_silicone_vl_marker[variable] = get_silicone_based_infiller(
+            infilling_db=infilling_db_silicone,
+            follower_variable=variable,
+            lead_variables=[lead_vl_marker],
+            silicone_db_cruncher=silicone.database_crunchers.RMSClosest,
+        )
+
+    infilled_vl_exception = infill(
+        vl_marker,
+        infillers_silicone_vl_marker,
+    )
+
+    for variable, vdf in infilled_vl_exception.groupby("variable"):
+        tmp = (
+            infilling_db_silicone.loc[pix.ismatch(variable=variable)]
+            .subtract(vdf.reset_index(["model", "scenario"], drop=True), axis="rows")
+            .dropna(how="all", axis="rows")
+            .sum(axis="columns")
+            .abs()
+            .sort_values()
+        )
+        display(tmp[tmp == 0.0])  # noqa: F821
+        print(f"{variable} infilled from {tmp.index.droplevel(tmp.index.names.difference(['model', 'scenario']))[0]}")
 
 else:
     print("vl marker is not in the input scenarios")
@@ -200,6 +217,8 @@ for variable in tqdm.auto.tqdm([v for v in infilling_db_silicone.pix.unique("var
         follower_variable=variable,
         lead_variables=[lead],
         silicone_db_cruncher=silicone.database_crunchers.RMSClosest,
+        # silicone_db_cruncher=silicone.database_crunchers.QuantileRollingWindows,
+        # derive_relationship_kwargs=dict(quantile=0.5),
     )
 
 # %%
@@ -212,24 +231,12 @@ complete_silicone = get_complete(complete_vl_exception, infilled_silicone)
 # complete_silicone
 
 # %%
-# for variable, vdf in infilled_silicone.groupby("variable"):
-#     tmp = (
-#         infilling_db_silicone.loc[pix.ismatch(variable=variable)]
-#         .subtract(vdf.reset_index(["model", "scenario"], drop=True), axis="rows")
-#         .dropna(how="all", axis="rows")
-#         .sum(axis="columns")
-#         .abs()
-#         .sort_values()
-#     )
-#     display(tmp[tmp == 0.0])  # nqoa: F821
-#     print(f"{variable} infilled from {tmp.index.droplevel(tmp.index.names.difference(['model', 'scenario']))[0]}")
-
-# %%
-if infilled_silicone is None:
+if infilled_silicone is None and infilled_vl_exception is None:
     print("Nothing infilled with silicone")
 
 else:
-    col_order = [lead, *sorted(infilled_silicone.pix.unique("variable"))]
+    start = pix.concat([v for v in [infilled_vl_exception, infilled_silicone] if v is not None])
+    col_order = [lead, *sorted(start.pix.unique("variable"))]
     infilling_db_silicone_plt = infilling_db_silicone.loc[pix.isin(variable=col_order)]
     # # This is why we get the crazy spike in HFC43-10.
     # # Have emailed the REMIND team to get them to check.
