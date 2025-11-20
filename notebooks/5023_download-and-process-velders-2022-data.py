@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -78,6 +78,7 @@ scenario_files
 
 # %%
 def load_velders_scenario(sf: Path, sheet: str) -> pd.DataFrame:
+    """Load a Velders scenario from Excel file."""
     scenario_name_base = sf.name.split("HFC_")[1].split("_Scenario")[0]
 
     scenario_name = f"{scenario_name_base}-{sheet.lower()}"

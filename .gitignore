@@ -230,3 +230,5 @@ dmypy.json
 # Notebook output dumps
 notebooks/*.csv
 notebooks/*.json
+
+*.csv

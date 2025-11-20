@@ -5,9 +5,9 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.18.1
 #   kernelspec:
-#     display_name: Python 3 (ipykernel)
+#     display_name: default
 #     language: python
 #     name: python3
 # ---
@@ -94,6 +94,17 @@ raw_gsat_variable_in = "Surface Air Temperature Change"
 # %%
 in_df = SCM_OUTPUT_DB.load(pix.ismatch(variable=raw_gsat_variable_in, model=f"*{model}*", climate_model=f"*{scm}*"))
 # in_df
+
+# %%
+# Diagnostic: Check year range loaded from database
+print(f"Year range in in_df: {in_df.columns.min()} to {in_df.columns.max()}")
+print(f"Shape: {in_df.shape}")
+print(f"Scenarios: {sorted(in_df.pix.unique('scenario'))}")
+
+# Check if there are duplicates or multiple entries
+for scenario in in_df.pix.unique("scenario"):
+    scenario_data = in_df.loc[in_df.index.get_level_values("scenario") == scenario]
+    print(f"  {scenario}: {scenario_data.columns.min()} to {scenario_data.columns.max()}, {len(scenario_data)} rows")
 
 # %% [markdown]
 # ## Emissions

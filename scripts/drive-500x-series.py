@@ -47,6 +47,13 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
         res = {"model": iam}
 
     elif notebook_name in [
+        "5190a_extension_pipeline.py",
+    ]:
+        # Extensions run once for all IAMs, no IAM parameter needed
+        # But we can control plotting behavior
+        res = {"make_plots": False}
+
+    elif notebook_name in [
         "5195_run-simple-climate-model.py",
         "5196_post-process-simple-climate-model-output.py",
     ]:
@@ -196,12 +203,34 @@ def main():  # noqa : PLR0912
             )
 
     ### Infilling & Post-processing of emissions
-    # only infilling
-    # notebook_prefixes = ["5190"]
-    # only infilling
-    # notebook_prefixes = ["5191"]
-    # infilling & post-processing emissions
-    notebook_prefixes = ["5190", "5191"]
+    # Step 1: Infilling per IAM (writes to temp database)
+    # notebook_prefixes = ["5190_"]
+    # Skip this step
+    notebook_prefixes = []
+    for iam in iams:
+        for notebook in all_notebooks:
+            if any(notebook.name.startswith(np) for np in notebook_prefixes):
+                run_notebook_iam(
+                    notebook=notebook,
+                    run_notebooks_dir=RUN_NOTEBOOKS_DIR,
+                    iam=iam,
+                )
+
+    # Step 2: Extensions (run once, reads temp DB, writes final DB with both stages)
+    notebook_prefixes = ["5190a"]
+    # Skip this step
+    notebook_prefixes = []
+    for notebook in all_notebooks:
+        if any(notebook.name.startswith(np) for np in notebook_prefixes):
+            run_notebook(
+                notebook=notebook,
+                run_notebooks_dir=RUN_NOTEBOOKS_DIR,
+                parameters={},
+                idn="all_iams",
+            )
+
+    # Step 3: Post-processing per IAM (reads final DB)
+    notebook_prefixes = ["5191"]
     # Skip this step
     notebook_prefixes = []
     for iam in iams:

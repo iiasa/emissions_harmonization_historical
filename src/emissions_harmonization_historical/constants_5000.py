@@ -405,9 +405,35 @@ INFILLED_OUT_DIR_ID = "_".join(
 
 INFILLED_OUT_DIR = DATA_ROOT / "processed" / "infilled" / INFILLED_OUT_DIR_ID
 
-# Database into which infilled data is saved
-INFILLED_SCENARIOS_DB = OpenSCMDB(
+# Temporary database for infilled data before extensions (1750-2100)
+# This is written by 5190_infilling.py and read by 5190a_extension_pipeline.py
+INFILLED_SCENARIOS_DB_2100 = OpenSCMDB(
     db_dir=INFILLED_OUT_DIR / "db",
+    backend_data=FeatherDataBackend(),
+    backend_index=FeatherIndexBackend(),
+)
+
+# ID for the scenario extension step
+# Moved to portable OpenSCMDB
+EXTENSIONS_ID = "0001"
+
+INFILLED_OUT_DIR_ID_WITH_EXTENSIONS = "_".join(
+    [
+        DOWNLOAD_SCENARIOS_ID,
+        PRE_PROCESSING_ID,
+        HISTORY_FOR_HARMONISATION_ID,
+        HARMONISATION_ID,
+        INFILLING_ID,
+        EXTENSIONS_ID,
+    ]
+)
+
+INFILLED_OUT_DIR_WITH_EXTENSIONS = DATA_ROOT / "processed" / "infilled" / INFILLED_OUT_DIR_ID_WITH_EXTENSIONS
+
+# Final database for infilled data after extensions (1750-2100 for all, 1750-2500 for markers)
+# This is written by 5190a_extension_pipeline.py and read by downstream notebooks
+INFILLED_SCENARIOS_DB = OpenSCMDB(
+    db_dir=INFILLED_OUT_DIR_WITH_EXTENSIONS / "db",
     backend_data=FeatherDataBackend(),
     backend_index=FeatherIndexBackend(),
 )

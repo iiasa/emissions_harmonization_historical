@@ -21,9 +21,11 @@
 # ## Imports
 
 # %%
+import logging
 import multiprocessing
 import os
 import platform
+import warnings
 from functools import partial
 
 import openscm_units
@@ -42,7 +44,19 @@ from emissions_harmonization_historical.constants_5000 import (
     SCM_OUT_DIR,
     SCM_OUTPUT_DB,
 )
-from emissions_harmonization_historical.scm_running import get_complete_scenarios_for_magicc, load_magicc_cfgs
+from emissions_harmonization_historical.scm_running import (
+    get_complete_scenarios_for_magicc,
+    load_magicc_cfgs,
+)
+
+# Suppress expected MAGICC warnings about extending solar forcing to 2500
+# The solar RF data is already extended to 2500, but MAGICC's Fortran code
+# warns that it's using extrapolated (not observed) data beyond 2100
+warnings.filterwarnings("ignore", message=".*Extending solar RF.*")
+warnings.filterwarnings("ignore", message=".*magicc logged a WARNING message.*")
+warnings.filterwarnings("ignore", category=UserWarning, module="pymagicc.core")
+# Also suppress at the source
+logging.getLogger("pymagicc").setLevel(logging.ERROR)
 
 # %% [markdown]
 # ## Set up
@@ -67,20 +81,29 @@ output_dir_model
 # ## Load data
 
 # %% [markdown]
-# ### Complete scenarios
+# ### Complete scenarios (extended to 2500)
 
 # %%
-# TODO: make the db portable
-# complete_scenarios = pd.concat([
-#     pd.read_feather(f) for f in INFILLED_SCENARIOS_DB.db_dir.glob("*.feather")
-#     if "index" not in f.name and "filemap" not in f.name
-# ]).loc[pix.isin(stage="complete")].reset_index("stage", drop=True)
-# complete_scenarios
-
-# %%
+# Load extended scenarios (1750-2500) for climate model runs
+# These are the 7 marker scenarios extended beyond 2100
 complete_scenarios = INFILLED_SCENARIOS_DB.load(
-    pix.isin(stage="complete") & pix.ismatch(model=f"*{model}*")
+    pix.isin(stage="extended") & pix.ismatch(model=f"*{model}*")
 ).reset_index("stage", drop=True)
+
+# Filter out internal diagnostic variables that aren't part of CMIP7 naming convention
+internal_variables = [
+    "Emissions|CO2|Gross Positive Emissions",
+    "Emissions|CO2|Gross Removals",
+]
+complete_scenarios = complete_scenarios.loc[
+    ~complete_scenarios.index.get_level_values("variable").isin(internal_variables)
+]
+
+# %%
+# Check year range to verify we have extended scenarios
+print(f"Year range in complete_scenarios: {complete_scenarios.columns.min()} to {complete_scenarios.columns.max()}")
+print(f"Number of scenarios: {len(complete_scenarios.pix.unique('scenario'))}")
+print(f"Scenarios: {list(complete_scenarios.pix.unique('scenario'))}")
 
 # %% [markdown]
 # ### History
@@ -202,11 +225,16 @@ if scm in ["MAGICCv7.5.3", "MAGICCv7.6.0a3"]:
         history=history,
     )
 
-elif scm in ["FAIRv2.2.2"]:
-    raise NotImplementedError(scm)
+    # Convert year columns from float to int to avoid MAGICC namelist errors
+    # MAGICC's Fortran namelist reader expects integer years, not floats
+    complete_scm.columns = complete_scm.columns.astype(int)
 
-else:
-    raise NotImplementedError(scm)
+# Check year range after MAGICC preparation
+print(f"Year range in complete_scm: {complete_scm.columns.min()} to {complete_scm.columns.max()}")
+
+
+# %%
+
 
 # complete_scm
 
@@ -290,7 +318,12 @@ class db_hack:
 
     def save(self, *args, **kwargs):
         """Save"""
-        return self.actual_db.save(*args, **kwargs, groupby=["model", "scenario", "variable"], allow_overwrite=True)
+        return self.actual_db.save(
+            *args,
+            **kwargs,
+            groupby=["model", "scenario", "variable"],
+            allow_overwrite=True,
+        )
 
 
 # %%
@@ -310,8 +343,44 @@ run_scms(
     verbose=True,
     progress=True,
     batch_size_scenarios=15,
-    force_rerun=False,
+    force_rerun=True,  # CHANGED: Must re-run for extended scenarios to 2500
 )
+
+# %%
+# Check what was actually saved by run_scms to the database
+scm_output_check = SCM_OUTPUT_DB.load(pix.ismatch(model=f"*{model}*", climate_model=f"*{scm}*"))
+if not scm_output_check.empty:
+    print(f"Year range in SCM_OUTPUT_DB: {scm_output_check.columns.min()} to {scm_output_check.columns.max()}")
+    print(f"Variables in SCM_OUTPUT_DB: {sorted(scm_output_check.pix.unique('variable'))}")
+
+    # DIAGNOSTIC: Check scenarios and their year ranges
+    print("DIAGNOSTIC: Scenarios in database:")
+    for scenario in sorted(scm_output_check.pix.unique("scenario")):
+        scenario_data = scm_output_check.loc[scm_output_check.index.get_level_values("scenario") == scenario]
+        temp_data = scenario_data.loc[
+            scenario_data.index.get_level_values("variable") == "Surface Air Temperature Change"
+        ]
+        if not temp_data.empty:
+            print(f"  {scenario}: {temp_data.columns.min()} to {temp_data.columns.max()}")
+
+    # DIAGNOSTIC: Check year range for Surface Air Temperature Change specifically
+    temp_var = scm_output_check.loc[
+        scm_output_check.index.get_level_values("variable") == "Surface Air Temperature Change"
+    ]
+    if not temp_var.empty:
+        print(
+            f"DIAGNOSTIC: 'Surface Air Temperature Change' year range: "
+            f"{temp_var.columns.min()} to {temp_var.columns.max()}"
+        )
+        # Check if there's a 'stage' index level
+        if "stage" in temp_var.index.names:
+            print(f"DIAGNOSTIC: 'stage' values in temp data: {sorted(temp_var.pix.unique('stage'))}")
+        else:
+            print("DIAGNOSTIC: No 'stage' index level found in temperature data!")
+    else:
+        print("DIAGNOSTIC: 'Surface Air Temperature Change' not found in database!")
+else:
+    print("No SCM output found in database yet")
 
 # %% [markdown]
 # ## Save
@@ -320,4 +389,24 @@ run_scms(
 # Here we also save the emissions that were actually used by the SCM.
 
 # %%
+# DIAGNOSTIC: Check what's in complete_scm before saving
+print(f"DIAGNOSTIC: complete_scm year range before save: {complete_scm.columns.min()} to {complete_scm.columns.max()}")
+print(f"DIAGNOSTIC: complete_scm variables: {sorted(complete_scm.pix.unique('variable')[:5])}...")  # Show first 5
+
+# Check what's already in the database before overwriting
+existing_data = SCM_OUTPUT_DB.load(pix.ismatch(model=f"*{model}*", climate_model=f"*{scm}*"))
+if not existing_data.empty:
+    print(
+        f"DIAGNOSTIC: Existing data in SCM_OUTPUT_DB before overwrite: "
+        f"{existing_data.columns.min()} to {existing_data.columns.max()}"
+    )
+    print(f"DIAGNOSTIC: Existing variables: {sorted(existing_data.pix.unique('variable')[:5])}...")
+
 SCM_OUTPUT_DB.save(complete_scm.pix.assign(climate_model=scm), allow_overwrite=True)
+
+# DIAGNOSTIC: Check what's in the database AFTER saving
+final_data = SCM_OUTPUT_DB.load(pix.ismatch(model=f"*{model}*", climate_model=f"*{scm}*"))
+print(
+    f"DIAGNOSTIC: Final data in SCM_OUTPUT_DB after save: " f"{final_data.columns.min()} to {final_data.columns.max()}"
+)
+print(f"DIAGNOSTIC: Final variables: {sorted(final_data.pix.unique('variable')[:5])}...")

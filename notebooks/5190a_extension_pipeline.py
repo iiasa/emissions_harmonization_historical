@@ -1,3 +1,20 @@
+# ---
+# jupyter:
+#   jupytext:
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.18.1
+#   kernelspec:
+#     display_name: Python 3 (ipykernel)
+#     language: python
+#     name: python3
+# ---
+
+# %%
+# ruff: noqa: E402
+
 # %% [markdown]
 # # Extensions of Marker Scenarios
 
@@ -7,14 +24,14 @@
 # %%
 import ast
 import copy
-import difflib
 import glob
 import json
 import os
 import re
+import sys
 from datetime import datetime
+from pathlib import Path
 
-# %%
 import matplotlib.pyplot as plt
 import numpy as np
 import openscm_units
@@ -24,12 +41,24 @@ import pandas_openscm
 import seaborn as sns
 import tqdm.auto
 
+# Add notebooks directory to path for helper function imports
+# When run by papermill, we need to find the notebooks directory relative to the repo root
+repo_root = Path.cwd()
+notebooks_dir = repo_root / "notebooks"
+if notebooks_dir.exists() and str(notebooks_dir) not in sys.path:
+    sys.path.insert(0, str(notebooks_dir))
+elif str(Path.cwd()) not in sys.path:
+    # Fallback: add current directory
+    sys.path.insert(0, str(Path.cwd()))
+
 # Package imports
 from afolu_extension_functions import (
     get_cumulative_afolu,
     get_cumulative_afolu_fill_from_hist,
 )
-from extensions_fossil_co2_storyline_functions import extend_co2_for_scen_storyline
+from extensions_fossil_co2_storyline_functions import (
+    extend_co2_for_scen_storyline,
+)
 from extensions_functions_for_non_co2 import (
     do_single_component_for_scenario_model_regionally,
     plot_just_global,
@@ -45,6 +74,7 @@ from emissions_harmonization_historical.constants_5000 import (
     HARMONISED_SCENARIO_DB,
     HISTORY_HARMONISATION_DB,
     INFILLED_SCENARIOS_DB,
+    INFILLED_SCENARIOS_DB_2100,
 )
 
 # from emissions_harmonization_historical.constants import DATA_ROOT
@@ -63,11 +93,15 @@ SCENARIO_END_YEAR = 2100
 TUPLE_LENGTH_WITH_STAGE = 6
 MAX_YEARS_FOR_MARKERS = 50
 
+# %% tags=["parameters"]
+# Papermill parameters
+make_plots: bool = False
+
 # %% [markdown]
 # More preamble
 
 # %%
-save_plots = True
+save_plots = make_plots
 dump_with_full_scenario_names = True
 
 pandas_openscm.register_pandas_accessor()
@@ -79,7 +113,7 @@ Q = UR.Quantity
 # ## Loading scenarios
 
 # %%
-scenarios_complete_global = INFILLED_SCENARIOS_DB.load(pix.isin(stage="complete")).reset_index("stage", drop=True)
+scenarios_complete_global = INFILLED_SCENARIOS_DB_2100.load(pix.isin(stage="complete")).reset_index("stage", drop=True)
 scenarios_complete_global  # TODO: drop 2100 end once we have usable scenario data post-2100
 history = HISTORY_HARMONISATION_DB.load(pix.ismatch(purpose="global_workflow_emissions")).reset_index(
     "purpose", drop=True
@@ -882,8 +916,7 @@ axes[7].set_visible(False)
 
 # Add overall title
 fig.suptitle(
-    "Gross Positive vs CDR vs Net FFI Emissions by Scenario\n"
-    "Brown = Positive, Green = CDR, Black lines = Net result",
+    "Gross Positive vs CDR vs Net FFI Emissions by Scenario\nBrown = Positive, Green = CDR, Black lines = Net result",
     fontsize=16,
     fontweight="bold",
 )
@@ -1419,6 +1452,45 @@ for model in continuous_timeseries_concise.pix.unique("model"):
     dump_data_per_model(continuous_timeseries_concise, model)
 
 
+# %% [markdown]
+# ## Save to final database
+#
+# Save both stage="complete" (passthrough from 2100 infilling) and
+# stage="extended" (extended markers to 2500) to the final INFILLED_SCENARIOS_DB.
+
+# %%
+print("\n=== SAVING TO FINAL DATABASE ===")
+
+# Load all stage="complete" data from the temp database (all IAMs, 1750-2100)
+print("Loading stage='complete' data from temp database...")
+scenarios_complete_all = INFILLED_SCENARIOS_DB_2100.load(pix.isin(stage="complete"))
+print(f"Loaded complete scenarios: {scenarios_complete_all.shape}")
+
+# Save complete scenarios to final database (passthrough)
+print("Saving stage='complete' to final database...")
+INFILLED_SCENARIOS_DB.save(scenarios_complete_all, allow_overwrite=True)
+
+# Save extended scenarios to final database (7 markers, 1750-2500)
+print("Saving stage='extended' to final database...")
+continuous_timeseries_extended = continuous_timeseries_concise.copy()
+
+# Filter out internal diagnostic variables that aren't part of CMIP7 naming convention
+internal_variables = [
+    "Emissions|CO2|Gross Positive Emissions",
+    "Emissions|CO2|Gross Removals",
+]
+continuous_timeseries_extended = continuous_timeseries_extended.loc[
+    ~continuous_timeseries_extended.index.get_level_values("variable").isin(internal_variables)
+]
+
+continuous_timeseries_extended["stage"] = "extended"
+continuous_timeseries_extended = continuous_timeseries_extended.set_index("stage", append=True)
+# Keep integer columns for compatibility with downstream notebooks
+INFILLED_SCENARIOS_DB.save(continuous_timeseries_extended, allow_overwrite=True)
+
+print("✅ Final database saved with both complete and extended stages")
+
+
 # %%
 # Plot Gross Removals for all scenarios
 def plot_gross_removals(data, scenario_colors=None):
@@ -1519,7 +1591,8 @@ def plot_gross_removals(data, scenario_colors=None):
 
 
 # Execute the plotting function
-fig_removals, ax_removals = plot_gross_removals(continuous_timeseries_concise, scenario_model_match)
+if make_plots:
+    fig_removals, ax_removals = plot_gross_removals(continuous_timeseries_concise, scenario_model_match)
 
 # %%
 # === Comprehensive CO2 Flux Analysis: Annual vs Cumulative ===
@@ -1796,8 +1869,9 @@ def _format_both_axes(ax_annual, ax_cumul, scenario, i):
 
 
 # Create the comprehensive plot
-fig_comprehensive = plot_comprehensive_co2_analysis()
-plt.show()
+if make_plots:
+    fig_comprehensive = plot_comprehensive_co2_analysis()
+    plt.show()
 
 # %%
 raw_output.pix.unique("variable").values
@@ -1829,8 +1903,7 @@ def plot_comprehensive_co2_analysis_with_history():
     n_scenarios = len(scenarios)
 
     print(
-        f"Creating comprehensive flux analysis (with history) for {n_scenarios} scenarios "
-        f"across {len(all_years)} years"
+        f"Creating comprehensive flux analysis (with history) for {n_scenarios} scenarios across {len(all_years)} years"
     )
 
     fig, axes = plt.subplots(n_scenarios, 2, figsize=(10, 3 * n_scenarios))
@@ -2135,8 +2208,7 @@ def plot_bulk_co2_analysis_with_history():
     n_scenarios = len(scenarios)
 
     print(
-        f"Creating comprehensive flux analysis (with history) for {n_scenarios} scenarios "
-        f"across {len(all_years)} years"
+        f"Creating comprehensive flux analysis (with history) for {n_scenarios} scenarios across {len(all_years)} years"
     )
 
     fig, axes = plt.subplots(n_scenarios, 2, figsize=(10, 4 * n_scenarios))
@@ -2570,150 +2642,5 @@ def plot_co2_transition_period(data, scenario_colors=None, start_year=1990, end_
 
 
 # Create the transition period plot
-fig_transition, ax_transition = plot_co2_transition_period(continuous_timeseries_concise, scenario_model_match)
-
-# %%
-native_emissions = copy.deepcopy(continuous_timeseries_concise)
-
-# %%
-# Rename the 'scenario' index level to 'long_scenario' in continuous_timeseries_concise
-if "scenario" in continuous_timeseries_concise.index.names:
-    continuous_timeseries_concise.index = continuous_timeseries_concise.index.set_names(
-        [name if name != "scenario" else "long_scenario" for name in continuous_timeseries_concise.index.names]
-    )
-    print("Renamed 'scenario' index level to 'long_scenario'.")
-else:
-    print("No 'scenario' level in index.")
-continuous_timeseries_concise.head()
-
-# %%
-# Add a new 'scenario' column with the short name from scenario_model_match
-# Assumes 'long_scenario' is now the index level for scenario
-if "long_scenario" in continuous_timeseries_concise.index.names:
-    # Build a mapping from long_scenario to short scenario name
-    long_to_short = {v[0]: k for k, v in scenario_model_match.items()}
-    # Reset index to add a column
-    df_temp = continuous_timeseries_concise.reset_index()
-    df_temp["scenario"] = df_temp["long_scenario"].map(long_to_short)
-    # Move 'scenario' column to the front for clarity
-    cols = ["scenario"] + [col for col in df_temp.columns if col != "scenario"]
-    df_temp = df_temp[cols]
-    # Set index back to original (including new scenario column if desired)
-    continuous_timeseries_concise = df_temp.set_index(continuous_timeseries_concise.index.names)
-    print("Added 'scenario' column with short names.")
-else:
-    print("No 'long_scenario' level in index.")
-
-# %%
-# Remove leading 'Emissions|' from variable names in the index of continuous_timeseries_concise
-if "variable" in continuous_timeseries_concise.index.names:
-    var_idx = continuous_timeseries_concise.index.names.index("variable")
-    new_index = [
-        tuple(
-            [
-                *v[:var_idx],
-                (v[var_idx].replace("Emissions|", "", 1) if v[var_idx].startswith("Emissions|") else v[var_idx]),
-                *v[var_idx + 1 :],
-            ]
-        )
-        for v in continuous_timeseries_concise.index
-    ]
-    continuous_timeseries_concise.index = pd.MultiIndex.from_tuples(
-        new_index, names=continuous_timeseries_concise.index.names
-    )
-    print("Removed leading 'Emissions|' from variable names in index.")
-else:
-    print("No 'variable' level in index.")
-continuous_timeseries_concise.head()
-
-# %%
-fair_vars = pd.read_csv("../data/fair-inputs/species_configs_properties_1.4.1.csv")["name"]
-
-
-# %%
-# Extract unique variables from continuous_timeseries_concise
-unique_variables = continuous_timeseries_concise.pix.unique("variable")
-print(f"Number of unique variables: {len(unique_variables)}")
-print("Unique variables in continuous_timeseries_concise:")
-for var in sorted(unique_variables):
-    print(f"  {var}")
-
-# %%
-# Attempt to map unique_variables to their likely pairing in fair_vars
-
-fair_vars = pd.read_csv("../data/fair-inputs/species_configs_properties_1.4.1.csv")["name"]
-mapping = {}
-for var in unique_variables:
-    # Try exact match first
-    if var in fair_vars.values:
-        mapping[var] = var
-    else:
-        # Use difflib to find the closest match
-        close_matches = difflib.get_close_matches(var, fair_vars, n=1, cutoff=0.6)
-        mapping[var] = close_matches[0] if close_matches else None
-print("Variable mapping (DataFrame variable → FaIR variable):")
-mapping["CO2|Energy and Industrial Processes"] = "CO2 FFI"
-mapping["Halon1202"] = "Halon-1202"
-
-for k, v in mapping.items():
-    print(f"{k} → {v}")
-
-
-# %%
-# Update the DataFrame to use the FaIR variable names in the 'variable' index level
-def map_variable_name(var):
-    """Map variable name to FaIR variable name using mapping dictionary."""
-    return mapping.get(var, var)  # fallback to original if no mapping found
-
-
-new_index = list(continuous_timeseries_concise.index)
-new_index = [
-    tuple(
-        map_variable_name(v) if name == "variable" else v
-        for name, v in zip(continuous_timeseries_concise.index.names, idx)
-    )
-    for idx in new_index
-]
-continuous_timeseries_concise.index = pd.MultiIndex.from_tuples(
-    new_index, names=continuous_timeseries_concise.index.names
-)
-print("Updated DataFrame to use FaIR variable names in the index.")
-
-
-# %%
-# Update year columns to be float and add 0.5 to each (e.g., 1750.5, 1751.5, ...)
-def shift_year_columns(df):
-    """Update year columns to be float and add 0.5 to each (e.g., 1750.5, 1751.5, ...)."""
-    new_columns = []
-    for col in df.columns:
-        try:
-            year = float(col)
-            new_columns.append(year + 0.5)
-        except (ValueError, TypeError):
-            new_columns.append(col)
-    df.columns = new_columns
-    return df
-
-
-continuous_timeseries_concise = shift_year_columns(continuous_timeseries_concise)
-print("Year columns updated to float and shifted by 0.5.")
-
-# %%
-# Remove all rows where the combination of scenario (column) and variable (index) is not unique
-if "scenario" in continuous_timeseries_concise.columns and "variable" in continuous_timeseries_concise.index.names:
-    idx_df = continuous_timeseries_concise.reset_index()[["scenario", "variable"]]
-    duplicated_pairs = idx_df.duplicated(subset=["scenario", "variable"], keep=False)
-    to_keep = ~duplicated_pairs.values
-    before = len(continuous_timeseries_concise)
-    continuous_timeseries_concise = continuous_timeseries_concise.reset_index()[to_keep].set_index(
-        continuous_timeseries_concise.index.names
-    )
-    after = len(continuous_timeseries_concise)
-    print(
-        f"Removed all rows with non-unique scenario/variable pairs. Remaining rows: {after} (removed {before - after})"
-    )
-else:
-    print("'scenario' column and/or 'variable' index not found.")
-
-# %%
-continuous_timeseries_concise.to_csv("../data/fair-inputs/emissions_1750-2500.csv")
+if make_plots:
+    fig_transition, ax_transition = plot_co2_transition_period(continuous_timeseries_concise, scenario_model_match)

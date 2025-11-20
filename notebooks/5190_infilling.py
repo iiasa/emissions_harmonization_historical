@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -41,7 +41,7 @@ from emissions_harmonization_historical.constants_5000 import (
     HARMONISED_SCENARIO_DB,
     HISTORY_HARMONISATION_DB,
     INFILLED_OUT_DIR,
-    INFILLED_SCENARIOS_DB,
+    INFILLED_SCENARIOS_DB_2100,
     INFILLING_DB,
     MARKERS_BY_SCENARIOMIP_NAME,
     WMO_2022_PROCESSED_DB,
@@ -463,6 +463,6 @@ for ids, df in (
     ("complete", complete),
 ):
     if df is not None:
-        INFILLED_SCENARIOS_DB.save(
+        INFILLED_SCENARIOS_DB_2100.save(
             df.pix.assign(stage=ids).sort_index(axis="columns"), allow_overwrite=True, progress=True
         )
