@@ -2,7 +2,7 @@ import sys
 
 import numpy as np
 
-from emissions_harmonization_historical.extension_functionality import (
+from .extension_functionality import (
     get_exp_targ_from_current_data,
     make_linear_function_with_smooth_transition,
 )
@@ -286,7 +286,6 @@ def extend_co2_for_scen_storyline(df_extended_afolu, df_fossil, storyline, start
     The function relies on helper functions such as `extend_from_start_to_stop_with_value` and
     `make_linear_function_with_smooth_transition` for constructing the extended emissions profiles.
     """
-    print(storyline)
     extended_years = np.arange(start, 2501)
     co2_fossil_extend = np.zeros_like(extended_years)
     co2_fossil_extend[: 2101 - start] = df_fossil.loc[f"{start}" :, :].to_numpy().flatten()

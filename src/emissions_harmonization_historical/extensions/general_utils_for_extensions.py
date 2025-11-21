@@ -7,7 +7,6 @@ def interpolate_to_annual(idf: pd.DataFrame, max_supplement: float = 1e-5) -> pd
     """
     Interpolate pd.DataFrame of emissions input that might not have data for all years
     """
-    # TODO: push into pandas-openscm
     missing_cols = np.setdiff1d(np.arange(idf.columns.min(), idf.columns.max() + max_supplement), idf.columns)
 
     out = idf.copy()

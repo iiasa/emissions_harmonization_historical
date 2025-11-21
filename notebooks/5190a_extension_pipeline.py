@@ -51,23 +51,6 @@ elif str(Path.cwd()) not in sys.path:
     # Fallback: add current directory
     sys.path.insert(0, str(Path.cwd()))
 
-# Package imports
-from afolu_extension_functions import (
-    get_cumulative_afolu,
-    get_cumulative_afolu_fill_from_hist,
-)
-from extensions_fossil_co2_storyline_functions import (
-    extend_co2_for_scen_storyline,
-)
-from extensions_functions_for_non_co2 import (
-    do_single_component_for_scenario_model_regionally,
-    plot_just_global,
-)
-from general_utils_for_extensions import (
-    glue_with_historical,
-    interpolate_to_annual,
-)
-
 from emissions_harmonization_historical.constants_5000 import (
     EXTENSIONS_OUT_DIR,
     EXTENSIONS_OUTPUT_DB,
@@ -77,15 +60,33 @@ from emissions_harmonization_historical.constants_5000 import (
     INFILLED_SCENARIOS_DB_2100,
 )
 
+# Package imports
+from emissions_harmonization_historical.extensions.afolu_extension_functions import (
+    get_cumulative_afolu,
+    get_cumulative_afolu_fill_from_hist,
+)
+
 # from emissions_harmonization_historical.constants import DATA_ROOT
 # from emissions_harmonization_historical.io import load_global_scenario_data
-from emissions_harmonization_historical.extension_functionality import (
+from emissions_harmonization_historical.extensions.extension_functionality import (
     extend_flat_cumulative,
     extend_flat_evolution,
     extend_linear_rampdown,
     find_func_form_lu_extension,
 )
+from emissions_harmonization_historical.extensions.extensions_functions_for_non_co2 import (
+    do_single_component_for_scenario_model_regionally,
+    plot_just_global,
+)
+from emissions_harmonization_historical.extensions.fossil_co2_storyline_functions import (
+    extend_co2_for_scen_storyline,
+)
+from emissions_harmonization_historical.extensions.general_utils_for_extensions import (
+    glue_with_historical,
+    interpolate_to_annual,
+)
 
+sys.exit(4)
 # Constants
 FUTURE_START_YEAR = 2023.0
 HISTORICAL_START_YEAR = 1900

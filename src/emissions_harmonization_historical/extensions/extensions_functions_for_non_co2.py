@@ -2,14 +2,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pandas_indexing as pix
-from general_utils_for_extensions import (
-    glue_with_historical,
-    interpolate_to_annual,
-)
 
-from emissions_harmonization_historical.extension_functionality import (
+from .extension_functionality import (
     do_simple_sigmoid_or_exponential_extension_to_target,
     sigmoid_function,
+)
+from .general_utils_for_extensions import (
+    glue_with_historical,
+    interpolate_to_annual,
 )
 
 

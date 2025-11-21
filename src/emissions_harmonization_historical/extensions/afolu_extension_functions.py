@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 import pandas_indexing as pix
-from general_utils_for_extensions import interpolate_to_annual
+
+from .general_utils_for_extensions import interpolate_to_annual
 
 # Dictionaries for sectors and targets
 # May not be needed for anything
