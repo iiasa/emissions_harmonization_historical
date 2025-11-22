@@ -54,6 +54,9 @@ from emissions_harmonization_historical.scm_running import (
 # warns that it's using extrapolated (not observed) data beyond 2100
 warnings.filterwarnings("ignore", message=".*Extending solar RF.*")
 warnings.filterwarnings("ignore", message=".*magicc logged a WARNING message.*")
+warnings.filterwarnings(
+    "ignore", message=r"magicc logged a WARNING message\. Check the 'stderr' key.*", category=UserWarning
+)
 warnings.filterwarnings("ignore", category=UserWarning, module="pymagicc.core")
 # Also suppress at the source
 logging.getLogger("pymagicc").setLevel(logging.ERROR)
@@ -183,6 +186,17 @@ if scm in ["MAGICCv7.5.3", "MAGICCv7.6.0a3"]:
             raise NotImplementedError(platform.system())
         elif platform.system().lower().startswith("linux"):
             magicc_exe_path = REPO_ROOT / "magicc" / "magicc-v7.6.0a3" / "bin" / "magicc"
+            # Set library path for GCC 13.3.0 (MAGICC was built with this version)
+            # This ensures gfortran libraries are found even when modules aren't loaded
+            gcc_lib_path = "/opt/software/easybuild/software/GCCcore/13.3.0/lib64"
+            if "LD_LIBRARY_PATH" in os.environ:
+                os.environ["LD_LIBRARY_PATH"] = f"{gcc_lib_path}:{os.environ['LD_LIBRARY_PATH']}"
+            else:
+                os.environ["LD_LIBRARY_PATH"] = gcc_lib_path
+
+            # Use /scratch instead of /tmp for MAGICC worker temporary directories
+            # /tmp is only 10 GB and fills up with 32 parallel MAGICC processes
+            os.environ["MAGICC_WORKER_ROOT_DIR"] = "/scratch/bensan"
         else:
             raise NotImplementedError(platform.system())
 
@@ -330,6 +344,12 @@ class db_hack:
 db = db_hack(SCM_OUTPUT_DB)
 
 # %%
+# Limit parallel processes to avoid memory issues on high-core-count systems
+# Each MAGICC process loads full scenario data, so too many processes causes OOM
+# Rule of thumb: ~4-8 GB per MAGICC process for extended scenarios
+max_processes = min(multiprocessing.cpu_count(), 32)  # Cap at 32 processes
+print(f"Running with {max_processes} parallel processes (system has {multiprocessing.cpu_count()} cores)")
+
 # if scm in ["FAIRv2.2.2"]:
 #    some custom code
 # else:
@@ -338,7 +358,7 @@ run_scms(
     climate_models_cfgs=climate_models_cfgs,
     output_variables=output_variables,
     scenario_group_levels=["model", "scenario"],
-    n_processes=multiprocessing.cpu_count(),
+    n_processes=max_processes,
     db=db,
     verbose=True,
     progress=True,
