@@ -394,6 +394,12 @@ INFILLING_DB = OpenSCMDB(
 # Moved to portable OpenSCMDB
 INFILLING_ID = "0003"
 INFILLING_ID = "202511040855"
+# Sensitivy cases used for exploring vl infilling options
+# INFILLING_ID = "202511040855-vl-standard-infilling"
+# INFILLING_ID = "202511040855-vl-5th-infilling"
+# INFILLING_ID = "202511040855-vl-50th-infilling"
+# Settle on using RSM closest for vl marker
+INFILLING_ID = "202511202154"
 
 INFILLED_OUT_DIR_ID = "_".join(
     [
