@@ -1,0 +1,3 @@
+- process CMIP7 historical for CEDS (already have BB processed)
+- add check that, for all IAMs, harmonised gridded emissions sum matches CMIP7 historical sum
+- update harmonisation targets so they match CMIP7 historical (remove model-specificity)

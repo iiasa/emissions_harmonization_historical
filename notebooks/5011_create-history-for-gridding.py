@@ -84,7 +84,7 @@ BB4CMIP7_PROCESSED_DB
 country_history = pix.concat(
     [
         ceds_processed_data,
-        gfed4_processed_data,
+        # gfed4_processed_data,
     ]
 )
 
@@ -118,6 +118,22 @@ for model, iso_codes in model_included_codes.items():
 
 missing_isos = pd.DataFrame(missing_isos_l)
 missing_isos  # .set_index("model").loc["AIM 3.0"]["missing_vs_GFED4"]
+
+# %%
+# sorted([len(v) for v in missing_isos["extra_vs_CEDS_v_2025_03_18"].tolist()])
+# [v for v in missing_isos["extra_vs_CEDS_v_2025_03_18"].tolist() if len(v) > 30]
+
+# %%
+country_history.loc[pix.ismatch(variable="Emissions|CO2|**"), 2020:].sum()
+
+# %%
+country_history.loc[pix.isin(region="srb_ksv") & pix.ismatch(variable="Emissions|CO2|**"), 2020:].sum()
+
+# %%
+(
+    country_history.loc[pix.ismatch(variable="Emissions|CO2|**"), 2020:].sum()
+    - country_history.loc[pix.isin(region="srb_ksv") & pix.ismatch(variable="Emissions|CO2|**"), 2020:].sum()
+)
 
 # %% [markdown]
 # ## Aggregate into regions we need for harmonising gridding emissions
