@@ -41,6 +41,7 @@ from emissions_harmonization_historical.constants_5000 import (
     HARMONISED_OUT_DIR,
     HARMONISED_SCENARIO_DB,
     HISTORY_HARMONISATION_DB,
+BB4CMIP7_PROCESSED_DB,
     PRE_PROCESSED_SCENARIO_DB,
 )
 from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR, HarmonisationResult, harmonise
@@ -52,7 +53,6 @@ from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR,
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-
 model: str = "REMIND"
 
 make_region_sector_plots: bool = False
@@ -667,6 +667,24 @@ def assert_harmonisation_gridding_success(df, harmonisation_year=HARMONISATION_Y
 
 
 assert_harmonisation_gridding_success(res["gridding"].timeseries.reset_index())
+
+# %% [markdown]
+# ### Compare against procesed CMIP7 data
+
+# %%
+from gcages.harmonisation import assert_harmonised
+
+# %%
+# - processed biomass burning
+# - processed CEDS data
+# BB4CMIP7_PROCESSED_DB.load()
+
+# %%
+assert_harmonised(
+    df=,
+    history=,
+    harmonisation_time=HARMONISATION_YEAR,
+)
 
 # %% [markdown]
 # ## Examine results

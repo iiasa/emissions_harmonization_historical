@@ -192,7 +192,7 @@ ceds = ceds.groupby(["em", "country", "unit", "sector"]).sum().pix.fixna()  # gr
 # based on the new SSP data, we only need to aggregate Serbia and Kosovo
 country_combinations = {
     # "isr_pse": ["isr", "pse"], "sdn_ssd": ["ssd", "sdn"],
-    "srb_ksv": ["srb", "srb (kosovo)"]
+    "kos": ["srb (kosovo)"]
 }
 ceds = ceds.pix.aggregate(country=country_combinations)
 # ceds

@@ -82,9 +82,13 @@ history_for_gridding_harmonisation = pd.read_feather(
 # ### Aggregate gridding history
 
 # %%
-# TODO: check whether we get the same global sum for all IAM region groupings
-model_regions = [r for r in history_for_gridding_harmonisation.pix.unique("region") if "REMIND-MAgPIE 3.5-4.11" in r]
-model_regions
+aggregation_regions = [r for r in history_for_gridding_harmonisation.loc[pix.ismatch(region="iso3**")]].pix.unique(
+    "region"
+).tolist()
+
+assert False, "Check that we get the same global sum for all IAM region groupings"
+# model_regions = [r for r in history_for_gridding_harmonisation.pix.unique("region") if "REMIND-MAgPIE 3.5-4.11" in r]
+# model_regions
 
 # %%
 to_gcages_names = partial(

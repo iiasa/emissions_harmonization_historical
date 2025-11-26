@@ -28,7 +28,6 @@ from gcages.cmip7_scenariomip.gridding_emissions import get_complete_gridding_in
 from gcages.completeness import assert_all_groups_are_complete
 
 from emissions_harmonization_historical.constants_5000 import (
-    BB4CMIP7_PROCESSED_DB,
     CEDS_PROCESSED_DB,
     COUNTRY_LEVEL_HISTORY,
     CREATE_HISTORY_FOR_GRIDDING_ID,
@@ -73,9 +72,8 @@ ceds_processed_data = CEDS_PROCESSED_DB.load(pix.isin(stage="iso3c_ish")).reset_
 # ceds_processed_data.loc[pix.ismatch(variable=["**CH4**", "**N2O**"])]
 
 # %%
-gfed4_processed_data = BB4CMIP7_PROCESSED_DB.load(pix.isin(stage="iso3c")).reset_index("stage", drop=True)
-# gfed4_processed_data
-BB4CMIP7_PROCESSED_DB
+# gfed4_processed_data = BB4CMIP7_PROCESSED_DB.load(pix.isin(stage="iso3c")).reset_index("stage", drop=True)
+# # gfed4_processed_data
 
 # %% [markdown]
 # ### export country-level interim history for use in gridding repo
@@ -107,6 +105,9 @@ for model, mdf in region_mapping.groupby("model"):
     model_included_codes[model] = model_iso_codes
 
 # %%
+assert False, "Add manual override that sxm goes into the model's Carribean / Latin America region if missing. Apply this check only to 'marker models'"
+
+# %%
 missing_isos_l = []
 for model, iso_codes in model_included_codes.items():
     model_row = {"model": model}
@@ -118,29 +119,22 @@ for model, iso_codes in model_included_codes.items():
 
 missing_isos = pd.DataFrame(missing_isos_l)
 missing_isos  # .set_index("model").loc["AIM 3.0"]["missing_vs_GFED4"]
-
-# %%
-# sorted([len(v) for v in missing_isos["extra_vs_CEDS_v_2025_03_18"].tolist()])
-# [v for v in missing_isos["extra_vs_CEDS_v_2025_03_18"].tolist() if len(v) > 30]
-
-# %%
-country_history.loc[pix.ismatch(variable="Emissions|CO2|**"), 2020:].sum()
-
-# %%
-country_history.loc[pix.isin(region="srb_ksv") & pix.ismatch(variable="Emissions|CO2|**"), 2020:].sum()
-
-# %%
-(
-    country_history.loc[pix.ismatch(variable="Emissions|CO2|**"), 2020:].sum()
-    - country_history.loc[pix.isin(region="srb_ksv") & pix.ismatch(variable="Emissions|CO2|**"), 2020:].sum()
-)
+missing_isos  # ["extra_vs_CEDS_v_2025_03_18"].iloc[0]
 
 # %% [markdown]
 # ## Aggregate into regions we need for harmonising gridding emissions
 
 # %%
+country_history.loc[pix.ismatch(variable="Emissions|CO2|**"), 2020:].sum()
+
+# %%
+country_history.pix.format(region="iso3ish|{region}").loc[pix.ismatch(variable="Emissions|CO2|**"), 2020:].sum()
+
+# %%
 history_for_gridding_l = [
-    # Start with our World data
+    # ISO3-ish regions
+    country_history.pix.format(region="iso3ish|{region}"),
+    # Include our World only data too
     ceds_processed_data.loc[
         pix.isin(region="global") & pix.ismatch(variable=["**Aircraft", "**International Shipping"])
     ].pix.assign(region="World"),
