@@ -497,6 +497,8 @@ cdr_var_matcher = [
     "Emissions|CO2|Ocean",
     "Emissions|CO2|Direct Air Capture",
     "Emissions|CO2|Other CDR",
+    "Emissions|CO2|Biochar",
+    "Emissions|CO2|Soil Carbon Management",
 ]
 user_overrides_gridding_cdr.loc[pix.ismatch(variable=cdr_var_matcher)] = "reduce_ratio_2040"
 user_overrides_gridding_cdr = user_overrides_gridding_cdr[
