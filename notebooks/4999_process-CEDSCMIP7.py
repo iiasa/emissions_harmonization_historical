@@ -33,6 +33,7 @@
 import pandas as pd
 import pint_xarray  # noqa: F401
 import pooch
+import tqdm.auto
 import xarray as xr
 
 # %% [markdown]
@@ -110,13 +111,6 @@ if compute_early:
 # cell_area
 
 # %%
-aviation_ems = xr.open_mfdataset([esgf_file for esgf_file in downloaded_files_l if "em-AIR-anthro" in esgf_file])
-if compute_early:
-    aviation_ems = aviation_ems.compute()
-
-# aviation_ems
-
-# %%
 other_ems = xr.open_mfdataset([esgf_file for esgf_file in downloaded_files_l if "em-anthro" in esgf_file])
 if compute_early:
     other_ems = other_ems.compute()
@@ -185,23 +179,50 @@ other_emms_annual_global_sector_sum = other_emms_annual_global.sum("sector", kee
 # other_emms_annual_global_sector_sum
 
 # %%
-aviation_ems_annual_global = to_annual_global_sum(
-    aviation_ems.compute(),
-    variable_of_interest=f"{species_esgf}_em_AIR_anthro",
-    cell_area=cell_area,
-    bnd_dim="bnds",
-)
-# aviation_ems_annual_global
+aviation_ems_annual_global_level_sum_l = []
+for aviation_file in tqdm.auto.tqdm([esgf_file for esgf_file in downloaded_files_l if "em-AIR-anthro" in esgf_file]):
+    chunk_sum = (
+        to_annual_global_sum(
+            xr.open_mfdataset([aviation_file]).compute(),
+            variable_of_interest=f"{species_esgf}_em_AIR_anthro",
+            cell_area=cell_area,
+            bnd_dim="bnds",
+        )
+        .sum("level", keep_attrs=True)
+        .compute()
+    )
+    # aviation_ems_annual_global
+
+    aviation_ems_annual_global_level_sum_l.append(chunk_sum)
+
+aviation_ems_annual_global_level_sum = xr.concat(aviation_ems_annual_global_level_sum_l, dim="year")
+aviation_ems_annual_global_level_sum
 
 # %%
-aviation_ems_annual_global_level_sum = aviation_ems_annual_global.sum("level", keep_attrs=True)
-# aviation_ems_annual_global_level_sum
+# aviation_ems = xr.open_mfdataset([esgf_file for esgf_file in downloaded_files_l if "em-AIR-anthro" in esgf_file])
+# if compute_early:
+#     aviation_ems = aviation_ems.compute()
+
+# # aviation_ems
+
+# %%
+# aviation_ems_annual_global = to_annual_global_sum(
+#     aviation_ems.compute(),
+#     variable_of_interest=f"{species_esgf}_em_AIR_anthro",
+#     cell_area=cell_area,
+#     bnd_dim="bnds",
+# )
+# # aviation_ems_annual_global
+
+# %%
+# aviation_ems_annual_global_level_sum = aviation_ems_annual_global.sum("level", keep_attrs=True)
+# # aviation_ems_annual_global_level_sum
 
 # %%
 annual_totals = (
     other_emms_annual_global_sector_sum.pint.quantify() + aviation_ems_annual_global_level_sum.pint.quantify()
 ).pint.dequantify()
-# annual_totals
+annual_totals
 
 # %%
 out_s = annual_totals.to_series()
@@ -221,6 +242,7 @@ out_ts = pd.DataFrame(
         names=["unit", "table", "species", "source", "region", "scenario"],
     ),
 ).T
+out_ts.T.plot()
 out_ts
 
 # %%
