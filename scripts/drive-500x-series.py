@@ -55,6 +55,9 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
             raise TypeError(scm)
 
         res = {"model": iam, "scm": scm}
+        if notebook_name == "5195_run-simple-climate-model.py":
+            res["markers_only"] = False
+            res["markers_only"] = True
 
     else:
         raise NotImplementedError(notebook_name)
@@ -223,7 +226,7 @@ def main():  # noqa: PLR0912
     # # Everything
     notebook_prefixes = ["5090", "5091", "5092", "5093", "5094", "5190", "5191"]
     # # Skip this step
-    # notebook_prefixes = []
+    notebook_prefixes = []
 
     for iam in tqdm.tqdm(iams, desc="IAMs up to emissions post-processing"):
         for notebook in all_notebooks:
