@@ -30,6 +30,8 @@
 # ## Imports
 
 # %%
+import os
+
 import pandas as pd
 import pint_xarray  # noqa: F401
 import pooch
@@ -199,26 +201,6 @@ aviation_ems_annual_global_level_sum = xr.concat(aviation_ems_annual_global_leve
 aviation_ems_annual_global_level_sum
 
 # %%
-# aviation_ems = xr.open_mfdataset([esgf_file for esgf_file in downloaded_files_l if "em-AIR-anthro" in esgf_file])
-# if compute_early:
-#     aviation_ems = aviation_ems.compute()
-
-# # aviation_ems
-
-# %%
-# aviation_ems_annual_global = to_annual_global_sum(
-#     aviation_ems.compute(),
-#     variable_of_interest=f"{species_esgf}_em_AIR_anthro",
-#     cell_area=cell_area,
-#     bnd_dim="bnds",
-# )
-# # aviation_ems_annual_global
-
-# %%
-# aviation_ems_annual_global_level_sum = aviation_ems_annual_global.sum("level", keep_attrs=True)
-# # aviation_ems_annual_global_level_sum
-
-# %%
 annual_totals = (
     other_emms_annual_global_sector_sum.pint.quantify() + aviation_ems_annual_global_level_sum.pint.quantify()
 ).pint.dequantify()
@@ -271,6 +253,5 @@ CEDS_CMIP_PROCESSED_DB.save(out_ts, allow_overwrite=True)
 # Save our disks
 
 # %%
-assert False, "Reactivate"
-# for fp in downloaded_files_l:
-#     os.unlink(fp)
+for fp in downloaded_files_l:
+    os.unlink(fp)

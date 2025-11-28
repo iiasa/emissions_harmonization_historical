@@ -120,14 +120,16 @@ def main():
         ("CO2", "CO2"),
         ("N2O", "N2O"),
         ("NH3", "NH3"),
-        ("NMVOC", "NMVOCbulk"),  # assumed to be equivalent to IAMC-style reported VOC
+        ("NMVOC", "NMVOC"),  # assumed to be equivalent to IAMC-style reported VOC
         ("NOx", "NOx"),
-        # ("OC", "OC"),
-        # ("SO2", "SO2"),
+        ("OC", "OC"),
+        ("SO2", "SO2"),
     ]
 
-    # Run the notebook
-    notebook_prefixes = ["5006"]
+    # Run the notebooks
+    notebook_prefixes = ["4999", "5006"]
+    # Just CEDS
+    notebook_prefixes = ["4999"]
     # # Skip this step
     # notebook_prefixes = []
     for sp, sp_esgf in species[::-1]:
@@ -154,7 +156,6 @@ def main():
                 idn="only",
             )
 
-    explode
     ### Individual IAM downloading and processing
     # iams = ["REMIND"]
     # iams = ["GCAM"]
@@ -210,7 +211,7 @@ def main():
     # Single notebook: run post-processing of climate outputs
     # notebook_prefixes = ["5196"]
     # Skip this step
-    # notebook_prefixes = []
+    notebook_prefixes = []
     scms = ["MAGICCv7.6.0a3", "MAGICCv7.5.3"]
     for iam, scm in tqdm.tqdm(itertools.product(iams, scms), desc="IAM SCM runs"):
         for notebook in all_notebooks:

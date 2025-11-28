@@ -47,6 +47,16 @@ HISTORY_SCENARIO_NAME = "historical"
 REPO_ROOT = Path(__file__).parents[2]
 DATA_ROOT = REPO_ROOT / "data"
 
+# ID for processing CEDS data from CMIP
+CEDS_CMIP_PROCESSING_ID = "0001"
+CEDS_CMIP_PROCESSED_DIR = DATA_ROOT / "processed" / "ceds-cmip" / CEDS_CMIP_PROCESSING_ID
+CEDS_CMIP_PROCESSED_DB = OpenSCMDB(
+    db_dir=CEDS_CMIP_PROCESSED_DIR / "db",
+    backend_data=FeatherDataBackend(),
+    backend_index=FeatherIndexBackend(),
+)
+
+
 CEDS_VERSION_ID = "v_2025_03_18"
 
 # ID for the CEDS processing step
