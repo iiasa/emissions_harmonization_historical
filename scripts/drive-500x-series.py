@@ -99,7 +99,7 @@ def run_notebook_with_scm(notebook: Path, run_notebooks_dir: Path, iam: str, scm
     run_notebook(notebook=notebook, run_notebooks_dir=run_notebooks_dir, parameters=parameters, idn=f"{iam}_{scm}")
 
 
-def main():
+def main():  # noqa: PLR0912
     """
     Run the 500x series of notebooks
     """
@@ -112,6 +112,36 @@ def main():
 
     ### Processing of biomass burning (surprise bonus as running this by hand is annoying)
     species = ["CH4"]
+    # # All species
+    species = [
+        ("BC", "BC"),
+        ("CH4", "CH4"),
+        ("CO", "CO"),
+        ("CO2", "CO2"),
+        ("N2O", "N2O"),  # new, to have regional, was global in CMIP6
+        ("NH3", "NH3"),
+        ("NMVOC", "NMVOCbulk"),  # assumed to be equivalent to IAMC-style reported VOC
+        ("NOx", "NOx"),
+        ("OC", "OC"),
+        ("SO2", "SO2"),
+    ]
+
+    # Run the notebook
+    notebook_prefixes = ["5006"]
+    # Skip this step
+    notebook_prefixes = []
+    for sp, sp_esgf in species[::-1]:
+        for notebook in all_notebooks:
+            if any(notebook.name.startswith(np) for np in notebook_prefixes):
+                run_notebook(
+                    notebook=notebook,
+                    run_notebooks_dir=RUN_NOTEBOOKS_DIR,
+                    parameters={"species": sp, "species_esgf": sp_esgf},
+                    idn=sp,
+                )
+
+    ### Processing of raw CEDS data (surprise bonus as running this by hand is annoying)
+    species = ["CH4"]
     ## All species
     species = [
         ("BC", "BC"),
@@ -120,15 +150,13 @@ def main():
         ("CO2", "CO2"),
         ("N2O", "N2O"),
         ("NH3", "NH3"),
-        ("NMVOC", "NMVOC"),  # assumed to be equivalent to IAMC-style reported VOC
+        ("NMVOC", "NMVOC"),
         ("NOx", "NOx"),
         ("OC", "OC"),
         ("SO2", "SO2"),
     ]
 
     # Run the notebooks
-    notebook_prefixes = ["4999", "5006"]
-    # Just CEDS
     notebook_prefixes = ["4999"]
     # Skip this step
     notebook_prefixes = []

@@ -86,8 +86,6 @@ aggregation_regions = [
     r for r in history_for_gridding_harmonisation.loc[pix.ismatch(region="iso3**")].pix.unique("region")
 ]
 # aggregation_regions
-# model_regions = [r for r in history_for_gridding_harmonisation.pix.unique("region") if r.startswith("iso3ish")]
-# model_regions
 
 # %%
 to_gcages_names = partial(
@@ -589,18 +587,3 @@ global_workflow_harmonisation_emissions_reporting_names.reorder_levels(
         "unit",
     ]
 ).to_feather(out_file)
-
-# %%
-# # Manual hack rather than using Zenodo - high danger
-# from emissions_harmonization_historical.constants_5000 import HISTORY_HARMONISATION_DB
-# HISTORY_HARMONISATION_DB.save(
-#     global_workflow_harmonisation_emissions_reporting_names.reorder_levels(
-#     [
-#         "model",
-#         "scenario",
-#         "region",
-#         "variable",
-#         "unit",
-#     ]
-# ).pix.assign(purpose="global_workflow_emissions"), allow_overwrite=True
-# )

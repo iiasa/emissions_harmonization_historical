@@ -39,7 +39,6 @@ from matplotlib.backends.backend_pdf import PdfPages
 from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 
 from emissions_harmonization_historical.constants_5000 import (
-    COUNTRY_LEVEL_HISTORY,
     DATA_ROOT,
     HARMONISED_OUT_DIR,
     HARMONISED_SCENARIO_DB,
@@ -671,12 +670,19 @@ def assert_harmonisation_gridding_success(df, harmonisation_year=HARMONISATION_Y
 assert_harmonisation_gridding_success(res["gridding"].timeseries.reset_index())
 
 # %% [markdown]
-# ### Compare against procesed CMIP7 data
+# ### Compare against country-level data
+#
+# Make sure we didn't lose any mass along the way.
 
 # %%
-country_level_history = pandas_openscm.io.load_timeseries_csv(
-    COUNTRY_LEVEL_HISTORY, index_columns=["model", "scenario", "region", "variable", "unit"], out_columns_type=int
-)
+country_level_history = HISTORY_HARMONISATION_DB.load(
+    # Compare against the iso3 level data
+    pix.ismatch(region="iso3**")
+).reset_index("purpose", drop=True)
+if set(country_level_history.pix.unique("model").tolist()) != {"CEDS_v_2025_03_18", "BB4CMIP7", "Synthetic"}:
+    msg = "Check comparison data"
+    raise AssertionError(msg)
+
 country_level_history_region_sum = (
     country_level_history.openscm.groupby_except(["region", "model"]).sum().reset_index("scenario", drop=True)
 )

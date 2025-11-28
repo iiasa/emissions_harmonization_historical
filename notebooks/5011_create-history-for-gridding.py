@@ -155,7 +155,6 @@ for model, iso_codes in model_included_codes.items():
 
 missing_isos = pd.DataFrame(missing_isos_l)
 missing_isos  # .set_index("model").loc["AIM 3.0"]["missing_vs_GFED4"]
-missing_isos  # ["extra_vs_CEDS_v_2025_03_18"].iloc[0]
 
 # %% [markdown]
 # ## Aggregate into regions we need for harmonising gridding emissions
@@ -307,11 +306,3 @@ out_file = HISTORY_HARMONISATION_INTERIM_DIR / f"gridding-history_{CREATE_HISTOR
 out_file.parent.mkdir(exist_ok=True, parents=True)
 
 history_for_gridding_incl_cdr.to_feather(out_file)
-
-# %%
-# # Manual hack rather than using Zenodo - high danger
-# from emissions_harmonization_historical.constants_5000 import HISTORY_HARMONISATION_DB
-# HISTORY_HARMONISATION_DB.delete()
-# HISTORY_HARMONISATION_DB.save(
-#     history_for_gridding_incl_cdr.pix.assign(purpose="gridding_emissions")
-# )
