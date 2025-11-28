@@ -42,8 +42,6 @@ from emissions_harmonization_historical.zenodo import download_zenodo_url, get_z
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Setup
 
-# %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-
 # %%
 logger.configure(handlers=[dict(sink=sys.stderr, level="INFO")])
 logger.enable("openscm_zenodo")
