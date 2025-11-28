@@ -30,15 +30,10 @@
 # ## Imports
 
 # %%
-
 import pandas as pd
 import pint_xarray  # noqa: F401
 import pooch
 import xarray as xr
-
-from emissions_harmonization_historical.constants_5000 import (
-    CEDS_CMIP_PROCESSED_DB,
-)
 
 # %% [markdown]
 # ## Setup
@@ -87,14 +82,14 @@ downloaded_files_l = []
 for download_url in get_download_urls(
     species_esgf,
     # Full timeseries rather than just the last bit
-    # time_periods=(
-    #     "175001-179912",
-    #     "180001-184912",
-    #     "185001-189912",
-    #     "190001-194912",
-    #     "195001-199912",
-    #     "200001-202312",
-    # )
+    time_periods=(
+        "175001-179912",
+        "180001-184912",
+        "185001-189912",
+        "190001-194912",
+        "195001-199912",
+        "200001-202312",
+    ),
 ):
     downloaded_files_l.append(
         pooch.retrieve(
@@ -229,7 +224,24 @@ out_ts = pd.DataFrame(
 out_ts
 
 # %%
-CEDS_CMIP_PROCESSED_DB.save(out_ts)
+# Save as CSV
+try:
+    from emissions_harmonization_historical.constants_5000 import (
+        CEDS_CMIP_PROCESSED_DIR,
+    )
+except ImportError:
+    print("Saving to current directory")
+    CEDS_CMIP_PROCESSED_DIR = "."
+
+out_ts.to_csv(CEDS_CMIP_PROCESSED_DIR / f"{species_esgf}_ceds-cmip-annual-total.csv")
+
+# %%
+# Save to DB
+from emissions_harmonization_historical.constants_5000 import (  # noqa: E402
+    CEDS_CMIP_PROCESSED_DB,
+)
+
+CEDS_CMIP_PROCESSED_DB.save(out_ts, allow_overwrite=True)
 
 # %% [markdown]
 # ## Delete raw files
