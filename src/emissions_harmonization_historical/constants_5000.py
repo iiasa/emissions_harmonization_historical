@@ -306,7 +306,7 @@ HISTORY_HARMONISATION_INTERIM_DIR = DATA_ROOT / "interim" / "history-for-harmoni
 HISTORY_HARMONISATION_DIR = DATA_ROOT / "processed" / "history-for-harmonisation" / HISTORY_FOR_HARMONISATION_ID
 
 # ID of the Zenodo record that contains the harmonised historical emissions to use
-HISTORY_ZENODO_RECORD_ID = "17750231"
+HISTORY_ZENODO_RECORD_ID = "17751257"
 
 # Database to hold historical emissions for harmonisation
 HISTORY_HARMONISATION_DB = OpenSCMDB(
@@ -390,7 +390,7 @@ INFILLING_DB_DIR = (
 )
 
 # ID of the Zenodo record that contains the infilling database to use
-INFILLING_DB_ZENODO_RECORD_ID = "17540023"
+INFILLING_DB_ZENODO_RECORD_ID = "17755238"
 
 # Database into which infilled emissions are saved
 INFILLING_DB = OpenSCMDB(

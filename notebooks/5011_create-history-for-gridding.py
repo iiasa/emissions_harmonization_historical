@@ -19,6 +19,9 @@
 # ## Imports
 
 # %%
+from functools import partial
+
+import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 import pandas_openscm
@@ -69,11 +72,33 @@ region_mapping = region_mapping[region_mapping["model"].isin(marker_models)]
 region_mapping
 
 # %%
+region_mapping["model"].unique()
+
+# %%
 # Manual hacks
 # TODO: push upstream into common-definitions
-region_mapping.loc[
-    region_mapping["model_region"] == "MESSAGEix-GLOBIOM-GAINS 2.1-R12|Latin America and the Caribbean", "iso_list"
-].iloc[0].append("sxm")
+for model, iso_to_add, iso_group_to_match in (
+    ("MESSAGEix-GLOBIOM-GAINS 2.1-R12", "sxm", "jam"),
+    ("IMAGE 3.4", "sjm", "nor"),
+    ("AIM 3.0", "ggy", "gbr"),
+    ("AIM 3.0", "imn", "gbr"),
+    ("AIM 3.0", "jey", "gbr"),
+):
+    region_mapping_model = region_mapping[region_mapping["model"] == model]
+    if region_mapping_model.empty:
+        raise AssertionError
+
+    for model_region, mrdf in region_mapping_model.groupby("model_region"):
+        if iso_group_to_match in mrdf["iso_list"].values[0]:
+            model_region_to_add_to = model_region
+            break
+
+    else:
+        msg = f"{model} {iso_group_to_match}"
+        raise AssertionError(msg)
+
+    region_mapping.loc[region_mapping["model_region"] == model_region_to_add_to, "iso_list"].iloc[0].append(iso_to_add)
+    print(f"Added {iso_to_add} to {model_region_to_add_to}")
 
 # %%
 # region_mapping[region_mapping["model"].str.startswith("GCAM")]
@@ -194,6 +219,7 @@ for region_prefix in set([v.split("|")[0] for v in history_for_gridding.pix.uniq
         right=compare_against,
         left_name="history_prefix_sum",
         right_name="country_history_sum",
+        isclose=partial(np.isclose, atol=1e-12, rtol=1e-10),
     )
     if not comparison.empty:
         print(region_prefix)
@@ -283,8 +309,9 @@ out_file.parent.mkdir(exist_ok=True, parents=True)
 history_for_gridding_incl_cdr.to_feather(out_file)
 
 # %%
-# Manual hack rather than using Zenodo - high danger
+# # Manual hack rather than using Zenodo - high danger
 # from emissions_harmonization_historical.constants_5000 import HISTORY_HARMONISATION_DB
+# HISTORY_HARMONISATION_DB.delete()
 # HISTORY_HARMONISATION_DB.save(
 #     history_for_gridding_incl_cdr.pix.assign(purpose="gridding_emissions")
 # )

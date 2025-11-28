@@ -55,7 +55,7 @@ from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR,
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "REMIND"
+model: str = "AIM"
 
 make_region_sector_plots: bool = False
 output_to_pdf: bool = False
@@ -685,22 +685,24 @@ country_level_history_region_sum = (
 res_gridding_region_sum = res["gridding"].timeseries.openscm.groupby_except(["region", "model"]).sum()
 # Hard-coded check based on https://github.com/PCMDI/input4MIPs_CVs/issues/393
 np.testing.assert_allclose(
-    res_gridding_region_sum.loc[pix.ismatch(variable="**CO2**") & ~pix.ismatch(variable="**Burning**"), 2023].sum(),
+    res_gridding_region_sum.loc[pix.ismatch(variable="**CO2**") & ~pix.ismatch(variable="**Burning**"), 2023]
+    .groupby("scenario")
+    .sum(),
     38712.0,
     rtol=1e-5,
 )
 
 # %%
-country_level_rows = pandas_openscm.indexing.multi_index_match(
+res_gridding_region_sum_rows = pandas_openscm.indexing.multi_index_match(
     res_gridding_region_sum.index,
     country_level_history_region_sum.index,
 )
-not_country_level_sum = res_gridding_region_sum.loc[~country_level_rows, 2023]
-if (not_country_level_sum != 0.0).any():
-    raise AssertionError(not_country_level_sum)
+not_gridding_region_sum = res_gridding_region_sum.loc[~res_gridding_region_sum_rows, 2023]
+if (not_gridding_region_sum.abs() > 0.0).any():
+    raise AssertionError(not_gridding_region_sum)
 
 assert_harmonised(
-    df=res_gridding_region_sum.loc[country_level_rows, :],
+    df=res_gridding_region_sum.loc[res_gridding_region_sum_rows, :],
     history=country_level_history_region_sum,
     harmonisation_time=HARMONISATION_YEAR,
 )

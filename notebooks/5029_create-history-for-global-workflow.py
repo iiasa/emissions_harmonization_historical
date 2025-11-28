@@ -112,9 +112,9 @@ history_for_gridding_harmonisation_aggregated
 
 # %%
 # Weird that it isn't easier to figure this out. Anyway.
-tmp = history_for_gridding_harmonisation.loc[pix.ismatch(variable="**CH4|Energy Sector", region="OECD & EU (R5)"), :]
+tmp = history_for_gridding_harmonisation.loc[pix.ismatch(variable="**CH4|Energy Sector", region="iso3ish|usa")]
 ceds_ext_years = tmp[tmp == 0.0].dropna(axis="columns").columns.values
-# ceds_ext_years
+ceds_ext_years
 
 # %%
 ceds_extensions_l = []
@@ -591,7 +591,7 @@ global_workflow_harmonisation_emissions_reporting_names.reorder_levels(
 ).to_feather(out_file)
 
 # %%
-# Manual hack rather than using Zenodo - high danger
+# # Manual hack rather than using Zenodo - high danger
 # from emissions_harmonization_historical.constants_5000 import HISTORY_HARMONISATION_DB
 # HISTORY_HARMONISATION_DB.save(
 #     global_workflow_harmonisation_emissions_reporting_names.reorder_levels(
@@ -602,5 +602,5 @@ global_workflow_harmonisation_emissions_reporting_names.reorder_levels(
 #         "variable",
 #         "unit",
 #     ]
-# ).pix.assign(purpose="global_workflow_emissions")
+# ).pix.assign(purpose="global_workflow_emissions"), allow_overwrite=True
 # )
