@@ -19,19 +19,21 @@
 # ## Imports
 
 # %%
-
 import pandas as pd
 import pandas_indexing as pix
 import pandas_openscm
+import pandas_openscm.comparison
 import tqdm.auto
 from gcages.cmip7_scenariomip.gridding_emissions import get_complete_gridding_index
 from gcages.completeness import assert_all_groups_are_complete
 
 from emissions_harmonization_historical.constants_5000 import (
+    BB4CMIP7_PROCESSED_DB,
     CEDS_PROCESSED_DB,
     COUNTRY_LEVEL_HISTORY,
     CREATE_HISTORY_FOR_GRIDDING_ID,
     HISTORY_HARMONISATION_INTERIM_DIR,
+    MARKERS,
     REGION_MAPPING_FILE,
 )
 from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR
@@ -59,7 +61,19 @@ region_mapping["iso_list"] = region_mapping["iso_list"].str.lower()
 region_mapping["iso_list"] = region_mapping["iso_list"].apply(
     lambda x: x.strip("[]").replace("'", "").split(", ")
 )  # transform from Series/string to list-like object which is iterable
+common_definitions_mapping = {"MESSAGEix-GLOBIOM-GAINS 2.1-M-R12": "MESSAGEix-GLOBIOM-GAINS 2.1-R12"}
+marker_models = [common_definitions_mapping[v[0]] if v[0] in common_definitions_mapping else v[0] for v in MARKERS]
+# Not going to fix up various errors for non-markers
+region_mapping = region_mapping[region_mapping["model"].isin(marker_models)]
+
 region_mapping
+
+# %%
+# Manual hacks
+# TODO: push upstream into common-definitions
+region_mapping.loc[
+    region_mapping["model_region"] == "MESSAGEix-GLOBIOM-GAINS 2.1-R12|Latin America and the Caribbean", "iso_list"
+].iloc[0].append("sxm")
 
 # %%
 # region_mapping[region_mapping["model"].str.startswith("GCAM")]
@@ -72,8 +86,8 @@ ceds_processed_data = CEDS_PROCESSED_DB.load(pix.isin(stage="iso3c_ish")).reset_
 # ceds_processed_data.loc[pix.ismatch(variable=["**CH4**", "**N2O**"])]
 
 # %%
-# gfed4_processed_data = BB4CMIP7_PROCESSED_DB.load(pix.isin(stage="iso3c")).reset_index("stage", drop=True)
-# # gfed4_processed_data
+gfed4_processed_data = BB4CMIP7_PROCESSED_DB.load(pix.isin(stage="iso3c")).reset_index("stage", drop=True)
+# gfed4_processed_data
 
 # %% [markdown]
 # ### export country-level interim history for use in gridding repo
@@ -82,7 +96,7 @@ ceds_processed_data = CEDS_PROCESSED_DB.load(pix.isin(stage="iso3c_ish")).reset_
 country_history = pix.concat(
     [
         ceds_processed_data,
-        # gfed4_processed_data,
+        gfed4_processed_data,
     ]
 )
 
@@ -105,9 +119,6 @@ for model, mdf in region_mapping.groupby("model"):
     model_included_codes[model] = model_iso_codes
 
 # %%
-assert False, "Add manual override that sxm goes into the model's Carribean / Latin America region if missing. Apply this check only to 'marker models'"
-
-# %%
 missing_isos_l = []
 for model, iso_codes in model_included_codes.items():
     model_row = {"model": model}
@@ -123,12 +134,6 @@ missing_isos  # ["extra_vs_CEDS_v_2025_03_18"].iloc[0]
 
 # %% [markdown]
 # ## Aggregate into regions we need for harmonising gridding emissions
-
-# %%
-country_history.loc[pix.ismatch(variable="Emissions|CO2|**"), 2020:].sum()
-
-# %%
-country_history.pix.format(region="iso3ish|{region}").loc[pix.ismatch(variable="Emissions|CO2|**"), 2020:].sum()
 
 # %%
 history_for_gridding_l = [
@@ -150,7 +155,54 @@ history_for_gridding = pix.concat(history_for_gridding_l).rename_axis("year", ax
 history_for_gridding
 
 # %%
-ceds_processed_data.loc[pix.isin(region="global") & pix.ismatch(variable=["**Aircraft", "**International Shipping"])]
+country_history_global = country_history.loc[pix.isin(region="global")]
+country_history_not_global = country_history.loc[~pix.isin(region="global")]
+
+zero_tolerance = 1e-6
+country_history_global_non_zero = country_history_global[country_history_global.sum(axis="columns") > zero_tolerance]
+country_history_not_global_non_zero = country_history_not_global[
+    country_history_not_global.sum(axis="columns") > zero_tolerance
+]
+
+non_zero_in_both_global_and_country = (
+    country_history_not_global_non_zero.reset_index("region")
+    .index.drop_duplicates()
+    .intersection(country_history_global_non_zero.reset_index("region").index.drop_duplicates())
+)
+if not non_zero_in_both_global_and_country.empty:
+    raise AssertionError(non_zero_in_both_global_and_country)
+
+# %%
+# Check we don't lose any mass compared to country files
+country_history_not_global_sum = country_history_not_global.openscm.groupby_except("region").sum()
+country_history_not_global_sum.columns.name = "year"
+
+for region_prefix in set([v.split("|")[0] for v in history_for_gridding.pix.unique("region")]):
+    history_prefix_sum = (
+        history_for_gridding.loc[pix.ismatch(region=f"{region_prefix}**")].openscm.groupby_except("region").sum()
+    )
+
+    if region_prefix in ["iso3ish", "World"]:
+        compare_against = (
+            country_history.openscm.groupby_except("region").sum().openscm.mi_loc(history_prefix_sum.index)
+        )
+    else:
+        compare_against = country_history_not_global_sum.openscm.mi_loc(history_prefix_sum.index)
+
+    comparison = pandas_openscm.comparison.compare_close(
+        left=history_prefix_sum,
+        right=compare_against,
+        left_name="history_prefix_sum",
+        right_name="country_history_sum",
+    )
+    if not comparison.empty:
+        print(region_prefix)
+        print("Problem")
+        display(comparison)  # noqa: F821
+        raise AssertionError(region_prefix)
+
+# %%
+# ceds_processed_data.loc[pix.isin(region="global") & pix.ismatch(variable=["**Aircraft", "**International Shipping"])]
 
 # %% [markdown]
 # ### Add synthetic history for CDR sectors
@@ -204,7 +256,9 @@ history_for_gridding_incl_cdr = pix.concat([history_for_gridding_incl_cdr, *othe
 # ## Last checks
 
 # %%
-model_regions = [r for r in history_for_gridding_incl_cdr.pix.unique("region") if r != "World"]
+model_regions = [
+    r for r in history_for_gridding_incl_cdr.pix.unique("region") if r != "World" and not r.startswith("iso3ish")
+]
 complete_gridding_index = get_complete_gridding_index(model_regions=model_regions)
 # complete_gridding_index
 assert_all_groups_are_complete(
@@ -227,3 +281,10 @@ out_file = HISTORY_HARMONISATION_INTERIM_DIR / f"gridding-history_{CREATE_HISTOR
 out_file.parent.mkdir(exist_ok=True, parents=True)
 
 history_for_gridding_incl_cdr.to_feather(out_file)
+
+# %%
+# Manual hack rather than using Zenodo - high danger
+# from emissions_harmonization_historical.constants_5000 import HISTORY_HARMONISATION_DB
+# HISTORY_HARMONISATION_DB.save(
+#     history_for_gridding_incl_cdr.pix.assign(purpose="gridding_emissions")
+# )

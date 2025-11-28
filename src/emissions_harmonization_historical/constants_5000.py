@@ -259,7 +259,7 @@ CMIP7_GHG_PROCESSED_DB = OpenSCMDB(
     backend_index=FeatherIndexBackend(),
 )
 
-# ID for creating history from the global workflow
+# ID for creating history for the global workflow
 CREATE_HISTORY_FOR_GLOBAL_WORKFLOW_ID = "_".join(
     [
         GCB_PROCESSING_ID,
@@ -306,7 +306,7 @@ HISTORY_HARMONISATION_INTERIM_DIR = DATA_ROOT / "interim" / "history-for-harmoni
 HISTORY_HARMONISATION_DIR = DATA_ROOT / "processed" / "history-for-harmonisation" / HISTORY_FOR_HARMONISATION_ID
 
 # ID of the Zenodo record that contains the harmonised historical emissions to use
-HISTORY_ZENODO_RECORD_ID = "17527153"
+HISTORY_ZENODO_RECORD_ID = "17750231"
 
 # Database to hold historical emissions for harmonisation
 HISTORY_HARMONISATION_DB = OpenSCMDB(
@@ -320,6 +320,7 @@ HISTORY_HARMONISATION_DB = OpenSCMDB(
 # Run by Marco
 DOWNLOAD_SCENARIOS_ID = "All_23Oct"
 DOWNLOAD_SCENARIOS_ID = "202511040855"
+DOWNLOAD_SCENARIOS_ID = "202511281156"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(

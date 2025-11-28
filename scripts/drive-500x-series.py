@@ -130,8 +130,8 @@ def main():
     notebook_prefixes = ["4999", "5006"]
     # Just CEDS
     notebook_prefixes = ["4999"]
-    # # Skip this step
-    # notebook_prefixes = []
+    # Skip this step
+    notebook_prefixes = []
     for sp, sp_esgf in species[::-1]:
         for notebook in all_notebooks:
             if any(notebook.name.startswith(np) for np in notebook_prefixes):
@@ -187,12 +187,12 @@ def main():
     # # notebook_prefixes = ["5090", "5091", "5092"]
     # Everything up to infilling
     notebook_prefixes = ["5090", "5091", "5092", "5093", "5094"]
-    # Infilling and post-processing
-    notebook_prefixes = ["5190", "5191"]
+    # # Infilling and post-processing
+    # notebook_prefixes = ["5190", "5191"]
     # # Everything
     # notebook_prefixes = ["5090", "5091", "5092", "5093", "5094", "5190", "5191"]
     # # Skip this step
-    notebook_prefixes = []
+    # notebook_prefixes = []
 
     for iam in tqdm.tqdm(iams, desc="IAMs pre infilling"):
         for notebook in all_notebooks:

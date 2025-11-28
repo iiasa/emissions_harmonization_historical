@@ -21,15 +21,18 @@
 # ## Imports
 
 # %%
+import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 import pandas_openscm
+import pint
 from gcages.index_manipulation import split_sectors
 from pandas_indexing.core import isna
 from pandas_openscm.index_manipulation import update_index_levels_func
 
 from emissions_harmonization_historical.ceds import get_map, read_CEDS
 from emissions_harmonization_historical.constants_5000 import (
+    CEDS_CMIP_PROCESSED_DB,
     CEDS_PROCESSED_DB,
     CEDS_RAW_PATH,
     CEDS_TOP_LEVEL_RAW_PATH,
@@ -176,10 +179,6 @@ ceds = update_index_levels_func(ceds, {"em": lambda x: x.replace("SO2", "Sulfur"
 
 ceds
 
-# %%
-# TODO: add CEDS extension back to 1750 somewhere
-# ceds.loc[["CH4", "N2O"]]
-
 # %% [markdown]
 # ### Calculate aggregates of interest
 
@@ -189,13 +188,15 @@ ceds = ceds.groupby(["em", "country", "unit", "sector"]).sum().pix.fixna()  # gr
 
 # %%
 # aggregate countries where this is necessary, e.g. because of specific other data (like SSP socioeconomic driver data)
-# based on the new SSP data, we only need to aggregate Serbia and Kosovo
 country_combinations = {
     # "isr_pse": ["isr", "pse"], "sdn_ssd": ["ssd", "sdn"],
     "kos": ["srb (kosovo)"]
 }
 ceds = ceds.pix.aggregate(country=country_combinations)
 # ceds
+
+# %%
+# ceds.loc[pix.ismatch(country="kos")]
 
 # %% [markdown]
 # ### Format in IAMC style
@@ -222,7 +223,9 @@ assert_units_match_wishes(ceds_reformatted_iamc)
 # %% [markdown]
 # ### Map national aviation emissions to global
 #
-# Since release 2025_03_18, CEDS splits up aviation between its 'global' region (for international aircraft) and other territories. Before it was all allocated to the 'global' region, which is what we were expecting, and what we want to continue to use here.
+# Since release 2025_03_18, CEDS splits up aviation between its 'global' region (for international aircraft)
+# and other territories. Before it was all allocated to the 'global' region,
+# which is what we were expecting, and what we want to continue to use here.
 #
 # 1. take all national aircraft emissions and aggregate and rename to global
 # 2. aggregate global emissions + national without aircraft + national aircraft aggregated to global
@@ -257,13 +260,19 @@ assert (
 # ### Check we didn't lose any mass
 
 # %%
-res_sum = split_sectors(out).openscm.groupby_except(["region", "sectors"]).sum().pix.project(["species", "unit"])
-res_sum.index = res_sum.index.rename({"species": "em", "unit": "units"})
+res_sum_out_units = (
+    split_sectors(out).openscm.groupby_except(["region", "sectors"]).sum().pix.project(["species", "unit"])
+)
+
+res_sum = res_sum_out_units.copy()
+res_sum.index = res_sum_out_units.index.rename({"species": "em", "unit": "units"})
+
 res_sum = pix.units.convert_unit(
     res_sum,
     lambda x: x.replace("Mt", "kt"),
     level="units",
 )
+
 res_sum = update_index_levels_func(
     res_sum,
     {
@@ -293,10 +302,33 @@ pd.testing.assert_frame_equal(
 )
 
 # %%
-ceds_totals.loc[:, 2020:]
+ceds_esgf = CEDS_CMIP_PROCESSED_DB.load()
+# ceds_esgf
 
 # %%
-res_sum.loc[:, 2020:]
+ur = pint.get_application_registry()
+
+# %%
+species_renamings = {
+    "NMVOC": "VOC",
+    "SO2": "Sulfur",
+}
+for (species, units), sdf_esgf in ceds_esgf.groupby(["species", "unit"]):
+    sdf_esgf_no_nan = sdf_esgf.dropna(how="all", axis="columns")
+
+    if species in species_renamings:
+        species_res_sum = species_renamings[species]
+    else:
+        species_res_sum = species
+
+    sdf_res_sum = res_sum_out_units.loc[pix.isin(species=species_res_sum)]
+
+    with ur.context("NOx_conversions"):
+        np.testing.assert_allclose(
+            sdf_esgf_no_nan.values,
+            sdf_res_sum.pix.convert_unit(units).loc[:, sdf_esgf_no_nan.columns].values,
+            rtol=2e-4,
+        )
 
 # %% [markdown]
 # ## Save formatted CEDS data

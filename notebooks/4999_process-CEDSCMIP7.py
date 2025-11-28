@@ -84,15 +84,15 @@ def get_download_urls(
 downloaded_files_l = []
 for download_url in get_download_urls(
     species_esgf,
-    # Full timeseries rather than just the last bit
-    time_periods=(
-        "175001-179912",
-        "180001-184912",
-        "185001-189912",
-        "190001-194912",
-        "195001-199912",
-        "200001-202312",
-    ),
+    # # Full timeseries rather than just the last bit
+    # time_periods=(
+    #     "175001-179912",
+    #     "180001-184912",
+    #     "185001-189912",
+    #     "190001-194912",
+    #     "195001-199912",
+    #     "200001-202312",
+    # ),
 ):
     downloaded_files_l.append(
         pooch.retrieve(

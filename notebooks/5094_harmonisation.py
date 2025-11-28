@@ -28,20 +28,22 @@ import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 import pandas_openscm
+import pandas_openscm.indexing
 import seaborn as sns
 import tqdm.auto
 from gcages.cmip7_scenariomip.gridding_emissions import to_global_workflow_emissions
+from gcages.harmonisation import assert_harmonised
 from gcages.index_manipulation import split_sectors
 from gcages.testing import compare_close
 from matplotlib.backends.backend_pdf import PdfPages
 from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 
 from emissions_harmonization_historical.constants_5000 import (
+    COUNTRY_LEVEL_HISTORY,
     DATA_ROOT,
     HARMONISED_OUT_DIR,
     HARMONISED_SCENARIO_DB,
     HISTORY_HARMONISATION_DB,
-BB4CMIP7_PROCESSED_DB,
     PRE_PROCESSED_SCENARIO_DB,
 )
 from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR, HarmonisationResult, harmonise
@@ -672,17 +674,34 @@ assert_harmonisation_gridding_success(res["gridding"].timeseries.reset_index())
 # ### Compare against procesed CMIP7 data
 
 # %%
-from gcages.harmonisation import assert_harmonised
+country_level_history = pandas_openscm.io.load_timeseries_csv(
+    COUNTRY_LEVEL_HISTORY, index_columns=["model", "scenario", "region", "variable", "unit"], out_columns_type=int
+)
+country_level_history_region_sum = (
+    country_level_history.openscm.groupby_except(["region", "model"]).sum().reset_index("scenario", drop=True)
+)
 
 # %%
-# - processed biomass burning
-# - processed CEDS data
-# BB4CMIP7_PROCESSED_DB.load()
+res_gridding_region_sum = res["gridding"].timeseries.openscm.groupby_except(["region", "model"]).sum()
+# Hard-coded check based on https://github.com/PCMDI/input4MIPs_CVs/issues/393
+np.testing.assert_allclose(
+    res_gridding_region_sum.loc[pix.ismatch(variable="**CO2**") & ~pix.ismatch(variable="**Burning**"), 2023].sum(),
+    38712.0,
+    rtol=1e-5,
+)
 
 # %%
+country_level_rows = pandas_openscm.indexing.multi_index_match(
+    res_gridding_region_sum.index,
+    country_level_history_region_sum.index,
+)
+not_country_level_sum = res_gridding_region_sum.loc[~country_level_rows, 2023]
+if (not_country_level_sum != 0.0).any():
+    raise AssertionError(not_country_level_sum)
+
 assert_harmonised(
-    df=,
-    history=,
+    df=res_gridding_region_sum.loc[country_level_rows, :],
+    history=country_level_history_region_sum,
     harmonisation_time=HARMONISATION_YEAR,
 )
 

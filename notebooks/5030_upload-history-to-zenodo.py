@@ -39,8 +39,8 @@ from pandas_openscm.io import load_timeseries_csv
 
 from emissions_harmonization_historical.constants_5000 import (
     COUNTRY_LEVEL_HISTORY,
-    CREATE_HISTORY_FOR_GLOBAL_WORKFLOW_ID,
     CREATE_HISTORY_FOR_GRIDDING_ID,
+    HISTORY_FOR_HARMONISATION_ID,
     HISTORY_HARMONISATION_INTERIM_DIR,
     REPO_ROOT,
 )
@@ -56,7 +56,7 @@ from emissions_harmonization_historical.zenodo import upload_to_zenodo
 files_for_zenodo = []
 for in_file, loader in (
     (
-        HISTORY_HARMONISATION_INTERIM_DIR / f"global-workflow-history_{CREATE_HISTORY_FOR_GLOBAL_WORKFLOW_ID}.feather",
+        HISTORY_HARMONISATION_INTERIM_DIR / f"global-workflow-history_{HISTORY_FOR_HARMONISATION_ID}.feather",
         pd.read_feather,
     ),
     (

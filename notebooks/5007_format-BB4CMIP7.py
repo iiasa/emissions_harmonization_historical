@@ -21,7 +21,6 @@
 # ## Imports
 
 # %%
-import sys
 
 import pandas as pd
 import pandas_indexing as pix
@@ -30,18 +29,13 @@ import pint
 import tqdm.auto
 import xarray as xr
 from gcages.index_manipulation import set_new_single_value_levels
-from loguru import logger
 
 from emissions_harmonization_historical.constants_5000 import (
-    BB4CMIP7_ANNUAL_SECTORAL_COUNTRY_ID,
     BB4CMIP7_ANNUAL_SECTORAL_COUNTRY_OUTPUT_DIR,
-    BB4CMIP7_FORMATTING_ID,
     BB4CMIP7_PROCESSED_DB,
-    BB4CMIP7_PROCESSED_DIR,
     HISTORY_SCENARIO_NAME,
 )
 from emissions_harmonization_historical.units import assert_units_match_wishes
-from emissions_harmonization_historical.zenodo import upload_to_zenodo
 
 # %% [markdown]
 # ## Setup
@@ -191,6 +185,18 @@ for (variable, unit), vdf in res_formatted.groupby(["variable", "unit"]):
     out_l.append(converted)
 
 out = pix.concat(out_l).sort_index(axis="columns")
+
+
+def rename_region(r: str) -> str:
+    """Rename region to desired naming"""
+    if "kos" in r:
+        return "kos"
+
+    return r
+
+
+out = out.openscm.update_index_levels({"region": rename_region})
+
 out
 
 # %% [markdown]
@@ -204,22 +210,3 @@ assert_units_match_wishes(out)
 
 # %%
 BB4CMIP7_PROCESSED_DB.save(out.pix.assign(stage="iso3c"), allow_overwrite=True)
-
-# %% [markdown]
-# ## Upload to zenodo
-
-# %%
-# Rewrite as single file
-out_file_res = (
-    BB4CMIP7_PROCESSED_DIR
-    / f"bb4cmip7-country-sector_{BB4CMIP7_ANNUAL_SECTORAL_COUNTRY_ID}-{BB4CMIP7_FORMATTING_ID}.csv"
-)
-res.to_csv(out_file_res)
-out_file_res
-
-# %%
-logger.configure(handlers=[dict(sink=sys.stderr, level="INFO")])
-logger.enable("openscm_zenodo")
-
-# %%
-upload_to_zenodo([out_file_res], remove_existing=False, update_metadata=True)
