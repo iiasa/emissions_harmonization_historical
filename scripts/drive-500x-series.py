@@ -137,13 +137,13 @@ def main():
     # ]
     # All
     iams = [
-        "WITCH",
+        # "WITCH",
         "REMIND",
-        "MESSAGE",
-        "IMAGE",
+        # "MESSAGE",
+        # "IMAGE",
         "GCAM",
-        "COFFEE",
-        "AIM",
+        # "COFFEE",
+        # "AIM",
     ]
 
     #### Emissions downloading, pre-processing, harmonisation, infilling and post-processing
@@ -158,9 +158,9 @@ def main():
     # Infilling and post-processing
     notebook_prefixes = ["5190", "5191"]
     # # Everything
-    # notebook_prefixes = ["5090", "5091", "5092", "5093", "5094", "5190", "5191"]
+    notebook_prefixes = ["5090", "5091", "5092", "5093", "5094", "5190", "5191"]
     # # Skip this step
-    notebook_prefixes = []
+    # notebook_prefixes = []
 
     for iam in tqdm.tqdm(iams, desc="IAMs pre infilling"):
         for notebook in all_notebooks:

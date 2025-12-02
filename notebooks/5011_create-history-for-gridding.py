@@ -161,6 +161,8 @@ history_for_gridding_incl_cdr = pix.concat(
         cdr_sectors_template.pix.assign(variable="Emissions|CO2|Enhanced Weathering"),
         cdr_sectors_template.pix.assign(variable="Emissions|CO2|Direct Air Capture"),
         cdr_sectors_template.pix.assign(variable="Emissions|CO2|Ocean"),
+        cdr_sectors_template.pix.assign(variable="Emissions|CO2|Biochar"),
+        cdr_sectors_template.pix.assign(variable="Emissions|CO2|Soil Carbon Management"),
     ]
 )
 
