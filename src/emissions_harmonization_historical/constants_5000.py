@@ -47,6 +47,16 @@ HISTORY_SCENARIO_NAME = "historical"
 REPO_ROOT = Path(__file__).parents[2]
 DATA_ROOT = REPO_ROOT / "data"
 
+# ID for processing CEDS data from CMIP
+CEDS_CMIP_PROCESSING_ID = "0001"
+CEDS_CMIP_PROCESSED_DIR = DATA_ROOT / "processed" / "ceds-cmip" / CEDS_CMIP_PROCESSING_ID
+CEDS_CMIP_PROCESSED_DB = OpenSCMDB(
+    db_dir=CEDS_CMIP_PROCESSED_DIR / "db",
+    backend_data=FeatherDataBackend(),
+    backend_index=FeatherIndexBackend(),
+)
+
+
 CEDS_VERSION_ID = "v_2025_03_18"
 
 # ID for the CEDS processing step
@@ -56,6 +66,8 @@ CEDS_PROCESSING_ID = "0002"
 # Updated Aircraft handling
 CEDS_PROCESSING_ID = "0003"
 CEDS_PROCESSING_ID = "202511040855"
+# Remove srb_ksv aggregation
+CEDS_PROCESSING_ID = "202511261223"
 
 CEDS_TOP_LEVEL_RAW_PATH = DATA_ROOT / "raw" / "ceds"
 CEDS_RAW_PATH = CEDS_TOP_LEVEL_RAW_PATH / CEDS_VERSION_ID
@@ -247,7 +259,7 @@ CMIP7_GHG_PROCESSED_DB = OpenSCMDB(
     backend_index=FeatherIndexBackend(),
 )
 
-# ID for creating history from the global workflow
+# ID for creating history for the global workflow
 CREATE_HISTORY_FOR_GLOBAL_WORKFLOW_ID = "_".join(
     [
         GCB_PROCESSING_ID,
@@ -294,7 +306,7 @@ HISTORY_HARMONISATION_INTERIM_DIR = DATA_ROOT / "interim" / "history-for-harmoni
 HISTORY_HARMONISATION_DIR = DATA_ROOT / "processed" / "history-for-harmonisation" / HISTORY_FOR_HARMONISATION_ID
 
 # ID of the Zenodo record that contains the harmonised historical emissions to use
-HISTORY_ZENODO_RECORD_ID = "17527153"
+HISTORY_ZENODO_RECORD_ID = "17751257"
 
 # Database to hold historical emissions for harmonisation
 HISTORY_HARMONISATION_DB = OpenSCMDB(
@@ -307,7 +319,8 @@ HISTORY_HARMONISATION_DB = OpenSCMDB(
 # # ID for the scenario download step
 # Run by Marco
 DOWNLOAD_SCENARIOS_ID = "All_23Oct"
-DOWNLOAD_SCENARIOS_ID = "202511251235"
+DOWNLOAD_SCENARIOS_ID = "202511040855"
+DOWNLOAD_SCENARIOS_ID = "202511281156"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(
@@ -377,7 +390,7 @@ INFILLING_DB_DIR = (
 )
 
 # ID of the Zenodo record that contains the infilling database to use
-INFILLING_DB_ZENODO_RECORD_ID = "17540023"
+INFILLING_DB_ZENODO_RECORD_ID = "17755859"
 
 # Database into which infilled emissions are saved
 INFILLING_DB = OpenSCMDB(

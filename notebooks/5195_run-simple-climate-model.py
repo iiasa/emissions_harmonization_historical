@@ -37,6 +37,7 @@ from pandas_openscm.index_manipulation import update_index_levels_func
 from emissions_harmonization_historical.constants_5000 import (
     HISTORY_HARMONISATION_DB,
     INFILLED_SCENARIOS_DB,
+    MARKERS,
     RCMIP_PROCESSED_DB,
     REPO_ROOT,
     SCM_OUT_DIR,
@@ -55,15 +56,16 @@ UR = openscm_units.unit_registry
 Q = UR.Quantity
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "REMIND"
+model: str = "WITCH"
 scm: str = "MAGICCv7.6.0a3"
+markers_only: bool = True
 
 # %%
 output_dir_model = SCM_OUT_DIR / model
 output_dir_model.mkdir(exist_ok=True, parents=True)
 output_dir_model
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Load data
 
 # %% [markdown]
@@ -73,6 +75,18 @@ output_dir_model
 complete_scenarios = INFILLED_SCENARIOS_DB.load(
     pix.isin(stage="complete") & pix.ismatch(model=f"*{model}*")
 ).reset_index("stage", drop=True)
+
+# %%
+if markers_only:
+    markers_l = []
+    for model, scenario, _ in MARKERS:
+        tmp = complete_scenarios.loc[pix.isin(model=model, scenario=scenario)]
+        if not tmp.empty:
+            markers_l.append(tmp)
+
+    complete_scenarios = pix.concat(markers_l)
+    if complete_scenarios.empty:
+        raise AssertionError
 
 # %% [markdown]
 # ### History
@@ -247,7 +261,7 @@ if scm.startswith("MAGICC"):
 # %% [markdown]
 # ## Run SCM
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 complete_openscm_runner = update_index_levels_func(
     complete_scm,
     {
@@ -258,7 +272,7 @@ complete_openscm_runner = update_index_levels_func(
         )
     },
 )
-complete_openscm_runner
+# complete_openscm_runner
 
 
 # %%
@@ -303,5 +317,5 @@ run_scms(
 # The SCM output is already saved in the db.
 # Here we also save the emissions that were actually used by the SCM.
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 SCM_OUTPUT_DB.save(complete_scm.pix.assign(climate_model=scm), allow_overwrite=True)

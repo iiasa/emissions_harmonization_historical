@@ -40,9 +40,9 @@ from emissions_harmonization_historical.constants_5000 import (
     ADAM_ET_AL_2024_PROCESSED_DB,
     CEDS_RAW_PATH,
     CMIP7_GHG_PROCESSED_DB,
-    CREATE_HISTORY_FOR_GLOBAL_WORKFLOW_ID,
     CREATE_HISTORY_FOR_GRIDDING_ID,
     GCB_PROCESSED_DB,
+    HISTORY_FOR_HARMONISATION_ID,
     HISTORY_HARMONISATION_INTERIM_DIR,
     HISTORY_SCENARIO_NAME,
     RCMIP_PROCESSED_DB,
@@ -82,9 +82,10 @@ history_for_gridding_harmonisation = pd.read_feather(
 # ### Aggregate gridding history
 
 # %%
-# TODO: check whether we get the same global sum for all IAM region groupings
-model_regions = [r for r in history_for_gridding_harmonisation.pix.unique("region") if "REMIND-MAgPIE 3.5-4.11" in r]
-model_regions
+aggregation_regions = [
+    r for r in history_for_gridding_harmonisation.loc[pix.ismatch(region="iso3**")].pix.unique("region")
+]
+# aggregation_regions
 
 # %%
 to_gcages_names = partial(
@@ -100,9 +101,7 @@ to_gcages_names = partial(
 
 # %%
 history_for_gridding_harmonisation_aggregated = to_global_workflow_emissions(
-    history_for_gridding_harmonisation.loc[pix.isin(region=["World", *model_regions])].pix.assign(
-        model="gridding-emissions"
-    ),
+    history_for_gridding_harmonisation.loc[pix.isin(region=aggregation_regions)].pix.assign(model="gridding-emissions"),
     global_workflow_co2_fossil_sector="Energy and Industrial Processes",
     global_workflow_co2_biosphere_sector="AFOLU",
 )
@@ -111,9 +110,9 @@ history_for_gridding_harmonisation_aggregated
 
 # %%
 # Weird that it isn't easier to figure this out. Anyway.
-tmp = history_for_gridding_harmonisation.loc[pix.ismatch(variable="**CH4|Energy Sector", region="OECD & EU (R5)"), :]
+tmp = history_for_gridding_harmonisation.loc[pix.ismatch(variable="**CH4|Energy Sector", region="iso3ish|usa")]
 ceds_ext_years = tmp[tmp == 0.0].dropna(axis="columns").columns.values
-# ceds_ext_years
+ceds_ext_years
 
 # %%
 ceds_extensions_l = []
@@ -576,9 +575,7 @@ fg.fig.savefig("global-workflow-history-over-cmip-phases.pdf", bbox_inches="tigh
 # ## Save
 
 # %% editable=true slideshow={"slide_type": ""}
-out_file = (
-    HISTORY_HARMONISATION_INTERIM_DIR / f"global-workflow-history_{CREATE_HISTORY_FOR_GLOBAL_WORKFLOW_ID}.feather"
-)
+out_file = HISTORY_HARMONISATION_INTERIM_DIR / f"global-workflow-history_{HISTORY_FOR_HARMONISATION_ID}.feather"
 out_file.parent.mkdir(exist_ok=True, parents=True)
 
 global_workflow_harmonisation_emissions_reporting_names.reorder_levels(

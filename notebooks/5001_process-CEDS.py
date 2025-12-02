@@ -21,15 +21,18 @@
 # ## Imports
 
 # %%
+import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 import pandas_openscm
+import pint
 from gcages.index_manipulation import split_sectors
 from pandas_indexing.core import isna
 from pandas_openscm.index_manipulation import update_index_levels_func
 
 from emissions_harmonization_historical.ceds import get_map, read_CEDS
 from emissions_harmonization_historical.constants_5000 import (
+    CEDS_CMIP_PROCESSED_DB,
     CEDS_PROCESSED_DB,
     CEDS_RAW_PATH,
     CEDS_TOP_LEVEL_RAW_PATH,
@@ -116,7 +119,7 @@ assert ceds.loc[isna].reset_index().sector_59.unique().tolist() == ["6B_Other-no
 
 # %%
 ceds_totals = ceds.openscm.groupby_except(["sector_59", "sector", "country"]).sum()
-# ceds_totals
+# ceds_totals.loc[:, 2020:]
 
 # %% [markdown]
 # ## Process
@@ -176,10 +179,6 @@ ceds = update_index_levels_func(ceds, {"em": lambda x: x.replace("SO2", "Sulfur"
 
 ceds
 
-# %%
-# TODO: add CEDS extension back to 1750 somewhere
-# ceds.loc[["CH4", "N2O"]]
-
 # %% [markdown]
 # ### Calculate aggregates of interest
 
@@ -189,13 +188,15 @@ ceds = ceds.groupby(["em", "country", "unit", "sector"]).sum().pix.fixna()  # gr
 
 # %%
 # aggregate countries where this is necessary, e.g. because of specific other data (like SSP socioeconomic driver data)
-# based on the new SSP data, we only need to aggregate Serbia and Kosovo
 country_combinations = {
     # "isr_pse": ["isr", "pse"], "sdn_ssd": ["ssd", "sdn"],
-    "srb_ksv": ["srb", "srb (kosovo)"]
+    "kos": ["srb (kosovo)"]
 }
 ceds = ceds.pix.aggregate(country=country_combinations)
 # ceds
+
+# %%
+# ceds.loc[pix.ismatch(country="kos")]
 
 # %% [markdown]
 # ### Format in IAMC style
@@ -222,13 +223,17 @@ assert_units_match_wishes(ceds_reformatted_iamc)
 # %% [markdown]
 # ### Map national aviation emissions to global
 #
-# Since release 2025_03_18, CEDS splits up aviation between its 'global' region (for international aircraft) and other territories. Before it was all allocated to the 'global' region, which is what we were expecting, and what we want to continue to use here.
+# Since release 2025_03_18, CEDS splits up aviation between its 'global' region (for international aircraft)
+# and other territories. Before it was all allocated to the 'global' region,
+# which is what we were expecting, and what we want to continue to use here.
 #
 # 1. take all national aircraft emissions and aggregate and rename to global
 # 2. aggregate global emissions + national without aircraft + national aircraft aggregated to global
 
 # %%
-ceds_reformatted_iamc.loc[pix.ismatch(variable="Emissions|*|Aircraft")].loc[pix.isin(region=["global","usa"])] # show that there is both international and domestic aviation emissions in this data
+ceds_reformatted_iamc.loc[pix.ismatch(variable="Emissions|*|Aircraft")].loc[
+    pix.isin(region=["global", "usa"])
+]  # show that there is both international and domestic aviation emissions in this data
 
 # %%
 out_no_aircraft = ceds_reformatted_iamc.loc[~pix.ismatch(variable="**|Aircraft")]
@@ -255,13 +260,19 @@ assert (
 # ### Check we didn't lose any mass
 
 # %%
-res_sum = split_sectors(out).openscm.groupby_except(["region", "sectors"]).sum().pix.project(["species", "unit"])
-res_sum.index = res_sum.index.rename({"species": "em", "unit": "units"})
+res_sum_out_units = (
+    split_sectors(out).openscm.groupby_except(["region", "sectors"]).sum().pix.project(["species", "unit"])
+)
+
+res_sum = res_sum_out_units.copy()
+res_sum.index = res_sum_out_units.index.rename({"species": "em", "unit": "units"})
+
 res_sum = pix.units.convert_unit(
     res_sum,
     lambda x: x.replace("Mt", "kt"),
     level="units",
 )
+
 res_sum = update_index_levels_func(
     res_sum,
     {
@@ -290,6 +301,35 @@ pd.testing.assert_frame_equal(
     check_like=True,
 )
 
+# %%
+ceds_esgf = CEDS_CMIP_PROCESSED_DB.load()
+# ceds_esgf
+
+# %%
+ur = pint.get_application_registry()
+
+# %%
+species_renamings = {
+    "NMVOC": "VOC",
+    "SO2": "Sulfur",
+}
+for (species, units), sdf_esgf in ceds_esgf.groupby(["species", "unit"]):
+    sdf_esgf_no_nan = sdf_esgf.dropna(how="all", axis="columns")
+
+    if species in species_renamings:
+        species_res_sum = species_renamings[species]
+    else:
+        species_res_sum = species
+
+    sdf_res_sum = res_sum_out_units.loc[pix.isin(species=species_res_sum)]
+
+    with ur.context("NOx_conversions"):
+        np.testing.assert_allclose(
+            sdf_esgf_no_nan.values,
+            sdf_res_sum.pix.convert_unit(units).loc[:, sdf_esgf_no_nan.columns].values,
+            rtol=2e-4,
+        )
+
 # %% [markdown]
 # ## Save formatted CEDS data
 
@@ -312,34 +352,30 @@ CEDS_VERSION_ID
 
 # %%
 if RUN_OPTIONAL_BYFUEL_PROCESSING_FOR_AVIATION_AND_SHIPPING:
-    ceds_by_fuel = (
-        pd.concat(
-            # for all earlier versions processed here
-            # (i.e. Drive_2025_03_18, Drive_2025_03_11, Zenodo_2024_07_08)
-            # read_CEDS(
-            #     Path(CEDS_RAW_PATH) / f"{s}_CEDS_emissions_by_country_sector_v{ceds_release}.csv"
-            # )
-            read_CEDS(  # for Zenodo_2025_03_18
-                CEDS_RAW_PATH
-                / f"CEDS_{CEDS_VERSION_ID}_aggregate"
-                / f"{s}_CEDS_global_estimates_by_sector_fuel_{CEDS_VERSION_ID}.csv"
-            )
-            for s in species
+    ceds_by_fuel = pd.concat(
+        # for all earlier versions processed here
+        # (i.e. Drive_2025_03_18, Drive_2025_03_11, Zenodo_2024_07_08)
+        # read_CEDS(
+        #     Path(CEDS_RAW_PATH) / f"{s}_CEDS_emissions_by_country_sector_v{ceds_release}.csv"
+        # )
+        read_CEDS(  # for Zenodo_2025_03_18
+            CEDS_RAW_PATH
+            / f"CEDS_{CEDS_VERSION_ID}_aggregate"
+            / f"{s}_CEDS_global_estimates_by_sector_fuel_{CEDS_VERSION_ID}.csv"
         )
-        .pix.semijoin(ceds_map, how="outer")
-    )
+        for s in species
+    ).pix.semijoin(ceds_map, how="outer")
 
     # only aircraft and shipping
-    ceds_by_fuel_aviation_shipping = ceds_by_fuel.loc[pix.isin(sector=[
-        "Aircraft",
-        "International Shipping"
-    ])]
-    
+    ceds_by_fuel_aviation_shipping = ceds_by_fuel.loc[pix.isin(sector=["Aircraft", "International Shipping"])]
+
     # assign all emissions to the global level
     ceds_by_fuel_aviation_shipping = pix.assignlevel(ceds_by_fuel_aviation_shipping, region="World")
-    
+
     # aggregate
-    ceds_by_fuel_aviation_shipping = ceds_by_fuel_aviation_shipping.groupby(["em", "region", "fuel", "units", "sector"]).sum().pix.fixna()  # group and fix NAs
+    ceds_by_fuel_aviation_shipping = (
+        ceds_by_fuel_aviation_shipping.groupby(["em", "region", "fuel", "units", "sector"]).sum().pix.fixna()
+    )  # group and fix NAs
     ceds_by_fuel_aviation_shipping
 
 # %% [markdown]
@@ -347,22 +383,33 @@ if RUN_OPTIONAL_BYFUEL_PROCESSING_FOR_AVIATION_AND_SHIPPING:
 
 # %%
 if RUN_OPTIONAL_BYFUEL_PROCESSING_FOR_AVIATION_AND_SHIPPING:
-    ceds_by_fuel_aviation_shipping = ceds_by_fuel_aviation_shipping.pix.dropna(subset=["units"]).pix.format(unit="{units}/yr", drop=True)
-    
+    ceds_by_fuel_aviation_shipping = ceds_by_fuel_aviation_shipping.pix.dropna(subset=["units"]).pix.format(
+        unit="{units}/yr", drop=True
+    )
+
     # adjust units; change all to values to Mt instead of kt
-    ceds_by_fuel_aviation_shipping = pix.units.convert_unit(ceds_by_fuel_aviation_shipping, lambda x: "Mt " + x.removeprefix("kt").strip())
+    ceds_by_fuel_aviation_shipping = pix.units.convert_unit(
+        ceds_by_fuel_aviation_shipping, lambda x: "Mt " + x.removeprefix("kt").strip()
+    )
     # exception for N2O/yr, which should remain in kt following https://github.com/IAMconsortium/common-definitions/
-    ceds_by_fuel_aviation_shipping = pix.units.convert_unit(ceds_by_fuel_aviation_shipping, lambda x: "kt " + x.removeprefix("Mt").strip() if x == "Mt N2O/yr" else x)
-    
+    ceds_by_fuel_aviation_shipping = pix.units.convert_unit(
+        ceds_by_fuel_aviation_shipping, lambda x: "kt " + x.removeprefix("Mt").strip() if x == "Mt N2O/yr" else x
+    )
+
     ceds_by_fuel_aviation_shipping.index = pd.MultiIndex.from_tuples(
-        [(em, country, sector_59, sector, update_unit(unit, em)) for em, country, sector_59, sector, unit in ceds_by_fuel_aviation_shipping.index],
+        [
+            (em, country, sector_59, sector, update_unit(unit, em))
+            for em, country, sector_59, sector, unit in ceds_by_fuel_aviation_shipping.index
+        ],
         names=ceds_by_fuel_aviation_shipping.index.names,
     )
-    
+
     # change name(s) of emissions species
     # use 'Sulfur' instead of 'SO2'
-    ceds_by_fuel_aviation_shipping = update_index_levels_func(ceds_by_fuel_aviation_shipping, {"em": lambda x: x.replace("SO2", "Sulfur").replace("NMVOC", "VOC")})
-    
+    ceds_by_fuel_aviation_shipping = update_index_levels_func(
+        ceds_by_fuel_aviation_shipping, {"em": lambda x: x.replace("SO2", "Sulfur").replace("NMVOC", "VOC")}
+    )
+
     ceds_by_fuel_aviation_shipping
 
 # %% [markdown]
@@ -370,9 +417,11 @@ if RUN_OPTIONAL_BYFUEL_PROCESSING_FOR_AVIATION_AND_SHIPPING:
 
 # %%
 if RUN_OPTIONAL_BYFUEL_PROCESSING_FOR_AVIATION_AND_SHIPPING:
-    ceds_by_fuel_aviation_shipping_iamdf = ceds_by_fuel_aviation_shipping.rename_axis(index={"em": "variable", "country": "region"})
+    ceds_by_fuel_aviation_shipping_iamdf = ceds_by_fuel_aviation_shipping.rename_axis(
+        index={"em": "variable", "country": "region"}
+    )
     ceds_by_fuel_aviation_shipping_iamdf
-    
+
     # rename to IAMC-style variable names including standard index order
     ceds_by_fuel_aviation_shipping_iamdf = (
         ceds_by_fuel_aviation_shipping_iamdf.pix.format(variable="Emissions|{variable}|{sector}|{fuel}", drop=True)
@@ -393,6 +442,4 @@ if RUN_OPTIONAL_BYFUEL_PROCESSING_FOR_AVIATION_AND_SHIPPING:
 # %%
 if RUN_OPTIONAL_BYFUEL_PROCESSING_FOR_AVIATION_AND_SHIPPING:
     ceds_by_fuel_aviation_shipping_filename = "ceds_cmip7_Aircraft_intlShipping_byfuel_" + CEDS_VERSION_ID + ".csv"
-    ceds_by_fuel_aviation_shipping_iamdf.to_csv(
-        CEDS_TOP_LEVEL_RAW_PATH / ceds_by_fuel_aviation_shipping_filename
-    )
+    ceds_by_fuel_aviation_shipping_iamdf.to_csv(CEDS_TOP_LEVEL_RAW_PATH / ceds_by_fuel_aviation_shipping_filename)

@@ -214,7 +214,7 @@ for y in range(out.columns.min(), out.columns.max() + 1):
 
 out = out.sort_index(axis="columns")
 out = out.T.interpolate(method="index").T
-# out
+out.index.droplevel(out.index.names.difference(["model", "scenario"])).drop_duplicates().to_frame()["model"].unique()
 
 # %% editable=true slideshow={"slide_type": ""}
 INFILLING_DB_INTERIM_DIR.mkdir(exist_ok=True, parents=True)
