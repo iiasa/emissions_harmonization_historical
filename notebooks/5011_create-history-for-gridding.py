@@ -29,6 +29,7 @@ import pandas_openscm.comparison
 import tqdm.auto
 from gcages.cmip7_scenariomip.gridding_emissions import get_complete_gridding_index
 from gcages.completeness import assert_all_groups_are_complete
+from IPython.display import display
 
 from emissions_harmonization_historical.constants_5000 import (
     BB4CMIP7_PROCESSED_DB,
@@ -223,7 +224,7 @@ for region_prefix in set([v.split("|")[0] for v in history_for_gridding.pix.uniq
     if not comparison.empty:
         print(region_prefix)
         print("Problem")
-        display(comparison)  # noqa: F821
+        display(comparison)
         raise AssertionError(region_prefix)
 
 # %%
@@ -297,7 +298,7 @@ assert_all_groups_are_complete(
 if history_for_gridding_incl_cdr[HARMONISATION_YEAR].isnull().any():
     missing = history_for_gridding_incl_cdr.loc[history_for_gridding_incl_cdr[HARMONISATION_YEAR].isnull()]
 
-    display(missing)  # noqa: F821
+    display(missing)
     raise AssertionError
 
 # %% [markdown]

@@ -44,13 +44,11 @@ import xarray as xr
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
 species: str = "CO2"
 species_esgf: str = "CO2"
-compute_early: bool = True
+compute_early: bool = False
 
 
 # %% [markdown]
 # ## Load data
-
-# %%
 
 # %% [markdown]
 # ## Download data
@@ -182,22 +180,41 @@ other_emms_annual_global_sector_sum = other_emms_annual_global.sum("sector", kee
 
 # %%
 aviation_ems_annual_global_level_sum_l = []
-for aviation_file in tqdm.auto.tqdm([esgf_file for esgf_file in downloaded_files_l if "em-AIR-anthro" in esgf_file]):
-    chunk_sum = (
-        to_annual_global_sum(
-            xr.open_mfdataset([aviation_file]).compute(),
+
+if compute_early:
+    for aviation_file in tqdm.auto.tqdm(
+        [esgf_file for esgf_file in downloaded_files_l if "em-AIR-anthro" in esgf_file]
+    ):
+        chunk_sum = (
+            to_annual_global_sum(
+                xr.open_mfdataset([aviation_file]).compute(),
+                variable_of_interest=f"{species_esgf}_em_AIR_anthro",
+                cell_area=cell_area,
+                bnd_dim="bnds",
+            )
+            .sum("level", keep_attrs=True)
+            .compute()
+        )
+        # aviation_ems_annual_global
+
+        aviation_ems_annual_global_level_sum_l.append(chunk_sum)
+        aviation_ems_annual_global_level_sum = xr.concat(aviation_ems_annual_global_level_sum_l, dim="year")
+else:
+    for aviation_file in tqdm.auto.tqdm(
+        [esgf_file for esgf_file in downloaded_files_l if "em-AIR-anthro" in esgf_file]
+    ):
+        chunk_sum = to_annual_global_sum(
+            xr.open_mfdataset([aviation_file]),
             variable_of_interest=f"{species_esgf}_em_AIR_anthro",
             cell_area=cell_area,
             bnd_dim="bnds",
-        )
-        .sum("level", keep_attrs=True)
-        .compute()
-    )
-    # aviation_ems_annual_global
+        ).sum("level", keep_attrs=True)
+        # aviation_ems_annual_global
+        aviation_ems_annual_global_level_sum_l.append(chunk_sum)
 
-    aviation_ems_annual_global_level_sum_l.append(chunk_sum)
+        aviation_ems_annual_global_level_sum = xr.concat(aviation_ems_annual_global_level_sum_l, dim="year")
+        aviation_ems_annual_global_level_sum = aviation_ems_annual_global_level_sum.compute()
 
-aviation_ems_annual_global_level_sum = xr.concat(aviation_ems_annual_global_level_sum_l, dim="year")
 aviation_ems_annual_global_level_sum
 
 # %%
@@ -237,7 +254,10 @@ except ImportError:
     print("Saving to current directory")
     CEDS_CMIP_PROCESSED_DIR = "."
 
-out_ts.to_csv(CEDS_CMIP_PROCESSED_DIR / f"{species_esgf}_ceds-cmip-annual-total.csv")
+os.makedirs(CEDS_CMIP_PROCESSED_DIR, exist_ok=True)
+filepath = os.path.join(CEDS_CMIP_PROCESSED_DIR, f"{species_esgf}_ceds-cmip-annual-total.csv")
+
+out_ts.to_csv(filepath)
 
 # %%
 # Save to DB
