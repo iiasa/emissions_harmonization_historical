@@ -16,7 +16,7 @@ from emissions_harmonization_historical.constants_5000 import (
 )
 
 
-def main():
+def main():  # noqa: PLR0915
     """
     Extract the data
     """
@@ -54,6 +54,36 @@ def main():
     res.to_csv(out_path)
     print(f"Wrote {out_path}")
 
+    complete = INFILLED_SCENARIOS_DB.load(pix.isin(stage="complete"))
+
+    relevant_emissions = complete.index.droplevel(
+        complete.index.names.difference(["variable", "unit"])
+    ).drop_duplicates()
+    exp_n_variables = 52
+    if len(relevant_emissions) != exp_n_variables:
+        raise AssertionError(len(relevant_emissions))
+
+    history_to_align = history.reset_index(["purpose", "model", "scenario"], drop=True)
+    complete_a, history_a = complete.reset_index("stage", drop=True).align(history_to_align)
+    complete_a = complete_a.dropna(how="all", axis="columns")
+    history_a = history_a.dropna(how="all", axis="columns")
+    res = pix.concat(
+        [
+            complete_a,
+            history_a,
+        ],
+        axis=1,
+    ).sort_index(axis="columns")
+    if res.isnull().any().any():
+        raise AssertionError
+    if res.shape[0] != complete.shape[0]:
+        raise AssertionError
+
+    out_path = OUT_PATH / f"{INFILLING_DB_DIR.name}_complete-emissions.csv"
+    out_path.parent.mkdir(exist_ok=True, parents=True)
+    res.to_csv(out_path)
+    print(f"Wrote {out_path}")
+
     harmonised_sectoral = HARMONISED_SCENARIO_DB.load(pix.ismatch(variable="Emissions**", workflow="gridding"))
     history_sectoral = HISTORY_HARMONISATION_DB.load(pix.isin(purpose="gridding_emissions"))
 
@@ -83,26 +113,24 @@ def main():
     for scenario, sdf in tmp_sum.groupby("scenario"):
         if scenario == "historical":
             # Use R5 regions, as good a choice as any
-            # TODO:  talk to Jarmo about fact that regional choice matters a bit here
-            # i.e. different models are being harmonised to slightly different values
             historical_sum_r5 = (
                 sdf.loc[pix.ismatch(region=["World", "**R5**"])]
                 .openscm.groupby_except(["model", "region"])
                 .sum(min_count=1)
                 .pix.assign(model="historical-sources")
             )
-            historical_sum_r10 = (
-                sdf.loc[pix.ismatch(region=["World", "**R10**"])]
-                .openscm.groupby_except(["model", "region"])
-                .sum(min_count=1)
-                .pix.assign(model="historical-sources")
-            )
-            historical_sum_rm = (
-                sdf.loc[pix.ismatch(region=["World", "REMIND-MAgPIE 3.5-4.10|*"])]
-                .openscm.groupby_except(["model", "region"])
-                .sum(min_count=1)
-                .pix.assign(model="historical-sources")
-            )
+            # historical_sum_r10 = (
+            #     sdf.loc[pix.ismatch(region=["World", "**R10**"])]
+            #     .openscm.groupby_except(["model", "region"])
+            #     .sum(min_count=1)
+            #     .pix.assign(model="historical-sources")
+            # )
+            # historical_sum_rm = (
+            #     sdf.loc[pix.ismatch(region=["World", "REMIND-MAgPIE 3.5-4.10|*"])]
+            #     .openscm.groupby_except(["model", "region"])
+            #     .sum(min_count=1)
+            #     .pix.assign(model="historical-sources")
+            # )
             out_l.append(historical_sum_r5)
 
         else:
