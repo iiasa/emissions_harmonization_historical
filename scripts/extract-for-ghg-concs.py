@@ -16,7 +16,7 @@ from emissions_harmonization_historical.constants_5000 import (
 )
 
 
-def main():  # noqa: PLR0915
+def main():
     """
     Extract the data
     """
@@ -25,45 +25,20 @@ def main():  # noqa: PLR0915
     REPO_ROOT = HERE.parent
     OUT_PATH = REPO_ROOT / "for-ghg-concs" / INFILLING_DB_DIR.name
 
-    harmonised = HARMONISED_SCENARIO_DB.load(pix.ismatch(variable="Emissions**", workflow="for_scms"))
-
-    infilled_silicone = INFILLED_SCENARIOS_DB.load(pix.isin(stage="silicone"))
-
-    relevant_emissions = (
-        harmonised.index.droplevel(harmonised.index.names.difference(["variable", "unit"]))
-        .append(infilled_silicone.index.droplevel(infilled_silicone.index.names.difference(["variable", "unit"])))
-        .drop_duplicates()
-    )
-    # MAGICC's old SCEN number
-    exp_n_variables = 23
-    if len(relevant_emissions) != exp_n_variables:
-        raise AssertionError(len(relevant_emissions))
-
     history = HISTORY_HARMONISATION_DB.load(pix.isin(purpose="global_workflow_emissions"))
-
-    res = pix.concat(
-        [
-            harmonised.reset_index("workflow", drop=True),
-            infilled_silicone.reset_index("stage", drop=True),
-            history.reset_index("purpose", drop=True),
-        ]
-    ).sort_index(axis="columns")
-
-    out_path = OUT_PATH / f"{INFILLING_DB_DIR.name}_harmonised-emissions-up-to-sillicone.csv"
-    out_path.parent.mkdir(exist_ok=True, parents=True)
-    res.to_csv(out_path)
-    print(f"Wrote {out_path}")
 
     complete = INFILLED_SCENARIOS_DB.load(pix.isin(stage="complete"))
 
-    relevant_emissions = complete.index.droplevel(
-        complete.index.names.difference(["variable", "unit"])
-    ).drop_duplicates()
-    exp_n_variables = 52
-    if len(relevant_emissions) != exp_n_variables:
-        raise AssertionError(len(relevant_emissions))
+    for (model, scenario), msdf in complete.groupby(["model", "scenario"]):
+        relevant_emissions = msdf.index.droplevel(msdf.index.names.difference(["variable", "unit"])).drop_duplicates()
+        exp_n_variables = 52
+        if len(relevant_emissions) != exp_n_variables:
+            msg = f"{model} {scenario} {len(relevant_emissions)}"
+            raise AssertionError(msg)
 
-    history_to_align = history.reset_index(["purpose", "model", "scenario"], drop=True)
+    history_to_align = history.reset_index(["purpose", "model", "scenario"], drop=True).loc[
+        :, : complete.columns.min() - 1
+    ]
     complete_a, history_a = complete.reset_index("stage", drop=True).align(history_to_align)
     complete_a = complete_a.dropna(how="all", axis="columns")
     history_a = history_a.dropna(how="all", axis="columns")
@@ -78,6 +53,8 @@ def main():  # noqa: PLR0915
         raise AssertionError
     if res.shape[0] != complete.shape[0]:
         raise AssertionError
+
+    res = pix.concat([res, history.reset_index("purpose", drop=True)])
 
     out_path = OUT_PATH / f"{INFILLING_DB_DIR.name}_complete-emissions.csv"
     out_path.parent.mkdir(exist_ok=True, parents=True)

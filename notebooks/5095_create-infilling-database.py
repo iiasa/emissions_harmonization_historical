@@ -105,11 +105,13 @@ if scenarios_for_infilling_db.isnull().any().any():
 # ### WMO 2022
 
 # %%
-wmo_2022_scenarios = WMO_2022_PROCESSED_DB.load(pix.ismatch(model="*projections*"))
+wmo_2022_scenarios = WMO_2022_PROCESSED_DB.load(pix.ismatch(model="WMO-2022-CMIP7-concentration-inversions")).loc[
+    :, HARMONISATION_YEAR:2100
+]
 if wmo_2022_scenarios.empty:
     raise AssertionError
 
-# wmo_2022_scenarios
+wmo_2022_scenarios
 
 # %% [markdown]
 # ### Velders et al., 2022
@@ -169,7 +171,7 @@ harmonise_res = harmonise(
     user_overrides=user_overrides,
 )
 if harmonise_res.timeseries.isnull().any().any():
-    raise AssertionError
+    raise AssertionError(harmonise_res.timeseries.isnull().any(axis=1))
 
 # %%
 compare_infilling_harmonisation = compare_close(

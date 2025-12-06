@@ -54,7 +54,7 @@ from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR,
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "AIM"
+model: str = "REMIND"
 
 make_region_sector_plots: bool = False
 output_to_pdf: bool = False
@@ -132,6 +132,9 @@ history_for_global_workflow_harmonisation = HISTORY_HARMONISATION_DB.load(
     pix.ismatch(purpose="global_workflow_emissions")
 )
 # history_for_global_workflow_harmonisation
+
+# %%
+HISTORY_HARMONISATION_DB
 
 # %% [markdown]
 # #### Combine: gridding and global workflow emissions

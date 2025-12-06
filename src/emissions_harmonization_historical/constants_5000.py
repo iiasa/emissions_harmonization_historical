@@ -207,6 +207,8 @@ WMO_2022_RAW_PATH = DATA_ROOT / "raw" / "wmo-2022"
 # Moved to portable OpenSCMDB
 WMO_2022_PROCESSING_ID = "0003"
 WMO_2022_PROCESSING_ID = "202511040855"
+# Switch to using CMIP7 recommended inverse emissions
+WMO_2022_PROCESSING_ID = "202512071021"
 
 WMO_2022_PROCESSED_DB = OpenSCMDB(
     db_dir=DATA_ROOT / "processed" / "wmo-2022" / WMO_2022_PROCESSING_ID / "db",
