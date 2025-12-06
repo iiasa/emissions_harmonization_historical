@@ -130,7 +130,8 @@ BB4CMIP7_ANNUAL_SECTORAL_COUNTRY_OUTPUT_DIR = BB4CMIP7_INTERIM_OUTPUT_DIR / BB4C
 BB4CMIP7_FORMATTING_ID = "0002"
 # Update after investigation of Annika in https://github.com/iiasa/emissions_harmonization_historical/pull/110/files
 # ... not because of content changes, but because the current version was produced on that branch
-BB4CMIP7_FORMATTING_ID = "202511040855"
+# Add renaming of kosovo
+BB4CMIP7_FORMATTING_ID = "202512032146"
 
 # Database into which the processed BB4CMIP7 data is saved
 BB4CMIP7_PROCESSED_DIR = DATA_ROOT / "processed" / "bb4cmip7" / BB4CMIP7_FORMATTING_ID
@@ -143,7 +144,7 @@ BB4CMIP7_PROCESSED_DB = OpenSCMDB(
 # ID for including other modifications that affect
 # the creation of historical emissions dataset for gridding
 # Gcages CDR split
-MOD_HISTORY_FOR_GRIDDING_ID = "202511040855"
+MOD_HISTORY_FOR_GRIDDING_ID = "202512021030"
 
 # Commit from https://github.com/IAMconsortium/common-definitions
 # COMMON_DEFINITIONS_COMMIT = get_latest_commit_hash(
@@ -308,7 +309,7 @@ HISTORY_HARMONISATION_INTERIM_DIR = DATA_ROOT / "interim" / "history-for-harmoni
 HISTORY_HARMONISATION_DIR = DATA_ROOT / "processed" / "history-for-harmonisation" / HISTORY_FOR_HARMONISATION_ID
 
 # ID of the Zenodo record that contains the harmonised historical emissions to use
-HISTORY_ZENODO_RECORD_ID = "17751257"
+HISTORY_ZENODO_RECORD_ID = "17800990"
 
 # Database to hold historical emissions for harmonisation
 HISTORY_HARMONISATION_DB = OpenSCMDB(
@@ -319,10 +320,7 @@ HISTORY_HARMONISATION_DB = OpenSCMDB(
 
 
 # # ID for the scenario download step
-# Run by Marco
-DOWNLOAD_SCENARIOS_ID = "All_23Oct"
-DOWNLOAD_SCENARIOS_ID = "202511040855"
-DOWNLOAD_SCENARIOS_ID = "202511281156"
+DOWNLOAD_SCENARIOS_ID = "202512021030"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(
@@ -339,7 +337,7 @@ PRE_PROCESSING_ID = "0002"
 PRE_PROCESSING_ID = "0003"
 # Upgrade to gcages which puts CDR in the Emissions tree
 PRE_PROCESSING_ID = "0004"
-PRE_PROCESSING_ID = "202511040855"
+PRE_PROCESSING_ID = "202512021030"
 
 # Database into which pre-processed scenarios are saved
 PRE_PROCESSED_SCENARIO_DB = OpenSCMDB(
@@ -392,7 +390,7 @@ INFILLING_DB_DIR = (
 )
 
 # ID of the Zenodo record that contains the infilling database to use
-INFILLING_DB_ZENODO_RECORD_ID = "17755859"
+INFILLING_DB_ZENODO_RECORD_ID = "17802976"
 
 # Database into which infilled emissions are saved
 INFILLING_DB = OpenSCMDB(
