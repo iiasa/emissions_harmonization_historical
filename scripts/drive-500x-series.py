@@ -25,8 +25,8 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
     and I can't see a better solution (maybe someone else can).
     """
     if notebook_name == "5090_download-scenarios.py":
-        # res = {"model_search": iam, "markers_only": True}
-        res = {"model_search": iam, "markers_only": False}
+        res = {"model_search": iam, "markers_only": True}
+        # res = {"model_search": iam, "markers_only": False}
 
     elif notebook_name in [
         "5091_check-reporting.py",
@@ -38,8 +38,8 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
     elif notebook_name in [
         "5094_harmonisation.py",
     ]:
-        res = {"model": iam, "make_region_sector_plots": True, "output_to_pdf": True}
-        # res = {"model": iam, "make_region_sector_plots": False, "output_to_pdf": False}
+        # res = {"model": iam, "make_region_sector_plots": True, "output_to_pdf": True}
+        res = {"model": iam, "make_region_sector_plots": False, "output_to_pdf": False}
 
     elif notebook_name in [
         "5190_infilling.py",
@@ -218,15 +218,15 @@ def main():  # noqa: PLR0912
     # # # Downloading and reporting checking
     # # notebook_prefixes = ["5090", "5091", "5092"]
     # Everything up to infilling
-    # notebook_prefixes = ["5090", "5091", "5092", "5093", "5094"]
+    notebook_prefixes = ["5090", "5091", "5092", "5093", "5094"]
     # # Harmonisation, infilling and post-processing
     # notebook_prefixes = ["5094", "5190", "5191"]
     # Infilling and post-processing
-    notebook_prefixes = ["5190", "5191"]
+    # notebook_prefixes = ["5190", "5191"]
     # # Everything
     # notebook_prefixes = ["5090", "5091", "5092", "5093", "5094", "5190", "5191"]
     # # Skip this step
-    notebook_prefixes = []
+    # notebook_prefixes = []
 
     for iam in tqdm.tqdm(iams, desc="IAMs up to emissions post-processing"):
         for notebook in all_notebooks:

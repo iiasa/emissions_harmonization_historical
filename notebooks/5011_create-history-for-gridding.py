@@ -309,3 +309,12 @@ out_file = HISTORY_HARMONISATION_INTERIM_DIR / f"gridding-history_{CREATE_HISTOR
 out_file.parent.mkdir(exist_ok=True, parents=True)
 
 history_for_gridding_incl_cdr.to_feather(out_file)
+
+# %%
+# Manual hack rather than using Zenodo - high danger
+from emissions_harmonization_historical.constants_5000 import HISTORY_HARMONISATION_DB
+
+HISTORY_HARMONISATION_DB.delete()
+HISTORY_HARMONISATION_DB.save(history_for_gridding_incl_cdr.pix.assign(purpose="gridding_emissions"))
+
+# %%

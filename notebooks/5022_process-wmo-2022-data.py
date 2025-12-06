@@ -267,7 +267,7 @@ for variable, vdf in wmo_clean.groupby("variable"):
     wmo_emissions_smooth_l.append(vdf)
 
 wmo_emissions_smooth = pix.concat(wmo_emissions_smooth_l).pix.assign(model="WMO 2022 projections v20250129 smoothed")
-# wmo_emissions_smooth
+wmo_emissions_smooth
 
 # %%
 pdf = (
@@ -340,14 +340,24 @@ for ax in fg.figure.axes:
 # We'll use the other sources where we don't already have data.
 
 # %%
+halon1202_special = wmo_emissions_smooth.loc[
+    ~pix.isin(variable=inverse_emissions_clean.pix.unique("variable")) | pix.isin(variable=["Emissions|Halon1202"])
+].copy()
+
+missing_cols = np.setdiff1d(
+    inverse_emissions_clean.loc[:, :HARMONISATION_YEAR].columns,
+    halon1202_special.columns,
+)
+halon1202_special.loc[:, missing_cols] = 0.0
+halon1202_special = halon1202_special.sort_index(axis="columns")
+# halon1202_special
+
+# %%
 res = pix.concat(
     [
         inverse_emissions_clean.loc[~pix.isin(variable=["Emissions|Halon1202"])],
         inversions_extrapolated.loc[~pix.isin(variable=inverse_emissions_clean.pix.unique("variable"))],
-        wmo_emissions_smooth.loc[
-            ~pix.isin(variable=inverse_emissions_clean.pix.unique("variable"))
-            | pix.isin(variable=["Emissions|Halon1202"])
-        ],
+        halon1202_special,
     ]
 )
 

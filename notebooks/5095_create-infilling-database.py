@@ -105,9 +105,11 @@ if scenarios_for_infilling_db.isnull().any().any():
 # ### WMO 2022
 
 # %%
-wmo_2022_scenarios = WMO_2022_PROCESSED_DB.load(pix.ismatch(model="WMO-2022-CMIP7-concentration-inversions")).loc[
-    :, HARMONISATION_YEAR:2100
-]
+wmo_2022_scenarios = WMO_2022_PROCESSED_DB.load(
+    pix.ismatch(model="WMO-2022-CMIP7-concentration-inversions")
+    # Urgh, Halon1202 special case
+    | (pix.ismatch(model="WMO 2022 projections v20250129 smoothed") & pix.ismatch(variable="Emissions|Halon1202"))
+).loc[:, HARMONISATION_YEAR:2100]
 if wmo_2022_scenarios.empty:
     raise AssertionError
 
@@ -232,6 +234,13 @@ for suffix, method, kwargs in (
     getattr(out, method)(out_file, **kwargs)
     files_for_zenodo.append(out_file)
     print(f"Wrote {out_file.relative_to(REPO_ROOT)}")
+
+# %%
+# Manual hack rather than using Zenodo - high danger
+from emissions_harmonization_historical.constants_5000 import INFILLING_DB
+
+INFILLING_DB.delete()
+INFILLING_DB.save(out)
 
 # %% [markdown]
 # ## Write README
