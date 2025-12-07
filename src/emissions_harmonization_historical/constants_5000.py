@@ -209,7 +209,7 @@ WMO_2022_RAW_PATH = DATA_ROOT / "raw" / "wmo-2022"
 WMO_2022_PROCESSING_ID = "0003"
 WMO_2022_PROCESSING_ID = "202511040855"
 # Switch to using CMIP7 recommended inverse emissions
-WMO_2022_PROCESSING_ID = "202512071021"
+WMO_2022_PROCESSING_ID = "202512071232"
 
 WMO_2022_PROCESSED_DB = OpenSCMDB(
     db_dir=DATA_ROOT / "processed" / "wmo-2022" / WMO_2022_PROCESSING_ID / "db",
@@ -309,7 +309,7 @@ HISTORY_HARMONISATION_INTERIM_DIR = DATA_ROOT / "interim" / "history-for-harmoni
 HISTORY_HARMONISATION_DIR = DATA_ROOT / "processed" / "history-for-harmonisation" / HISTORY_FOR_HARMONISATION_ID
 
 # ID of the Zenodo record that contains the harmonised historical emissions to use
-HISTORY_ZENODO_RECORD_ID = "17800990"
+HISTORY_ZENODO_RECORD_ID = "17845154"
 
 # Database to hold historical emissions for harmonisation
 HISTORY_HARMONISATION_DB = OpenSCMDB(
@@ -390,7 +390,7 @@ INFILLING_DB_DIR = (
 )
 
 # ID of the Zenodo record that contains the infilling database to use
-INFILLING_DB_ZENODO_RECORD_ID = "17802976"
+INFILLING_DB_ZENODO_RECORD_ID = "1111"
 
 # Database into which infilled emissions are saved
 INFILLING_DB = OpenSCMDB(

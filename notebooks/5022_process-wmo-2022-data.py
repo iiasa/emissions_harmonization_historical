@@ -333,31 +333,14 @@ for ax in fg.figure.axes:
 # %% [markdown]
 # The differences are where/what we'd expect.
 # Hence, we're going to use the inverse emissions
-# of the recommended concentrations everywhere we can
-# (for Halon 1202, we use WMO emissions
-# because the inversions just give zero for the future only,
-# which isn't very helpful).
+# of the recommended concentrations everywhere we can.
 # We'll use the other sources where we don't already have data.
-
-# %%
-halon1202_special = wmo_emissions_smooth.loc[
-    ~pix.isin(variable=inverse_emissions_clean.pix.unique("variable")) | pix.isin(variable=["Emissions|Halon1202"])
-].copy()
-
-missing_cols = np.setdiff1d(
-    inverse_emissions_clean.loc[:, :HARMONISATION_YEAR].columns,
-    halon1202_special.columns,
-)
-halon1202_special.loc[:, missing_cols] = 0.0
-halon1202_special = halon1202_special.sort_index(axis="columns")
-# halon1202_special
 
 # %%
 res = pix.concat(
     [
-        inverse_emissions_clean.loc[~pix.isin(variable=["Emissions|Halon1202"])],
+        inverse_emissions_clean,
         inversions_extrapolated.loc[~pix.isin(variable=inverse_emissions_clean.pix.unique("variable"))],
-        halon1202_special,
     ]
 )
 

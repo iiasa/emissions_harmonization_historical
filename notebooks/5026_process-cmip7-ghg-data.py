@@ -272,9 +272,6 @@ PI_YEAR = 1750
 # ## Process
 
 # %%
-concs_start_year
-
-# %%
 inverse_info_l = []
 for emissions_var in tqdm.auto.tqdm(sorted(out_ts_vars)):
     # converting to set then back to list removes duplicates
@@ -369,8 +366,6 @@ for emissions_var in tqdm.auto.tqdm(sorted(out_ts_vars)):
         ),
     )
     inverse_info_l.append(df)
-    if gas == "CCl4":
-        break
 
 inverse_info = pix.concat(inverse_info_l)
 inverse_info

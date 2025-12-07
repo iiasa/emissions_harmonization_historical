@@ -402,9 +402,6 @@ all_sources = pix.concat(
 all_sources.pix.unique("model")
 
 # %%
-wmo_2022_ext.pix.unique("model")
-
-# %%
 global_variable_sources = {
     "Emissions|BC": "gridding-emissions-incl-ceds-extension",
     "Emissions|CF4": "WMO 2022 AGAGE inversions_cmip-inverse-extended",
@@ -445,7 +442,7 @@ global_variable_sources = {
     "Emissions|HCFC141b": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
     "Emissions|HCFC142b": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
     "Emissions|HCFC22": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
-    "Emissions|Halon1202": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
+    "Emissions|Halon1202": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
     "Emissions|Halon1211": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
     "Emissions|Halon1301": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
     "Emissions|Halon2402": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
@@ -590,22 +587,3 @@ global_workflow_harmonisation_emissions_reporting_names.reorder_levels(
         "unit",
     ]
 ).to_feather(out_file)
-
-# %%
-# Manual hack rather than using Zenodo - high danger
-from emissions_harmonization_historical.constants_5000 import HISTORY_HARMONISATION_DB
-
-HISTORY_HARMONISATION_DB.save(
-    global_workflow_harmonisation_emissions_reporting_names.reorder_levels(
-        [
-            "model",
-            "scenario",
-            "region",
-            "variable",
-            "unit",
-        ]
-    ).pix.assign(purpose="global_workflow_emissions"),
-    allow_overwrite=True,
-)
-
-# %%

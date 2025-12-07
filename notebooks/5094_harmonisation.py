@@ -133,9 +133,6 @@ history_for_global_workflow_harmonisation = HISTORY_HARMONISATION_DB.load(
 )
 # history_for_global_workflow_harmonisation
 
-# %%
-HISTORY_HARMONISATION_DB
-
 # %% [markdown]
 # #### Combine: gridding and global workflow emissions
 #
