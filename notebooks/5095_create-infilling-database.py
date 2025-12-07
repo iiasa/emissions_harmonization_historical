@@ -107,11 +107,9 @@ scenarios_for_infilling_db.index.droplevel(
 # ### WMO 2022
 
 # %%
-wmo_2022_scenarios = WMO_2022_PROCESSED_DB.load(
-    pix.ismatch(model="WMO-2022-CMIP7-concentration-inversions")
-    # Urgh, Halon1202 special case
-    | (pix.ismatch(model="WMO 2022 projections v20250129 smoothed") & pix.ismatch(variable="Emissions|Halon1202"))
-).loc[:, HARMONISATION_YEAR:2100]
+wmo_2022_scenarios = WMO_2022_PROCESSED_DB.load(pix.ismatch(model="WMO-2022-CMIP7-concentration-inversions")).loc[
+    :, HARMONISATION_YEAR:2100
+]
 if wmo_2022_scenarios.empty:
     raise AssertionError
 
