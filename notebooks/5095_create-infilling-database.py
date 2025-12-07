@@ -99,7 +99,9 @@ if scenarios_for_infilling_db.empty:
 if scenarios_for_infilling_db.isnull().any().any():
     raise AssertionError
 
-# scenarios_for_infilling_db
+scenarios_for_infilling_db.index.droplevel(
+    scenarios_for_infilling_db.index.names.difference(["model", "scenario"])
+).drop_duplicates()
 
 # %% [markdown]
 # ### WMO 2022
@@ -113,7 +115,7 @@ wmo_2022_scenarios = WMO_2022_PROCESSED_DB.load(
 if wmo_2022_scenarios.empty:
     raise AssertionError
 
-wmo_2022_scenarios
+# wmo_2022_scenarios
 
 # %% [markdown]
 # ### Velders et al., 2022
@@ -234,13 +236,6 @@ for suffix, method, kwargs in (
     getattr(out, method)(out_file, **kwargs)
     files_for_zenodo.append(out_file)
     print(f"Wrote {out_file.relative_to(REPO_ROOT)}")
-
-# %%
-# Manual hack rather than using Zenodo - high danger
-from emissions_harmonization_historical.constants_5000 import INFILLING_DB
-
-INFILLING_DB.delete()
-INFILLING_DB.save(out)
 
 # %% [markdown]
 # ## Write README

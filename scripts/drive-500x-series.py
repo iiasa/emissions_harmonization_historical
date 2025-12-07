@@ -222,7 +222,7 @@ def main():  # noqa: PLR0912
     # # Harmonisation, infilling and post-processing
     # notebook_prefixes = ["5094", "5190", "5191"]
     # Infilling and post-processing
-    # notebook_prefixes = ["5190", "5191"]
+    notebook_prefixes = ["5190", "5191"]
     # # Everything
     # notebook_prefixes = ["5090", "5091", "5092", "5093", "5094", "5190", "5191"]
     # # Skip this step
@@ -245,7 +245,7 @@ def main():  # noqa: PLR0912
     # Single notebook: run post-processing of climate outputs
     # notebook_prefixes = ["5196"]
     # # Skip this step
-    notebook_prefixes = []
+    # notebook_prefixes = []
     # Single SCM
     scms = ["MAGICCv7.6.0a3"]
     # # All available SCMs
