@@ -4,6 +4,7 @@ Extract results required for GHG concentration projections
 
 from pathlib import Path
 
+import pandas as pd
 import pandas_indexing as pix
 import pandas_openscm
 from gcages.cmip7_scenariomip.gridding_emissions import CO2_BIOSPHERE_SECTORS_GRIDDING
@@ -89,26 +90,13 @@ def main():
     out_l = []
     for scenario, sdf in tmp_sum.groupby("scenario"):
         if scenario == "historical":
-            # Use R5 regions, as good a choice as any
-            historical_sum_r5 = (
-                sdf.loc[pix.ismatch(region=["World", "**R5**"])]
+            historical_sum = (
+                sdf.loc[pix.ismatch(region=["**iso3**"])]
                 .openscm.groupby_except(["model", "region"])
                 .sum(min_count=1)
                 .pix.assign(model="historical-sources")
             )
-            # historical_sum_r10 = (
-            #     sdf.loc[pix.ismatch(region=["World", "**R10**"])]
-            #     .openscm.groupby_except(["model", "region"])
-            #     .sum(min_count=1)
-            #     .pix.assign(model="historical-sources")
-            # )
-            # historical_sum_rm = (
-            #     sdf.loc[pix.ismatch(region=["World", "REMIND-MAgPIE 3.5-4.10|*"])]
-            #     .openscm.groupby_except(["model", "region"])
-            #     .sum(min_count=1)
-            #     .pix.assign(model="historical-sources")
-            # )
-            out_l.append(historical_sum_r5)
+            out_l.append(historical_sum)
 
         else:
             for _, mdf in sdf.groupby("model"):
@@ -116,6 +104,14 @@ def main():
                 out_l.append(mdf.openscm.groupby_except("region").sum(min_count=1))
 
     out = pix.concat(out_l)
+    # Make sure we didn't use a broken historical region aggregation
+    pd.testing.assert_series_equal(
+        out.loc[pix.isin(scenario="historical"), 2023].pix.project(["variable", "unit"]),
+        out.loc[pix.isin(scenario="SSP1 - Very Low Emissions", model="REMIND-MAgPIE 3.5-4.11"), 2023].pix.project(
+            ["variable", "unit"]
+        ),
+        check_like=True,
+    )
     out_path = OUT_PATH / f"{INFILLING_DB_DIR.name}_harmonised-emissions-fossil-biosphere-aggregation.csv"
     out_path.parent.mkdir(exist_ok=True, parents=True)
     out.to_csv(out_path)
