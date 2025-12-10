@@ -91,10 +91,7 @@ for prefix, purpose in (
         df = pd.read_parquet(tf.name)
 
     print(f"Adding {purpose} emissions to the history for harmonisation database")
-    HISTORY_HARMONISATION_DB.save(
-        df.pix.assign(purpose=purpose),
-        allow_overwrite=True,
-    )
+    HISTORY_HARMONISATION_DB.save(df.pix.assign(purpose=purpose))
 
 # %% [markdown]
 # ## Infilling database
@@ -128,7 +125,4 @@ with tempfile.NamedTemporaryFile(suffix=".parquet.gzip") as tf:
     df = pd.read_parquet(tf.name)
 
 print("Saving infilling database")
-INFILLING_DB.save(
-    df,
-    allow_overwrite=True,
-)
+INFILLING_DB.save(df)

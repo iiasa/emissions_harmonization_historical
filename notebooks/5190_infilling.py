@@ -363,8 +363,6 @@ scaling_leaders_gcages = {
     "Emissions|HFC365mfc": "Emissions|HFC134a",
     "Emissions|CH2Cl2": "Emissions|HFC134a",
     "Emissions|CHCl3": "Emissions|C2F6",
-    "Emissions|CH3Br": "Emissions|C2F6",
-    "Emissions|CH3Cl": "Emissions|CF4",
     "Emissions|NF3": "Emissions|SF6",
 }
 scaling_leaders = {to_reporting_names(k): to_reporting_names(v) for k, v in scaling_leaders_gcages.items()}

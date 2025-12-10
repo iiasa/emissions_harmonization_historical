@@ -56,7 +56,7 @@ UR = openscm_units.unit_registry
 Q = UR.Quantity
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "WITCH"
+model: str = "REMIND"
 scm: str = "MAGICCv7.6.0a3"
 markers_only: bool = True
 
