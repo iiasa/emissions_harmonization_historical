@@ -136,13 +136,22 @@ emissions_factors_per_DM = emissions_factors.loc[species] / emissions_factors.lo
 # because dask explodes with the complexity of reading the hdf5 files.
 
 # %%
+COMPUTE = False  # Set this to True to trigger computation and basically disable dask
+
+
+def manage_compute(obj):
+    """Manage dask compute"""
+    return obj.compute() if COMPUTE else obj
+
+
+# %%
 res_l = []
 for filename in tqdm.auto.tqdm(sorted(GFED4_RAW_PATH.glob("*.hdf5"))):
     emissions = read_year(filename)
     emissions["cell_area"] = read_cell_area(next(iter(GFED4_RAW_PATH.glob("*.hdf5"))))
     emissions["DM"].attrs.update(dict(unit="kg DM m-2 / month"))
     emissions["C"].attrs.update(dict(unit="g C m-2 / month"))
-    emissions = emissions[["DM", "cell_area"]].compute()
+    emissions = manage_compute(emissions[["DM", "cell_area"]])
 
     dry_matter_regridded = emissions["DM"].regrid.linear(country_mask)
     # Super hacky and only works because the iso mask
@@ -164,13 +173,13 @@ for filename in tqdm.auto.tqdm(sorted(GFED4_RAW_PATH.glob("*.hdf5"))):
     emissions_per_cell_regridded = dry_matter_regridded * cell_area_regridded
 
     # Get dry matter by country per year
-    dry_matter_by_country = (emissions_per_cell_regridded * country_mask).sum(["lat", "lon"]).compute()
+    dry_matter_by_country = manage_compute((emissions_per_cell_regridded * country_mask).sum(["lat", "lon"]))
 
     dry_matter_by_country_per_year = (
         dry_matter_by_country.groupby("time.year").sum().assign_attrs(dict(unit="kg DM / a"))
     )
     # Get emissions by country per year
-    emissions_by_country = (dry_matter_by_country_per_year * xr.DataArray(emissions_factors_per_DM)).compute()
+    emissions_by_country = manage_compute(dry_matter_by_country_per_year * xr.DataArray(emissions_factors_per_DM))
     res_l.append(emissions_by_country)
 
 emissions_by_country = xr.concat(res_l, dim="year")

@@ -56,7 +56,6 @@ for filename in tqdm.auto.tqdm(sorted(GFED4_RAW_PATH.glob("*.hdf5"))):
     emissions_yr_dry_matter.attrs.update(dict(unit="kg DM m-2 / month"))
 
     res_l.append(emissions_yr_dry_matter)
-    break
 
 emissions_dry_matter = xr.concat(res_l, dim="time")
 emissions_dry_matter_per_yr = emissions_dry_matter.groupby("time.year").sum().assign_attrs(dict(unit="kg DM / yr"))

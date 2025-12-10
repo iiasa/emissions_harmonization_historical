@@ -25,7 +25,8 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
     and I can't see a better solution (maybe someone else can).
     """
     if notebook_name == "5090_download-scenarios.py":
-        res = {"model_search": iam}
+        res = {"model_search": iam, "markers_only": True}
+        res = {"model_search": iam, "markers_only": False}
 
     elif notebook_name in [
         "5091_check-reporting.py",
@@ -37,7 +38,7 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
     elif notebook_name in [
         "5094_harmonisation.py",
     ]:
-        #    res = {"model": iam, "make_region_sector_plots": True, "output_to_pdf": True}
+        # res = {"model": iam, "make_region_sector_plots": True, "output_to_pdf": True}
         res = {"model": iam, "make_region_sector_plots": False, "output_to_pdf": False}
 
     elif notebook_name in [
@@ -61,6 +62,9 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
             raise TypeError(scm)
 
         res = {"model": iam, "scm": scm}
+        if notebook_name == "5195_run-simple-climate-model.py":
+            res["markers_only"] = False
+            res["markers_only"] = True
 
     else:
         raise NotImplementedError(notebook_name)
@@ -115,7 +119,7 @@ def run_notebook_with_scm(notebook: Path, run_notebooks_dir: Path, iam: str, scm
     )
 
 
-def main():  # noqa : PLR0912
+def main():  # noqa: PLR0912
     """
     Run the 500x series of notebooks
     """
@@ -125,6 +129,66 @@ def main():  # noqa : PLR0912
 
     notebooks_dir = DEFAULT_NOTEBOOKS_DIR
     all_notebooks = tuple(sorted(notebooks_dir.glob("*.py")))
+
+    ### Processing of biomass burning (surprise bonus as running this by hand is annoying)
+    species = ["CH4"]
+    # # All species
+    species = [
+        ("BC", "BC"),
+        ("CH4", "CH4"),
+        ("CO", "CO"),
+        ("CO2", "CO2"),
+        ("N2O", "N2O"),  # new, to have regional, was global in CMIP6
+        ("NH3", "NH3"),
+        ("NMVOC", "NMVOCbulk"),  # assumed to be equivalent to IAMC-style reported VOC
+        ("NOx", "NOx"),
+        ("OC", "OC"),
+        ("SO2", "SO2"),
+    ]
+
+    # Run the notebook
+    notebook_prefixes = ["5006"]
+    # Skip this step
+    notebook_prefixes = []
+    for sp, sp_esgf in species[::-1]:
+        for notebook in all_notebooks:
+            if any(notebook.name.startswith(np) for np in notebook_prefixes):
+                run_notebook(
+                    notebook=notebook,
+                    run_notebooks_dir=RUN_NOTEBOOKS_DIR,
+                    parameters={"species": sp, "species_esgf": sp_esgf},
+                    idn=sp,
+                )
+
+    ### Processing of raw CEDS data (surprise bonus as running this by hand is annoying)
+    species = ["CH4"]
+    ## All species
+    species = [
+        ("BC", "BC"),
+        ("CH4", "CH4"),
+        ("CO", "CO"),
+        ("CO2", "CO2"),
+        ("N2O", "N2O"),
+        ("NH3", "NH3"),
+        ("NMVOC", "NMVOC"),
+        ("NOx", "NOx"),
+        ("OC", "OC"),
+        ("SO2", "SO2"),
+    ]
+
+    # Run the notebooks
+    notebook_prefixes = ["4999"]
+    # Skip this step
+    notebook_prefixes = []
+    for sp, sp_esgf in species[::-1]:
+        for notebook in all_notebooks:
+            if any(notebook.name.startswith(np) for np in notebook_prefixes):
+                run_notebook(
+                    notebook=notebook,
+                    run_notebooks_dir=RUN_NOTEBOOKS_DIR,
+                    parameters={"species": sp, "species_esgf": sp_esgf},
+                    idn=sp,
+                )
 
     ### Download inputs from Zenodo
     # Run the notebook
@@ -153,28 +217,35 @@ def main():  # noqa : PLR0912
     # ]
     # All
     iams = [
-        "IMAGE",
         "WITCH",
         "REMIND",
         "MESSAGE",
+        "IMAGE",
         "GCAM",
         "COFFEE",
         "AIM",
     ]
 
     #### Emissions downloading, pre-processing, harmonisation, infilling and post-processing
-    # Single notebook
-    # notebook_prefixes = ["5090"]
+    # # Single notebook
+    notebook_prefixes = ["5094"]
+    # notebook_prefixes = ["5093", "5094"]
     # # Everything except downloads and reporting checking
     # notebook_prefixes = ["5093","5094"]
     # # # Downloading and reporting checking
     # # notebook_prefixes = ["5090", "5091", "5092"]
     # Everything
     notebook_prefixes = ["5090", "5091", "5092", "5093", "5094"]
+    # # Harmonisation, infilling and post-processing
+    # notebook_prefixes = ["5094", "5190", "5191"]
+    # Infilling and post-processing
+    notebook_prefixes = ["5190", "5191"]
+    # # Everything
+    # notebook_prefixes = ["5090", "5091", "5092", "5093", "5094", "5190", "5191"]
     # # Skip this step
     notebook_prefixes = []
 
-    for iam in tqdm.tqdm(iams, desc="IAMs pre infilling"):
+    for iam in tqdm.tqdm(iams, desc="IAMs up to emissions post-processing"):
         for notebook in all_notebooks:
             if any(notebook.name.startswith(np) for np in notebook_prefixes):
                 run_notebook_iam(
@@ -249,9 +320,12 @@ def main():  # noqa : PLR0912
     # notebook_prefixes = ["5195"]
     # Single notebook: run post-processing of climate outputs
     # notebook_prefixes = ["5196"]
-    # Skip this step
+    # # Skip this step
     # notebook_prefixes = []
+    # Single SCM
     scms = ["MAGICCv7.6.0a3"]
+    # # All available SCMs
+    # scms = ["MAGICCv7.6.0a3", "MAGICCv7.5.3"]
     for iam, scm in tqdm.tqdm(itertools.product(iams, scms), desc="IAM SCM runs"):
         for notebook in all_notebooks:
             if any(notebook.name.startswith(np) for np in notebook_prefixes):

@@ -15,7 +15,8 @@
 # %% [markdown]
 # # Process WMO 2022 data
 #
-# Process data from [the 2022 WMO Ozone Assessment](https://csl.noaa.gov/assessments/ozone/2022/).
+# Process data from and related to
+# [the 2022 WMO Ozone Assessment](https://csl.noaa.gov/assessments/ozone/2022/).
 
 # %% [markdown]
 # ## Imports
@@ -30,10 +31,10 @@ import pandas_indexing as pix
 import seaborn as sns
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from pandas_openscm.index_manipulation import update_index_levels_func
+from pandas_openscm.io import load_timeseries_csv
 from scipy.interpolate import make_smoothing_spline
 
 from emissions_harmonization_historical.constants_5000 import (
-    HISTORY_SCENARIO_NAME,
     WMO_2022_PROCESSED_DB,
     WMO_2022_RAW_PATH,
 )
@@ -92,11 +93,27 @@ def load_inversion_file(fp: Path) -> pd.DataFrame:
     return out
 
 
+def convert_ghg(ghg: str) -> str:
+    """Convert GHG to the gcages emissions name"""
+    if ghg.startswith("hcfc"):
+        return ghg.replace("hcfc", "HCFC")
+
+    if ghg.startswith("halon"):
+        return ghg.replace("halon", "Halon")
+
+    res = ghg.upper()
+    res = res.replace("CL", "Cl").replace("BR", "Br")
+
+    return res
+
+
 # %% [markdown]
 # ## Load data
 
 # %% [markdown]
 # ### Inversions
+#
+# Provided by the WMO 2022 author team.
 
 # %%
 inversions_l = []
@@ -118,15 +135,44 @@ inversions
 
 # %% [markdown]
 # ### Raw emissions
+#
+# Provided by the WMO 2022 author team.
 
 # %%
 wmo_raw = pd.read_excel(WMO_2022_RAW_PATH / "Emissions_fromWMO2022.xlsx").rename({"Unnamed: 0": "year"}, axis="columns")
 wmo_raw
 
 # %% [markdown]
-# ## Extrapolate the inversions
+# ### Inversions based on recommended CMIP7 concentrations
 #
-# Very basic, but looks fine enough.
+# The data is not exactly the same as the 2022 WMO Ozone Asssessment,
+# but is based on recommended concentrations for CMIP7 from the 2022 WMO Ozone Asssessment authors.
+
+# %%
+wmo_2022_emissions = load_timeseries_csv(
+    WMO_2022_RAW_PATH / "wmo-2022-cmip7-mixing-ratios-inverse-emissions.csv",
+    index_columns=["ghg", "unit"],
+    out_columns_type=int,
+    out_columns_name="year",
+)
+wmo_2022_emissions = wmo_2022_emissions.pix.assign(
+    model="WMO-2022-CMIP7-concentration-inversions",
+    scenario="WMO-2022-CMIP7-concentrations",
+    region="World",
+    variable="Emissions|" + wmo_2022_emissions.index.get_level_values("ghg").map(convert_ghg),
+).reset_index("ghg", drop=True)
+
+inverse_emissions_clean_l = []
+for variable, vdf in wmo_2022_emissions.groupby("variable"):
+    inverse_emissions_clean_l.append(vdf.pix.convert_unit(f"kt {variable.strip('Emissions|')}/yr"))
+
+inverse_emissions_clean = pix.concat(inverse_emissions_clean_l)
+# inverse_emissions_clean
+
+# %% [markdown]
+# ## Extrapolate the inversions provided by WMO 2022 author team
+#
+# Very basic linear extrapolation to get out to 2023, but looks fine enough.
 
 # %%
 inversions_extrapolated = inversions.copy()
@@ -221,7 +267,7 @@ for variable, vdf in wmo_clean.groupby("variable"):
     wmo_emissions_smooth_l.append(vdf)
 
 wmo_emissions_smooth = pix.concat(wmo_emissions_smooth_l).pix.assign(model="WMO 2022 projections v20250129 smoothed")
-# wmo_emissions_smooth
+wmo_emissions_smooth
 
 # %%
 pdf = (
@@ -249,11 +295,59 @@ for ax in fg.figure.axes:
     ax.grid()
 
 # %% [markdown]
-# # Save
+# ## Compile output
+
+# %% [markdown]
+# Firstly, compare the inversions based on CMIP7 recommended concentations
+# and the WMO 2022 values.
 
 # %%
-res = pix.concat([inversions_extrapolated, wmo_emissions_smooth]).pix.assign(scenario=HISTORY_SCENARIO_NAME)
-# res
+pdf = (
+    pix.concat(
+        [
+            inversions_extrapolated.pix.assign(source="WMO-2022-inversions"),
+            wmo_emissions_smooth.pix.assign(source="WMO-2022-emissions"),
+            inverse_emissions_clean.pix.assign(source="WMO-2022-CMIP7-recommended-inverted"),
+        ]
+    )
+    .sort_index(axis="columns")
+    .loc[:, 1900:2100]
+    .melt(ignore_index=False)
+    .reset_index()
+)
+
+fg = sns.relplot(
+    data=pdf,
+    x="year",
+    y="value",
+    col="variable",
+    col_wrap=3,
+    hue="source",
+    kind="line",
+    facet_kws=dict(sharey=False),
+)
+for ax in fg.figure.axes:
+    ax.set_ylim(ymin=0)
+    ax.grid()
+
+# %% [markdown]
+# The differences are where/what we'd expect.
+# Hence, we're going to use the inverse emissions
+# of the recommended concentrations everywhere we can.
+# We'll use the other sources where we don't already have data.
+
+# %%
+res = pix.concat(
+    [
+        inverse_emissions_clean,
+        inversions_extrapolated.loc[~pix.isin(variable=inverse_emissions_clean.pix.unique("variable"))],
+    ]
+)
+
+res.loc[:, 1990:2030]
+
+# %% [markdown]
+# ## Save
 
 # %% [markdown]
 # Make sure we can convert the variable names
