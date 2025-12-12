@@ -320,7 +320,7 @@ HISTORY_HARMONISATION_DB = OpenSCMDB(
 
 
 # # ID for the scenario download step
-DOWNLOAD_SCENARIOS_ID = "202512021030"
+DOWNLOAD_SCENARIOS_ID = "202512091052"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(
