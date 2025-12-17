@@ -86,7 +86,7 @@ from emissions_harmonization_historical.extensions.general_utils_for_extensions 
     interpolate_to_annual,
 )
 
-sys.exit(4)
+# sys.exit(4)
 # Constants
 FUTURE_START_YEAR = 2023.0
 HISTORICAL_START_YEAR = 1900

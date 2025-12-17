@@ -316,8 +316,13 @@ def get_derivative_using_spline(function, t_vals, t_extend):
     return np.gradient(spline)[8]
 
 
-def do_simple_sigmoid_or_exponential_extension_to_target(
-    function: np.ndarray, t_vals: np.ndarray, t_extend: int, target: float, sigmoid_shift=40
+def do_simple_sigmoid_or_exponential_extension_to_target(  # noqa: PLR0913
+    function: np.ndarray,
+    t_vals: np.ndarray,
+    t_extend: int,
+    target: float,
+    sigmoid_shift=40,
+    sigmoid_len=50,
 ) -> np.ndarray:
     """
     Calculate extension function by calling sigmoid functionality to extend
@@ -337,7 +342,7 @@ def do_simple_sigmoid_or_exponential_extension_to_target(
         data_extend[len(function) :] = exp_decay(
             target,
             target - function[-1],
-            np.min((50, (target - function[-1]) / derivative_at_extension)),
+            np.min((sigmoid_len, (target - function[-1]) / derivative_at_extension)),
             time_0=t_vals[t_extend],
             time=t_vals[len(function) :],
         )
@@ -345,8 +350,8 @@ def do_simple_sigmoid_or_exponential_extension_to_target(
         data_extend[len(function) :] = sigmoid_function(
             target,
             function[-1],
-            2100 + sigmoid_shift,
-            2150 + sigmoid_shift,
+            t_vals[t_extend] + sigmoid_shift,
+            t_vals[t_extend + sigmoid_len] + sigmoid_shift,
             t_vals[len(function) :],
         )
     # print(data_extend)
