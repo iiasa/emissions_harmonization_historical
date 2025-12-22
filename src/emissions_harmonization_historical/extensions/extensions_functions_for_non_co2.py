@@ -7,6 +7,7 @@ from .extension_functionality import (
     do_simple_sigmoid_or_exponential_extension_to_target,
     sigmoid_function,
 )
+from .finish_regional_extensions import add_workflow_level_to_index
 from .general_utils_for_extensions import (
     glue_with_historical,
     interpolate_to_annual,
@@ -85,6 +86,8 @@ def do_single_component_for_scenario_model_regionally(  # noqa: PLR0913
             global_target,
         )
         df_regional = pd.DataFrame(data=[data_extend], columns=full_years, index=data_scenario_global.index)
+        if "workflow" not in df_regional.index.names:
+            df_regional = add_workflow_level_to_index(df_regional)
         return df_regional
     temp_list_for_regional = []
     total_sector = None
@@ -123,6 +126,11 @@ def do_single_component_for_scenario_model_regionally(  # noqa: PLR0913
                 world_sector = total_sector + data_extend
 
             temp_list_for_regional.append(df_regional)
+    # print(world_sector)
+    # print(total_sector)
+    # print(world_sector - total_sector)
+    # print(data_regional.loc[pix.ismatch(variable=f"{variable}")].index.values)
+    # sys.exit(4)
     df_total = pd.DataFrame(
         data=[world_sector, total_sector],
         columns=full_years,

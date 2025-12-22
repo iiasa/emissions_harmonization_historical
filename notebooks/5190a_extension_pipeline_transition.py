@@ -22,7 +22,6 @@
 # Regular imports
 
 # %%
-import copy
 import glob
 import json
 import os
@@ -66,6 +65,7 @@ from emissions_harmonization_historical.extensions.afolu_extension_functions imp
 )
 from emissions_harmonization_historical.extensions.cdr_and_fossil_splits import (
     extend_cdr_components_vectorized,
+    get_2100_compound_composition_co2,
 )
 
 # from emissions_harmonization_historical.constants import DATA_ROOT
@@ -159,8 +159,20 @@ scenario_model_match = {
 }
 
 # %%
-
 scenarios_regional = scenarios_regional.sort_index(axis="columns").T.interpolate("index").T
+print(scenarios_regional.pix.unique("variable"))
+fractions_fossil_total = {}
+for model, scen in unique_model_scenario_pairs.to_list():
+    print(f"Processing {model} | {scen}")
+    tot_co2 = scenarios_complete_global.loc[pix.ismatch(scenario=scen, model=model, variable="Emissions|CO2")]
+    scen_here = scenarios_regional.loc[pix.ismatch(scenario=scen, model=model, variable="Emissions|CO2**")]
+    fractions_list = get_2100_compound_composition_co2(scen_here[2100], tot_co2[2100], model, scen)
+    fractions_fossil_total[(model, scen)] = {
+        "fractions_tot_fossil": fractions_list[0],
+        "fractions_cdr": fractions_list[1],
+        "fractions_fossil_nocdr": fractions_list[2],
+    }
+
 
 # %%
 # Create inverse dictionaries for scenario_model_match
@@ -349,10 +361,14 @@ def do_all_non_co2_extensions(scenarios_complete_global, history):  # noqa: PLR0
                 history,
                 global_target=global_target,
             )
-            if "workflow" in df_comp_scen_model.index.names:
-                print("Dropping workflow level from index")
-                df_comp_scen_model = df_comp_scen_model.droplevel(["workflow"])
-            # sys.exit(4)
+            # if "workflow" in df_comp_scen_model.index.names:
+            #     print("Dropping workflow level from index")
+            #     df_comp_scen_model = df_comp_scen_model.droplevel(["workflow"])
+            # # sys.exit(4)
+            if "workflow" not in df_comp_scen_model.index.names:
+                print(f"Workflow missing for {s}: {meta}, {variable}, adding level")
+                print(df_comp_scen_model)
+                sys.exit(4)
             total_df_list.append(df_comp_scen_model)
             # print(df_comp_scen_model.columns)
             if look_at_all:
@@ -413,19 +429,11 @@ if do_and_write_to_csv:
     # print(df_all)
     for name, afolu_df in afolu_dfs.items():
         afolu_df.to_csv(f"first_draft_extended_afolu_{name}.csv")
-    # sys.exit(4)
-# else:
-# print(df_all.shape)
-# print(scenarios_regional.shape)
-# print(df_all.head())
-# print(len(df_all.pix.unique("variable")))
-# print(len(scenarios_regional.pix.unique("variable")))
-# print(set(scenarios_regional.pix.unique("variable")) - set(df_all.pix.unique("variable")))
 
 
 # %%
 if not do_and_write_to_csv:
-    df_all = pd.read_csv("first_draft_extended_nonCO2_all.csv", index_col=[0, 1, 2, 3, 4])
+    df_all = pd.read_csv("first_draft_extended_nonCO2_all.csv", index_col=[0, 1, 2, 3, 4, 5])
 afolu_dfs = {}
 for afolu_file in glob.glob("first_draft_extended_afolu_*.csv"):
     print("writing " + afolu_file)
@@ -433,13 +441,6 @@ for afolu_file in glob.glob("first_draft_extended_afolu_*.csv"):
 
     afolu_dfs[name] = pd.read_csv(afolu_file)
 
-print(df_all.shape)
-print(scenarios_regional.shape)
-print(df_all.head())
-print(len(df_all.pix.unique("variable")))
-print(len(scenarios_regional.pix.unique("variable")))
-print(set(scenarios_regional.pix.unique("variable")) - set(df_all.pix.unique("variable")))
-# sys.exit(4)
 
 # %% [markdown]
 # # Total CO2 Storyline dictionaries
@@ -582,6 +583,9 @@ co2_beccs = interpolate_to_annual(scenarios_regional.loc[pix.ismatch(variable="E
 co2_dacc = interpolate_to_annual(scenarios_regional.loc[pix.ismatch(variable="Emissions|CO2|Direct Air Capture")])
 co2_ocean = interpolate_to_annual(scenarios_regional.loc[pix.ismatch(variable="Emissions|CO2|Ocean")])
 co2_ew = interpolate_to_annual(scenarios_regional.loc[pix.ismatch(variable="Emissions|CO2|Enhanced Weathering")])
+co2_biochar = interpolate_to_annual(scenarios_regional.loc[pix.ismatch(variable="Emissions|CO2|Biochar")])
+co2_soil = interpolate_to_annual(scenarios_regional.loc[pix.ismatch(variable="Emissions|CO2|Soil Carbon Management")])
+co2_othercdr = interpolate_to_annual(scenarios_regional.loc[pix.ismatch(variable="Emissions|CO2|Other CDR")])
 co2_ffi = interpolate_to_annual(
     scenarios_regional.loc[
         pix.ismatch(
@@ -590,7 +594,17 @@ co2_ffi = interpolate_to_annual(
         )
     ]
 )
-co2_cdr = co2_dacc + co2_ocean.values + co2_ew.values + co2_beccs.values
+print(co2_biochar)
+print(co2_soil)
+co2_cdr = (
+    co2_dacc
+    + co2_ocean.values
+    + co2_ew.values
+    + co2_beccs.values
+    + co2_biochar.values
+    + co2_soil.values
+    + co2_othercdr.values
+)
 
 # Get the current index as a list of tuples
 current_index = list(co2_cdr.index)
@@ -913,6 +927,9 @@ cdr_components = {
     "DACCS": co2_dacc,
     "Ocean": co2_ocean,
     "Enhanced_Weathering": co2_ew,
+    "Biochar": co2_biochar,
+    "Soil_Management": co2_soil,
+    "Other_CDR": co2_othercdr,
 }
 
 extended_cdr_components = extend_cdr_components_vectorized(cdr_components, global_cdr_ext)
@@ -925,7 +942,9 @@ co2_beccs_ext = extended_cdr_components["BECCS"]
 co2_dacc_ext = extended_cdr_components["DACCS"]
 co2_ocean_ext = extended_cdr_components["Ocean"]
 co2_ew_ext = extended_cdr_components["Enhanced_Weathering"]
-print(co2_beccs_ext)
+co2_biochar_ext = extended_cdr_components["Biochar"]
+co2_soil_ext = extended_cdr_components["Soil_Management"]
+co2_other_cdr_ext = extended_cdr_components["Other_CDR"]
 # sys.exit(4)
 
 
@@ -938,6 +957,9 @@ if test_year in co2_beccs_ext.columns:
         + co2_dacc_ext[test_year].groupby("scenario").sum()
         + co2_ocean_ext[test_year].groupby("scenario").sum()
         + co2_ew_ext[test_year].groupby("scenario").sum()
+        + co2_biochar_ext[test_year].groupby("scenario").sum()
+        + co2_soil_ext[test_year].groupby("scenario").sum()
+        + co2_other_cdr_ext[test_year].groupby("scenario").sum()
     )
 
     global_reference = global_cdr_ext[test_year].groupby("scenario").first()
@@ -957,14 +979,18 @@ df_everything = fix_up_and_concatenate_extensions(
         "dacc_extensions": co2_dacc_ext,
         "ocean_extensions": co2_ocean_ext,
         "ew_extensions": co2_ew_ext,
+        "biochar_extensions": co2_biochar_ext,
+        "soil_extensions": co2_soil_ext,
+        "other_cdr_extensions": co2_other_cdr_ext,
     }
 )
-print(df_everything.shape)
 print(df_everything.head())
 print(f"✅ Successfully merged all DataFrames! Shape: {df_everything.shape}")
-
-df_everything = extend_regional_for_missing(df_everything, scenarios_regional)
-
+print(df_everything.shape)
+print(df_all.index.names)
+# sys.exit(4)
+df_everything = extend_regional_for_missing(df_everything, scenarios_regional, fractions_fossil_total)
+print(df_everything.shape)
 
 # %%
 # Check for and handle duplicate metadata (CSV preparation only)
@@ -974,7 +1000,7 @@ duplicates = df_everything[duplicate_mask]
 
 print(f"Number of rows with duplicate metadata: {len(duplicates)}")
 print(duplicates)
-sys.exit(4)
+# sys.exit(4)
 
 if len(duplicates) > 0:
     print(f"Found {len(duplicates)} duplicate rows, removing duplicates...")
@@ -1000,9 +1026,10 @@ print("=== UNIQUE MODEL/SCENARIO PAIRINGS ===")
 # Get unique combinations from the final dataframe
 if "df_everything" in locals():
     # Method 1: From the final concatenated dataframe
-    unique_pairs = df_everything.index.droplevel(["region", "variable", "unit"]).drop_duplicates()
+    unique_pairs = df_everything.index.droplevel(["region", "variable", "unit", "workflow"]).drop_duplicates()
     print(f"From df_everything: {len(unique_pairs)} unique model/scenario pairs")
     print("\nUnique model/scenario combinations:")
+    print(unique_pairs)
     for i, (model, scenario) in enumerate(unique_pairs, 1):
         print(f"{i:2d}. {model} | {scenario}")
 else:
@@ -1055,7 +1082,7 @@ history_clean = history.loc[
     )
 ]
 history = pd.concat([history_clean, gross_positive_hist, gross_removals_hist])
-
+print(history.index.names)
 print("✅ Added Gross Positive Emissions and Gross Removals to history dataframe")
 print(f"   History shape: {history.shape}")
 print(f"   Total variables: {len(history.pix.unique('variable'))}")
@@ -1083,7 +1110,7 @@ def merge_historical_future_timeseries(history_data, extensions_data, overlap_ye
     future_years = [col for col in extensions_clean.columns if isinstance(col, int | float) and col > overlap_year]
 
     # Step 3: Get scenario list from extensions
-    scenarios = extensions_clean.index.droplevel(["region", "variable", "unit"]).drop_duplicates()
+    scenarios = extensions_clean.index.droplevel(["region", "variable", "unit", "workflow"]).drop_duplicates()
 
     # Step 4: Replicate historical data for each scenario
     historical_expanded = []
@@ -1093,15 +1120,17 @@ def merge_historical_future_timeseries(history_data, extensions_data, overlap_ye
         # Update index to match scenario structure
         new_index = []
         for idx in hist_copy.index:
+            print(idx)
             new_idx = (
                 model,
                 scenario,
                 idx[2],
+                "for_scms",  # workflow
                 idx[3],
                 idx[4],
             )  # model, scenario, region, variable, unit
             new_index.append(new_idx)
-
+        print(extensions_clean.index.names)
         hist_copy.index = pd.MultiIndex.from_tuples(new_index, names=extensions_clean.index.names)
         historical_expanded.append(hist_copy)
 
@@ -1122,6 +1151,8 @@ def merge_historical_future_timeseries(history_data, extensions_data, overlap_ye
     # Step 7: Concatenate along time axis
     continuous_data = pd.concat([hist_common, future_common], axis=1).sort_index(axis=1)
 
+    # Step 8: Cut superfluous global data:
+    continuous_data = continuous_data.loc[~pix.ismatch(workflow="global")]
     print(f"Merged data: {continuous_data.shape} ({len(common_vars)} variables, {len(scenarios)} scenarios)")
     print(f"Time range: {continuous_data.columns[0]}-{continuous_data.columns[-1]}")
 
@@ -1131,8 +1162,6 @@ def merge_historical_future_timeseries(history_data, extensions_data, overlap_ye
 # Execute the concise merge
 continuous_timeseries_concise = merge_historical_future_timeseries(history, df_everything)
 
-# %%
-raw_output = copy.deepcopy(continuous_timeseries_concise)
 
 # %% [markdown]
 # ## Dump per model to database

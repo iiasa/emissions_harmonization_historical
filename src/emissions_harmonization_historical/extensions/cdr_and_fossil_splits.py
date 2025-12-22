@@ -1,4 +1,7 @@
+import sys
+
 import pandas as pd
+import pandas_indexing as pix
 
 
 def extend_cdr_components_vectorized(cdr_components_dict, global_cdr_ext, baseline_year=2100):
@@ -134,3 +137,93 @@ def _construct_final_dataframe(cdr_df, extension_data_dict, baseline_year):
         print("  ⚠️  No extension data created")
 
     return final_df
+
+
+def get_2100_compound_composition_co2(
+    data_regional: pd.DataFrame, co2_total: pd.DataFrame, model: str, scen: str
+) -> pd.DataFrame:
+    """
+    Find fractional composition of values in 2100 to allocate the residual end point emissions accordingly
+    """
+    sector_mapping = {
+        "Emissions|CO2|AFOLU": [
+            "Emissions|CO2|Peat Burning",
+            "Emissions|CO2|Forest Burning",
+            "Emissions|CO2|Grassland Burning" "Emissions|CO2|Agricultural Waste Burning",
+            "Emissions|CO2|Agriculture",
+        ],
+        "Emissions|CO2|Energy and Industrial Processes": [
+            "Emissions|CO2|Energy Sector",
+            "Emissions|CO2|Industrial Sector",
+            "Emissions|CO2|Solvents Production and Application",
+            "Emissions|CO2|Waste",
+            "Emissions|CO2|Aircraft",
+            "Emissions|CO2|International Shipping",
+            "Emissions|CO2|Transportation Sector",
+            "Emissions|CO2|Soil Carbon Management",
+            "Emissions|CO2|Biochar",
+            "Emissions|CO2|Enhanced Weathering",
+            "Emissions|CO2|Ocean",
+            "Emissions|CO2|Other CDR",
+            "Emissions|CO2|Direct Air Capture",
+            "Emissions|CO2|BECCS",
+            "Emissions|CO2|Residential Commercial Other",
+        ],
+        "Emissions|CO2|Gross Removals": [
+            "Emissions|CO2|Soil Carbon Management",
+            "Emissions|CO2|Biochar",
+            "Emissions|CO2|Enhanced Weathering",
+            "Emissions|CO2|Ocean",
+            "Emissions|CO2|Other CDR",
+            "Emissions|CO2|Direct Air Capture",
+            "Emissions|CO2|BECCS",
+        ],
+        "Emissions|CO2|Gross Emissions": [
+            "Emissions|CO2|Energy Sector",
+            "Emissions|CO2|Industrial Sector",
+            "Emissions|CO2|Solvents Production and Application",
+            "Emissions|CO2|Waste",
+            "Emissions|CO2|Aircraft",
+            "Emissions|CO2|International Shipping",
+            "Emissions|CO2|Transportation Sector",
+            "Emissions|CO2|Residential Commercial Other",
+        ],
+    }
+
+    data_total_fossil = data_regional.loc[pix.ismatch(variable="Emissions|CO2|Energy and Industrial Processes")]
+
+    data_sub_fossil = []
+    data_sub_cdr = []
+    data_sub_fossil_em = []
+    for sector in sector_mapping["Emissions|CO2|Energy and Industrial Processes"]:
+        data_here = data_regional.loc[pix.ismatch(variable=sector)]
+        print(data_here.shape)
+        if len(data_here.pix.unique("region")) > 1:
+            if "World" in data_here.pix.unique("region"):
+                data_here = data_here.loc[pix.ismatch(region="World")]
+                print(data_here)
+                sys.exit(4)
+        elif data_here.shape[0] == 0:
+            print("No data for sector:", sector)
+            sys.exit(4)
+        data_sub_fossil.append(data_regional.loc[pix.ismatch(variable=sector)])
+        if sector in sector_mapping["Emissions|CO2|Gross Emissions"]:
+            data_sub_fossil_em.append(data_regional.loc[pix.ismatch(variable=sector)])
+        if sector in sector_mapping["Emissions|CO2|Gross Removals"]:
+            data_sub_cdr.append(data_regional.loc[pix.ismatch(variable=sector)])
+    data_fossil_sectors = pd.concat(data_sub_fossil)
+    sum_fossil_sectors = data_fossil_sectors.sum(axis=0)
+    data_cdr_sectors = pd.concat(data_sub_cdr)
+    sum_cdr_sectors = data_cdr_sectors.sum(axis=0)
+    data_f_em_sectors = pd.concat(data_sub_fossil_em)
+    sum_f_em_sectors = data_f_em_sectors.sum(axis=0)
+    print("Sum Fossil sectors vs total Fossil:", sum_fossil_sectors, data_total_fossil.values)
+    # fractions_afolu = data_afolu_sectors.values / sum_afolu_sectors
+    # fractions_fossil = data_fossil_sectors.values / sum_fossil_sectors
+    fractions = data_fossil_sectors.values / sum_fossil_sectors
+    fractions_df = pd.DataFrame(data=fractions, columns=["fractions"], index=data_fossil_sectors.index)
+    fractions_cdr = data_cdr_sectors.values / sum_cdr_sectors
+    fractions_df_cdr = pd.DataFrame(data=fractions_cdr, columns=["fractions"], index=data_cdr_sectors.index)
+    fractions_f_em = data_f_em_sectors.values / sum_f_em_sectors
+    fractions_df_f_em = pd.DataFrame(data=fractions_f_em, columns=["fractions"], index=data_f_em_sectors.index)
+    return fractions_df, fractions_df_cdr, fractions_df_f_em
