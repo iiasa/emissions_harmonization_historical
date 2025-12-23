@@ -131,7 +131,11 @@ def _construct_final_dataframe(cdr_df, extension_data_dict, baseline_year):
 
         non_year_cols = [col for col in cdr_df.columns if not isinstance(col, int | float)]
 
-        final_df = pd.concat([all_year_data, cdr_df[non_year_cols]], axis=1)
+        # print(all_year_data)
+        if len(non_year_cols) == 0:
+            final_df = all_year_data.copy()
+        else:
+            final_df = pd.concat([all_year_data, cdr_df[non_year_cols]], axis=1)
     else:
         final_df = cdr_df.copy()
         print("  ⚠️  No extension data created")
@@ -197,7 +201,6 @@ def get_2100_compound_composition_co2(
     data_sub_fossil_em = []
     for sector in sector_mapping["Emissions|CO2|Energy and Industrial Processes"]:
         data_here = data_regional.loc[pix.ismatch(variable=sector)]
-        print(data_here.shape)
         if len(data_here.pix.unique("region")) > 1:
             if "World" in data_here.pix.unique("region"):
                 data_here = data_here.loc[pix.ismatch(region="World")]

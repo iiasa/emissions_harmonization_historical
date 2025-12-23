@@ -23,11 +23,8 @@
 
 # %%
 import glob
-import json
-import os
 import re
 import sys
-from datetime import datetime
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -79,8 +76,11 @@ from emissions_harmonization_historical.extensions.extensions_functions_for_non_
     plot_just_global,
 )
 from emissions_harmonization_historical.extensions.finish_regional_extensions import (
+    dump_data_per_model,
     extend_regional_for_missing,
     fix_up_and_concatenate_extensions,
+    merge_historical_future_timeseries,
+    save_continuous_timeseries_to_csv,
 )
 from emissions_harmonization_historical.extensions.fossil_co2_storyline_functions import (
     extend_co2_for_scen_storyline,
@@ -160,7 +160,7 @@ scenario_model_match = {
 
 # %%
 scenarios_regional = scenarios_regional.sort_index(axis="columns").T.interpolate("index").T
-print(scenarios_regional.pix.unique("variable"))
+
 fractions_fossil_total = {}
 for model, scen in unique_model_scenario_pairs.to_list():
     print(f"Processing {model} | {scen}")
@@ -435,8 +435,8 @@ if do_and_write_to_csv:
 if not do_and_write_to_csv:
     df_all = pd.read_csv("first_draft_extended_nonCO2_all.csv", index_col=[0, 1, 2, 3, 4, 5])
 afolu_dfs = {}
-for afolu_file in glob.glob("first_draft_extended_afolu_*.csv"):
-    print("writing " + afolu_file)
+for afolu_file in glob.glob("first_draft_extended_afolu_linear*.csv"):
+    print("Reading " + afolu_file)
     name = afolu_file.split("first_draft_extended_")[-1].split(".csv")[0]
 
     afolu_dfs[name] = pd.read_csv(afolu_file)
@@ -495,8 +495,7 @@ df_afolu = afolu_dfs[name]
 fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(30, 15))
 temp_list_for_new_data = []
 for s, meta in scenario_model_match.items():
-    print(s)
-    print(meta)
+    print(f"Processing fossil CO2 to match storyline and AFOLU for {s}")
     co2_fossil = interpolate_to_annual(
         scenarios_complete_global.loc[
             pix.ismatch(
@@ -594,8 +593,6 @@ co2_ffi = interpolate_to_annual(
         )
     ]
 )
-print(co2_biochar)
-print(co2_soil)
 co2_cdr = (
     co2_dacc
     + co2_ocean.values
@@ -934,9 +931,6 @@ cdr_components = {
 
 extended_cdr_components = extend_cdr_components_vectorized(cdr_components, global_cdr_ext)
 
-print(extended_cdr_components)
-# sys.exit(4)
-
 # Extract extended DataFrames
 co2_beccs_ext = extended_cdr_components["BECCS"]
 co2_dacc_ext = extended_cdr_components["DACCS"]
@@ -988,7 +982,9 @@ print(df_everything.head())
 print(f"✅ Successfully merged all DataFrames! Shape: {df_everything.shape}")
 print(df_everything.shape)
 print(df_all.index.names)
-# sys.exit(4)
+
+# %% [markdown]
+# # Extended missing sectors for regional (non-cdr fossil)
 df_everything = extend_regional_for_missing(df_everything, scenarios_regional, fractions_fossil_total)
 print(df_everything.shape)
 
@@ -1090,73 +1086,7 @@ print(f"   Total variables: {len(history.pix.unique('variable'))}")
 
 # %%
 # Concise Historical-Future Merge Function
-def merge_historical_future_timeseries(history_data, extensions_data, overlap_year=2023):
-    """
-    Merge historical and future emissions data.
-
-    Key learnings applied:
-    - Remove duplicates from extensions data first
-    - Replicate historical data for each scenario
-    - Simple concatenation along time axis
-    """
-    print("=== CONCISE HISTORICAL-FUTURE MERGE ===")
-
-    # Step 1: Clean extensions data (remove duplicates)
-    extensions_clean = extensions_data[~extensions_data.index.duplicated(keep="first")]
-    print(f"Removed {extensions_data.shape[0] - extensions_clean.shape[0]} duplicate extension rows")
-
-    # Step 2: Define time splits
-    hist_years = [col for col in history_data.columns if isinstance(col, int | float) and col <= overlap_year]
-    future_years = [col for col in extensions_clean.columns if isinstance(col, int | float) and col > overlap_year]
-
-    # Step 3: Get scenario list from extensions
-    scenarios = extensions_clean.index.droplevel(["region", "variable", "unit", "workflow"]).drop_duplicates()
-
-    # Step 4: Replicate historical data for each scenario
-    historical_expanded = []
-    for model, scenario in scenarios:
-        hist_copy = history_data[hist_years].copy()
-
-        # Update index to match scenario structure
-        new_index = []
-        for idx in hist_copy.index:
-            print(idx)
-            new_idx = (
-                model,
-                scenario,
-                idx[2],
-                "for_scms",  # workflow
-                idx[3],
-                idx[4],
-            )  # model, scenario, region, variable, unit
-            new_index.append(new_idx)
-        print(extensions_clean.index.names)
-        hist_copy.index = pd.MultiIndex.from_tuples(new_index, names=extensions_clean.index.names)
-        historical_expanded.append(hist_copy)
-
-    historical_replicated = pd.concat(historical_expanded)
-
-    # Step 5: Get future data and merge
-    future_data = extensions_clean[future_years]
-
-    # Step 6: Find common variables and merge
-    hist_vars = set(historical_replicated.index.get_level_values("variable"))
-    future_vars = set(future_data.index.get_level_values("variable"))
-    common_vars = hist_vars & future_vars
-
-    # Filter to common variables
-    hist_common = historical_replicated.loc[historical_replicated.index.get_level_values("variable").isin(common_vars)]
-    future_common = future_data.loc[future_data.index.get_level_values("variable").isin(common_vars)]
-
-    # Step 7: Concatenate along time axis
-    continuous_data = pd.concat([hist_common, future_common], axis=1).sort_index(axis=1)
-
-    # Step 8: Cut superfluous global data:
-    continuous_data = continuous_data.loc[~pix.ismatch(workflow="global")]
-    print(f"Merged data: {continuous_data.shape} ({len(common_vars)} variables, {len(scenarios)} scenarios)")
-    print(f"Time range: {continuous_data.columns[0]}-{continuous_data.columns[-1]}")
-
-    return continuous_data
+print("=== EXECUTING CONCISE HISTORICAL-FUTURE MERGE ===")
 
 
 # Execute the concise merge
@@ -1168,53 +1098,9 @@ continuous_timeseries_concise = merge_historical_future_timeseries(history, df_e
 
 
 # %%
-def dump_data_per_model(extended_data, model):
-    """
-    Dump extended data for a specific model to CSV.
 
-    Parameters
-    ----------
-    extended_data : pd.DataFrame
-        The complete extended data with MultiIndex.
-    model : str
-        The model name to filter and dump data for.
-    """
-    model_short = model.split(" ")[0]
-    if model.startswith("MESSAGE"):
-        model_short = "MESSAGE"
-    print(f"=== DUMPING DATA FOR MODEL: {model} ({model_short}) ===")
-    output_dir_model = EXTENSIONS_OUT_DIR / model_short
-    output_dir_model.mkdir(exist_ok=True, parents=True)
-    model_data = extended_data.loc[extended_data.index.get_level_values("model") == model].copy()
-
-    if not dump_with_full_scenario_names:
-        # Build mapping from long scenario names to short codes
-        long_to_short = {v[0]: k for k, v in scenario_model_match.items()}
-        if "scenario" in model_data.index.names:
-            # Get index level number for 'scenario'
-            scenario_level = model_data.index.names.index("scenario")
-            # Create new MultiIndex with scenario values mapped
-            new_index = [
-                tuple(
-                    (long_to_short.get(idx[scenario_level], idx[scenario_level]) if i == scenario_level else v)
-                    for i, v in enumerate(idx)
-                )
-                for idx in model_data.index
-            ]
-            model_data.index = pd.MultiIndex.from_tuples(new_index, names=model_data.index.names)
-            print("Renamed scenario values in index using scenario_model_match mapping.")
-        else:
-            print("No 'scenario' level in index; skipping scenario renaming.")
-
-    # Fix mixed column types warning by converting ALL columns to strings
-    # This ensures consistent typing for PyArrow/database storage
-    model_data.columns = [str(col) for col in model_data.columns]
-
-    EXTENSIONS_OUTPUT_DB.save(model_data, allow_overwrite=True)
-
-
-for model in continuous_timeseries_concise.pix.unique("model"):
-    dump_data_per_model(continuous_timeseries_concise, model)
+for model in df_everything.pix.unique("model"):
+    dump_data_per_model(df_everything, model, EXTENSIONS_OUT_DIR, EXTENSIONS_OUTPUT_DB)
 
 
 # %% [markdown]
@@ -1258,60 +1144,7 @@ print("✅ Final database saved with both complete and extended stages")
 
 # %%
 # Simple CSV output
-def save_continuous_timeseries_to_csv(data, filename="continuous_timeseries_historical_future"):
-    """
-    Save the continuous timeseries data to CSV with metadata.
-
-    Clean, simple approach focused on CSV output as final deliverable.
-    """
-    print("=== SAVING CONTINUOUS TIMESERIES TO CSV ===")
-
-    # Create filename without timestamp
-    csv_filename = f"{filename}.csv"
-    csv_path = os.path.join(os.getcwd(), csv_filename)
-
-    # Convert to long format for CSV
-    data_long = data.reset_index()
-
-    # Save to CSV
-    data_long.to_csv(csv_path, index=False)
-
-    # Create summary metadata
-    metadata = {
-        "filename": csv_filename,
-        "created": datetime.now().isoformat(),
-        "shape": f"{data.shape[0]} rows x {data.shape[1]} columns",
-        "time_coverage": f"{data.columns[0]} to {data.columns[-1]}",
-        "total_years": len([col for col in data.columns if isinstance(col, int | float)]),
-        "variables": len(data.index.get_level_values("variable").unique()),
-        "scenarios": len(data.index.droplevel(["region", "variable", "unit"]).drop_duplicates()),
-        "description": (
-            "Continuous emissions timeseries merging historical data (1750-2023) with future projections (2024-2500)"
-        ),
-    }
-
-    print(f"📂 Location: {csv_path}")
-    print(f"📊 Size: {metadata['shape']}")
-    print(f"🕐 Coverage: {metadata['time_coverage']} ({metadata['total_years']} years)")
-    print(f"📈 Variables: {metadata['variables']}")
-    print(f"🎯 Scenarios: {metadata['scenarios']}")
-
-    # Save metadata as JSON
-    metadata_filename = f"{filename}_metadata.json"
-    metadata_path = os.path.join(os.getcwd(), metadata_filename)
-
-    with open(metadata_path, "w") as f:
-        json.dump(metadata, f, indent=2)
-
-    print(f"📋 Metadata: {metadata_filename}")
-
-    return {
-        "csv_file": csv_filename,
-        "csv_path": csv_path,
-        "metadata_file": metadata_filename,
-        "metadata": metadata,
-    }
-
 
 # Execute the simple CSV save
 result = save_continuous_timeseries_to_csv(continuous_timeseries_concise, "continuous_emissions_timeseries_1750_2500")
+result_full = save_continuous_timeseries_to_csv(df_everything, "extensions_full_emissions_timeseries_2023_2500")
