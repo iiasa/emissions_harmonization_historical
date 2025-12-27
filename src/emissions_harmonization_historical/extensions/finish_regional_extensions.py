@@ -289,6 +289,8 @@ def merge_historical_future_timeseries(history_data, extensions_data, overlap_ye
     # Step 1: Clean extensions data (remove duplicates)
     extensions_clean = extensions_data[~extensions_data.index.duplicated(keep="first")]
     print(f"Removed {extensions_data.shape[0] - extensions_clean.shape[0]} duplicate extension rows")
+    print("Extensions data shape after cleaning:", extensions_clean.shape)
+    print("Time range:", extensions_clean.columns[0], "-", extensions_clean.columns[-1])
 
     # Step 2: Define time splits
     hist_years = [col for col in history_data.columns if isinstance(col, int | float) and col <= overlap_year]
@@ -305,7 +307,6 @@ def merge_historical_future_timeseries(history_data, extensions_data, overlap_ye
         # Update index to match scenario structure
         new_index = []
         for idx in hist_copy.index:
-            print(idx)
             new_idx = (
                 model,
                 scenario,
@@ -315,12 +316,19 @@ def merge_historical_future_timeseries(history_data, extensions_data, overlap_ye
                 idx[4],
             )  # model, scenario, region, variable, unit
             new_index.append(new_idx)
-        print(extensions_clean.index.names)
-        hist_copy.index = pd.MultiIndex.from_tuples(new_index, names=extensions_clean.index.names)
+            # print(new_idx)
+            # print(extensions_clean.index.names)
+            # sys.exit(4)
+        hist_copy.index = pd.MultiIndex.from_tuples(
+            new_index, names=["model", "scenario", "region", "workflow", "variable", "unit"]
+        )  # names=extensions_clean.index.names)
         historical_expanded.append(hist_copy)
 
     historical_replicated = pd.concat(historical_expanded)
-
+    historical_replicated.index = historical_replicated.index.reorder_levels(extensions_clean.index.names)
+    print(f"Replicated historical data shape: {historical_replicated.shape}")
+    print(f"Time range: {historical_replicated.columns[0]}-{historical_replicated.columns[-1]}")
+    # print(future_years)
     # Step 5: Get future data and merge
     future_data = extensions_clean[future_years]
 
@@ -332,13 +340,12 @@ def merge_historical_future_timeseries(history_data, extensions_data, overlap_ye
     # Filter to common variables
     hist_common = historical_replicated.loc[historical_replicated.index.get_level_values("variable").isin(common_vars)]
     future_common = future_data.loc[future_data.index.get_level_values("variable").isin(common_vars)]
-
     # Step 7: Concatenate along time axis
     continuous_data = pd.concat([hist_common, future_common], axis=1).sort_index(axis=1)
 
     # Step 8: Cut superfluous global data:
     continuous_data = continuous_data.loc[~pix.ismatch(workflow="global")]
+
     print(f"Merged data: {continuous_data.shape} ({len(common_vars)} variables, {len(scenarios)} scenarios)")
     print(f"Time range: {continuous_data.columns[0]}-{continuous_data.columns[-1]}")
-
     return continuous_data

@@ -61,6 +61,7 @@ from emissions_harmonization_historical.extensions.afolu_extension_functions imp
     get_cumulative_afolu_fill_from_hist,
 )
 from emissions_harmonization_historical.extensions.cdr_and_fossil_splits import (
+    add_removals_and_positive_fossil_emissions_to_historical,
     extend_cdr_components_vectorized,
     get_2100_compound_composition_co2,
 )
@@ -95,7 +96,6 @@ FUTURE_START_YEAR = 2023.0
 HISTORICAL_START_YEAR = 1900
 SCENARIO_END_YEAR = 2100
 TUPLE_LENGTH_WITH_STAGE = 6
-MAX_YEARS_FOR_MARKERS = 50
 
 # %% tags=["parameters"]
 # Papermill parameters
@@ -172,20 +172,6 @@ for model, scen in unique_model_scenario_pairs.to_list():
         "fractions_cdr": fractions_list[1],
         "fractions_fossil_nocdr": fractions_list[2],
     }
-
-
-# %%
-# Create inverse dictionaries for scenario_model_match
-scenario_to_code = {}  # Maps scenario name to short code
-model_to_code = {}  # Maps model name to short code
-code_to_color = {}  # Maps short code to color
-
-for code, info in scenario_model_match.items():
-    scenario_name, model_name, color = info
-    scenario_to_code[scenario_name] = code
-    model_to_code[model_name] = code
-    code_to_color[code] = color
-
 
 # %% [markdown]
 # Finally get cumulative CO2 history
@@ -1050,38 +1036,7 @@ df_everything.head()
 # - Gross Positive Emissions = CO2|AFOLU (assuming all historical AFOLU emissions are gross positive)
 # - Gross Removals = 0 (no large-scale technological CDR in historical period)
 
-co2_ffi_hist = history.loc[pix.ismatch(variable="Emissions|CO2|Energy and Industrial Processes")].copy()
-
-# Create Gross Positive Emissions by copying AFOLU data and changing variable name
-gross_positive_hist = co2_ffi_hist.copy()
-new_index_gross = []
-for idx_tuple in gross_positive_hist.index:
-    new_tuple = list(idx_tuple)
-    new_tuple[3] = "Emissions|CO2|Gross Positive Emissions"  # variable is at position 3
-    new_index_gross.append(tuple(new_tuple))
-gross_positive_hist.index = pd.MultiIndex.from_tuples(new_index_gross, names=gross_positive_hist.index.names)
-
-# Create Gross Removals as zeros with same structure as AFOLU
-gross_removals_hist = gross_positive_hist.copy()
-gross_removals_hist.iloc[:, :] = 0.0  # Set all values to zero
-new_index_removals = []
-for idx_tuple in gross_removals_hist.index:
-    new_tuple = list(idx_tuple)
-    new_tuple[3] = "Emissions|CO2|Gross Removals"  # variable is at position 3
-    new_index_removals.append(tuple(new_tuple))
-gross_removals_hist.index = pd.MultiIndex.from_tuples(new_index_removals, names=gross_removals_hist.index.names)
-
-# Remove any previously added gross emissions variables and add the new ones
-history_clean = history.loc[
-    ~history.index.get_level_values("variable").isin(
-        ["Emissions|CO2|Gross Positive Emissions", "Emissions|CO2|Gross Removals"]
-    )
-]
-history = pd.concat([history_clean, gross_positive_hist, gross_removals_hist])
-print(history.index.names)
-print("✅ Added Gross Positive Emissions and Gross Removals to history dataframe")
-print(f"   History shape: {history.shape}")
-print(f"   Total variables: {len(history.pix.unique('variable'))}")
+history = add_removals_and_positive_fossil_emissions_to_historical(history)
 
 
 # %%
