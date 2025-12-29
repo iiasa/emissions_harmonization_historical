@@ -14,18 +14,24 @@ from .general_utils_for_extensions import (
 )
 
 
-def do_simple_sigmoid_extension_to_target(scen_full: pd.DataFrame, target: float, sigmoid_shift=40) -> np.ndarray:
+def do_simple_sigmoid_extension_to_target(
+    scen_full: pd.DataFrame,
+    target: float,
+    sigmoid_shift=40,
+    end_year=2500,
+    sigmoid_end_min_year=2150,
+) -> np.ndarray:
     """
     Calculate extension function by calling sigmoid functionality to extend
     """
-    full_years = np.arange(scen_full.columns[0], 2501)
+    full_years = np.arange(scen_full.columns[0], end_year + 1)
     data_extend = np.zeros(len(full_years))
     data_extend[: len(scen_full.columns)] = scen_full.values[0, :]
     data_extend[len(scen_full.columns) :] = sigmoid_function(
         target,
         scen_full.values[0, -1],
         scen_full.columns[-1] + sigmoid_shift,
-        2150 + sigmoid_shift,
+        sigmoid_end_min_year + sigmoid_shift,
         full_years[len(scen_full.columns) :],
     )
     return data_extend
@@ -50,6 +56,8 @@ def do_single_component_for_scenario_model_regionally(  # noqa: PLR0913
     scenarios_complete_global: pd.DataFrame,
     history: pd.DataFrame,
     global_target=None,
+    end_year=2500,
+    end_scenario_year=2100,
 ):
     """
     For given scenario, model and variable, do extensions per sector and region and combine
@@ -69,9 +77,9 @@ def do_single_component_for_scenario_model_regionally(  # noqa: PLR0913
         data_regional = data_regional.loc[~pix.ismatch(variable="Emissions|CO2**")]
     data_regional = interpolate_to_annual(data_regional)
 
-    full_years = np.arange(data_regional.columns[0], 2501)
+    full_years = np.arange(data_regional.columns[0], end_year + 1)
 
-    fractions = get_2100_compound_composition(data_regional[2100].copy(), variable)
+    fractions = get_2100_compound_composition(data_regional[end_scenario_year].copy(), variable)
 
     sectors = data_regional.pix.unique("variable")
     regions = data_regional.pix.unique("region")
@@ -81,8 +89,8 @@ def do_single_component_for_scenario_model_regionally(  # noqa: PLR0913
         scen_full = interpolate_to_annual(data_scenario_global)
         data_extend = do_simple_sigmoid_or_exponential_extension_to_target(
             scen_full.values[0, :],
-            np.arange(scen_full.columns[0], 2501),
-            2100 - int(scen_full.columns[0]),
+            np.arange(scen_full.columns[0], end_year + 1),
+            end_scenario_year - int(scen_full.columns[0]),
             global_target,
         )
         df_regional = pd.DataFrame(data=[data_extend], columns=full_years, index=data_scenario_global.index)
@@ -108,15 +116,9 @@ def do_single_component_for_scenario_model_regionally(  # noqa: PLR0913
             data_extend = do_simple_sigmoid_or_exponential_extension_to_target(
                 data.values[0, :],
                 full_years,
-                2100 - int(data.columns[0]),
+                end_scenario_year - int(data.columns[0]),
                 target,
             )
-            # print(data_extend.columns)
-            # print(data)
-            # print(data_extend)
-            # sys.exit(4)
-            # 2150 + sigmoid_shift,
-            # full_years[len(data.columns) :],
             df_regional = pd.DataFrame(data=[data_extend], columns=full_years, index=data.index)
             if total_sector is None:
                 total_sector = data_extend
@@ -126,11 +128,6 @@ def do_single_component_for_scenario_model_regionally(  # noqa: PLR0913
                 world_sector = total_sector + data_extend
 
             temp_list_for_regional.append(df_regional)
-    # print(world_sector)
-    # print(total_sector)
-    # print(world_sector - total_sector)
-    # print(data_regional.loc[pix.ismatch(variable=f"{variable}")].index.values)
-    # sys.exit(4)
     df_total = pd.DataFrame(
         data=[world_sector, total_sector],
         columns=full_years,
@@ -139,16 +136,6 @@ def do_single_component_for_scenario_model_regionally(  # noqa: PLR0913
 
     temp_list_for_regional.append(df_total)
     df_all = pd.concat(temp_list_for_regional)
-    # print(df_all[2500])
-    # print(global_target)
-    # print(target_sum)
-    # print(sectors)
-    # print(regions)
-    # print(data_regional[2100])
-    # print(data_regional[2023])
-    # print(data_scenario_global[2023])
-    # print(data_historical[2023])
-    # print(df_all[2500])
     return df_all
 
 
