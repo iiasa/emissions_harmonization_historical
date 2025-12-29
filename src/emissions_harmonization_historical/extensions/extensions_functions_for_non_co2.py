@@ -73,6 +73,8 @@ def do_single_component_for_scenario_model_regionally(  # noqa: PLR0913
         global_target = np.min((global_target, data_scenario_global.values[0, -1]))
 
     data_regional = scenarios_regional.loc[pix.ismatch(scenario=f"{scen}", model=f"{model}", variable=f"{variable}**")]
+
+    # For CO the regex above also picks up CO2, so remove that here
     if variable == "Emissions|CO":
         data_regional = data_regional.loc[~pix.ismatch(variable="Emissions|CO2**")]
     data_regional = interpolate_to_annual(data_regional)
@@ -109,8 +111,7 @@ def do_single_component_for_scenario_model_regionally(  # noqa: PLR0913
         for region in regions:
             if region == "World" and len(regions) > 1:
                 continue
-            data = data_sector.loc[pix.ismatch(region=f"{region}")]  # , variable=f"{sector}")]
-            # target =
+            data = data_sector.loc[pix.ismatch(region=f"{region}")]
             target = global_target * fractions.loc[pix.ismatch(variable=f"{sector}", region=f"{region}")].values[0, 0]
             target_sum = target_sum + target
             data_extend = do_simple_sigmoid_or_exponential_extension_to_target(
@@ -161,12 +162,8 @@ def plot_just_global(  # noqa: PLR0913
     unextended = scenarios_regional.loc[
         pix.ismatch(scenario=f"{scen}", model=f"{model}", variable=f"{variable}", region="World")
     ]
-    # print(extended_to_plot)
     ax.plot(extended_to_plot.columns, extended_to_plot.values[-1, :])
     if unextended.shape[0] > 0:
         ax.plot(unextended.columns, unextended.values[-1, :], linestyle="--", alpha=0.7)
-    # print(unextended.columns)
-    # print(unextended.values[-1,:])
-    # unextended.values[0,:]
     plt.savefig(f"extended_match_totals_{scen.replace(' ', '')}_{model.replace(' ', '')}_{variable.split('|')[-1]}.png")
     plt.clf()

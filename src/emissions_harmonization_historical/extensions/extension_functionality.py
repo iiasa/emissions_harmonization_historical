@@ -38,7 +38,6 @@ def exp_decay(end, scale, decay_time, time_0, time):
     Calculate exponential decay to end value, with scale, decay_time,
     time_0 and over the values of time
     """
-    # print(f"{time_0:}, {time:}, {decay_time}")
     return end - scale * np.exp((time_0 - time) / decay_time)
 
 
@@ -73,11 +72,9 @@ def find_func_form_lu_extension(function, cle_func, t_vals, t_extend, cle_inf_0=
         cle_inf, k_mult, tau = solve_LU_constants(cle_0, lu_0, 1, cle_inf_0=cle_inf_0)
     else:
         dlu_0 = get_derivative_using_spline(function, t_vals, t_extend)
-        # print(dlu_0)
         cle_inf, k_mult, tau = solve_LU_constants(cle_0, lu_0, dlu_0)
     ext_func = np.zeros(len(t_vals))
     ext_func[:t_extend] = function[:t_extend]
-    # print(f"Value of tau is {tau}")
     ext_func[t_extend:] = k_mult / tau * np.exp((t_vals[t_extend] - t_vals[t_extend:]) / tau)
     return ext_func, cle_inf
 
@@ -331,9 +328,6 @@ def do_simple_sigmoid_or_exponential_extension_to_target(  # noqa: PLR0913
     data_extend[: len(function)] = function
     derivative_at_extension = get_derivative_using_spline(function, t_vals, t_extend)
     sigmoid_derivative_at_extension = get_sigmoid_derivative(target, function[-1], sigmoid_shift)
-    # print(f"Arguments for sigmoid: {target: }, come from: {scen_full.values[0, -1]},
-    # start_time: {scen_full.columns[-1] + sigmoid_shift},
-    # transition over: {2150 + sigmoid_shift}")
     if (
         derivative_at_extension < 0
         and sigmoid_derivative_at_extension < 0
@@ -354,7 +348,6 @@ def do_simple_sigmoid_or_exponential_extension_to_target(  # noqa: PLR0913
             t_vals[t_extend + sigmoid_len] + sigmoid_shift,
             t_vals[len(function) :],
         )
-    # print(data_extend)
     return data_extend
 
 

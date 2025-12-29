@@ -131,7 +131,6 @@ def _construct_final_dataframe(cdr_df, extension_data_dict, baseline_year):
 
         non_year_cols = [col for col in cdr_df.columns if not isinstance(col, int | float)]
 
-        # print(all_year_data)
         if len(non_year_cols) == 0:
             final_df = all_year_data.copy()
         else:
@@ -149,6 +148,7 @@ def get_2100_compound_composition_co2(
     """
     Find fractional composition of values in 2100 to allocate the residual end point emissions accordingly
     """
+    # TODO: Clean this out to do only what we need
     sector_mapping = {
         "Emissions|CO2|AFOLU": [
             "Emissions|CO2|Peat Burning",
@@ -221,8 +221,6 @@ def get_2100_compound_composition_co2(
     data_f_em_sectors = pd.concat(data_sub_fossil_em)
     sum_f_em_sectors = data_f_em_sectors.sum(axis=0)
     print("Sum Fossil sectors vs total Fossil:", sum_fossil_sectors, data_total_fossil.values)
-    # fractions_afolu = data_afolu_sectors.values / sum_afolu_sectors
-    # fractions_fossil = data_fossil_sectors.values / sum_fossil_sectors
     fractions = data_fossil_sectors.values / sum_fossil_sectors
     fractions_df = pd.DataFrame(data=fractions, columns=["fractions"], index=data_fossil_sectors.index)
     fractions_cdr = data_cdr_sectors.values / sum_cdr_sectors

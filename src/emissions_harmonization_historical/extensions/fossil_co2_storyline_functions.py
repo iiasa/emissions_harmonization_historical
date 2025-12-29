@@ -88,17 +88,19 @@ def linear_to_target(target, from_val, start, stop, time):
     return from_val + slope * (time - start)
 
 
-def _apply_cs_storyline(co2_fossil_extend, co2_total_extend, storyline, start, end):
+def _apply_cs_storyline(  # noqa: PLR0913
+    co2_fossil_extend, co2_total_extend, storyline, start, end, scenario_end=2100
+):
     """Apply Constant-then-Sigmoid storyline."""
     stop_const = storyline[1]
     end_sig = storyline[2]
     roll_in = storyline[3]
     roll_out = storyline[4]
     print("Doing constant then sigmoid evolution")
-    co2_constant = co2_total_extend[2100 - start]
+    co2_constant = co2_total_extend[scenario_end - start]
     co2_fossil_extend, co2_total_extend = extend_from_start_to_stop_with_value(
         co2_constant,
-        2101 - start,
+        scenario_end + 1 - start,
         stop_const - start + 1,
         co2_fossil_extend,
         co2_total_extend,
@@ -124,30 +126,32 @@ def _apply_cs_storyline(co2_fossil_extend, co2_total_extend, storyline, start, e
     return co2_fossil_extend, co2_total_extend
 
 
-def _apply_ecs_storyline(co2_fossil_extend, co2_total_extend, storyline, start, end):
+def _apply_ecs_storyline(  # noqa: PLR0913
+    co2_fossil_extend, co2_total_extend, storyline, start, end, scenario_end=2100
+):
     """Apply Exponential-then-Constant-then-Sigmoid storyline."""
     exp_end = storyline[1]
     exp_targ = storyline[2]
     sig_start = storyline[3]
 
     if exp_targ is None:
-        exp_targ = get_exp_targ_from_current_data(co2_total_extend[: 2101 - start], exp_end - start)
+        exp_targ = get_exp_targ_from_current_data(co2_total_extend[: scenario_end + 1 - start], exp_end - start)
     print(f"Derived exp_targ: {exp_targ}")
     sig_end = storyline[4]
     roll_in = storyline[5]
     roll_out = storyline[6]
 
     linear_decay_total = make_linear_function_with_smooth_transition(
-        co2_total_extend[: 2101 - start],
+        co2_total_extend[: scenario_end + 1 - start],
         exp_targ,
         20,
         20,
         np.arange(start, exp_end + 1),
-        2100 - start,
+        scenario_end - start,
     )
     co2_fossil_extend, co2_total_extend = extend_from_start_to_stop_with_value(
         linear_decay_total,
-        2100 - start + 1,
+        scenario_end - start + 1,
         exp_end - start + 1,
         co2_fossil_extend,
         co2_total_extend,
@@ -180,7 +184,9 @@ def _apply_ecs_storyline(co2_fossil_extend, co2_total_extend, storyline, start, 
     return co2_fossil_extend, co2_total_extend
 
 
-def _apply_cscs_storyline(co2_fossil_extend, co2_total_extend, storyline, start, end):
+def _apply_cscs_storyline(  # noqa: PLR0913
+    co2_fossil_extend, co2_total_extend, storyline, start, end, scenario_end=2100
+):
     """Apply Constant-Sigmoid-Constant-Sigmoid storyline."""
     stop_const = storyline[1]
     sig_targ = storyline[2]
@@ -189,10 +195,10 @@ def _apply_cscs_storyline(co2_fossil_extend, co2_total_extend, storyline, start,
     end_sig2 = storyline[5]
     roll_in = storyline[6]
     roll_out = storyline[7]
-    co2_constant = co2_total_extend[2100 - start]
+    co2_constant = co2_total_extend[scenario_end - start]
     co2_fossil_extend, co2_total_extend = extend_from_start_to_stop_with_value(
         co2_constant,
-        2101 - start,
+        scenario_end + 1 - start,
         stop_const - start + 1,
         co2_fossil_extend,
         co2_total_extend,
@@ -244,7 +250,9 @@ def _apply_cscs_storyline(co2_fossil_extend, co2_total_extend, storyline, start,
     return co2_fossil_extend, co2_total_extend
 
 
-def extend_co2_for_scen_storyline(df_extended_afolu, df_fossil, storyline, start=2023, end=2500):
+def extend_co2_for_scen_storyline(  # noqa: PLR0913
+    df_extended_afolu, df_fossil, storyline, start=2023, end=2500, scenario_end=2100
+):
     """
     Extend CO2 emissions time series for a given scenario storyline up to a specified end year.
 
@@ -286,23 +294,23 @@ def extend_co2_for_scen_storyline(df_extended_afolu, df_fossil, storyline, start
     The function relies on helper functions such as `extend_from_start_to_stop_with_value` and
     `make_linear_function_with_smooth_transition` for constructing the extended emissions profiles.
     """
-    extended_years = np.arange(start, 2501)
+    extended_years = np.arange(start, end + 1)
     co2_fossil_extend = np.zeros_like(extended_years)
-    co2_fossil_extend[: 2101 - start] = df_fossil.loc[f"{start}" :, :].to_numpy().flatten()
+    co2_fossil_extend[: scenario_end + 1 - start] = df_fossil.loc[f"{start}" :, :].to_numpy().flatten()
     co2_total_extend = co2_fossil_extend + df_extended_afolu.loc[:, f"{start}" :].to_numpy().flatten()
 
     storyline_type = storyline[0]
     if storyline_type == "CS":
         co2_fossil_extend, co2_total_extend = _apply_cs_storyline(
-            co2_fossil_extend, co2_total_extend, storyline, start, end
+            co2_fossil_extend, co2_total_extend, storyline, start, end, scenario_end=scenario_end
         )
     elif storyline_type == "ECS":
         co2_fossil_extend, co2_total_extend = _apply_ecs_storyline(
-            co2_fossil_extend, co2_total_extend, storyline, start, end
+            co2_fossil_extend, co2_total_extend, storyline, start, end, scenario_end=scenario_end
         )
     elif storyline_type == "CSCS":
         co2_fossil_extend, co2_total_extend = _apply_cscs_storyline(
-            co2_fossil_extend, co2_total_extend, storyline, start, end
+            co2_fossil_extend, co2_total_extend, storyline, start, end, scenario_end=scenario_end
         )
     else:
         print(f"Why am I here with {storyline}?")

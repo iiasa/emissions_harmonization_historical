@@ -57,7 +57,7 @@ def add_workflow_level_to_index(df, workflow="for_scms"):
     """Add a 'workflow' level to a DataFrame index after 'scenario'"""
     if "workflow" in df.index.names:
         return df
-    # print(df.index.names)
+
     # Reset index to work with it
     df_reset = df.reset_index()
     # Add region column in the correct position (after scenario, before variable)
@@ -70,12 +70,11 @@ def add_workflow_level_to_index(df, workflow="for_scms"):
     else:
         placement_idx = cols.index("scenario") + 1
         index_cols = ["model", "scenario", "workflow", "variable", "unit"]
-    # print(cols)
+
     cols.insert(placement_idx, "workflow")
     df_reset["workflow"] = workflow
     df_reset = df_reset[cols]
-    # print(cols)
-    # print(index_cols)
+
     # Set the index back with the correct order
     return df_reset.set_index(index_cols)
 
@@ -109,13 +108,11 @@ def fix_up_and_concatenate_extensions(extended_dfs_dict):
     return concatenated_df
 
 
-def extend_regional_for_missing(df_everything, scenarios_regional, fractions_list):
+def extend_regional_for_missing(df_everything, scenarios_regional, fractions_list, end_year=2500):
     """Extend regional data for scenarios missing region level."""
     df_extended_list = []
 
     for variable in tqdm.auto.tqdm(scenarios_regional.pix.unique("variable").values):
-        print_done_empty = False
-        print_done_in = False
         if not variable.startswith("Emissions|CO2"):
             continue
         unique_meta = (
@@ -138,18 +135,9 @@ def extend_regional_for_missing(df_everything, scenarios_regional, fractions_lis
                     region="World",
                 )
             ]
-            # sys.exit(4)
             regions_total = data_regional.pix.unique("region").values
             regions_existing = data_existing.pix.unique("region").values
-            if regions_existing.size == 0:
-                if not print_done_empty:
-                    print(f"{variable} has no globally extended data, needs {len(regions_total)} regions")
-                    print_done_empty = True
-                # sys.exit(4)
             if set(regions_total) == set(regions_existing):
-                if not print_done_in:
-                    print(f"{variable} already has all regional data ({len(regions_total)})")
-                    print_done_in = True
                 continue
             if variable in fractions_list[(model, scen)]["fractions_fossil_nocdr"].index.get_level_values("variable"):
                 print(f"Now extending {variable} for model {model}, scenario {scen}")
@@ -161,7 +149,7 @@ def extend_regional_for_missing(df_everything, scenarios_regional, fractions_lis
                         gross_pos_traj
                         * fractions_f_em_df.loc[pix.ismatch(variable=variable, region=f"{region}")].values[0, 0]
                     )
-                    full_years = np.arange(df_everything.columns[0], 2501)
+                    full_years = np.arange(df_everything.columns[0], end_year + 1)
                     data_extend = np.zeros((1, len(full_years)))
                     values_exist = data_regional.loc[pix.ismatch(region=region)].values[0, :]
                     extend_year_idx = len(values_exist)
@@ -290,7 +278,6 @@ def merge_historical_future_timeseries(history_data, extensions_data, overlap_ye
     extensions_clean = extensions_data[~extensions_data.index.duplicated(keep="first")]
     print(f"Removed {extensions_data.shape[0] - extensions_clean.shape[0]} duplicate extension rows")
     print("Extensions data shape after cleaning:", extensions_clean.shape)
-    print("Time range:", extensions_clean.columns[0], "-", extensions_clean.columns[-1])
 
     # Step 2: Define time splits
     hist_years = [col for col in history_data.columns if isinstance(col, int | float) and col <= overlap_year]
@@ -316,19 +303,16 @@ def merge_historical_future_timeseries(history_data, extensions_data, overlap_ye
                 idx[4],
             )  # model, scenario, region, variable, unit
             new_index.append(new_idx)
-            # print(new_idx)
-            # print(extensions_clean.index.names)
-            # sys.exit(4)
         hist_copy.index = pd.MultiIndex.from_tuples(
             new_index, names=["model", "scenario", "region", "workflow", "variable", "unit"]
-        )  # names=extensions_clean.index.names)
+        )
         historical_expanded.append(hist_copy)
 
     historical_replicated = pd.concat(historical_expanded)
     historical_replicated.index = historical_replicated.index.reorder_levels(extensions_clean.index.names)
     print(f"Replicated historical data shape: {historical_replicated.shape}")
     print(f"Time range: {historical_replicated.columns[0]}-{historical_replicated.columns[-1]}")
-    # print(future_years)
+
     # Step 5: Get future data and merge
     future_data = extensions_clean[future_years]
 
