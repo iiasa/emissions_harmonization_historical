@@ -1,3 +1,5 @@
+"""Helpers to finish and stitch regional extensions and to fill missing regions."""
+
 import numpy as np
 import pandas as pd
 import pandas_indexing as pix

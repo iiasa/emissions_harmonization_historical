@@ -1,3 +1,5 @@
+"""Regional and sectoral extension routines for non-CO2 species and helpers to combine results."""
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

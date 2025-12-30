@@ -1,3 +1,5 @@
+"""AFOLU-specific helpers (cumulative AFOLU calculation and filling from historical series)."""
+
 import numpy as np
 import pandas as pd
 import pandas_indexing as pix

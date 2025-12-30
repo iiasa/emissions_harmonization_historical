@@ -1,3 +1,5 @@
+"""Storyline-driven CO2 extension helpers for fossil and AFOLU splitting and trajectories."""
+
 import sys
 
 import numpy as np

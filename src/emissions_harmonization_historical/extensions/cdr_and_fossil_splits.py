@@ -1,3 +1,5 @@
+"""Utilities for splitting and extending CDR and fossil CO2 components, and adjusting historical variables."""
+
 import sys
 
 import numpy as np

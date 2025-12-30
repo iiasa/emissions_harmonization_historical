@@ -1,3 +1,5 @@
+"""General DataFrame utilities used across the extension workflow (interpolation, glue, I/O)."""
+
 import json
 import os
 from datetime import datetime

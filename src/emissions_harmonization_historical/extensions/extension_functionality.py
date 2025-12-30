@@ -1,3 +1,5 @@
+"""Low-level math helpers for constructing emissions extension profiles (sigmoid, decay, spline helpers)."""
+
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import PchipInterpolator
