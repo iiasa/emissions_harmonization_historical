@@ -1,115 +1,34 @@
-import json
-import os
-from datetime import datetime
-
 import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 import tqdm.auto
 
 
-def standardize_year_columns(df, target_type=float, startyr=2023):
-    """Convert all year columns to the same data type"""
-    df_copy = df.copy()
-    new_columns = []
-    drop_columns = []
-    for col in df_copy.columns:
-        try:
-            # Try to convert to target type
-            if isinstance(col, str):
-                # Remove '.0' suffix if present and convert
-                year_val = float(col.replace(".0", ""))
-            else:
-                year_val = float(col)
-            if year_val < startyr:
-                drop_columns.append(col)
-                continue
-            new_columns.append(year_val)
-        except (ValueError, TypeError):
-            # Keep non-year columns as-is
-            new_columns.append(col)
-    df_copy = df_copy.drop(columns=drop_columns)
-    df_copy.columns = new_columns
-    return df_copy
-
-
-def add_region_level_to_index(df, region="World"):
-    """Add a 'region' level to a DataFrame index after 'scenario'"""
-    if "region" in df.index.names:
-        return df
-
-    # Reset index to work with it
-    df_reset = df.reset_index()
-
-    # Add region column in the correct position (after scenario, before variable)
-    cols = list(df_reset.columns)
-    scenario_idx = cols.index("scenario")
-    cols.insert(scenario_idx + 1, "region")
-    df_reset["region"] = region
-    df_reset = df_reset[cols]
-
-    # Set the index back with the correct order
-    index_cols = ["model", "scenario", "region", "variable", "unit"]
-    return df_reset.set_index(index_cols)
-
-
-def add_workflow_level_to_index(df, workflow="for_scms"):
-    """Add a 'workflow' level to a DataFrame index after 'scenario'"""
-    if "workflow" in df.index.names:
-        return df
-
-    # Reset index to work with it
-    df_reset = df.reset_index()
-    # Add region column in the correct position (after scenario, before variable)
-    cols = list(df_reset.columns)
-    if "region" in df.index.names:
-        if len(df.pix.unique("region")) > 1:
-            workflow = "gridding"
-        placement_idx = cols.index("region") + 1
-        index_cols = ["model", "scenario", "region", "workflow", "variable", "unit"]
-    else:
-        placement_idx = cols.index("scenario") + 1
-        index_cols = ["model", "scenario", "workflow", "variable", "unit"]
-
-    cols.insert(placement_idx, "workflow")
-    df_reset["workflow"] = workflow
-    df_reset = df_reset[cols]
-
-    # Set the index back with the correct order
-    return df_reset.set_index(index_cols)
-
-
-def fix_up_and_concatenate_extensions(extended_dfs_dict):
+def extend_regional_for_missing(
+    df_everything: pd.DataFrame, scenarios_regional: pd.DataFrame, fractions_list: dict, end_year=2500
+) -> pd.DataFrame:
     """
-    Fix up and concatenate extended DataFrames from different components.
+    Extend regional data for scenarios missing region level.
 
-    Ensures consistent indexing and concatenation.
+    This function extends regional emissions data for scenarios where some regions are missing.
+    It uses fractional compositions to allocate gross positive emissions to missing regions.
+
+    Parameters
+    ----------
+    df_everything : pd.DataFrame
+        The complete dataset including existing extensions.
+    scenarios_regional : pd.DataFrame
+        Regional scenario data.
+    fractions_list : dict
+        Dictionary of fractional compositions for each model and scenario.
+    end_year : int, optional
+        The year to extend to, default is 2500.
+
+    Returns
+    -------
+    pd.DataFrame
+        Extended DataFrame with missing regions filled.
     """
-    fixed_dfs = []
-    for component_name, df in extended_dfs_dict.items():
-        if component_name in ["gross_positive_extensions", "cdr_extensions"]:
-            df_fixed = add_region_level_to_index(df.copy(), region="World")
-        elif component_name == "afolu_extensions":
-            if "model" in df.columns:
-                index_cols = ["model", "scenario", "region", "variable", "unit"]
-                df_fixed = df.copy().set_index(index_cols)
-                print(f"df_afolu_fixed index: {df_fixed.index.names}")
-            else:
-                df_fixed = df.copy()
-                print(f"df_afolu already has proper index: {df.index.names}")
-        else:
-            df_fixed = df.copy()
-        if "workflow" not in df_fixed.index.names:
-            df_fixed = add_workflow_level_to_index(df_fixed)
-        df_fixed = standardize_year_columns(df_fixed)
-        fixed_dfs.append(df_fixed)
-
-    concatenated_df = pix.concat(fixed_dfs)
-    return concatenated_df
-
-
-def extend_regional_for_missing(df_everything, scenarios_regional, fractions_list, end_year=2500):
-    """Extend regional data for scenarios missing region level."""
     df_extended_list = []
 
     for variable in tqdm.auto.tqdm(scenarios_regional.pix.unique("variable").values):
@@ -163,114 +82,28 @@ def extend_regional_for_missing(df_everything, scenarios_regional, fractions_lis
     return pix.concat([df_everything, df_extended])
 
 
-def dump_data_per_model(extended_data, model, output_dir, output_db, scenario_model_match=None):
-    """
-    Dump extended data for a specific model to CSV.
-
-    Parameters
-    ----------
-    extended_data : pd.DataFrame
-        The complete extended data with MultiIndex.
-    model : str
-        The model name to filter and dump data for.
-    """
-    model_short = model.split(" ")[0]
-    if model.startswith("MESSAGE"):
-        model_short = "MESSAGE"
-    print(f"=== DUMPING DATA FOR MODEL: {model} ({model_short}) ===")
-    output_dir_model = output_dir / model_short
-    output_dir_model.mkdir(exist_ok=True, parents=True)
-    model_data = extended_data.loc[extended_data.index.get_level_values("model") == model].copy()
-
-    if scenario_model_match is not None:
-        # Build mapping from long scenario names to short codes
-        long_to_short = {v[0]: k for k, v in scenario_model_match.items()}
-        if "scenario" in model_data.index.names:
-            # Get index level number for 'scenario'
-            scenario_level = model_data.index.names.index("scenario")
-            # Create new MultiIndex with scenario values mapped
-            new_index = [
-                tuple(
-                    (long_to_short.get(idx[scenario_level], idx[scenario_level]) if i == scenario_level else v)
-                    for i, v in enumerate(idx)
-                )
-                for idx in model_data.index
-            ]
-            model_data.index = pd.MultiIndex.from_tuples(new_index, names=model_data.index.names)
-            print("Renamed scenario values in index using scenario_model_match mapping.")
-        else:
-            print("No 'scenario' level in index; skipping scenario renaming.")
-
-    # Fix mixed column types warning by converting ALL columns to strings
-    # This ensures consistent typing for PyArrow/database storage
-    model_data.columns = [str(col) for col in model_data.columns]
-
-    output_db.save(model_data, allow_overwrite=True)
-
-
-def save_continuous_timeseries_to_csv(data, filename="continuous_timeseries_historical_future"):
-    """
-    Save the continuous timeseries data to CSV with metadata.
-
-    Clean, simple approach focused on CSV output as final deliverable.
-    """
-    print("=== SAVING CONTINUOUS TIMESERIES TO CSV ===")
-
-    # Create filename without timestamp
-    csv_filename = f"{filename}.csv"
-    csv_path = os.path.join(os.getcwd(), csv_filename)
-
-    # Convert to long format for CSV
-    data_long = data.reset_index()
-
-    # Save to CSV
-    data_long.to_csv(csv_path, index=False)
-
-    # Create summary metadata
-    metadata = {
-        "filename": csv_filename,
-        "created": datetime.now().isoformat(),
-        "shape": f"{data.shape[0]} rows x {data.shape[1]} columns",
-        "time_coverage": f"{data.columns[0]} to {data.columns[-1]}",
-        "total_years": len([col for col in data.columns if isinstance(col, int | float)]),
-        "variables": len(data.index.get_level_values("variable").unique()),
-        "scenarios": len(data.index.droplevel(["region", "variable", "unit"]).drop_duplicates()),
-        "description": (
-            "Continuous emissions timeseries merging historical data (1750-2023) with future projections (2024-2500)"
-        ),
-    }
-
-    print(f"📂 Location: {csv_path}")
-    print(f"📊 Size: {metadata['shape']}")
-    print(f"🕐 Coverage: {metadata['time_coverage']} ({metadata['total_years']} years)")
-    print(f"📈 Variables: {metadata['variables']}")
-    print(f"🎯 Scenarios: {metadata['scenarios']}")
-
-    # Save metadata as JSON
-    metadata_filename = f"{filename}_metadata.json"
-    metadata_path = os.path.join(os.getcwd(), metadata_filename)
-
-    with open(metadata_path, "w") as f:
-        json.dump(metadata, f, indent=2)
-
-    print(f"📋 Metadata: {metadata_filename}")
-
-    return {
-        "csv_file": csv_filename,
-        "csv_path": csv_path,
-        "metadata_file": metadata_filename,
-        "metadata": metadata,
-    }
-
-
-def merge_historical_future_timeseries(history_data, extensions_data, overlap_year=2023):
+def merge_historical_future_timeseries(
+    history_data: pd.DataFrame, extensions_data: pd.DataFrame, overlap_year=2023
+) -> pd.DataFrame:
     """
     Merge historical and future emissions data.
 
-    Key learnings applied:
-    - Remove duplicates from extensions data first
-    - Replicate historical data for each scenario
-    - Simple concatenation along time axis
+    This function merges historical emissions data with future extensions, replicating historical data
+    for each scenario and concatenating along the time axis. It removes duplicates and filters to common variables.
+
+    Parameters
+    ----------
+    history_data : pd.DataFrame
+        Historical emissions data.
+    extensions_data : pd.DataFrame
+        Future extensions data.
+    overlap_year : int, optional
+        The year where historical and future data overlap, default is 2023.
+
+    Returns
+    -------
+    pd.DataFrame
+        Merged continuous timeseries data.
     """
     print("=== CONCISE HISTORICAL-FUTURE MERGE ===")
 

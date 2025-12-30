@@ -1,16 +1,33 @@
 import sys
 
+import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 
 
-def extend_cdr_components_vectorized(cdr_components_dict, global_cdr_ext, baseline_year=2100):
+def extend_cdr_components_vectorized(
+    cdr_components_dict: dict, global_cdr_ext: pd.DataFrame, baseline_year=2100
+) -> dict:
     """
     Ultra-efficient CDR extension using pure vectorized operations.
 
     Eliminates all DataFrame fragmentation warnings by using bulk operations.
 
     FIXED: Handles MultiIndex alignment properly for regional fraction calculations.
+
+    Parameters
+    ----------
+    cdr_components_dict : dict
+        Dictionary of CDR component DataFrames.
+    global_cdr_ext : pd.DataFrame
+        Global CDR extension data.
+    baseline_year : int, optional
+        Baseline year for calculations, default is 2100.
+
+    Returns
+    -------
+    dict
+        Dictionary of extended CDR component DataFrames.
     """
     extension_years = [col for col in global_cdr_ext.columns if isinstance(col, int | float) and col > baseline_year]
 
@@ -46,8 +63,23 @@ def extend_cdr_components_vectorized(cdr_components_dict, global_cdr_ext, baseli
     return extended_components
 
 
-def _validate_extension_inputs(cdr_df, global_cdr_ext, baseline_year):
-    """Validate inputs and find common scenarios."""
+def _validate_extension_inputs(cdr_df: pd.DataFrame, global_cdr_ext: pd.DataFrame, baseline_year: int) -> dict:
+    """Validate inputs and find common scenarios.
+
+    Parameters
+    ----------
+    cdr_df : pd.DataFrame
+        CDR component DataFrame.
+    global_cdr_ext : pd.DataFrame
+        Global CDR extension DataFrame.
+    baseline_year : int
+        Baseline year to check.
+
+    Returns
+    -------
+    dict
+        Validation result with 'is_valid' and optionally 'common_scenarios'.
+    """
     if baseline_year not in cdr_df.columns:
         print(f"  ⚠️  {baseline_year} not found, copying original")
         return {"is_valid": False}
@@ -63,8 +95,23 @@ def _validate_extension_inputs(cdr_df, global_cdr_ext, baseline_year):
     return {"is_valid": True, "common_scenarios": common_scenarios}
 
 
-def _calculate_baseline_ratios(cdr_df, global_cdr_ext, baseline_year):
-    """Calculate baseline ratios for component and regional fractions."""
+def _calculate_baseline_ratios(cdr_df: pd.DataFrame, global_cdr_ext: pd.DataFrame, baseline_year: int) -> dict:
+    """Calculate baseline ratios for component and regional fractions.
+
+    Parameters
+    ----------
+    cdr_df : pd.DataFrame
+        CDR component DataFrame.
+    global_cdr_ext : pd.DataFrame
+        Global CDR extension DataFrame.
+    baseline_year : int
+        Baseline year for ratios.
+
+    Returns
+    -------
+    dict
+        Dictionary with 'baseline_data', 'component_fractions', 'regional_fractions'.
+    """
     baseline_data = cdr_df[baseline_year]
     component_totals_2100 = baseline_data.groupby("scenario").sum()
     global_data_2100 = global_cdr_ext[baseline_year].groupby("scenario").first()
@@ -92,13 +139,33 @@ def _calculate_baseline_ratios(cdr_df, global_cdr_ext, baseline_year):
 
 
 def _build_extension_data(
-    extension_years,
-    global_cdr_ext,
-    baseline_data,
-    component_fractions,
-    regional_fractions,
-):
-    """Build extension data for all years."""
+    extension_years: np.ndarray,
+    global_cdr_ext: pd.DataFrame,
+    baseline_data: pd.Series,
+    component_fractions: pd.Series,
+    regional_fractions: pd.DataFrame,
+) -> dict:
+    """
+    Build extension data for all years.
+
+    Parameters
+    ----------
+    extension_years : np.ndarray
+        Array of years to extend to.
+    global_cdr_ext : pd.DataFrame
+        Global CDR extension data.
+    baseline_data : pd.Series
+        Baseline data at baseline year.
+    component_fractions : pd.Series
+        Component fractions.
+    regional_fractions : pd.DataFrame
+        Regional fractions.
+
+    Returns
+    -------
+    dict
+        Dictionary of extension data per year.
+    """
     extension_data_dict = {}
 
     for year in extension_years:
@@ -120,8 +187,24 @@ def _build_extension_data(
     return extension_data_dict
 
 
-def _construct_final_dataframe(cdr_df, extension_data_dict, baseline_year):
-    """Construct final DataFrame with original and extension data."""
+def _construct_final_dataframe(cdr_df: pd.DataFrame, extension_data_dict: dict, baseline_year: int) -> pd.DataFrame:
+    """
+    Construct final DataFrame with original and extension data.
+
+    Parameters
+    ----------
+    cdr_df : pd.DataFrame
+        Original CDR DataFrame.
+    extension_data_dict : dict
+        Extension data dictionary.
+    baseline_year : int
+        Baseline year.
+
+    Returns
+    -------
+    pd.DataFrame
+        Final extended DataFrame.
+    """
     if extension_data_dict:
         original_years = [col for col in cdr_df.columns if isinstance(col, int | float) and col <= baseline_year]
         original_data = cdr_df[original_years]
@@ -143,10 +226,20 @@ def _construct_final_dataframe(cdr_df, extension_data_dict, baseline_year):
 
 
 def get_2100_compound_composition_co2(
-    data_regional: pd.DataFrame, co2_total: pd.DataFrame, model: str, scen: str
+    data_regional: pd.DataFrame,
 ) -> pd.DataFrame:
     """
     Find fractional composition of values in 2100 to allocate the residual end point emissions accordingly
+
+    Parameters
+    ----------
+    data_regional : pd.DataFrame
+        Regional data with variables and regions.
+
+    Returns
+    -------
+    tuple of pd.DataFrame
+        Fractions for fossil sectors, CDR sectors, and fossil emissions sectors.
     """
     # TODO: Clean this out to do only what we need
     sector_mapping = {
@@ -235,6 +328,16 @@ def add_removals_and_positive_fossil_emissions_to_historical(
 ) -> pd.DataFrame:
     """
     Make gross positive and removal variables for CO2 in historical data
+
+    Parameters
+    ----------
+    history : pd.DataFrame
+        Historical emissions data.
+
+    Returns
+    -------
+    pd.DataFrame
+        Historical data with added gross positive and removal variables.
     """
     co2_ffi_hist = history.loc[pix.ismatch(variable="Emissions|CO2|Energy and Industrial Processes")].copy()
 

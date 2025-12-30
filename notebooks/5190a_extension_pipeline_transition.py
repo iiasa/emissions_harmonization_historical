@@ -77,18 +77,18 @@ from emissions_harmonization_historical.extensions.extensions_functions_for_non_
     plot_just_global,
 )
 from emissions_harmonization_historical.extensions.finish_regional_extensions import (
-    dump_data_per_model,
     extend_regional_for_missing,
-    fix_up_and_concatenate_extensions,
     merge_historical_future_timeseries,
-    save_continuous_timeseries_to_csv,
 )
 from emissions_harmonization_historical.extensions.fossil_co2_storyline_functions import (
     extend_co2_for_scen_storyline,
 )
 from emissions_harmonization_historical.extensions.general_utils_for_extensions import (
+    dump_data_per_model,
+    fix_up_and_concatenate_extensions,
     glue_with_historical,
     interpolate_to_annual,
+    save_continuous_timeseries_to_csv,
 )
 
 # Constants
@@ -166,7 +166,7 @@ for model, scen in unique_model_scenario_pairs.to_list():
     print(f"Processing {model} | {scen}")
     tot_co2 = scenarios_complete_global.loc[pix.ismatch(scenario=scen, model=model, variable="Emissions|CO2")]
     scen_here = scenarios_regional.loc[pix.ismatch(scenario=scen, model=model, variable="Emissions|CO2**")]
-    fractions_list = get_2100_compound_composition_co2(scen_here[2100], tot_co2[2100], model, scen)
+    fractions_list = get_2100_compound_composition_co2(scen_here[2100])
     fractions_fossil_total[(model, scen)] = {
         "fractions_tot_fossil": fractions_list[0],
         "fractions_cdr": fractions_list[1],

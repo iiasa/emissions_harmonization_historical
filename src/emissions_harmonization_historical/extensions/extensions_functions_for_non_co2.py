@@ -7,11 +7,7 @@ from .extension_functionality import (
     do_simple_sigmoid_or_exponential_extension_to_target,
     sigmoid_function,
 )
-from .finish_regional_extensions import add_workflow_level_to_index
-from .general_utils_for_extensions import (
-    glue_with_historical,
-    interpolate_to_annual,
-)
+from .general_utils_for_extensions import add_workflow_level_to_index, glue_with_historical, interpolate_to_annual
 
 
 def do_simple_sigmoid_extension_to_target(
@@ -23,6 +19,28 @@ def do_simple_sigmoid_extension_to_target(
 ) -> np.ndarray:
     """
     Calculate extension function by calling sigmoid functionality to extend
+
+    This function extends a given scenario data using a sigmoid function to reach a specified target value.
+    It creates an array of extended values from the start year to the end year, using the sigmoid to smoothly
+    transition from the last value in the scenario to the target.
+
+    Parameters
+    ----------
+    scen_full : pd.DataFrame
+        The full scenario data with years as columns and a single row of values.
+    target : float
+        The target value to extend towards.
+    sigmoid_shift : int, optional
+        The shift parameter for the sigmoid function, default is 40.
+    end_year : int, optional
+        The final year to extend to, default is 2500.
+    sigmoid_end_min_year : int, optional
+        The minimum year for the sigmoid end, default is 2150.
+
+    Returns
+    -------
+    np.ndarray
+        An array of extended values from the start year to end_year.
     """
     full_years = np.arange(scen_full.columns[0], end_year + 1)
     data_extend = np.zeros(len(full_years))
@@ -40,6 +58,21 @@ def do_simple_sigmoid_extension_to_target(
 def get_2100_compound_composition(data_regional: pd.DataFrame, variable: str):
     """
     Find fractional composition of values in 2100 to allocate the residual end point emissions accordingly
+
+    This function calculates the fractional composition of regional data for a given variable in the year 2100.
+    It excludes the total variable (e.g., Emissions|CO) and computes fractions based on the sum of other sectors.
+
+    Parameters
+    ----------
+    data_regional : pd.DataFrame
+        Regional data with variables and regions as index, years as columns.
+    variable : str
+        The variable name to exclude from the total (e.g., 'Emissions|CO').
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame with fractional compositions for each sector and region in 2100.
     """
     data_rest = data_regional.loc[~pix.ismatch(variable=f"{variable}")]
     total_from_sectors = data_rest.sum(axis=0)
@@ -48,7 +81,7 @@ def get_2100_compound_composition(data_regional: pd.DataFrame, variable: str):
     return fractions_df
 
 
-def do_single_component_for_scenario_model_regionally(  # noqa: PLR0913
+def do_single_component_for_scenario_model_regionally(  # noqa: PLR0913, PLR0912
     scen: str,
     model: str,
     variable: str,
@@ -61,7 +94,41 @@ def do_single_component_for_scenario_model_regionally(  # noqa: PLR0913
 ):
     """
     For given scenario, model and variable, do extensions per sector and region and combine
+
+    This function performs regional extensions for a specific scenario, model, and variable.
+    It handles both global and regional data, extending emissions using sigmoid or exponential functions
+    to reach targets, and combines the results into a single DataFrame.
+
+    Parameters
+    ----------
+    scen : str
+        The scenario name.
+    model : str
+        The model name.
+    variable : str
+        The variable name (e.g., 'Emissions|CO').
+    scenarios_regional : pd.DataFrame
+        Regional scenario data.
+    scenarios_complete_global : pd.DataFrame
+        Complete global scenario data.
+    history : pd.DataFrame
+        Historical data.
+    global_target : float, optional
+        The global target value. If None, it is calculated from data.
+    end_year : int, optional
+        The year to extend to, default is 2500.
+    end_scenario_year : int, optional
+        The end year of the scenario, default is 2100.
+
+    Returns
+    -------
+    pd.DataFrame
+        Extended regional data combined with global extensions.
     """
+    if scenarios_regional.shape[0] == 0:
+        return pd.DataFrame()
+    if scenarios_complete_global.shape[0] == 0:
+        return pd.DataFrame()
     data_scenario_global = scenarios_complete_global.loc[
         pix.ismatch(scenario=f"{scen}", model=f"{model}", variable=f"{variable}")
     ]
@@ -151,6 +218,32 @@ def plot_just_global(  # noqa: PLR0913
 ):
     """
     Make global value plots
+
+    This function creates a plot of global values for a given scenario, model, and variable.
+    It plots the harmonized historical and scenario data, the extended data,
+    and optionally the unextended regional data.
+
+    Parameters
+    ----------
+    scen : str
+        The scenario name.
+    model : str
+        The model name.
+    variable : str
+        The variable name.
+    df_extended : pd.DataFrame
+        The extended data.
+    scenarios_complete_global : pd.DataFrame
+        Complete global scenario data.
+    history : pd.DataFrame
+        Historical data.
+    scenarios_regional : pd.DataFrame
+        Regional scenario data.
+
+    Returns
+    -------
+    None
+        Saves a plot to a PNG file.
     """
     ax = plt.subplot()
     total_harmon = glue_with_historical(
