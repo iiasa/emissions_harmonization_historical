@@ -40,9 +40,9 @@ from emissions_harmonization_historical.constants_5000 import (
     ADAM_ET_AL_2024_PROCESSED_DB,
     CEDS_RAW_PATH,
     CMIP7_GHG_PROCESSED_DB,
-    CREATE_HISTORY_FOR_GLOBAL_WORKFLOW_ID,
     CREATE_HISTORY_FOR_GRIDDING_ID,
     GCB_PROCESSED_DB,
+    HISTORY_FOR_HARMONISATION_ID,
     HISTORY_HARMONISATION_INTERIM_DIR,
     HISTORY_SCENARIO_NAME,
     RCMIP_PROCESSED_DB,
@@ -82,9 +82,10 @@ history_for_gridding_harmonisation = pd.read_feather(
 # ### Aggregate gridding history
 
 # %%
-# TODO: check whether we get the same global sum for all IAM region groupings
-model_regions = [r for r in history_for_gridding_harmonisation.pix.unique("region") if "REMIND-MAgPIE 3.5-4.11" in r]
-model_regions
+aggregation_regions = [
+    r for r in history_for_gridding_harmonisation.loc[pix.ismatch(region="iso3**")].pix.unique("region")
+]
+# aggregation_regions
 
 # %%
 to_gcages_names = partial(
@@ -100,9 +101,7 @@ to_gcages_names = partial(
 
 # %%
 history_for_gridding_harmonisation_aggregated = to_global_workflow_emissions(
-    history_for_gridding_harmonisation.loc[pix.isin(region=["World", *model_regions])].pix.assign(
-        model="gridding-emissions"
-    ),
+    history_for_gridding_harmonisation.loc[pix.isin(region=aggregation_regions)].pix.assign(model="gridding-emissions"),
     global_workflow_co2_fossil_sector="Energy and Industrial Processes",
     global_workflow_co2_biosphere_sector="AFOLU",
 )
@@ -111,9 +110,9 @@ history_for_gridding_harmonisation_aggregated
 
 # %%
 # Weird that it isn't easier to figure this out. Anyway.
-tmp = history_for_gridding_harmonisation.loc[pix.ismatch(variable="**CH4|Energy Sector", region="OECD & EU (R5)"), :]
+tmp = history_for_gridding_harmonisation.loc[pix.ismatch(variable="**CH4|Energy Sector", region="iso3ish|usa")]
 ceds_ext_years = tmp[tmp == 0.0].dropna(axis="columns").columns.values
-# ceds_ext_years
+ceds_ext_years
 
 # %%
 ceds_extensions_l = []
@@ -429,24 +428,24 @@ global_variable_sources = {
     "Emissions|HFC32": "Velders et al., 2022_cmip-inverse-extended",
     "Emissions|HFC365mfc": "Velders et al., 2022_cmip-inverse-extended",
     "Emissions|HFC4310mee": "Velders et al., 2022_cmip-inverse-extended",
-    "Emissions|CCl4": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|CFC11": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|CFC113": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|CFC114": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|CFC115": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|CFC12": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
+    "Emissions|CCl4": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|CFC11": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|CFC113": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|CFC114": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|CFC115": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|CFC12": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
     "Emissions|CH2Cl2": "CR-CMIP-1-0-0-inverse-smooth-extrapolated",
-    "Emissions|CH3Br": "CR-CMIP-1-0-0-inverse-smooth-extrapolated",
-    "Emissions|CH3CCl3": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|CH3Cl": "CR-CMIP-1-0-0-inverse-smooth-extrapolated",
+    "Emissions|CH3Br": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|CH3CCl3": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|CH3Cl": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
     "Emissions|CHCl3": "CR-CMIP-1-0-0-inverse-smooth-extrapolated",
-    "Emissions|HCFC141b": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|HCFC142b": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|HCFC22": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|Halon1202": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|Halon1211": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|Halon1301": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|Halon2402": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
+    "Emissions|HCFC141b": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|HCFC142b": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|HCFC22": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|Halon1202": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|Halon1211": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|Halon1301": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|Halon2402": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
     "Emissions|N2O": "gridding-emissions-incl-ceds-extension",
     "Emissions|NF3": "CR-CMIP-1-0-0-inverse-smooth-extrapolated",
     "Emissions|NH3": "gridding-emissions-incl-ceds-extension",
@@ -482,8 +481,10 @@ for variable, source in global_variable_sources.items():
     global_workflow_harmonisation_emissions_l.append(to_keep)
 
 global_workflow_harmonisation_emissions = (
-    pix.concat(global_workflow_harmonisation_emissions_l).sort_index().sort_index(axis="columns")
-).loc[:, :HARMONISATION_YEAR]
+    (pix.concat(global_workflow_harmonisation_emissions_l).sort_index().sort_index(axis="columns"))
+    .loc[:, :HARMONISATION_YEAR]
+    .pix.assign(scenario=HISTORY_SCENARIO_NAME)
+)
 
 global_workflow_harmonisation_emissions_reporting_names = to_reporting_names(global_workflow_harmonisation_emissions)
 global_workflow_harmonisation_emissions_reporting_names = update_index_levels_func(
@@ -497,7 +498,7 @@ if global_workflow_harmonisation_emissions.shape[0] != exp_n_timeseries:
 global_workflow_harmonisation_emissions_reporting_names = (
     global_workflow_harmonisation_emissions_reporting_names.rename_axis("year", axis="columns")
 )
-global_workflow_harmonisation_emissions_reporting_names
+# global_workflow_harmonisation_emissions_reporting_names
 
 # %% [markdown]
 # ## Last checks
@@ -573,10 +574,8 @@ fg.fig.savefig("global-workflow-history-over-cmip-phases.pdf", bbox_inches="tigh
 # %% [markdown]
 # ## Save
 
-# %%
-out_file = (
-    HISTORY_HARMONISATION_INTERIM_DIR / f"global-workflow-history_{CREATE_HISTORY_FOR_GLOBAL_WORKFLOW_ID}.feather"
-)
+# %% editable=true slideshow={"slide_type": ""}
+out_file = HISTORY_HARMONISATION_INTERIM_DIR / f"global-workflow-history_{HISTORY_FOR_HARMONISATION_ID}.feather"
 out_file.parent.mkdir(exist_ok=True, parents=True)
 
 global_workflow_harmonisation_emissions_reporting_names.reorder_levels(

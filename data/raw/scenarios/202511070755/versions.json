@@ -1,0 +1,17 @@
+{
+  "GCAM 8s": {
+    "SSP1 - Low Emissions": 2,
+    "SSP1 - Low Overshoot": 1,
+    "SSP1 - Very Low Emissions": 1,
+    "SSP2 - Low Emissions": 2,
+    "SSP2 - Low Overshoot": 2,
+    "SSP2 - Medium Emissions": 2,
+    "SSP2 - Medium-Low Emissions": 2,
+    "SSP3 - High Emissions": 2,
+    "SSP3 - Medium-Low Emissions": 2,
+    "SSP3 - Medium-Low Emissions_a": 1,
+    "SSP5 - High Emissions": 2,
+    "SSP5 - Medium-Low Emissions": 1,
+    "SSP5 - Medium-Low Emissions_a": 1
+  }
+}

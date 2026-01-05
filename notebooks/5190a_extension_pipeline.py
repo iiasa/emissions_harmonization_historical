@@ -22,14 +22,9 @@
 # Regular imports
 
 # %%
-import ast
-import copy
 import glob
-import json
-import os
 import re
 import sys
-from datetime import datetime
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -51,23 +46,6 @@ elif str(Path.cwd()) not in sys.path:
     # Fallback: add current directory
     sys.path.insert(0, str(Path.cwd()))
 
-# Package imports
-from afolu_extension_functions import (
-    get_cumulative_afolu,
-    get_cumulative_afolu_fill_from_hist,
-)
-from extensions_fossil_co2_storyline_functions import (
-    extend_co2_for_scen_storyline,
-)
-from extensions_functions_for_non_co2 import (
-    do_single_component_for_scenario_model_regionally,
-    plot_just_global,
-)
-from general_utils_for_extensions import (
-    glue_with_historical,
-    interpolate_to_annual,
-)
-
 from emissions_harmonization_historical.constants_5000 import (
     EXTENSIONS_OUT_DIR,
     EXTENSIONS_OUTPUT_DB,
@@ -77,13 +55,40 @@ from emissions_harmonization_historical.constants_5000 import (
     INFILLED_SCENARIOS_DB_2100,
 )
 
+# Package imports
+from emissions_harmonization_historical.extensions.afolu_extension_functions import (
+    get_cumulative_afolu,
+    get_cumulative_afolu_fill_from_hist,
+)
+from emissions_harmonization_historical.extensions.cdr_and_fossil_splits import (
+    add_removals_and_positive_fossil_emissions_to_historical,
+    extend_cdr_components_vectorized,
+    get_2100_compound_composition_co2,
+)
+
 # from emissions_harmonization_historical.constants import DATA_ROOT
 # from emissions_harmonization_historical.io import load_global_scenario_data
-from emissions_harmonization_historical.extension_functionality import (
-    extend_flat_cumulative,
-    extend_flat_evolution,
+from emissions_harmonization_historical.extensions.extension_functionality import (
     extend_linear_rampdown,
-    find_func_form_lu_extension,
+    sigmoid_function,
+)
+from emissions_harmonization_historical.extensions.extensions_functions_for_non_co2 import (
+    do_single_component_for_scenario_model_regionally,
+    plot_just_global,
+)
+from emissions_harmonization_historical.extensions.finish_regional_extensions import (
+    extend_regional_for_missing,
+    merge_historical_future_timeseries,
+)
+from emissions_harmonization_historical.extensions.fossil_co2_storyline_functions import (
+    extend_co2_for_scen_storyline,
+)
+from emissions_harmonization_historical.extensions.general_utils_for_extensions import (
+    dump_data_per_model,
+    fix_up_and_concatenate_extensions,
+    glue_with_historical,
+    interpolate_to_annual,
+    save_continuous_timeseries_to_csv,
 )
 
 # Constants
@@ -91,7 +96,6 @@ FUTURE_START_YEAR = 2023.0
 HISTORICAL_START_YEAR = 1900
 SCENARIO_END_YEAR = 2100
 TUPLE_LENGTH_WITH_STAGE = 6
-MAX_YEARS_FOR_MARKERS = 50
 
 # %% tags=["parameters"]
 # Papermill parameters
@@ -155,21 +159,19 @@ scenario_model_match = {
 }
 
 # %%
-
 scenarios_regional = scenarios_regional.sort_index(axis="columns").T.interpolate("index").T
 
-# %%
-# Create inverse dictionaries for scenario_model_match
-scenario_to_code = {}  # Maps scenario name to short code
-model_to_code = {}  # Maps model name to short code
-code_to_color = {}  # Maps short code to color
-
-for code, info in scenario_model_match.items():
-    scenario_name, model_name, color = info
-    scenario_to_code[scenario_name] = code
-    model_to_code[model_name] = code
-    code_to_color[code] = color
-
+fractions_fossil_total = {}
+for model, scen in unique_model_scenario_pairs.to_list():
+    print(f"Processing {model} | {scen}")
+    tot_co2 = scenarios_complete_global.loc[pix.ismatch(scenario=scen, model=model, variable="Emissions|CO2")]
+    scen_here = scenarios_regional.loc[pix.ismatch(scenario=scen, model=model, variable="Emissions|CO2**")]
+    fractions_list = get_2100_compound_composition_co2(scen_here[2100])
+    fractions_fossil_total[(model, scen)] = {
+        "fractions_tot_fossil": fractions_list[0],
+        "fractions_cdr": fractions_list[1],
+        "fractions_fossil_nocdr": fractions_list[2],
+    }
 
 # %% [markdown]
 # Finally get cumulative CO2 history
@@ -189,25 +191,11 @@ def calculate_afolu_extensions(scenarios_complete_global, history, cumulative_hi
     """
     if plot:
         _fig, axs = plt.subplots(nrows=1, ncols=4, figsize=(30, 10))
-    temp_list_for_new_data = []
-    temp_list_for_new_data_flat = []
-    temp_list_for_new_data_flat_cumulative = []
     temp_list_for_new_data_linear_ramp_down = []
     for s, meta in scenario_model_match.items():
         scen = scenarios_complete_global.loc[pix.ismatch(variable="**CO2|AFOLU", model=meta[1], scenario=meta[0])]
         scen_full = glue_with_historical(scen, history.loc[pix.ismatch(variable="Emissions|CO2|AFOLU")])
         cumulative_2100 = get_cumulative_afolu_fill_from_hist(scen, meta[1], meta[0], cumulative_history_afolu)
-        em_ext, _cle_inf = find_func_form_lu_extension(
-            scen_full.values[0, :],
-            cumulative_2100.values[0, :],
-            np.arange(cumulative_2100.columns[0], 2501),
-            2100 - int(cumulative_2100.columns[0]),
-            cle_inf_0=True,
-        )
-        em_ext_flat = extend_flat_evolution(scen_full.values[0, :], np.arange(cumulative_2100.columns[0], 2501))
-        em_ext_flat_cumulative = extend_flat_cumulative(
-            scen_full.values[0, :], np.arange(cumulative_2100.columns[0], 2501)
-        )
         em_ext_linear_ramp_down = extend_linear_rampdown(
             scen_full.values[0, :], np.arange(cumulative_2100.columns[0], 2501)
         )
@@ -215,7 +203,7 @@ def calculate_afolu_extensions(scenarios_complete_global, history, cumulative_hi
             axs[0].plot(cumulative_2100.columns, cumulative_2100.values[0, :], color=meta[2])
             axs[0].plot(
                 np.arange(cumulative_2100.columns[0], 2501),
-                np.cumsum(em_ext),
+                np.cumsum(em_ext_linear_ramp_down),
                 "--",
                 alpha=0.7,
                 label=s,
@@ -224,7 +212,7 @@ def calculate_afolu_extensions(scenarios_complete_global, history, cumulative_hi
             axs[1].plot(scen_full.columns, scen_full.values[0, :], color=meta[2])
             axs[1].plot(
                 np.arange(cumulative_2100.columns[0], 2501),
-                em_ext,
+                em_ext_linear_ramp_down,
                 "--",
                 alpha=0.7,
                 label=s,
@@ -233,7 +221,7 @@ def calculate_afolu_extensions(scenarios_complete_global, history, cumulative_hi
             axs[2].plot(cumulative_2100.columns, cumulative_2100.values[0, :], color=meta[2])
             axs[2].plot(
                 np.arange(cumulative_2100.columns[0], 2501),
-                np.cumsum(em_ext),
+                np.cumsum(em_ext_linear_ramp_down),
                 "--",
                 alpha=0.7,
                 label=s,
@@ -242,40 +230,18 @@ def calculate_afolu_extensions(scenarios_complete_global, history, cumulative_hi
             axs[3].plot(scen_full.columns, scen_full.values[0, :], color=meta[2])
             axs[3].plot(
                 np.arange(cumulative_2100.columns[0], 2501),
-                em_ext,
+                em_ext_linear_ramp_down,
                 "--",
                 alpha=0.7,
                 label=s,
                 color=meta[2],
             )
-        df_afolu = pd.DataFrame(
-            data=[em_ext],
-            columns=np.arange(cumulative_2100.columns[0], 2501),
-            index=scen.index,
-        )
-        df_afolu_flat = pd.DataFrame(
-            data=[em_ext_flat],
-            columns=np.arange(cumulative_2100.columns[0], 2501),
-            index=scen.index,
-        )
-        df_afolu_flat_cumulative = pd.DataFrame(
-            data=[em_ext_flat_cumulative],
-            columns=np.arange(cumulative_2100.columns[0], 2501),
-            index=scen.index,
-        )
         df_afolu_linear_ramp_down = pd.DataFrame(
             data=[em_ext_linear_ramp_down],
             columns=np.arange(cumulative_2100.columns[0], 2501),
             index=scen.index,
         )
-        temp_list_for_new_data.append(df_afolu)
-        temp_list_for_new_data_flat.append(df_afolu_flat)
-        temp_list_for_new_data_flat_cumulative.append(df_afolu_flat_cumulative)
         temp_list_for_new_data_linear_ramp_down.append(df_afolu_linear_ramp_down)
-
-    extended_data_afolu_smooth = pd.concat(temp_list_for_new_data)
-    extended_data_afolu_flat = pd.concat(temp_list_for_new_data_flat)
-    extended_data_afolu_flat_cumulative = pd.concat(temp_list_for_new_data_flat_cumulative)
     extended_data_afolu_linear_ramp_down = pd.concat(temp_list_for_new_data_linear_ramp_down)
 
     if plot:
@@ -291,14 +257,11 @@ def calculate_afolu_extensions(scenarios_complete_global, history, cumulative_hi
         axs[2].set_title("Cumulative Emissions CO2 AFOLU")
         axs[3].set_ylabel("Emissions CO2 AFOLU")
         axs[3].set_title("Emissions CO2 AFOLU")
-        axs[2].set_xlim(2000, 2500)
-        axs[3].set_xlim(2000, 2500)
+        axs[2].set_xlim(2000, 2300)
+        axs[3].set_xlim(2000, 2300)
 
         plt.savefig("afolu_first_draft_extensions.png")
     return {
-        "smooth_afolu": extended_data_afolu_smooth,
-        "flat_afolu_emissions": extended_data_afolu_flat,
-        "flat_afolu_cumulative": extended_data_afolu_flat_cumulative,
         "linear_afolu_rampdown": extended_data_afolu_linear_ramp_down,
     }
 
@@ -317,7 +280,6 @@ component_global_targets = {
         "L": 95.0,
         "ML": 120.0,
         "M": 450.0,
-        "MOS": 95.0,
         "H": 520.0,
         "HL": 110.0,
     },
@@ -327,7 +289,6 @@ component_global_targets = {
         "L": None,
         "ML": 20.0,
         "M": 20.0,
-        "MOS": 20.0,
         "H": 50.0,
         "HL": 10.0,
     },
@@ -338,7 +299,7 @@ component_global_targets = {
 
 
 # %%
-def do_all_non_co2_extensions(scenarios_complete_global, history):
+def do_all_non_co2_extensions(scenarios_complete_global, history):  # noqa: PLR0912
     """
     Extend all non-CO2 emission variables across scenarios and models using historical data and global targets.
 
@@ -384,6 +345,14 @@ def do_all_non_co2_extensions(scenarios_complete_global, history):
                 history,
                 global_target=global_target,
             )
+            # if "workflow" in df_comp_scen_model.index.names:
+            #     print("Dropping workflow level from index")
+            #     df_comp_scen_model = df_comp_scen_model.droplevel(["workflow"])
+            # # sys.exit(4)
+            if "workflow" not in df_comp_scen_model.index.names:
+                print(f"Workflow missing for {s}: {meta}, {variable}, adding level")
+                print(df_comp_scen_model)
+                sys.exit(4)
             total_df_list.append(df_comp_scen_model)
             # print(df_comp_scen_model.columns)
             if look_at_all:
@@ -428,8 +397,7 @@ def do_all_non_co2_extensions(scenarios_complete_global, history):
                     history,
                     scenarios_regional=scenarios_regional,
                 )
-            # sys.exit(4)
-    df_all = pd.concat(total_df_list)
+    df_all = pix.concat(total_df_list)
     return df_all
 
 
@@ -437,7 +405,10 @@ def do_all_non_co2_extensions(scenarios_complete_global, history):
 # ## Do main block of non-fossil CO2 extensions first
 
 # %%
-do_and_write_to_csv = True
+# Set this to true if running for the first time to generate CSVs
+# Otherwise you can set to false to speed-up by not running throuhg
+# all the non-CO2 and afolu extensions again
+do_and_write_to_csv = False
 if do_and_write_to_csv:
     df_all = do_all_non_co2_extensions(scenarios_complete_global, history)
     df_all.to_csv("first_draft_extended_nonCO2_all.csv")
@@ -445,20 +416,18 @@ if do_and_write_to_csv:
     # print(df_all)
     for name, afolu_df in afolu_dfs.items():
         afolu_df.to_csv(f"first_draft_extended_afolu_{name}.csv")
-    # sys.exit(4)
-# else:
+
 
 # %%
-
-df_all = pd.read_csv("first_draft_extended_nonCO2_all.csv")
+if not do_and_write_to_csv:
+    df_all = pd.read_csv("first_draft_extended_nonCO2_all.csv", index_col=[0, 1, 2, 3, 4, 5])
 afolu_dfs = {}
-for afolu_file in glob.glob("first_draft_extended_afolu_*.csv"):
-    print("writing " + afolu_file)
+for afolu_file in glob.glob("first_draft_extended_afolu_linear*.csv"):
+    print("Reading " + afolu_file)
     name = afolu_file.split("first_draft_extended_")[-1].split(".csv")[0]
 
     afolu_dfs[name] = pd.read_csv(afolu_file)
 
-# sys.exit(4)
 
 # %% [markdown]
 # # Total CO2 Storyline dictionaries
@@ -513,8 +482,7 @@ df_afolu = afolu_dfs[name]
 fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(30, 15))
 temp_list_for_new_data = []
 for s, meta in scenario_model_match.items():
-    print(s)
-    print(meta)
+    print(f"Processing fossil CO2 to match storyline and AFOLU for {s}")
     co2_fossil = interpolate_to_annual(
         scenarios_complete_global.loc[
             pix.ismatch(
@@ -601,6 +569,9 @@ co2_beccs = interpolate_to_annual(scenarios_regional.loc[pix.ismatch(variable="E
 co2_dacc = interpolate_to_annual(scenarios_regional.loc[pix.ismatch(variable="Emissions|CO2|Direct Air Capture")])
 co2_ocean = interpolate_to_annual(scenarios_regional.loc[pix.ismatch(variable="Emissions|CO2|Ocean")])
 co2_ew = interpolate_to_annual(scenarios_regional.loc[pix.ismatch(variable="Emissions|CO2|Enhanced Weathering")])
+co2_biochar = interpolate_to_annual(scenarios_regional.loc[pix.ismatch(variable="Emissions|CO2|Biochar")])
+co2_soil = interpolate_to_annual(scenarios_regional.loc[pix.ismatch(variable="Emissions|CO2|Soil Carbon Management")])
+co2_othercdr = interpolate_to_annual(scenarios_regional.loc[pix.ismatch(variable="Emissions|CO2|Other CDR")])
 co2_ffi = interpolate_to_annual(
     scenarios_regional.loc[
         pix.ismatch(
@@ -609,7 +580,15 @@ co2_ffi = interpolate_to_annual(
         )
     ]
 )
-co2_cdr = co2_dacc + co2_ocean.values + co2_ew.values + co2_beccs.values
+co2_cdr = (
+    co2_dacc
+    + co2_ocean.values
+    + co2_ew.values
+    + co2_beccs.values
+    + co2_biochar.values
+    + co2_soil.values
+    + co2_othercdr.values
+)
 
 # Get the current index as a list of tuples
 current_index = list(co2_cdr.index)
@@ -682,38 +661,6 @@ removal_dictionary = {
 
 # %%
 # --- Extension of co2_gross_positive and global_cdr to 2500 using rule-based logic ---
-
-
-def sigmoid_decay_extension(start_value, offset, n_years, decay_timescale=100):
-    """
-    Create a sigmoid-based decay progression from start_value to near zero over n_years.
-
-    Parameters
-    ----------
-    start_value : float
-        The starting value (at t=0)
-    offset : float
-        Time offset for the sigmoid transition (years from start)
-    n_years : int
-        Number of years for the extension
-    decay_timescale : float
-        The decay timescale in years (controls steepness of sigmoid transition)
-
-    Returns
-    -------
-    numpy.ndarray
-        Array of values following sigmoid-based decay
-    """
-    if n_years <= 0:
-        return np.array([])
-    elif n_years == 1:
-        return np.array([start_value * 0.5])  # Rough midpoint for single year
-    else:
-        t = np.arange(n_years)
-        # Normalized sigmoid: starts at start_value, decays toward zero
-        norm = 1 + np.tanh(-(-offset) / decay_timescale)
-        values = start_value * (1 + np.tanh(-(t - offset) / decay_timescale)) / norm
-        return values
 
 
 # Extension configuration
@@ -789,9 +736,15 @@ for idx in co2_gross_positive.index:
         decay_timescale = strategy_info[1]
         offset = strategy_info[2]
         print(f"  Using NEG strategy with decay_timescale={decay_timescale}, offset={offset}")
-
-        gross_pos_extension = sigmoid_decay_extension(gross_pos_2100, offset, len(years_extension), decay_timescale)
-
+        offset_shift = (1.25 * decay_timescale) / 2
+        gross_pos_extension = sigmoid_function(
+            0,
+            gross_pos_2100,
+            years_extension[0] + offset - offset_shift,
+            years_extension[0] + offset + offset_shift,
+            years_extension,
+            adjust_from=True,
+        )
         # Calculate CDR as residual to match fossil trajectory
         fossil_vals = fossil_row[years_extension].values
         cdr_extension = fossil_vals - gross_pos_extension
@@ -807,7 +760,6 @@ for idx in co2_gross_positive.index:
     processed_count += 1
 
 print(f"\nProcessed {processed_count} scenarios")
-
 
 # %%
 # Create a sanity check plot: stacked area plot of positive and negative CO2 components
@@ -922,7 +874,7 @@ fig.suptitle(
 )
 
 plt.tight_layout()
-plt.show()
+plt.savefig("gross_positive_vs_cdr_vs_ffi_by_scenario.png")
 
 
 # %% [markdown]
@@ -951,144 +903,6 @@ print(f"\nCommon scenarios between CDR components and global_cdr_ext: {len(commo
 print(f"Scenarios: {sorted(common_scenarios)}")
 
 
-# %%
-
-
-def extend_cdr_components_vectorized(cdr_components_dict, global_cdr_ext, baseline_year=2100):
-    """
-    Ultra-efficient CDR extension using pure vectorized operations.
-
-    Eliminates all DataFrame fragmentation warnings by using bulk operations.
-
-    FIXED: Handles MultiIndex alignment properly for regional fraction calculations.
-    """
-    extension_years = [col for col in global_cdr_ext.columns if isinstance(col, int | float) and col > baseline_year]
-
-    print(f"Extension: {len(extension_years)} years ({min(extension_years)}-{max(extension_years)})")
-
-    extended_components = {}
-
-    for component_name, cdr_df in cdr_components_dict.items():
-        print(component_name)
-
-        # Validate inputs and find common scenarios
-        validation_result = _validate_extension_inputs(cdr_df, global_cdr_ext, baseline_year)
-        if not validation_result["is_valid"]:
-            extended_components[component_name] = cdr_df.copy()
-            continue
-
-        # Calculate baseline ratios
-        ratios = _calculate_baseline_ratios(cdr_df, global_cdr_ext, baseline_year)
-
-        # Build extension data
-        extension_data = _build_extension_data(
-            extension_years,
-            global_cdr_ext,
-            ratios["baseline_data"],
-            ratios["component_fractions"],
-            ratios["regional_fractions"],
-        )
-
-        # Construct final DataFrame
-        final_df = _construct_final_dataframe(cdr_df, extension_data, baseline_year)
-        extended_components[component_name] = final_df
-
-    return extended_components
-
-
-def _validate_extension_inputs(cdr_df, global_cdr_ext, baseline_year):
-    """Validate inputs and find common scenarios."""
-    if baseline_year not in cdr_df.columns:
-        print(f"  ⚠️  {baseline_year} not found, copying original")
-        return {"is_valid": False}
-
-    cdr_scenarios = set(cdr_df.index.get_level_values("scenario"))
-    global_scenarios = set(global_cdr_ext.index.get_level_values("scenario"))
-    common_scenarios = cdr_scenarios & global_scenarios
-
-    if not common_scenarios:
-        print("  ⚠️  No common scenarios, copying original")
-        return {"is_valid": False}
-
-    return {"is_valid": True, "common_scenarios": common_scenarios}
-
-
-def _calculate_baseline_ratios(cdr_df, global_cdr_ext, baseline_year):
-    """Calculate baseline ratios for component and regional fractions."""
-    baseline_data = cdr_df[baseline_year]
-    component_totals_2100 = baseline_data.groupby("scenario").sum()
-    global_data_2100 = global_cdr_ext[baseline_year].groupby("scenario").first()
-    component_fractions = (component_totals_2100 / global_data_2100).fillna(0)
-
-    # Calculate regional fractions
-    regional_fractions = baseline_data.copy()
-    for scenario in baseline_data.index.get_level_values("scenario").unique():
-        scenario_mask = baseline_data.index.get_level_values("scenario") == scenario
-        scenario_data = baseline_data[scenario_mask]
-        component_total = component_totals_2100[scenario]
-
-        if component_total != 0:
-            regional_fractions[scenario_mask] = scenario_data / component_total
-        else:
-            regional_fractions[scenario_mask] = 0
-
-    regional_fractions = regional_fractions.fillna(0)
-
-    return {
-        "baseline_data": baseline_data,
-        "component_fractions": component_fractions,
-        "regional_fractions": regional_fractions,
-    }
-
-
-def _build_extension_data(
-    extension_years,
-    global_cdr_ext,
-    baseline_data,
-    component_fractions,
-    regional_fractions,
-):
-    """Build extension data for all years."""
-    extension_data_dict = {}
-
-    for year in extension_years:
-        if year in global_cdr_ext.columns:
-            global_year_totals = global_cdr_ext[year].groupby("scenario").first()
-            component_year_totals = global_year_totals * component_fractions
-
-            year_values = baseline_data.copy()
-            for scenario in baseline_data.index.get_level_values("scenario").unique():
-                scenario_mask = baseline_data.index.get_level_values("scenario") == scenario
-                if scenario in component_year_totals.index:
-                    component_total_year = component_year_totals[scenario]
-                    year_values[scenario_mask] = regional_fractions[scenario_mask] * component_total_year
-                else:
-                    year_values[scenario_mask] = 0
-
-            extension_data_dict[year] = year_values
-
-    return extension_data_dict
-
-
-def _construct_final_dataframe(cdr_df, extension_data_dict, baseline_year):
-    """Construct final DataFrame with original and extension data."""
-    if extension_data_dict:
-        original_years = [col for col in cdr_df.columns if isinstance(col, int | float) and col <= baseline_year]
-        original_data = cdr_df[original_years]
-
-        extension_df = pd.DataFrame(extension_data_dict, index=cdr_df.index)
-        all_year_data = pd.concat([original_data, extension_df], axis=1)
-
-        non_year_cols = [col for col in cdr_df.columns if not isinstance(col, int | float)]
-
-        final_df = pd.concat([all_year_data, cdr_df[non_year_cols]], axis=1)
-    else:
-        final_df = cdr_df.copy()
-        print("  ⚠️  No extension data created")
-
-    return final_df
-
-
 # === EXECUTE VECTORIZED EXTENSION ===
 
 # Define CDR components
@@ -1097,6 +911,9 @@ cdr_components = {
     "DACCS": co2_dacc,
     "Ocean": co2_ocean,
     "Enhanced_Weathering": co2_ew,
+    "Biochar": co2_biochar,
+    "Soil_Management": co2_soil,
+    "Other_CDR": co2_othercdr,
 }
 
 extended_cdr_components = extend_cdr_components_vectorized(cdr_components, global_cdr_ext)
@@ -1106,6 +923,10 @@ co2_beccs_ext = extended_cdr_components["BECCS"]
 co2_dacc_ext = extended_cdr_components["DACCS"]
 co2_ocean_ext = extended_cdr_components["Ocean"]
 co2_ew_ext = extended_cdr_components["Enhanced_Weathering"]
+co2_biochar_ext = extended_cdr_components["Biochar"]
+co2_soil_ext = extended_cdr_components["Soil_Management"]
+co2_other_cdr_ext = extended_cdr_components["Other_CDR"]
+# sys.exit(4)
 
 
 # === VERIFICATION ===
@@ -1117,6 +938,9 @@ if test_year in co2_beccs_ext.columns:
         + co2_dacc_ext[test_year].groupby("scenario").sum()
         + co2_ocean_ext[test_year].groupby("scenario").sum()
         + co2_ew_ext[test_year].groupby("scenario").sum()
+        + co2_biochar_ext[test_year].groupby("scenario").sum()
+        + co2_soil_ext[test_year].groupby("scenario").sum()
+        + co2_other_cdr_ext[test_year].groupby("scenario").sum()
     )
 
     global_reference = global_cdr_ext[test_year].groupby("scenario").first()
@@ -1124,113 +948,32 @@ if test_year in co2_beccs_ext.columns:
 
 # %% [markdown]
 # # Merge dataframes into df_everything
-
-# %%
-# Fix indices for df_afolu and df_all to match fossil_extension_df
-
-# Fix df_afolu index (currently has default RangeIndex)
-if "model" in df_afolu.columns:
-    index_cols = ["model", "scenario", "region", "variable", "unit"]
-    df_afolu_fixed = df_afolu.set_index(index_cols)
-    print(f"df_afolu_fixed index: {df_afolu_fixed.index.names}")
-else:
-    df_afolu_fixed = df_afolu
-    print(f"df_afolu already has proper index: {df_afolu.index.names}")
-
-# Fix df_all index (has tuple strings in 'Unnamed: 0' column)
-if "Unnamed: 0" in df_all.columns:
-    # Parse string tuples back to actual tuples
-    tuple_strings = df_all["Unnamed: 0"].values
-    parsed_tuples = [ast.literal_eval(ts.replace(", nan", "")) for ts in tuple_strings]
-    # Determine index names based on tuple length
-    tuple_length = len(parsed_tuples[0])
-    if tuple_length == TUPLE_LENGTH_WITH_STAGE:
-        index_names = ["model", "scenario", "region", "variable", "unit", "stage"]
-    else:
-        index_names = ["model", "scenario", "region", "variable", "unit"]
-    parsed_tuples = [i[0:6] for i in parsed_tuples]
-
-    # Create MultiIndex and new dataframe
-    multi_index = pd.MultiIndex.from_tuples(parsed_tuples, names=index_names)
-    df_all_fixed = df_all.drop("Unnamed: 0", axis=1).copy()
-    df_all_fixed.index = multi_index
-
-    # Drop 'stage' level if it exists to match other dataframes
-    if "stage" in df_all_fixed.index.names:
-        df_all_fixed = df_all_fixed.reset_index("stage", drop=True)
-
-    print(f"df_all_fixed index: {df_all_fixed.index.names}")
-else:
-    df_all_fixed = df_all
-    print(f"df_all already has proper index: {df_all.index.names}")
-
-
-def standardize_year_columns(df, target_type=float):
-    """Convert all year columns to the same data type"""
-    df_copy = df.copy()
-    new_columns = []
-
-    for col in df_copy.columns:
-        try:
-            # Try to convert to target type
-            if isinstance(col, str):
-                # Remove '.0' suffix if present and convert
-                year_val = float(col.replace(".0", ""))
-            else:
-                year_val = float(col)
-            new_columns.append(year_val)
-        except (ValueError, TypeError):
-            # Keep non-year columns as-is
-            new_columns.append(col)
-
-    df_copy.columns = new_columns
-    return df_copy
-
-
-def add_region_level_to_index(df, region="World"):
-    """Add a 'region' level to a DataFrame index after 'scenario'"""
-    if "region" in df.index.names:
-        return df
-
-    # Reset index to work with it
-    df_reset = df.reset_index()
-
-    # Add region column in the correct position (after scenario, before variable)
-    cols = list(df_reset.columns)
-    scenario_idx = cols.index("scenario")
-    cols.insert(scenario_idx + 1, "region")
-    df_reset["region"] = region
-    df_reset = df_reset[cols]
-
-    # Set the index back with the correct order
-    index_cols = ["model", "scenario", "region", "variable", "unit"]
-    return df_reset.set_index(index_cols)
-
-
-# Step 1: Fix CDR DataFrames by adding missing region level
-co2_gross_positive_with_region = add_region_level_to_index(co2_gross_positive_ext.copy())
-global_cdr_with_region = add_region_level_to_index(global_cdr_ext.copy())
-
-# Step 2: Standardize all dataframes
-fossil_extension_df_fixed = standardize_year_columns(fossil_extension_df)
-df_afolu_fixed_standardized = standardize_year_columns(df_afolu_fixed)
-df_all_fixed_standardized = standardize_year_columns(df_all_fixed)
-co2_gross_positive_ext_fixed = standardize_year_columns(co2_gross_positive_with_region)
-global_cdr_ext_fixed = standardize_year_columns(global_cdr_with_region)
-
-# Now concatenate with properly standardized dataframes
-df_everything = pix.concat(
-    [
-        fossil_extension_df_fixed,
-        df_afolu_fixed_standardized,
-        df_all_fixed_standardized,
-        co2_gross_positive_ext_fixed,
-        global_cdr_ext_fixed,
-    ]
+print("=== MERGING ALL DATAFRAMES INTO df_everything ===")
+df_everything = fix_up_and_concatenate_extensions(
+    {
+        "fossil_extension": fossil_extension_df,
+        "afolu_extensions": df_afolu,
+        "non_co2_extensions": df_all,
+        "gross_positive_extensions": co2_gross_positive_ext,
+        "cdr_extensions": global_cdr_ext,
+        "beccs_extensions": co2_beccs_ext,
+        "dacc_extensions": co2_dacc_ext,
+        "ocean_extensions": co2_ocean_ext,
+        "ew_extensions": co2_ew_ext,
+        "biochar_extensions": co2_biochar_ext,
+        "soil_extensions": co2_soil_ext,
+        "other_cdr_extensions": co2_other_cdr_ext,
+    }
 )
-
+print(df_everything.head())
 print(f"✅ Successfully merged all DataFrames! Shape: {df_everything.shape}")
+print(df_everything.shape)
+print(df_all.index.names)
 
+# %% [markdown]
+# # Extended missing sectors for regional (non-cdr fossil)
+df_everything = extend_regional_for_missing(df_everything, scenarios_regional, fractions_fossil_total)
+print(df_everything.shape)
 
 # %%
 # Check for and handle duplicate metadata (CSV preparation only)
@@ -1239,6 +982,8 @@ duplicate_mask = df_everything.index.duplicated(keep=False)
 duplicates = df_everything[duplicate_mask]
 
 print(f"Number of rows with duplicate metadata: {len(duplicates)}")
+print(duplicates)
+# sys.exit(4)
 
 if len(duplicates) > 0:
     print(f"Found {len(duplicates)} duplicate rows, removing duplicates...")
@@ -1264,9 +1009,10 @@ print("=== UNIQUE MODEL/SCENARIO PAIRINGS ===")
 # Get unique combinations from the final dataframe
 if "df_everything" in locals():
     # Method 1: From the final concatenated dataframe
-    unique_pairs = df_everything.index.droplevel(["region", "variable", "unit"]).drop_duplicates()
+    unique_pairs = df_everything.index.droplevel(["region", "variable", "unit", "workflow"]).drop_duplicates()
     print(f"From df_everything: {len(unique_pairs)} unique model/scenario pairs")
     print("\nUnique model/scenario combinations:")
+    print(unique_pairs)
     for i, (model, scenario) in enumerate(unique_pairs, 1):
         print(f"{i:2d}. {model} | {scenario}")
 else:
@@ -1291,165 +1037,26 @@ df_everything.head()
 # - Gross Positive Emissions = CO2|AFOLU (assuming all historical AFOLU emissions are gross positive)
 # - Gross Removals = 0 (no large-scale technological CDR in historical period)
 
-co2_ffi_hist = history.loc[pix.ismatch(variable="Emissions|CO2|Energy and Industrial Processes")].copy()
-
-# Create Gross Positive Emissions by copying AFOLU data and changing variable name
-gross_positive_hist = co2_ffi_hist.copy()
-new_index_gross = []
-for idx_tuple in gross_positive_hist.index:
-    new_tuple = list(idx_tuple)
-    new_tuple[3] = "Emissions|CO2|Gross Positive Emissions"  # variable is at position 3
-    new_index_gross.append(tuple(new_tuple))
-gross_positive_hist.index = pd.MultiIndex.from_tuples(new_index_gross, names=gross_positive_hist.index.names)
-
-# Create Gross Removals as zeros with same structure as AFOLU
-gross_removals_hist = gross_positive_hist.copy()
-gross_removals_hist.iloc[:, :] = 0.0  # Set all values to zero
-new_index_removals = []
-for idx_tuple in gross_removals_hist.index:
-    new_tuple = list(idx_tuple)
-    new_tuple[3] = "Emissions|CO2|Gross Removals"  # variable is at position 3
-    new_index_removals.append(tuple(new_tuple))
-gross_removals_hist.index = pd.MultiIndex.from_tuples(new_index_removals, names=gross_removals_hist.index.names)
-
-# Remove any previously added gross emissions variables and add the new ones
-history_clean = history.loc[
-    ~history.index.get_level_values("variable").isin(
-        ["Emissions|CO2|Gross Positive Emissions", "Emissions|CO2|Gross Removals"]
-    )
-]
-history = pd.concat([history_clean, gross_positive_hist, gross_removals_hist])
-
-print("✅ Added Gross Positive Emissions and Gross Removals to history dataframe")
-print(f"   History shape: {history.shape}")
-print(f"   Total variables: {len(history.pix.unique('variable'))}")
+history = add_removals_and_positive_fossil_emissions_to_historical(history)
 
 
 # %%
 # Concise Historical-Future Merge Function
-def merge_historical_future_timeseries(history_data, extensions_data, overlap_year=2023):
-    """
-    Merge historical and future emissions data.
-
-    Key learnings applied:
-    - Remove duplicates from extensions data first
-    - Replicate historical data for each scenario
-    - Simple concatenation along time axis
-    """
-    print("=== CONCISE HISTORICAL-FUTURE MERGE ===")
-
-    # Step 1: Clean extensions data (remove duplicates)
-    extensions_clean = extensions_data[~extensions_data.index.duplicated(keep="first")]
-    print(f"Removed {extensions_data.shape[0] - extensions_clean.shape[0]} duplicate extension rows")
-
-    # Step 2: Define time splits
-    hist_years = [col for col in history_data.columns if isinstance(col, int | float) and col <= overlap_year]
-    future_years = [col for col in extensions_clean.columns if isinstance(col, int | float) and col > overlap_year]
-
-    # Step 3: Get scenario list from extensions
-    scenarios = extensions_clean.index.droplevel(["region", "variable", "unit"]).drop_duplicates()
-
-    # Step 4: Replicate historical data for each scenario
-    historical_expanded = []
-    for model, scenario in scenarios:
-        hist_copy = history_data[hist_years].copy()
-
-        # Update index to match scenario structure
-        new_index = []
-        for idx in hist_copy.index:
-            new_idx = (
-                model,
-                scenario,
-                idx[2],
-                idx[3],
-                idx[4],
-            )  # model, scenario, region, variable, unit
-            new_index.append(new_idx)
-
-        hist_copy.index = pd.MultiIndex.from_tuples(new_index, names=extensions_clean.index.names)
-        historical_expanded.append(hist_copy)
-
-    historical_replicated = pd.concat(historical_expanded)
-
-    # Step 5: Get future data and merge
-    future_data = extensions_clean[future_years]
-
-    # Step 6: Find common variables and merge
-    hist_vars = set(historical_replicated.index.get_level_values("variable"))
-    future_vars = set(future_data.index.get_level_values("variable"))
-    common_vars = hist_vars & future_vars
-
-    # Filter to common variables
-    hist_common = historical_replicated.loc[historical_replicated.index.get_level_values("variable").isin(common_vars)]
-    future_common = future_data.loc[future_data.index.get_level_values("variable").isin(common_vars)]
-
-    # Step 7: Concatenate along time axis
-    continuous_data = pd.concat([hist_common, future_common], axis=1).sort_index(axis=1)
-
-    print(f"Merged data: {continuous_data.shape} ({len(common_vars)} variables, {len(scenarios)} scenarios)")
-    print(f"Time range: {continuous_data.columns[0]}-{continuous_data.columns[-1]}")
-
-    return continuous_data
+print("=== EXECUTING CONCISE HISTORICAL-FUTURE MERGE ===")
 
 
 # Execute the concise merge
 continuous_timeseries_concise = merge_historical_future_timeseries(history, df_everything)
 
-# %%
-raw_output = copy.deepcopy(continuous_timeseries_concise)
 
 # %% [markdown]
 # ## Dump per model to database
 
 
 # %%
-def dump_data_per_model(extended_data, model):
-    """
-    Dump extended data for a specific model to CSV.
 
-    Parameters
-    ----------
-    extended_data : pd.DataFrame
-        The complete extended data with MultiIndex.
-    model : str
-        The model name to filter and dump data for.
-    """
-    model_short = model.split(" ")[0]
-    if model.startswith("MESSAGE"):
-        model_short = "MESSAGE"
-    print(f"=== DUMPING DATA FOR MODEL: {model} ({model_short}) ===")
-    output_dir_model = EXTENSIONS_OUT_DIR / model_short
-    output_dir_model.mkdir(exist_ok=True, parents=True)
-    model_data = extended_data.loc[extended_data.index.get_level_values("model") == model].copy()
-
-    if not dump_with_full_scenario_names:
-        # Build mapping from long scenario names to short codes
-        long_to_short = {v[0]: k for k, v in scenario_model_match.items()}
-        if "scenario" in model_data.index.names:
-            # Get index level number for 'scenario'
-            scenario_level = model_data.index.names.index("scenario")
-            # Create new MultiIndex with scenario values mapped
-            new_index = [
-                tuple(
-                    (long_to_short.get(idx[scenario_level], idx[scenario_level]) if i == scenario_level else v)
-                    for i, v in enumerate(idx)
-                )
-                for idx in model_data.index
-            ]
-            model_data.index = pd.MultiIndex.from_tuples(new_index, names=model_data.index.names)
-            print("Renamed scenario values in index using scenario_model_match mapping.")
-        else:
-            print("No 'scenario' level in index; skipping scenario renaming.")
-
-    # Fix mixed column types warning by converting ALL columns to strings
-    # This ensures consistent typing for PyArrow/database storage
-    model_data.columns = [str(col) for col in model_data.columns]
-
-    EXTENSIONS_OUTPUT_DB.save(model_data, allow_overwrite=True)
-
-
-for model in continuous_timeseries_concise.pix.unique("model"):
-    dump_data_per_model(continuous_timeseries_concise, model)
+for model in df_everything.pix.unique("model"):
+    dump_data_per_model(df_everything, model, EXTENSIONS_OUT_DIR, EXTENSIONS_OUTPUT_DB)
 
 
 # %% [markdown]
@@ -1492,1155 +1099,8 @@ print("✅ Final database saved with both complete and extended stages")
 
 
 # %%
-# Plot Gross Removals for all scenarios
-def plot_gross_removals(data, scenario_colors=None):
-    """
-    Plot CO2 Gross Removals for each scenario from the continuous timeseries.
-    """
-    print("=== PLOTTING CO2 GROSS +ve emissions BY SCENARIO ===")
-
-    # Filter for Gross Removals variable and World region
-    gross_removals_data = data.loc[
-        (data.index.get_level_values("variable") == "Emissions|CO2|Gross Positive Emissions")
-        & (data.index.get_level_values("region") == "World")
-    ]
-
-    if gross_removals_data.empty:
-        print("❌ No CO2 Gross Removals data found")
-        return
-
-    print(f"Gross Removals data shape: {gross_removals_data.shape}")
-
-    # Get years (numeric columns)
-    years = [col for col in gross_removals_data.columns if isinstance(col, int | float)]
-    years = sorted(years)
-
-    # Create the plot
-    fig, ax = plt.subplots(figsize=(16, 10))
-
-    # Use scenario colors if provided
-    if scenario_colors is None:
-        scenario_colors = scenario_model_match
-
-    # Plot each scenario
-    for i, (idx, row) in enumerate(gross_removals_data.iterrows()):
-        model, scenario = idx[0], idx[1]  # Extract model and scenario from index
-
-        # Find the marker code and color
-        marker_code = None
-        color = f"C{i}"
-        for marker, info in scenario_colors.items():
-            if info[1] == model and info[0] == scenario:
-                marker_code = marker
-                color = info[2]
-                break
-
-        label = f"{marker_code} ({model})" if marker_code else f"{model}"
-
-        # Plot the timeseries
-        ax.plot(
-            years,
-            row[years].values,
-            label=label,
-            color=color,
-            linewidth=2.5,
-            alpha=0.8,
-        )
-
-    # Add vertical line at historical/future boundary
-    ax.axvline(
-        x=2023,
-        color="red",
-        linestyle="--",
-        alpha=0.7,
-        label="Historical/Future boundary",
-        linewidth=2,
-    )
-
-    # Add horizontal line at zero
-    ax.axhline(y=0, color="black", linestyle="-", alpha=0.3, linewidth=1)
-
-    # Formatting
-    ax.set_xlabel("Year", fontsize=14)
-    ax.set_ylabel("CO2 Gross Removals (Mt CO2/yr)", fontsize=14)
-    ax.set_title(
-        "CO2 Gross +ve emissions by Scenario (1750-2500)",
-        fontsize=16,
-        fontweight="bold",
-    )
-
-    # Set reasonable axis limits
-    ax.set_xlim(min(years), max(years))
-
-    # Add grid
-    ax.grid(True, alpha=0.3)
-
-    # Legend
-    ax.legend(bbox_to_anchor=(1.05, 1), loc="upper left", fontsize=10)
-
-    # Add some key year markers
-    key_years = [1850, 1900, 1950, 2000, 2050, 2100, 2200, 2300, 2400]
-    for year in key_years:
-        if year in years:
-            ax.axvline(x=year, color="gray", linestyle=":", alpha=0.5, linewidth=0.8)
-
-    plt.tight_layout()
-    plt.show()
-
-    return fig, ax
-
-
-# Execute the plotting function
-if make_plots:
-    fig_removals, ax_removals = plot_gross_removals(continuous_timeseries_concise, scenario_model_match)
-
-# %%
-# === Comprehensive CO2 Flux Analysis: Annual vs Cumulative ===
-
-# Constants
-BASELINE_YEAR = 2100
-BASELINE_YEAR_FLOAT = 2100.0
-YEAR_GRID_COLS = 3
-
-
-# Configuration classes for reducing function arguments
-class HistoryPlotConfig:
-    """Configuration for plotting scenarios with historical data."""
-
-    def __init__(self, all_years, future_years, axes, colors):
-        self.all_years = all_years
-        self.future_years = future_years
-        self.axes = axes
-        self.colors = colors
-
-
-class SanityCheckConfig:
-    """Configuration for sanity check plotting."""
-
-    def __init__(self, year_cols, axes, colors, n_rows):
-        self.year_cols = year_cols
-        self.axes = axes
-        self.colors = colors
-        self.n_rows = n_rows
-
-
-def plot_comprehensive_co2_analysis():
-    """
-    Create dual-column plot showing annual fluxes (left) and cumulative fluxes (right).
-
-    For each scenario, with gross positive and CDR components.
-    """
-    # Get year columns (numeric only)
-    year_cols = [col for col in co2_gross_positive_ext.columns if isinstance(col, int | float)]
-    year_cols.sort()
-
-    # Get scenarios that exist in all datasets
-    scenarios = (
-        set(co2_gross_positive_ext.index.get_level_values("scenario"))
-        & set(co2_beccs_ext.index.get_level_values("scenario"))
-        & set(co2_dacc_ext.index.get_level_values("scenario"))
-        & set(co2_ocean_ext.index.get_level_values("scenario"))
-        & set(co2_ew_ext.index.get_level_values("scenario"))
-        & set(fossil_extension_df.index.get_level_values("scenario"))
-    )
-
-    scenarios = sorted(list(scenarios))
-    n_scenarios = len(scenarios)
-
-    print(f"Creating comprehensive flux analysis for {n_scenarios} scenarios across {len(year_cols)} years")
-
-    # Create subplot grid: 2 columns (annual, cumulative), n_scenarios rows
-    _fig, axes = plt.subplots(n_scenarios, 2, figsize=(10, 3 * n_scenarios))
-    if n_scenarios == 1:
-        axes = axes.reshape(1, -1)
-
-    # Colors for components
-    colors = {
-        "Gross_Positive": "#8B4513",  # Brown
-        "BECCS": "#2E8B57",  # Sea Green
-        "DACCS": "#4682B4",  # Steel Blue
-        "Ocean": "#20B2AA",  # Light Sea Green
-        "Enhanced_Weathering": "#9370DB",  # Medium Purple
-    }
-
-    return _plot_scenarios_comprehensive(scenarios, year_cols, axes, colors)
-
-
-def _plot_scenarios_comprehensive(scenarios, year_cols, axes, colors):
-    """Plot all scenarios with comprehensive analysis."""
-    for i, scenario in enumerate(scenarios):
-        _plot_single_scenario_comprehensive(i, scenario, year_cols, axes, colors)
-
-    plt.tight_layout()
-    fig = axes[0, 0].figure
-    return fig
-
-
-def _plot_single_scenario_comprehensive(i, scenario, year_cols, axes, colors):
-    """Plot a single scenario with annual and cumulative views."""
-    # === LEFT COLUMN: ANNUAL FLUXES ===
-    ax_annual = axes[i, 0]
-
-    # Get annual data for this scenario - sum over regions
-    annual_data = _get_annual_data_for_scenario(scenario, year_cols)
-
-    # Stack the data for annual plot
-    years = np.array(year_cols)
-
-    # Positive fluxes (above zero)
-    y1_pos = annual_data["gross_pos"].values
-
-    # Negative fluxes (below zero) - stack downwards
-    y1_neg = annual_data["beccs"].values
-    y2_neg = y1_neg + annual_data["daccs"].values
-    y3_neg = y2_neg + annual_data["ocean"].values
-    y4_neg = y3_neg + annual_data["ew"].values
-
-    # Plot annual stacked areas
-    ax_annual.fill_between(
-        years,
-        0,
-        y1_pos,
-        alpha=0.7,
-        color=colors["Gross_Positive"],
-        label="Gross Positive",
-    )
-    ax_annual.fill_between(years, 0, y1_neg, alpha=0.7, color=colors["BECCS"], label="BECCS")
-    ax_annual.fill_between(years, y1_neg, y2_neg, alpha=0.7, color=colors["DACCS"], label="DACCS")
-    ax_annual.fill_between(years, y2_neg, y3_neg, alpha=0.7, color=colors["Ocean"], label="Ocean CDR")
-    ax_annual.fill_between(
-        years,
-        y3_neg,
-        y4_neg,
-        alpha=0.7,
-        color=colors["Enhanced_Weathering"],
-        label="Enhanced Weathering",
-    )
-
-    # Overlay fossil extension line
-    if annual_data["fossil"] is not None:
-        ax_annual.plot(
-            years,
-            annual_data["fossil"].values,
-            "k-",
-            linewidth=2,
-            alpha=0.8,
-            label="Net Fossil (Total)",
-        )
-
-    # === RIGHT COLUMN: CUMULATIVE FLUXES ===
-    ax_cumul = axes[i, 1]
-
-    _plot_cumulative_fluxes(ax_cumul, annual_data, years, colors)
-
-    # === FORMATTING FOR BOTH COLUMNS ===
-    _format_both_axes(ax_annual, ax_cumul, scenario, i)
-
-
-def _get_annual_data_for_scenario(scenario, year_cols):
-    """Get all annual data for a scenario."""
-    gross_pos_annual = co2_gross_positive_ext.loc[
-        co2_gross_positive_ext.index.get_level_values("scenario") == scenario
-    ][year_cols].sum()
-
-    beccs_annual = co2_beccs_ext.loc[co2_beccs_ext.index.get_level_values("scenario") == scenario][year_cols].sum()
-
-    daccs_annual = co2_dacc_ext.loc[co2_dacc_ext.index.get_level_values("scenario") == scenario][year_cols].sum()
-
-    ocean_annual = co2_ocean_ext.loc[co2_ocean_ext.index.get_level_values("scenario") == scenario][year_cols].sum()
-
-    ew_annual = co2_ew_ext.loc[co2_ew_ext.index.get_level_values("scenario") == scenario][year_cols].sum()
-
-    # Get fossil extension data for comparison
-    fossil_annual = fossil_extension_df.loc[fossil_extension_df.index.get_level_values("scenario") == scenario][
-        year_cols
-    ]
-    if len(fossil_annual) > 0:
-        fossil_annual = fossil_annual.iloc[0]
-    else:
-        fossil_annual = None
-
-    return {
-        "gross_pos": gross_pos_annual,
-        "beccs": beccs_annual,
-        "daccs": daccs_annual,
-        "ocean": ocean_annual,
-        "ew": ew_annual,
-        "fossil": fossil_annual,
-    }
-
-
-def _plot_cumulative_fluxes(ax_cumul, annual_data, years, colors):
-    """Plot cumulative fluxes for a scenario."""
-    # Calculate cumulative sums
-    gross_pos_cumul = annual_data["gross_pos"].cumsum()
-    beccs_cumul = annual_data["beccs"].cumsum()
-    daccs_cumul = annual_data["daccs"].cumsum()
-    ocean_cumul = annual_data["ocean"].cumsum()
-    ew_cumul = annual_data["ew"].cumsum()
-
-    if annual_data["fossil"] is not None:
-        fossil_cumul = annual_data["fossil"].cumsum()
-    else:
-        fossil_cumul = None
-
-    # Stack cumulative data
-    y1_pos_cumul = gross_pos_cumul.values
-    y1_neg_cumul = beccs_cumul.values
-    y2_neg_cumul = y1_neg_cumul + daccs_cumul.values
-    y3_neg_cumul = y2_neg_cumul + ocean_cumul.values
-    y4_neg_cumul = y3_neg_cumul + ew_cumul.values
-
-    # Plot cumulative stacked areas
-    ax_cumul.fill_between(
-        years,
-        0,
-        y1_pos_cumul,
-        alpha=0.7,
-        color=colors["Gross_Positive"],
-        label="Gross Positive",
-    )
-    ax_cumul.fill_between(years, 0, y1_neg_cumul, alpha=0.7, color=colors["BECCS"], label="BECCS")
-    ax_cumul.fill_between(
-        years,
-        y1_neg_cumul,
-        y2_neg_cumul,
-        alpha=0.7,
-        color=colors["DACCS"],
-        label="DACCS",
-    )
-    ax_cumul.fill_between(
-        years,
-        y2_neg_cumul,
-        y3_neg_cumul,
-        alpha=0.7,
-        color=colors["Ocean"],
-        label="Ocean CDR",
-    )
-    ax_cumul.fill_between(
-        years,
-        y3_neg_cumul,
-        y4_neg_cumul,
-        alpha=0.7,
-        color=colors["Enhanced_Weathering"],
-        label="Enhanced Weathering",
-    )
-
-    # Overlay cumulative fossil line
-    if fossil_cumul is not None:
-        ax_cumul.plot(
-            years,
-            fossil_cumul.values,
-            "k-",
-            linewidth=2,
-            alpha=0.8,
-            label="Net Fossil (Cumulative)",
-        )
-
-
-def _format_both_axes(ax_annual, ax_cumul, scenario, i):
-    """Format both annual and cumulative axes."""
-    for ax, title_suffix in [
-        (ax_annual, "Annual Fluxes"),
-        (ax_cumul, "Cumulative Fluxes"),
-    ]:
-        ax.set_title(
-            scenario_to_code[scenario] + " " + title_suffix,
-            fontsize=12,
-            fontweight="bold",
-        )
-        ax.set_xlabel("Year", fontsize=11)
-        ax.set_ylabel(
-            "CO₂ Flux (Gt CO₂/yr)" if ax == ax_annual else "Cumulative CO₂ (Gt CO₂)",
-            fontsize=11,
-        )
-        ax.tick_params(axis="both", which="major", labelsize=10)
-        ax.grid(True, alpha=0.3)
-        ax.set_xlim(2020, 2500)
-
-        # Add vertical line at baseline year
-        ax.axvline(x=BASELINE_YEAR, color="red", linestyle="--", alpha=0.5, linewidth=1)
-        ax.axhline(y=0, color="black", linestyle="-", alpha=0.3, linewidth=0.5)
-
-        # Add legend for first row only
-        if i == 0:
-            if ax == ax_annual:
-                ax.legend(loc="upper right", fontsize=10)
-
-
-# Create the comprehensive plot
-if make_plots:
-    fig_comprehensive = plot_comprehensive_co2_analysis()
-    plt.show()
-
-# %%
-raw_output.pix.unique("variable").values
-
-# %%
-# Constants for historical plotting
-CDR_LIMIT = -1460  # Gt CO2
-PROVED_FOSSIL_RESERVES = 2032 + 2400  # Gt CO2
-PROBABLE_FOSSIL_RESERVES = 8036 + 2400  # Gt CO2
-
-
-def plot_comprehensive_co2_analysis_with_history():
-    """
-    Plot annual and cumulative CO₂ fluxes including historical period.
-
-    Gross positive emissions use the full historical+future timeseries.
-    CDR components are zero in the historical period.
-    """
-    # Get all year columns from raw_output
-    all_years = [col for col in raw_output.columns if isinstance(col, int | float)]
-    all_years.sort()
-
-    # Get future-only year columns (from CDR extension)
-    future_years = [col for col in co2_beccs_ext.columns if isinstance(col, int | float)]
-    future_years.sort()
-
-    # Get scenarios that exist in all datasets
-    scenarios = _get_common_scenarios_with_history()
-    n_scenarios = len(scenarios)
-
-    print(
-        f"Creating comprehensive flux analysis (with history) for {n_scenarios} scenarios across {len(all_years)} years"
-    )
-
-    fig, axes = plt.subplots(n_scenarios, 2, figsize=(10, 3 * n_scenarios))
-    if n_scenarios == 1:
-        axes = axes.reshape(1, -1)
-
-    colors = _get_color_scheme_with_afolu()
-
-    config = HistoryPlotConfig(all_years, future_years, axes, colors)
-    for i, scenario in enumerate(scenarios):
-        _plot_single_scenario_with_history(i, scenario, config)
-
-    plt.tight_layout()
-    return fig
-
-
-def _get_common_scenarios_with_history():
-    """Get scenarios common to all datasets including historical."""
-    scenarios = (
-        set(co2_gross_positive_ext.index.get_level_values("scenario"))
-        & set(co2_beccs_ext.index.get_level_values("scenario"))
-        & set(co2_dacc_ext.index.get_level_values("scenario"))
-        & set(co2_ocean_ext.index.get_level_values("scenario"))
-        & set(co2_ew_ext.index.get_level_values("scenario"))
-        & set(fossil_extension_df.index.get_level_values("scenario"))
-    )
-    return sorted(list(scenarios))
-
-
-def _get_color_scheme_with_afolu():
-    """Get color scheme including AFOLU."""
-    return {
-        "Gross_Positive": "#8B4513",
-        "BECCS": "#BEDB3C",
-        "DACCS": "#DF23D9",
-        "Ocean": "#4D3EBD",
-        "Enhanced_Weathering": "#A6A6A6",
-        "AFOLU": "#51E390",
-    }
-
-
-def _plot_single_scenario_with_history(i, scenario, config):
-    """Plot a single scenario with historical data."""
-    # --- Annual fluxes ---
-    ax_annual = config.axes[i, 0]
-
-    # Get historical + future data
-    historical_data = _get_historical_data_for_scenario(scenario, config.all_years, config.future_years)
-    years = np.array(config.all_years)
-
-    # Plot annual data
-    _plot_annual_fluxes_with_history(ax_annual, historical_data, years, config.colors)
-
-    # --- Cumulative fluxes ---
-    ax_cumul = config.axes[i, 1]
-    _plot_cumulative_fluxes_with_history(ax_cumul, historical_data, years, config.colors)
-
-    # --- Formatting ---
-    _format_axes_with_history(ax_annual, ax_cumul, scenario, i, config.all_years)
-
-
-def _get_historical_data_for_scenario(scenario, all_years, future_years):
-    """Get all data for scenario including historical padding."""
-    # Gross positive: full historical+future
-    gross_pos_annual = (
-        raw_output.loc[
-            (
-                slice(None),
-                scenario,
-                slice(None),
-                "Emissions|CO2|Gross Positive Emissions",
-                slice(None),
-            ),
-            all_years,
-        ].sum()
-        / 1000
-    )
-
-    # CDR components: zero for historical, then future values
-    def pad_future_with_zeros(df_ext):
-        zeros = np.zeros(len(all_years) - len(future_years))
-        vals = df_ext.loc[df_ext.index.get_level_values("scenario") == scenario][future_years].sum().values
-        return np.concatenate([zeros, vals])
-
-    beccs_annual = pad_future_with_zeros(co2_beccs_ext) / 1000
-    daccs_annual = pad_future_with_zeros(co2_dacc_ext) / 1000
-    ocean_annual = pad_future_with_zeros(co2_ocean_ext) / 1000
-    ew_annual = pad_future_with_zeros(co2_ew_ext) / 1000
-
-    # Fossil and AFOLU data
-    fossil_annual = (
-        raw_output.loc[
-            (
-                slice(None),
-                scenario,
-                slice(None),
-                "Emissions|CO2|Energy and Industrial Processes",
-                slice(None),
-            ),
-            all_years,
-        ].T
-        / 1000
-    )
-    afolu_annual = (
-        raw_output.loc[
-            (slice(None), scenario, slice(None), "Emissions|CO2|AFOLU", slice(None)),
-            all_years,
-        ].T
-        / 1000
-    )
-
-    return {
-        "gross_pos": gross_pos_annual,
-        "beccs": beccs_annual,
-        "daccs": daccs_annual,
-        "ocean": ocean_annual,
-        "ew": ew_annual,
-        "fossil": fossil_annual,
-        "afolu": afolu_annual,
-    }
-
-
-def _plot_annual_fluxes_with_history(ax_annual, data, years, colors):
-    """Plot annual fluxes including historical data."""
-    afolu_pos = np.clip(data["afolu"].values[:, 0], 0, None)
-    afolu_neg = np.clip(data["afolu"].values[:, 0], None, 0)
-
-    # Stack for annual plot
-    y1_pos = data["gross_pos"].values
-    y2_pos = afolu_pos + y1_pos
-    y1_neg = data["beccs"]
-    y2_neg = y1_neg + data["daccs"]
-    y3_neg = y2_neg + data["ocean"]
-    y4_neg = y3_neg + data["ew"]
-    y5_neg = y4_neg + afolu_neg
-
-    # Plot stacked areas
-    ax_annual.fill_between(years, 0, y1_pos, alpha=0.7, color=colors["Gross_Positive"], label="Gross FF&I")
-    ax_annual.fill_between(years, y1_pos, y2_pos, alpha=0.7, color=colors["AFOLU"], label="AFOLU")
-    ax_annual.fill_between(years, 0, y1_neg, alpha=0.7, color=colors["BECCS"], label="BECCS")
-    ax_annual.fill_between(years, y1_neg, y2_neg, alpha=0.7, color=colors["DACCS"], label="DACCS")
-    ax_annual.fill_between(years, y2_neg, y3_neg, alpha=0.7, color=colors["Ocean"], label="Ocean CDR")
-    ax_annual.fill_between(
-        years,
-        y3_neg,
-        y4_neg,
-        alpha=0.7,
-        color=colors["Enhanced_Weathering"],
-        label="Enhanced Weathering",
-    )
-    ax_annual.fill_between(years, y4_neg, y5_neg, alpha=0.7, color=colors["AFOLU"])
-
-    if data["fossil"] is not None:
-        ax_annual.plot(
-            years,
-            data["fossil"] + data["afolu"].values,
-            "k-",
-            linewidth=2,
-            alpha=0.8,
-            label="Net Emissions (Total)",
-        )
-
-
-def _plot_cumulative_fluxes_with_history(ax_cumul, data, years, colors):
-    """Plot cumulative fluxes including historical data."""
-    afolu_pos = np.clip(data["afolu"].values[:, 0], 0, None)
-    afolu_neg = np.clip(data["afolu"].values[:, 0], None, 0)
-
-    gross_pos_cumul = np.cumsum(data["gross_pos"].values)
-    afolu_cumul = np.cumsum(afolu_pos + afolu_neg)
-    beccs_cumul = np.cumsum(data["beccs"])
-    daccs_cumul = np.cumsum(data["daccs"])
-    ocean_cumul = np.cumsum(data["ocean"])
-    ew_cumul = np.cumsum(data["ew"])
-
-    if data["fossil"] is not None:
-        fossil_cumul = np.cumsum(data["fossil"])
-    else:
-        fossil_cumul = None
-
-    y1_pos_cumul = gross_pos_cumul
-    y2_pos_cumul = afolu_cumul + y1_pos_cumul
-    y1_neg_cumul = beccs_cumul
-    y2_neg_cumul = y1_neg_cumul + daccs_cumul
-    y3_neg_cumul = y2_neg_cumul + ocean_cumul
-    y4_neg_cumul = y3_neg_cumul + ew_cumul
-
-    ax_cumul.fill_between(years, 0, y1_pos_cumul, alpha=0.7, color=colors["Gross_Positive"])
-    ax_cumul.fill_between(years, y1_pos_cumul, y2_pos_cumul, alpha=0.7, color=colors["AFOLU"])
-    ax_cumul.fill_between(years, 0, y1_neg_cumul, alpha=0.7, color=colors["BECCS"])
-    ax_cumul.fill_between(years, y1_neg_cumul, y2_neg_cumul, alpha=0.7, color=colors["DACCS"])
-    ax_cumul.fill_between(years, y2_neg_cumul, y3_neg_cumul, alpha=0.7, color=colors["Ocean"])
-    ax_cumul.fill_between(
-        years,
-        y3_neg_cumul,
-        y4_neg_cumul,
-        alpha=0.7,
-        color=colors["Enhanced_Weathering"],
-    )
-
-    ax_cumul.plot(
-        years,
-        fossil_cumul.values[:, 0] + afolu_cumul,
-        "k-",
-        linewidth=2,
-        alpha=0.8,
-        label="Net Emissions (Cumulative)",
-    )
-
-
-def _format_axes_with_history(ax_annual, ax_cumul, scenario, i, all_years):
-    """Format axes for historical plots."""
-    for ax, title_suffix in [
-        (ax_annual, "Annual Gross Fluxes"),
-        (ax_cumul, "Cumulative Gross Fluxes"),
-    ]:
-        ax.set_title(
-            scenario_to_code[scenario] + " " + title_suffix,
-            fontsize=12,
-            fontweight="bold",
-        )
-        ax.set_xlabel("Year", fontsize=11)
-        ax.set_ylabel(
-            "CO₂ Flux (Gt CO₂/yr)" if ax == ax_annual else "Cumulative CO₂ (Gt CO₂)",
-            fontsize=11,
-        )
-        ax.tick_params(axis="both", which="major", labelsize=10)
-        ax.grid(True, alpha=0.3)
-        ax.set_xlim(all_years[0], all_years[-1])
-        ax.axvline(x=BASELINE_YEAR, color="red", linestyle="--", alpha=0.5, linewidth=1)
-        ax.axhline(y=0, color="black", linestyle="-", alpha=0.3, linewidth=2)
-
-        if ax == ax_cumul:
-            ax.axhline(
-                y=CDR_LIMIT,
-                color="green",
-                linestyle="-",
-                alpha=0.3,
-                linewidth=3,
-                label="Cumulative CDR limit",
-            )
-            ax.axhline(
-                y=PROVED_FOSSIL_RESERVES,
-                color="red",
-                linestyle="-",
-                alpha=0.3,
-                linewidth=3,
-                label="Proved Fossil Reserves",
-            )
-            ax.axhline(
-                y=PROBABLE_FOSSIL_RESERVES,
-                color="red",
-                linestyle="--",
-                alpha=0.3,
-                linewidth=3,
-                label="Proved + Probable Fossil Reserves",
-            )
-
-        if i == 0:
-            ax.legend(loc="upper right", fontsize=10)
-
-
-# Create the comprehensive plot with history
-fig_comprehensive_history = plot_comprehensive_co2_analysis_with_history()
-plt.show()
-
-# %%
-# Constants for historical plotting
-CDR_LIMIT = -1460  # Gt CO2, Gidden, M.J., Joshi, S., Armitage, J.J. et al.
-# A prudent planetary limit for geologic carbon storage. Nature 645, 124-132 (2025).
-# https://doi.org/10.1038/s41586-025-09423-y
-
-PROVED_FOSSIL_RESERVES = (
-    2032 + 2400
-)  # Gt CO2, McGlade, C., Ekins, P. The geographical distribution of fossil fuels unused
-# when limiting global warming to 2 °C. Nature 517, 187-190 (2015).
-# https://doi.org/10.1038/nature14016
-PROBABLE_FOSSIL_RESERVES = (
-    8036 + 2400
-)  # Gt CO2, McGlade, C., Ekins, P. The geographical distribution of fossil fuels unused
-# when limiting global warming to 2 °C. Nature 517, 187-190 (2015).
-# https://doi.org/10.1038/nature14016
-
-
-def plot_bulk_co2_analysis_with_history():
-    """
-    Plot annual and cumulative CO₂ fluxes including historical period.
-
-    Gross positive emissions use the full historical+future timeseries.
-    CDR components are zero in the historical period.
-    """
-    # Get all year columns from raw_output
-    all_years = [col for col in raw_output.columns if isinstance(col, int | float)]
-    all_years.sort()
-
-    # Get future-only year columns (from CDR extension)
-    future_years = [col for col in co2_beccs_ext.columns if isinstance(col, int | float)]
-    future_years.sort()
-
-    # Get scenarios that exist in all datasets
-    scenarios = _get_common_scenarios_with_history()
-    n_scenarios = len(scenarios)
-
-    print(
-        f"Creating comprehensive flux analysis (with history) for {n_scenarios} scenarios across {len(all_years)} years"
-    )
-
-    fig, axes = plt.subplots(n_scenarios, 2, figsize=(10, 4 * n_scenarios))
-    if n_scenarios == 1:
-        axes = axes.reshape(1, -1)
-
-    colors = _get_color_scheme_with_afolu()
-
-    config = HistoryPlotConfig(all_years, future_years, axes, colors)
-    for i, scenario in enumerate(scenarios):
-        _plot_single_scenario_with_history(i, scenario, config)
-
-    plt.tight_layout()
-    return fig
-
-
-def _get_common_scenarios_with_history():
-    """Get scenarios common to all datasets including historical."""
-    scenarios = (
-        set(co2_gross_positive_ext.index.get_level_values("scenario"))
-        & set(global_cdr_ext_fixed.index.get_level_values("scenario"))
-        & set(fossil_extension_df.index.get_level_values("scenario"))
-    )
-    return sorted(list(scenarios))
-
-
-def _get_color_scheme_with_afolu():
-    """Get color scheme including AFOLU."""
-    return {
-        "Gross_Positive": "#8B4513",
-        "Gross_CDR": "#DDD729",
-        "AFOLU": "#2E8B57",
-    }
-
-
-def _plot_single_scenario_with_history(i, scenario, config):
-    """Plot a single scenario with historical data."""
-    # --- Annual fluxes ---
-    ax_annual = config.axes[i, 0]
-
-    # Get historical + future data
-    historical_data = _get_historical_data_for_scenario(scenario, config.all_years, config.future_years)
-    years = np.array(config.all_years)
-
-    # Plot annual data
-    _plot_annual_fluxes_with_history(ax_annual, historical_data, years, config.colors)
-
-    # --- Cumulative fluxes ---
-    ax_cumul = config.axes[i, 1]
-    _plot_cumulative_fluxes_with_history(ax_cumul, historical_data, years, config.colors)
-
-    # --- Formatting ---
-    _format_axes_with_history(ax_annual, ax_cumul, scenario, i, config.all_years)
-
-
-def _get_historical_data_for_scenario(scenario, all_years, future_years):
-    """Get all data for scenario including historical padding."""
-    # Gross positive: full historical+future
-    gross_pos_annual = (
-        raw_output.loc[
-            (
-                slice(None),
-                scenario,
-                slice(None),
-                "Emissions|CO2|Gross Positive Emissions",
-                slice(None),
-            ),
-            all_years,
-        ].sum()
-        / 1000
-    )
-    gross_neg_annual = (
-        raw_output.loc[
-            (
-                slice(None),
-                scenario,
-                slice(None),
-                "Emissions|CO2|Gross Removals",
-                slice(None),
-            ),
-            all_years,
-        ].sum()
-        / 1000
-    )
-
-    # CDR components: zero for historical, then future values
-    def pad_future_with_zeros(df_ext):
-        zeros = np.zeros(len(all_years) - len(future_years))
-        vals = df_ext.loc[df_ext.index.get_level_values("scenario") == scenario][future_years].sum().values
-        return np.concatenate([zeros, vals])
-
-    # Fossil and AFOLU data
-    fossil_annual = (
-        raw_output.loc[
-            (
-                slice(None),
-                scenario,
-                slice(None),
-                "Emissions|CO2|Energy and Industrial Processes",
-                slice(None),
-            ),
-            all_years,
-        ].T
-        / 1000
-    )
-    afolu_annual = (
-        raw_output.loc[
-            (slice(None), scenario, slice(None), "Emissions|CO2|AFOLU", slice(None)),
-            all_years,
-        ].T
-        / 1000
-    )
-
-    return {
-        "gross_pos": gross_pos_annual,
-        "gross_neg": gross_neg_annual,
-        "fossil": fossil_annual,
-        "afolu": afolu_annual,
-    }
-
-
-def _plot_annual_fluxes_with_history(ax_annual, data, years, colors):
-    """Plot annual fluxes including historical data."""
-    afolu_pos = np.clip(data["afolu"].values[:, 0], 0, None)
-    afolu_neg = np.clip(data["afolu"].values[:, 0], None, 0)
-
-    # Stack for annual plot
-    y1_pos = data["gross_pos"].values
-    y2_pos = afolu_pos + y1_pos
-    y1_neg = data["gross_neg"].values
-    y2_neg = y1_neg + afolu_neg
-
-    # Plot stacked areas
-    ax_annual.fill_between(years, 0, y1_pos, alpha=0.7, color=colors["Gross_Positive"], label="Gross FF&I")
-    ax_annual.fill_between(years, y1_pos, y2_pos, alpha=0.7, color=colors["AFOLU"], label="AFOLU")
-    ax_annual.fill_between(years, 0, y1_neg, alpha=0.7, color=colors["Gross_CDR"], label="Gross CDR")
-    ax_annual.fill_between(years, y1_neg, y2_neg, alpha=0.7, color=colors["AFOLU"])
-
-    if data["fossil"] is not None:
-        ax_annual.plot(
-            years,
-            data["fossil"] + data["afolu"].values,
-            "k-",
-            linewidth=2,
-            alpha=0.8,
-            label="Net Emissions (Total)",
-        )
-
-
-def _plot_cumulative_fluxes_with_history(ax_cumul, data, years, colors):
-    """Plot cumulative fluxes including historical data."""
-    afolu_pos = np.clip(data["afolu"].values[:, 0], 0, None)
-    afolu_neg = np.clip(data["afolu"].values[:, 0], None, 0)
-
-    gross_pos_cumul = np.cumsum(data["gross_pos"].values)
-    gross_neg_cumul = np.cumsum(data["gross_neg"].values)
-
-    afolu_cumul = np.cumsum(afolu_pos + afolu_neg)
-
-    if data["fossil"] is not None:
-        np.cumsum(data["fossil"])
-    else:
-        pass
-
-    y1_pos_cumul = gross_pos_cumul
-    y2_pos_cumul = afolu_cumul + y1_pos_cumul
-    y1_neg_cumul = gross_neg_cumul
-
-    ax_cumul.fill_between(
-        years,
-        0,
-        y1_pos_cumul,
-        alpha=0.7,
-        color=colors["Gross_Positive"],
-    )
-    ax_cumul.fill_between(
-        years,
-        y1_pos_cumul,
-        y2_pos_cumul,
-        alpha=0.7,
-        color=colors["AFOLU"],
-    )
-    ax_cumul.fill_between(years, 0, y1_neg_cumul, alpha=0.7, color=colors["Gross_CDR"])
-
-    ax_cumul.plot(
-        years,
-        gross_pos_cumul + gross_neg_cumul + afolu_cumul,
-        "k-",
-        linewidth=2,
-        alpha=0.8,
-        label="Cumulative Net Emissions (Total)",
-    )
-
-
-def _format_axes_with_history(ax_annual, ax_cumul, scenario, i, all_years):
-    """Format axes for historical plots."""
-    for ax, title_suffix in [
-        (ax_annual, "Annual Gross Fluxes"),
-        (ax_cumul, "Cumulative Gross Fluxes"),
-    ]:
-        ax.set_title(
-            scenario_to_code[scenario] + " " + title_suffix,
-            fontsize=12,
-            fontweight="bold",
-        )
-        ax.set_xlabel("Year", fontsize=11)
-        ax.set_ylabel(
-            "CO₂ Flux (Gt CO₂/yr)" if ax == ax_annual else "Cumulative CO₂ (Gt CO₂)",
-            fontsize=11,
-        )
-        ax.tick_params(axis="both", which="major", labelsize=10)
-        ax.grid(True, alpha=0.3)
-        ax.set_xlim(all_years[0], all_years[-1])
-        if ax == ax_annual:
-            ax.set_ylim(-30, 60)
-        ax.axvline(x=BASELINE_YEAR, color="red", linestyle="--", alpha=0.5, linewidth=1)
-        ax.axhline(y=0, color="black", linestyle="-", alpha=0.3, linewidth=2)
-
-        if ax == ax_cumul:
-            ax.axhline(
-                y=CDR_LIMIT,
-                color="green",
-                linestyle="-",
-                alpha=0.3,
-                linewidth=3,
-                label="Sequestration capacity limit",
-            )
-            ax.axhline(
-                y=PROVED_FOSSIL_RESERVES,
-                color="red",
-                linestyle="-",
-                alpha=0.3,
-                linewidth=3,
-                label="Proved Fossil Reserves",
-            )
-            ax.axhline(
-                y=PROBABLE_FOSSIL_RESERVES,
-                color="red",
-                linestyle="--",
-                alpha=0.3,
-                linewidth=3,
-                label="Proved + Probable Fossil Reserves",
-            )
-
-        if i == 0:
-            ax.legend(loc="upper right", fontsize=10)
-
-
-# Create the comprehensive plot with history
-fig_comprehensive_history = plot_comprehensive_co2_analysis_with_history()
-plt.show()
-
-
-# %%
 # Simple CSV output
-def save_continuous_timeseries_to_csv(data, filename="continuous_timeseries_historical_future"):
-    """
-    Save the continuous timeseries data to CSV with metadata.
-
-    Clean, simple approach focused on CSV output as final deliverable.
-    """
-    print("=== SAVING CONTINUOUS TIMESERIES TO CSV ===")
-
-    # Create filename without timestamp
-    csv_filename = f"{filename}.csv"
-    csv_path = os.path.join(os.getcwd(), csv_filename)
-
-    # Convert to long format for CSV
-    data_long = data.reset_index()
-
-    # Save to CSV
-    data_long.to_csv(csv_path, index=False)
-
-    # Create summary metadata
-    metadata = {
-        "filename": csv_filename,
-        "created": datetime.now().isoformat(),
-        "shape": f"{data.shape[0]} rows x {data.shape[1]} columns",
-        "time_coverage": f"{data.columns[0]} to {data.columns[-1]}",
-        "total_years": len([col for col in data.columns if isinstance(col, int | float)]),
-        "variables": len(data.index.get_level_values("variable").unique()),
-        "scenarios": len(data.index.droplevel(["region", "variable", "unit"]).drop_duplicates()),
-        "description": (
-            "Continuous emissions timeseries merging historical data (1750-2023) with future projections (2024-2500)"
-        ),
-    }
-
-    print(f"📂 Location: {csv_path}")
-    print(f"📊 Size: {metadata['shape']}")
-    print(f"🕐 Coverage: {metadata['time_coverage']} ({metadata['total_years']} years)")
-    print(f"📈 Variables: {metadata['variables']}")
-    print(f"🎯 Scenarios: {metadata['scenarios']}")
-
-    # Save metadata as JSON
-    metadata_filename = f"{filename}_metadata.json"
-    metadata_path = os.path.join(os.getcwd(), metadata_filename)
-
-    with open(metadata_path, "w") as f:
-        json.dump(metadata, f, indent=2)
-
-    print(f"📋 Metadata: {metadata_filename}")
-
-    return {
-        "csv_file": csv_filename,
-        "csv_path": csv_path,
-        "metadata_file": metadata_filename,
-        "metadata": metadata,
-    }
-
 
 # Execute the simple CSV save
 result = save_continuous_timeseries_to_csv(continuous_timeseries_concise, "continuous_emissions_timeseries_1750_2500")
-
-
-# %% [markdown]
-# ## Plotting various
-
-
-# %%
-# Create a zoomed-in plot focusing on the historical-future transition period
-def plot_co2_transition_period(data, scenario_colors=None, start_year=1990, end_year=2150):
-    """
-    Plot total CO2 emissions focusing on the historical-future transition period.
-    """
-    print(f"=== PLOTTING CO2 TRANSITION PERIOD ({start_year}-{end_year}) ===")
-
-    # Filter for CO2 variables and World region
-    co2_vars = ["Emissions|CO2|AFOLU", "Emissions|CO2|Energy and Industrial Processes"]
-    available_vars = data.index.get_level_values("variable").unique()
-    co2_vars_in_data = [var for var in co2_vars if var in available_vars]
-
-    # Filter data
-    co2_data = data.loc[
-        (data.index.get_level_values("variable").isin(co2_vars_in_data))
-        & (data.index.get_level_values("region") == "World")
-    ]
-
-    # Get years in the specified range
-    all_years = [col for col in co2_data.columns if isinstance(col, int | float)]
-    years = [year for year in all_years if start_year <= year <= end_year]
-    years = sorted(years)
-
-    # Group by model and scenario
-    scenarios = co2_data.index.droplevel(["region", "variable", "unit"]).drop_duplicates()
-
-    # Create the plot
-    fig, ax = plt.subplots(figsize=(14, 8))
-
-    # Use scenario colors if provided
-    if scenario_colors is None:
-        scenario_colors = scenario_model_match
-
-    for i, (model, scenario) in enumerate(scenarios):
-        # Get data for this scenario
-        scenario_data = co2_data.loc[
-            (co2_data.index.get_level_values("model") == model)
-            & (co2_data.index.get_level_values("scenario") == scenario)
-        ]
-
-        # Sum across CO2 variables
-        if len(scenario_data) > 1:
-            total_emissions = scenario_data[years].sum(axis=0)
-        else:
-            total_emissions = scenario_data[years].iloc[0]
-
-        # Find the marker code and color
-        marker_code = None
-        color = f"C{i}"
-        for marker, info in scenario_colors.items():
-            if info[1] == model and info[0] == scenario:
-                marker_code = marker
-                color = info[2]
-                break
-
-        label = f"{marker_code} ({model})" if marker_code else f"{model}"
-
-        # Plot with markers to show data points
-        ax.plot(
-            years,
-            total_emissions.values,
-            label=label,
-            color=color,
-            linewidth=2.5,
-            alpha=0.8,
-            marker="o" if len(years) < MAX_YEARS_FOR_MARKERS else None,
-            markersize=3 if len(years) < MAX_YEARS_FOR_MARKERS else 0,
-        )
-
-    # Add vertical line at historical/future boundary
-    ax.axvline(
-        x=2023,
-        color="red",
-        linestyle="--",
-        alpha=0.8,
-        label="Historical/Future boundary",
-        linewidth=2,
-    )
-
-    # Add shaded regions for historical vs future
-    ax.axvspan(start_year, 2023, alpha=0.1, color="blue", label="Historical")
-    ax.axvspan(2023, end_year, alpha=0.1, color="orange", label="Future projections")
-
-    # Formatting
-    ax.set_xlabel("Year", fontsize=12)
-    ax.set_ylabel("Total CO2 Emissions (Mt CO2/yr)", fontsize=12)
-    ax.set_title(
-        f"Total CO2 Emissions: Historical-Future Transition ({start_year}-{end_year})",
-        fontsize=14,
-        fontweight="bold",
-    )
-
-    ax.set_xlim(start_year, end_year)
-    ax.set_ylim(bottom=0)
-
-    # Add grid
-    ax.grid(True, alpha=0.3)
-
-    # Legend
-    ax.legend(bbox_to_anchor=(1.05, 1), loc="upper left", fontsize=9)
-
-    # Add decade markers
-    decade_years = [year for year in range(start_year, end_year + 1, 10) if year in years]
-    for year in decade_years:
-        ax.axvline(x=year, color="gray", linestyle=":", alpha=0.3, linewidth=0.5)
-
-    plt.tight_layout()
-
-    plt.show()
-
-    return fig, ax
-
-
-# Create the transition period plot
-if make_plots:
-    fig_transition, ax_transition = plot_co2_transition_period(continuous_timeseries_concise, scenario_model_match)
+result_full = save_continuous_timeseries_to_csv(df_everything, "extensions_full_emissions_timeseries_2023_2500")

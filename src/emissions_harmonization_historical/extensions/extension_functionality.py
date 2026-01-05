@@ -1,14 +1,38 @@
+"""Low-level math helpers for constructing emissions extension profiles (sigmoid, decay, spline helpers)."""
+
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import PchipInterpolator
 
 
-def sigmoid_function(to_val, from_val, tstart, tend, z, adjust_from=True):  # noqa: PLR0913
+def sigmoid_function(  # noqa: PLR0913
+    to_val: float, from_val: float, tstart: float, tend: float, z: np.ndarray, adjust_from=True
+) -> np.ndarray:
     """
     Calculate sigmoid function
 
     Calculate sigmoid function from from_val to to_val
     between tstart and tend for over t-values z
+
+    Parameters
+    ----------
+    to_val : float
+        Target value.
+    from_val : float
+        Starting value.
+    tstart : float
+        Start time.
+    tend : float
+        End time.
+    z : np.ndarray
+        Time values.
+    adjust_from : bool, optional
+        Whether to adjust from_val, default True.
+
+    Returns
+    -------
+    np.ndarray
+        Sigmoid values.
     """
     z_shift = (z - (tstart + tend) / 2.0) * 5 / 2.0 / (tend - tstart)
     if not adjust_from:
@@ -21,9 +45,25 @@ def sigmoid_function(to_val, from_val, tstart, tend, z, adjust_from=True):  # no
     return sigmoid
 
 
-def get_sigmoid_derivative(to_val, from_val, sigmoid_shift, sigmoid_len=50):
+def get_sigmoid_derivative(to_val: float, from_val: float, sigmoid_shift: float, sigmoid_len=50) -> float:
     """
     Calculate the derivative of the sigmoid function
+
+    Parameters
+    ----------
+    to_val : float
+        Target value.
+    from_val : float
+        Starting value.
+    sigmoid_shift : float
+        Shift parameter.
+    sigmoid_len : int, optional
+        Length parameter, default 50.
+
+    Returns
+    -------
+    float
+        Derivative value.
     """
     scaling = to_val - from_val
     t_eval = sigmoid_shift * 5 / 2 / sigmoid_len
@@ -31,20 +71,57 @@ def get_sigmoid_derivative(to_val, from_val, sigmoid_shift, sigmoid_len=50):
     return derivative
 
 
-def exp_decay(end, scale, decay_time, time_0, time):
+def exp_decay(end: float, scale: float, decay_time: float, time_0: float, time: np.ndarray) -> np.ndarray:
     """
     Calculate exponential decay
 
     Calculate exponential decay to end value, with scale, decay_time,
     time_0 and over the values of time
+
+    Parameters
+    ----------
+    end : float
+        End value.
+    scale : float
+        Scale parameter.
+    decay_time : float
+        Decay time.
+    time_0 : float
+        Initial time.
+    time : np.ndarray
+        Time array.
+
+    Returns
+    -------
+    np.ndarray
+        Decayed values.
     """
-    # print(f"{time_0:}, {time:}, {decay_time}")
     return end - scale * np.exp((time_0 - time) / decay_time)
 
 
-def solve_LU_constants(cle_0, lu_0, dlu_0, cle_inf_0=False, min_tau=20):
+def solve_LU_constants(
+    cle_0: float, lu_0: float, dlu_0: float, cle_inf_0=False, min_tau=20
+) -> tuple[float, float, float]:
     """
     Solve for Land use exponential decay values
+
+    Parameters
+    ----------
+    cle_0 : float
+        Initial CLE value.
+    lu_0 : float
+        Initial LU value.
+    dlu_0 : float
+        Initial DLU derivative.
+    cle_inf_0 : bool, optional
+        Whether CLE infinity is 0, default False.
+    min_tau : int, optional
+        Minimum tau, default 20.
+
+    Returns
+    -------
+    tuple[float, float, float]
+        CLE infinity, k multiplier, tau.
     """
     if cle_inf_0:
         cle_inf = 0
@@ -63,9 +140,29 @@ def solve_LU_constants(cle_0, lu_0, dlu_0, cle_inf_0=False, min_tau=20):
     return cle_inf, k_mult, tau
 
 
-def find_func_form_lu_extension(function, cle_func, t_vals, t_extend, cle_inf_0=False):
+def find_func_form_lu_extension(
+    function: np.ndarray, cle_func: np.ndarray, t_vals: np.ndarray, t_extend: int, cle_inf_0=False
+) -> tuple[np.ndarray, float]:
     """
     Calculate extended land use
+
+    Parameters
+    ----------
+    function : np.ndarray
+        Function array.
+    cle_func : np.ndarray
+        CLE function array.
+    t_vals : np.ndarray
+        Time values.
+    t_extend : int
+        Extension point.
+    cle_inf_0 : bool, optional
+        Whether CLE infinity is 0, default False.
+
+    Returns
+    -------
+    tuple[np.ndarray, float]
+        Extended function and CLE infinity.
     """
     lu_0 = function[t_extend]
     cle_0 = cle_func[t_extend]
@@ -73,18 +170,28 @@ def find_func_form_lu_extension(function, cle_func, t_vals, t_extend, cle_inf_0=
         cle_inf, k_mult, tau = solve_LU_constants(cle_0, lu_0, 1, cle_inf_0=cle_inf_0)
     else:
         dlu_0 = get_derivative_using_spline(function, t_vals, t_extend)
-        # print(dlu_0)
         cle_inf, k_mult, tau = solve_LU_constants(cle_0, lu_0, dlu_0)
     ext_func = np.zeros(len(t_vals))
     ext_func[:t_extend] = function[:t_extend]
-    # print(f"Value of tau is {tau}")
     ext_func[t_extend:] = k_mult / tau * np.exp((t_vals[t_extend] - t_vals[t_extend:]) / tau)
     return ext_func, cle_inf
 
 
-def extend_flat_evolution(function, t_vals):
+def extend_flat_evolution(function: np.ndarray, t_vals: np.ndarray) -> np.ndarray:
     """
     Extend function flatly
+
+    Parameters
+    ----------
+    function : np.ndarray
+        Function to extend.
+    t_vals : np.ndarray
+        Time values.
+
+    Returns
+    -------
+    np.ndarray
+        Extended function.
     """
     data_extend = np.zeros_like(t_vals)
     data_extend[: len(function)] = function
@@ -92,18 +199,44 @@ def extend_flat_evolution(function, t_vals):
     return data_extend
 
 
-def extend_flat_cumulative(function, t_vals):
+def extend_flat_cumulative(function: np.ndarray, t_vals: np.ndarray) -> np.ndarray:
     """
     Extend cumulative function so cumulative stays the same
+
+    Parameters
+    ----------
+    function : np.ndarray
+        Cumulative function to extend.
+    t_vals : np.ndarray
+        Time values.
+
+    Returns
+    -------
+    np.ndarray
+        Extended cumulative function.
     """
     data_extend = np.zeros_like(t_vals)
     data_extend[: len(function)] = function
     return data_extend
 
 
-def extend_linear_rampdown(function, t_vals, rampdown_end=2150):
+def extend_linear_rampdown(function: np.ndarray, t_vals: np.ndarray, rampdown_end=2150) -> np.ndarray:
     """
     Extend cumulative function so cumulative stays the same
+
+    Parameters
+    ----------
+    function : np.ndarray
+        Function to extend.
+    t_vals : np.ndarray
+        Time values.
+    rampdown_end : int, optional
+        End of rampdown, default 2150.
+
+    Returns
+    -------
+    np.ndarray
+        Extended function.
     """
     data_extend = np.zeros_like(t_vals)
     data_extend[: len(function)] = function
@@ -114,10 +247,30 @@ def extend_linear_rampdown(function, t_vals, rampdown_end=2150):
 
 
 def make_cubic_coefficients_from_end_points_and_derivatives(  # noqa: PLR0913
-    x0, y0, dy0, x1, y1, dy1
-):
+    x0: float, y0: float, dy0: float, x1: float, y1: float, dy1: float
+) -> tuple[float, float, float, float]:
     """
     Make cubic coefficients from end points and derivatives
+
+    Parameters
+    ----------
+    x0 : float
+        Start x.
+    y0 : float
+        Start y.
+    dy0 : float
+        Start derivative.
+    x1 : float
+        End x.
+    y1 : float
+        End y.
+    dy1 : float
+        End derivative.
+
+    Returns
+    -------
+    tuple[float, float, float, float]
+        Coefficients A, B, C, D.
     """
     dt = x1 - x0
     A = (dy1 + dy0 - 2 * (y1 - y0) / dt) / (dt**2)
@@ -127,9 +280,31 @@ def make_cubic_coefficients_from_end_points_and_derivatives(  # noqa: PLR0913
     return A, B, C, D
 
 
-def make_combined_quadratic(x0, y0, dy0, x1, y1, dy1):  # noqa: PLR0913
+def make_combined_quadratic(  # noqa: PLR0913
+    x0: float, y0: float, dy0: float, x1: float, y1: float, dy1: float
+) -> tuple[float, float, float]:
     """
     Make combined quadratic coefficients from end points and derivatives
+
+    Parameters
+    ----------
+    x0 : float
+        Start x.
+    y0 : float
+        Start y.
+    dy0 : float
+        Start derivative.
+    x1 : float
+        End x.
+    y1 : float
+        End y.
+    dy1 : float
+        End derivative.
+
+    Returns
+    -------
+    tuple[float, float, float]
+        Coefficients A, B, C.
     """
     dt = x1 - x0
     A = ((y1 - y0) / dt + (dy1 - dy0) / 2) / (dt)
@@ -138,9 +313,23 @@ def make_combined_quadratic(x0, y0, dy0, x1, y1, dy1):  # noqa: PLR0913
     return A, B, C
 
 
-def smooth_step(t_vals, t_start, t_end):
+def smooth_step(t_vals: np.ndarray, t_start: float, t_end: float) -> np.ndarray:
     """
     Make smooth step between two functions
+
+    Parameters
+    ----------
+    t_vals : np.ndarray
+        Time values.
+    t_start : float
+        Start time.
+    t_end : float
+        End time.
+
+    Returns
+    -------
+    np.ndarray
+        Smooth step values.
     """
     S = np.zeros(len(t_vals))
     for i, t_val in enumerate(t_vals):
@@ -158,10 +347,35 @@ def smooth_step(t_vals, t_start, t_end):
 
 
 def make_linear_function_with_smooth_transition(  # noqa: PLR0913
-    function, target_val, roll_start_length, roll_end_length, t_vals, t_extend
-):
+    function: np.ndarray,
+    target_val: float,
+    roll_start_length: int,
+    roll_end_length: int,
+    t_vals: np.ndarray,
+    t_extend: int,
+) -> np.ndarray:
     """
     Make linear function with smooth transition to target
+
+    Parameters
+    ----------
+    function : np.ndarray
+        Function to extend.
+    target_val : float
+        Target value.
+    roll_start_length : int
+        Roll start length.
+    roll_end_length : int
+        Roll end length.
+    t_vals : np.ndarray
+        Time values.
+    t_extend : int
+        Extension point.
+
+    Returns
+    -------
+    np.ndarray
+        Extended function.
     """
     data_extend = np.zeros(len(t_vals))
     data_extend[: len(function)] = function
@@ -194,10 +408,38 @@ def make_linear_function_with_smooth_transition(  # noqa: PLR0913
 
 
 def make_cubic_roll_to_linear_extension(  # noqa: PLR0913
-    function, target_val, roll_start_length, roll_end_length, t_vals, t_extend, vert_dist_end_frac=0.01
-):
+    function: np.ndarray,
+    target_val: float,
+    roll_start_length: int,
+    roll_end_length: int,
+    t_vals: np.ndarray,
+    t_extend: int,
+    vert_dist_end_frac=0.01,
+) -> np.ndarray:
     """
     Make a cubic roll to linear extension
+
+    Parameters
+    ----------
+    function : np.ndarray
+        Function to extend.
+    target_val : float
+        Target value.
+    roll_start_length : int
+        Roll start length.
+    roll_end_length : int
+        Roll end length.
+    t_vals : np.ndarray
+        Time values.
+    t_extend : int
+        Extension point.
+    vert_dist_end_frac : float, optional
+        Vertical distance end fraction, default 0.01.
+
+    Returns
+    -------
+    np.ndarray
+        Extended function.
     """
     data_extend = np.zeros(len(t_vals))
     data_extend[: len(function)] = function
@@ -244,9 +486,23 @@ def make_cubic_roll_to_linear_extension(  # noqa: PLR0913
     return data_extend[t_extend + 1 :]
 
 
-def get_exp_targ_from_current_data(function, exp_end, fraction_extend=0.1):
+def get_exp_targ_from_current_data(function: np.ndarray, exp_end: float, fraction_extend=0.1) -> float:
     """
     Get exponential target from current data
+
+    Parameters
+    ----------
+    function : np.ndarray
+        Function array.
+    exp_end : float
+        Exponential end.
+    fraction_extend : float, optional
+        Fraction to extend, default 0.1.
+
+    Returns
+    -------
+    float
+        Exponential target.
     """
     slope_at_extension = get_derivative_using_spline(function, np.arange(len(function)), len(function) - 1)
     exp_targ = function[-1] + slope_at_extension * (exp_end - (len(function) - 1)) * fraction_extend
@@ -255,10 +511,38 @@ def get_exp_targ_from_current_data(function, exp_end, fraction_extend=0.1):
 
 
 def make_quadratic_roll_to_linear_extension(  # noqa: PLR0913
-    function, target_val, roll_start_length, roll_end_length, t_vals, t_extend, vert_dist_end_frac=0.01
-):
+    function: np.ndarray,
+    target_val: float,
+    roll_start_length: int,
+    roll_end_length: int,
+    t_vals: np.ndarray,
+    t_extend: int,
+    vert_dist_end_frac=0.01,
+) -> np.ndarray:
     """
     Make a cubic roll to linear extension
+
+    Parameters
+    ----------
+    function : np.ndarray
+        Function to extend.
+    target_val : float
+        Target value.
+    roll_start_length : int
+        Roll start length.
+    roll_end_length : int
+        Roll end length.
+    t_vals : np.ndarray
+        Time values.
+    t_extend : int
+        Extension point.
+    vert_dist_end_frac : float, optional
+        Vertical distance end fraction, default 0.01.
+
+    Returns
+    -------
+    np.ndarray
+        Extended function.
     """
     data_extend = np.zeros(len(t_vals))
     data_extend[: len(function)] = function
@@ -306,9 +590,23 @@ def make_quadratic_roll_to_linear_extension(  # noqa: PLR0913
     return data_extend[t_extend + 1 :]
 
 
-def get_derivative_using_spline(function, t_vals, t_extend):
+def get_derivative_using_spline(function: np.ndarray, t_vals: np.ndarray, t_extend: int) -> float:
     """
     Get derivative of function using spline
+
+    Parameters
+    ----------
+    function : np.ndarray
+        Function array.
+    t_vals : np.ndarray
+        Time values.
+    t_extend : int
+        Extension point.
+
+    Returns
+    -------
+    float
+        Derivative value.
     """
     spline = np.interp(
         t_vals[t_extend - 10 : t_extend + 10], t_vals[t_extend - 50 : t_extend], function[t_extend - 50 : t_extend]
@@ -316,19 +614,41 @@ def get_derivative_using_spline(function, t_vals, t_extend):
     return np.gradient(spline)[8]
 
 
-def do_simple_sigmoid_or_exponential_extension_to_target(
-    function: np.ndarray, t_vals: np.ndarray, t_extend: int, target: float, sigmoid_shift=40
+def do_simple_sigmoid_or_exponential_extension_to_target(  # noqa: PLR0913
+    function: np.ndarray,
+    t_vals: np.ndarray,
+    t_extend: int,
+    target: float,
+    sigmoid_shift=40,
+    sigmoid_len=50,
 ) -> np.ndarray:
     """
     Calculate extension function by calling sigmoid functionality to extend
+
+    Parameters
+    ----------
+    function : np.ndarray
+        Function to extend.
+    t_vals : np.ndarray
+        Time values.
+    t_extend : int
+        Extension point.
+    target : float
+        Target value.
+    sigmoid_shift : int, optional
+        Sigmoid shift, default 40.
+    sigmoid_len : int, optional
+        Sigmoid length, default 50.
+
+    Returns
+    -------
+    np.ndarray
+        Extended function.
     """
     data_extend = np.zeros(len(t_vals))
     data_extend[: len(function)] = function
     derivative_at_extension = get_derivative_using_spline(function, t_vals, t_extend)
     sigmoid_derivative_at_extension = get_sigmoid_derivative(target, function[-1], sigmoid_shift)
-    # print(f"Arguments for sigmoid: {target: }, come from: {scen_full.values[0, -1]},
-    # start_time: {scen_full.columns[-1] + sigmoid_shift},
-    # transition over: {2150 + sigmoid_shift}")
     if (
         derivative_at_extension < 0
         and sigmoid_derivative_at_extension < 0
@@ -337,7 +657,7 @@ def do_simple_sigmoid_or_exponential_extension_to_target(
         data_extend[len(function) :] = exp_decay(
             target,
             target - function[-1],
-            np.min((50, (target - function[-1]) / derivative_at_extension)),
+            np.min((sigmoid_len, (target - function[-1]) / derivative_at_extension)),
             time_0=t_vals[t_extend],
             time=t_vals[len(function) :],
         )
@@ -345,17 +665,29 @@ def do_simple_sigmoid_or_exponential_extension_to_target(
         data_extend[len(function) :] = sigmoid_function(
             target,
             function[-1],
-            2100 + sigmoid_shift,
-            2150 + sigmoid_shift,
+            t_vals[t_extend] + sigmoid_shift,
+            t_vals[t_extend + sigmoid_len] + sigmoid_shift,
             t_vals[len(function) :],
         )
-    # print(data_extend)
     return data_extend
 
 
-def quick_plot_check(x, y, name):
+def quick_plot_check(x: np.ndarray, y: np.ndarray, name: str):
     """
     Make a quick check_plot, just for testing
+
+    Parameters
+    ----------
+    x : np.ndarray
+        X values.
+    y : np.ndarray
+        Y values.
+    name : str
+        Plot name.
+
+    Returns
+    -------
+    None
     """
     plt.clf()
     plt.plot(x, y)

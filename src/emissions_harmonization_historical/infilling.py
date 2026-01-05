@@ -8,7 +8,7 @@ Individual notebooks can then override them as needed.
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pandas as pd
@@ -25,6 +25,7 @@ def get_silicone_based_infiller(
     follower_variable: str,
     lead_variables: list[str],
     silicone_db_cruncher: silicone.database_crunchers.base._DatabaseCruncher,
+    derive_relationship_kwargs: dict[str, Any] | None = None,
 ) -> Callable[[pd.DataFrame], pd.DataFrame]:
     """
     Get an infiller based on silicone
@@ -43,14 +44,19 @@ def get_silicone_based_infiller(
     silicone_db_cruncher
         Silicone cruncher to use
 
+    derive_relationship_kwargs
+        Passed to `silicone_db_cruncher.derive_relationship`
+
     Returns
     -------
     :
         Function which can be used to infill `follower_variable` in scenarios
     """
+    if derive_relationship_kwargs is None:
+        derive_relationship_kwargs = {}
+
     silicone_infiller = silicone_db_cruncher(pyam.IamDataFrame(infilling_db)).derive_relationship(
-        variable_follower=follower_variable,
-        variable_leaders=lead_variables,
+        variable_follower=follower_variable, variable_leaders=lead_variables, **derive_relationship_kwargs
     )
 
     def res(inp: pd.DataFrame) -> pd.DataFrame:

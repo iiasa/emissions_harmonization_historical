@@ -39,6 +39,7 @@ from pandas_openscm.index_manipulation import update_index_levels_func
 from emissions_harmonization_historical.constants_5000 import (
     HISTORY_HARMONISATION_DB,
     INFILLED_SCENARIOS_DB,
+    MARKERS,
     RCMIP_PROCESSED_DB,
     REPO_ROOT,
     SCM_OUT_DIR,
@@ -72,15 +73,16 @@ UR = openscm_units.unit_registry
 Q = UR.Quantity
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "AIM"
+model: str = "REMIND"
 scm: str = "MAGICCv7.6.0a3"
+markers_only: bool = True
 
 # %%
 output_dir_model = SCM_OUT_DIR / model
 output_dir_model.mkdir(exist_ok=True, parents=True)
 output_dir_model
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Load data
 
 # %% [markdown]
@@ -107,19 +109,22 @@ complete_scenarios = complete_scenarios.loc[
 print(f"Year range in complete_scenarios: {complete_scenarios.columns.min()} to {complete_scenarios.columns.max()}")
 print(f"Number of scenarios: {len(complete_scenarios.pix.unique('scenario'))}")
 print(f"Scenarios: {list(complete_scenarios.pix.unique('scenario'))}")
+# %%
+if markers_only:
+    markers_l = []
+    for model, scenario, _ in MARKERS:
+        tmp = complete_scenarios.loc[pix.isin(model=model, scenario=scenario)]
+        if not tmp.empty:
+            markers_l.append(tmp)
+
+    complete_scenarios = pix.concat(markers_l)
+    if complete_scenarios.empty:
+        raise AssertionError
 
 # %% [markdown]
 # ### History
 #
 # Just in case we need it for MAGICC
-
-# %%
-# TODO: make the db portable
-# history = pd.concat([
-#     pd.read_feather(f) for f in HISTORY_HARMONISATION_DB.db_dir.glob("*.feather")
-#     if "index" not in f.name and "filemap" not in f.name
-# ]).loc[pix.isin(purpose="global_workflow_emissions")].reset_index("purpose", drop=True)
-# history
 
 # %%
 history = HISTORY_HARMONISATION_DB.load(pix.ismatch(purpose="global_workflow_emissions")).reset_index(
@@ -305,7 +310,7 @@ if scm.startswith("MAGICC"):
 # %% [markdown]
 # ## Run SCM
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 complete_openscm_runner = update_index_levels_func(
     complete_scm,
     {
@@ -316,7 +321,7 @@ complete_openscm_runner = update_index_levels_func(
         )
     },
 )
-complete_openscm_runner
+# complete_openscm_runner
 
 
 # %%
@@ -422,6 +427,7 @@ if not existing_data.empty:
     )
     print(f"DIAGNOSTIC: Existing variables: {sorted(existing_data.pix.unique('variable')[:5])}...")
 
+# %% editable=true slideshow={"slide_type": ""}
 SCM_OUTPUT_DB.save(complete_scm.pix.assign(climate_model=scm), allow_overwrite=True)
 
 # DIAGNOSTIC: Check what's in the database AFTER saving

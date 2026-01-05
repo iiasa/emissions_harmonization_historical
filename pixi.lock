@@ -354,7 +354,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/25/03/8e228b3df0bc9564e847c53f6d45f68aafce3eeea36d185463cb633b071d/f90nml-1.4.5.tar.gz
       - pypi: https://files.pythonhosted.org/packages/8f/7d/2d6ce181d7a5f51dedb8c06206cbf0ec026a99bf145edd309f9e17c3282f/fastapi-0.115.8-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/89/ec/00d68c4ddfedfe64159999e5f8a98fb8442729a63e2077eb9dcd89623d27/filelock-3.17.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/ba/2d/c2ba48a9700e104f3bdec476e5eff9a21836bc91e6af04bd0f24acd51d44/gcages-0.12.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/1c/76/2e7b771bbb7ae3095195c521bd9692190b27bb5b7c013a735253eca687ed/gcages-0.13.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a0/61/5c78b91c3143ed5c14207f463aecfc8f9dbb5092fb2869baf37c273b2705/gitdb-4.0.12-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/1d/9a/4114a9057db2f1462d5c8f8390ab7383925fe1ac012eaa42402ad65c2963/GitPython-3.1.44-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/cb/99/f8ad15b4414489be553f323109fd279ba98f48bc9b38b648f2f6c0628f17/globalwarmingpotentials-0.11.1-py2.py3-none-any.whl
@@ -411,7 +411,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/a9/cd/7e8753b9ef31c4e18d8c206019be052380bd2e8eb389180b6b39dc3f0c1e/xarray_regrid-0.4.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a6/0c/c2a72d51fe56e08a08acc85d13013558a2d793028ae7385448a6ccdfae64/xlrd-2.0.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/9b/07/df054f7413bdfff5e98f75056e4ed0977d0c8716424011fac2587864d1d3/XlsxWriter-3.2.2-py3-none-any.whl
-      - pypi: ./
+      - pypi: .
       linux-aarch64:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/_openmp_mutex-4.5-2_gnu.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/noarch/affine-2.4.0-pyhd8ed1ab_1.conda
@@ -759,7 +759,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/25/03/8e228b3df0bc9564e847c53f6d45f68aafce3eeea36d185463cb633b071d/f90nml-1.4.5.tar.gz
       - pypi: https://files.pythonhosted.org/packages/8f/7d/2d6ce181d7a5f51dedb8c06206cbf0ec026a99bf145edd309f9e17c3282f/fastapi-0.115.8-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/89/ec/00d68c4ddfedfe64159999e5f8a98fb8442729a63e2077eb9dcd89623d27/filelock-3.17.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/ba/2d/c2ba48a9700e104f3bdec476e5eff9a21836bc91e6af04bd0f24acd51d44/gcages-0.12.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/1c/76/2e7b771bbb7ae3095195c521bd9692190b27bb5b7c013a735253eca687ed/gcages-0.13.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a0/61/5c78b91c3143ed5c14207f463aecfc8f9dbb5092fb2869baf37c273b2705/gitdb-4.0.12-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/1d/9a/4114a9057db2f1462d5c8f8390ab7383925fe1ac012eaa42402ad65c2963/GitPython-3.1.44-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/cb/99/f8ad15b4414489be553f323109fd279ba98f48bc9b38b648f2f6c0628f17/globalwarmingpotentials-0.11.1-py2.py3-none-any.whl
@@ -816,7 +816,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/a9/cd/7e8753b9ef31c4e18d8c206019be052380bd2e8eb389180b6b39dc3f0c1e/xarray_regrid-0.4.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a6/0c/c2a72d51fe56e08a08acc85d13013558a2d793028ae7385448a6ccdfae64/xlrd-2.0.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/9b/07/df054f7413bdfff5e98f75056e4ed0977d0c8716424011fac2587864d1d3/XlsxWriter-3.2.2-py3-none-any.whl
-      - pypi: ./
+      - pypi: .
       osx-64:
       - conda: https://conda.anaconda.org/conda-forge/noarch/affine-2.4.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/anyio-4.8.0-pyhd8ed1ab_0.conda
@@ -1157,7 +1157,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/25/03/8e228b3df0bc9564e847c53f6d45f68aafce3eeea36d185463cb633b071d/f90nml-1.4.5.tar.gz
       - pypi: https://files.pythonhosted.org/packages/8f/7d/2d6ce181d7a5f51dedb8c06206cbf0ec026a99bf145edd309f9e17c3282f/fastapi-0.115.8-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/89/ec/00d68c4ddfedfe64159999e5f8a98fb8442729a63e2077eb9dcd89623d27/filelock-3.17.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/ba/2d/c2ba48a9700e104f3bdec476e5eff9a21836bc91e6af04bd0f24acd51d44/gcages-0.12.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/1c/76/2e7b771bbb7ae3095195c521bd9692190b27bb5b7c013a735253eca687ed/gcages-0.13.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a0/61/5c78b91c3143ed5c14207f463aecfc8f9dbb5092fb2869baf37c273b2705/gitdb-4.0.12-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/1d/9a/4114a9057db2f1462d5c8f8390ab7383925fe1ac012eaa42402ad65c2963/GitPython-3.1.44-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/cb/99/f8ad15b4414489be553f323109fd279ba98f48bc9b38b648f2f6c0628f17/globalwarmingpotentials-0.11.1-py2.py3-none-any.whl
@@ -1214,7 +1214,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/a9/cd/7e8753b9ef31c4e18d8c206019be052380bd2e8eb389180b6b39dc3f0c1e/xarray_regrid-0.4.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a6/0c/c2a72d51fe56e08a08acc85d13013558a2d793028ae7385448a6ccdfae64/xlrd-2.0.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/9b/07/df054f7413bdfff5e98f75056e4ed0977d0c8716424011fac2587864d1d3/XlsxWriter-3.2.2-py3-none-any.whl
-      - pypi: ./
+      - pypi: .
       osx-arm64:
       - conda: https://conda.anaconda.org/conda-forge/noarch/affine-2.4.0-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/anyio-4.8.0-pyhd8ed1ab_0.conda
@@ -1555,7 +1555,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/25/03/8e228b3df0bc9564e847c53f6d45f68aafce3eeea36d185463cb633b071d/f90nml-1.4.5.tar.gz
       - pypi: https://files.pythonhosted.org/packages/8f/7d/2d6ce181d7a5f51dedb8c06206cbf0ec026a99bf145edd309f9e17c3282f/fastapi-0.115.8-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/89/ec/00d68c4ddfedfe64159999e5f8a98fb8442729a63e2077eb9dcd89623d27/filelock-3.17.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/ba/2d/c2ba48a9700e104f3bdec476e5eff9a21836bc91e6af04bd0f24acd51d44/gcages-0.12.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/1c/76/2e7b771bbb7ae3095195c521bd9692190b27bb5b7c013a735253eca687ed/gcages-0.13.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a0/61/5c78b91c3143ed5c14207f463aecfc8f9dbb5092fb2869baf37c273b2705/gitdb-4.0.12-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/1d/9a/4114a9057db2f1462d5c8f8390ab7383925fe1ac012eaa42402ad65c2963/GitPython-3.1.44-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/cb/99/f8ad15b4414489be553f323109fd279ba98f48bc9b38b648f2f6c0628f17/globalwarmingpotentials-0.11.1-py2.py3-none-any.whl
@@ -1611,7 +1611,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/a9/cd/7e8753b9ef31c4e18d8c206019be052380bd2e8eb389180b6b39dc3f0c1e/xarray_regrid-0.4.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a6/0c/c2a72d51fe56e08a08acc85d13013558a2d793028ae7385448a6ccdfae64/xlrd-2.0.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/9b/07/df054f7413bdfff5e98f75056e4ed0977d0c8716424011fac2587864d1d3/XlsxWriter-3.2.2-py3-none-any.whl
-      - pypi: ./
+      - pypi: .
       win-64:
       - conda: https://conda.anaconda.org/conda-forge/win-64/_libavif_api-1.1.1-h57928b3_2.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/_openmp_mutex-4.5-2_gnu.conda
@@ -1943,7 +1943,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/25/03/8e228b3df0bc9564e847c53f6d45f68aafce3eeea36d185463cb633b071d/f90nml-1.4.5.tar.gz
       - pypi: https://files.pythonhosted.org/packages/8f/7d/2d6ce181d7a5f51dedb8c06206cbf0ec026a99bf145edd309f9e17c3282f/fastapi-0.115.8-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/89/ec/00d68c4ddfedfe64159999e5f8a98fb8442729a63e2077eb9dcd89623d27/filelock-3.17.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/ba/2d/c2ba48a9700e104f3bdec476e5eff9a21836bc91e6af04bd0f24acd51d44/gcages-0.12.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/1c/76/2e7b771bbb7ae3095195c521bd9692190b27bb5b7c013a735253eca687ed/gcages-0.13.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a0/61/5c78b91c3143ed5c14207f463aecfc8f9dbb5092fb2869baf37c273b2705/gitdb-4.0.12-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/1d/9a/4114a9057db2f1462d5c8f8390ab7383925fe1ac012eaa42402ad65c2963/GitPython-3.1.44-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/cb/99/f8ad15b4414489be553f323109fd279ba98f48bc9b38b648f2f6c0628f17/globalwarmingpotentials-0.11.1-py2.py3-none-any.whl
@@ -2001,7 +2001,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/a9/cd/7e8753b9ef31c4e18d8c206019be052380bd2e8eb389180b6b39dc3f0c1e/xarray_regrid-0.4.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a6/0c/c2a72d51fe56e08a08acc85d13013558a2d793028ae7385448a6ccdfae64/xlrd-2.0.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/9b/07/df054f7413bdfff5e98f75056e4ed0977d0c8716424011fac2587864d1d3/XlsxWriter-3.2.2-py3-none-any.whl
-      - pypi: ./
+      - pypi: .
 packages:
 - conda: https://conda.anaconda.org/conda-forge/win-64/_libavif_api-1.1.1-h57928b3_2.conda
   sha256: b99b8948a170ff721ea958ee04a4431797070e85dd6942cb27b73ac3102e5145
@@ -2084,7 +2084,7 @@ packages:
   requires_python: '>=3.8'
 - pypi: git+https://github.com/iiasa/aneris.git?rev=9e5aa002b523f1d5d0ac32554988816e8c20cb44#9e5aa002b523f1d5d0ac32554988816e8c20cb44
   name: aneris-iamc
-  version: 0.3.3.dev6+g9e5aa002b
+  version: 0.3.3.dev6+g9e5aa00
   requires_dist:
   - numpy
   - pandas>=1.1
@@ -4778,10 +4778,10 @@ packages:
   - pkg:pypi/distributed?source=hash-mapping
   size: 803908
   timestamp: 1734473202885
-- pypi: ./
+- pypi: .
   name: emissions-harmonization-historical
   version: 0.1.0
-  sha256: cca5085c598300631f2855e19b29a7221bec162173f5710397b1b0311654a172
+  sha256: 35912334df57147e42dd591cfb9c71c0eca65e73d1c358c07c18873b8bdfeb17
   requires_dist:
   - pre-commit==3.3.1
   - ptolemy-iamc @ git+https://github.com/gidden/ptolemy.git@015aa843c340bd57464eb7cfd5f3c8e397201266
@@ -4797,7 +4797,7 @@ packages:
   - loguru>=0.7.3,<0.8
   - openscm-zenodo>=0.5.0,<0.6
   - python-dotenv>=1.1.0,<2
-  - gcages>=0.12.0
+  - gcages>=0.13.0
   - ixmp4>=0.9.8,<0.10
   - pandas-openscm>=0.5.0
   requires_python: ==3.11.*
@@ -5198,10 +5198,10 @@ packages:
   - pkg:pypi/fsspec?source=hash-mapping
   size: 138186
   timestamp: 1738501352608
-- pypi: https://files.pythonhosted.org/packages/ba/2d/c2ba48a9700e104f3bdec476e5eff9a21836bc91e6af04bd0f24acd51d44/gcages-0.12.0-py3-none-any.whl
+- pypi: https://files.pythonhosted.org/packages/1c/76/2e7b771bbb7ae3095195c521bd9692190b27bb5b7c013a735253eca687ed/gcages-0.13.0-py3-none-any.whl
   name: gcages
-  version: 0.12.0
-  sha256: eded636f8acde098f7e8ea5af9f1160d149de81a05a2e1121139045574f9dff0
+  version: 0.13.0
+  sha256: 8b3c555421362c152cb95f50a14c19eaa274e55d1301d9bd20cb9e43d1acf25b
   requires_dist:
   - backports-strenum>=1.3.1 ; python_full_version < '3.11'
   - numpy>=1.26.0 ; python_full_version < '3.13'
@@ -5226,7 +5226,7 @@ packages:
   - attrs==24.3.0 ; extra == 'locked'
   - backports-strenum==1.3.1 ; python_full_version >= '3.9' and python_full_version < '3.11' and extra == 'locked'
   - numpy==2.2.6 ; python_full_version >= '3.10' and python_full_version < '3.12' and extra == 'locked'
-  - numpy==2.3.3 ; python_full_version >= '3.12' and extra == 'locked'
+  - numpy==2.3.5 ; python_full_version >= '3.12' and extra == 'locked'
   - numpy==2.0.2 ; python_full_version == '3.9.*' and extra == 'locked'
   - pandas==2.3.3 ; extra == 'locked'
   - pandas-openscm==0.9.0 ; extra == 'locked'
@@ -5234,13 +5234,15 @@ packages:
   - pytz==2025.2 ; extra == 'locked'
   - six==1.17.0 ; extra == 'locked'
   - tzdata==2025.2 ; extra == 'locked'
-  - alembic==1.16.5 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
+  - alembic==1.17.2 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
   - aneris-iamc==0.4.2 ; python_full_version >= '3.10' and extra == 'ar6-locked'
+  - annotated-doc==0.0.4 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
   - annotated-types==0.7.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
   - anyio==4.8.0 ; extra == 'ar6-locked'
   - attrs==24.3.0 ; extra == 'ar6-locked'
   - certifi==2024.12.14 ; extra == 'ar6-locked'
-  - cftime==1.6.4.post1 ; extra == 'ar6-locked'
+  - cftime==1.6.5 ; python_full_version >= '3.10' and extra == 'ar6-locked'
+  - cftime==1.6.4.post1 ; python_full_version == '3.9.*' and extra == 'ar6-locked'
   - charset-normalizer==3.4.1 ; extra == 'ar6-locked'
   - click==8.1.8 ; extra == 'ar6-locked'
   - colorama==0.4.6 ; extra == 'ar6-locked'
@@ -5248,16 +5250,17 @@ packages:
   - contourpy==1.3.3 ; python_full_version >= '3.12' and extra == 'ar6-locked'
   - contourpy==1.3.0 ; python_full_version == '3.9.*' and extra == 'ar6-locked'
   - cycler==0.12.1 ; extra == 'ar6-locked'
-  - deprecated==1.2.18 ; extra == 'ar6-locked'
+  - deprecated==1.3.1 ; extra == 'ar6-locked'
   - et-xmlfile==2.0.0 ; extra == 'ar6-locked'
-  - exceptiongroup==1.3.0 ; python_full_version >= '3.9' and python_full_version < '3.11' and extra == 'ar6-locked'
+  - exceptiongroup==1.3.1 ; python_full_version >= '3.9' and python_full_version < '3.11' and extra == 'ar6-locked'
   - f90nml==1.5 ; extra == 'ar6-locked'
-  - fastapi==0.118.3 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
+  - fastapi==0.123.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
   - filelock==3.20.0 ; python_full_version >= '3.10' and extra == 'ar6-locked'
   - filelock==3.19.1 ; python_full_version == '3.9.*' and extra == 'ar6-locked'
   - flexcache==0.3 ; extra == 'ar6-locked'
   - flexparser==0.4 ; extra == 'ar6-locked'
-  - fonttools==4.60.1 ; extra == 'ar6-locked'
+  - fonttools==4.61.0 ; python_full_version >= '3.10' and extra == 'ar6-locked'
+  - fonttools==4.60.1 ; python_full_version == '3.9.*' and extra == 'ar6-locked'
   - globalwarmingpotentials==0.11.1 ; extra == 'ar6-locked'
   - greenlet==3.2.4 ; (python_full_version >= '3.10' and python_full_version < '3.13' and platform_machine == 'AMD64' and extra == 'ar6-locked') or (python_full_version >= '3.10' and python_full_version < '3.13' and platform_machine == 'WIN32' and extra == 'ar6-locked') or (python_full_version >= '3.10' and python_full_version < '3.13' and platform_machine == 'aarch64' and extra == 'ar6-locked') or (python_full_version >= '3.10' and python_full_version < '3.13' and platform_machine == 'amd64' and extra == 'ar6-locked') or (python_full_version >= '3.10' and python_full_version < '3.13' and platform_machine == 'ppc64le' and extra == 'ar6-locked') or (python_full_version >= '3.10' and python_full_version < '3.13' and platform_machine == 'win32' and extra == 'ar6-locked') or (python_full_version >= '3.10' and python_full_version < '3.13' and platform_machine == 'x86_64' and extra == 'ar6-locked')
   - h11==0.14.0 ; extra == 'ar6-locked'
@@ -5267,11 +5270,11 @@ packages:
   - httpx==0.28.1 ; extra == 'ar6-locked'
   - httpx[http2]==0.28.1 ; python_full_version >= '3.9' and python_full_version < '3.13' and extra == 'ar6-locked'
   - hyperframe==6.1.0 ; python_full_version >= '3.9' and python_full_version < '3.13' and extra == 'ar6-locked'
-  - iam-units==2025.9.12 ; extra == 'ar6-locked'
+  - iam-units==2025.10.13 ; extra == 'ar6-locked'
   - idna==3.10 ; extra == 'ar6-locked'
   - importlib-metadata==8.7.0 ; (python_full_version == '3.9.*' and extra == 'ar6-locked') or (python_full_version >= '3.13' and extra == 'ar6-locked')
   - importlib-resources==6.5.2 ; python_full_version >= '3.9' and python_full_version < '3.12' and extra == 'ar6-locked'
-  - ixmp4==0.13.1 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
+  - ixmp4==0.14.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
   - kiwisolver==1.4.9 ; python_full_version >= '3.10' and extra == 'ar6-locked'
   - kiwisolver==1.4.7 ; python_full_version == '3.9.*' and extra == 'ar6-locked'
   - mako==1.3.10 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
@@ -5283,7 +5286,7 @@ packages:
   - mypy==1.14.0 ; extra == 'ar6-locked'
   - mypy-extensions==1.1.0 ; extra == 'ar6-locked'
   - numpy==2.2.6 ; python_full_version >= '3.10' and python_full_version < '3.12' and extra == 'ar6-locked'
-  - numpy==2.3.3 ; python_full_version >= '3.12' and extra == 'ar6-locked'
+  - numpy==2.3.5 ; python_full_version >= '3.12' and extra == 'ar6-locked'
   - numpy==2.0.2 ; python_full_version == '3.9.*' and extra == 'ar6-locked'
   - openpyxl==3.1.5 ; extra == 'ar6-locked'
   - openscm-runner==0.13.0 ; extra == 'ar6-locked'
@@ -5295,41 +5298,42 @@ packages:
   - pandas-indexing[units]==0.6.3 ; extra == 'ar6-locked'
   - pandas-openscm==0.9.0 ; extra == 'ar6-locked'
   - pandas-openscm[db]==0.9.0 ; extra == 'ar6-locked'
-  - pandera==0.26.1 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
-  - pillow==11.3.0 ; extra == 'ar6-locked'
+  - pandera==0.27.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
+  - pillow==12.0.0 ; python_full_version >= '3.10' and extra == 'ar6-locked'
+  - pillow==11.3.0 ; python_full_version == '3.9.*' and extra == 'ar6-locked'
   - pint==0.24.4 ; python_full_version >= '3.9' and python_full_version < '3.12' and extra == 'ar6-locked'
-  - pint==0.25 ; python_full_version >= '3.12' and extra == 'ar6-locked'
+  - pint==0.25.2 ; python_full_version >= '3.12' and extra == 'ar6-locked'
   - pint-pandas==0.7.1 ; extra == 'ar6-locked'
   - platformdirs==4.3.6 ; extra == 'ar6-locked'
   - ply==3.11 ; python_full_version >= '3.10' and extra == 'ar6-locked'
-  - psycopg==3.2.10 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
-  - psycopg-binary==3.2.10 ; python_full_version >= '3.10' and python_full_version < '3.13' and implementation_name != 'pypy' and extra == 'ar6-locked'
-  - psycopg[binary]==3.2.10 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
-  - pyam-iamc==3.1.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
+  - psycopg==3.3.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
+  - psycopg-binary==3.3.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and implementation_name != 'pypy' and extra == 'ar6-locked'
+  - psycopg[binary]==3.3.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
+  - pyam-iamc==3.2.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
   - pyam-iamc==1.2.0 ; python_full_version >= '3.13' and extra == 'ar6-locked'
   - pyam-iamc==1.6.0 ; python_full_version == '3.9.*' and extra == 'ar6-locked'
   - pycountry==24.6.1 ; python_full_version >= '3.10' and extra == 'ar6-locked'
-  - pydantic==2.12.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
-  - pydantic-core==2.41.1 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
-  - pydantic-settings==2.11.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
+  - pydantic==2.12.5 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
+  - pydantic-core==2.41.5 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
+  - pydantic-settings==2.12.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
   - pygments==2.19.1 ; extra == 'ar6-locked'
   - pyjwt==2.10.1 ; python_full_version >= '3.9' and python_full_version < '3.13' and extra == 'ar6-locked'
   - pymagicc==2.1.5 ; extra == 'ar6-locked'
-  - pyomo==6.9.4 ; python_full_version >= '3.10' and extra == 'ar6-locked'
+  - pyomo==6.9.5 ; python_full_version >= '3.10' and extra == 'ar6-locked'
   - pyparsing==3.2.5 ; extra == 'ar6-locked'
   - python-dateutil==2.9.0.post0 ; extra == 'ar6-locked'
-  - python-dotenv==1.1.1 ; extra == 'ar6-locked'
+  - python-dotenv==1.2.1 ; extra == 'ar6-locked'
   - pytz==2025.2 ; extra == 'ar6-locked'
   - pyyaml==6.0.2 ; extra == 'ar6-locked'
   - requests==2.32.3 ; extra == 'ar6-locked'
   - rich==14.2.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
   - scipy==1.15.3 ; python_full_version >= '3.10' and python_full_version < '3.12' and extra == 'ar6-locked'
-  - scipy==1.16.2 ; python_full_version >= '3.12' and extra == 'ar6-locked'
+  - scipy==1.16.3 ; python_full_version >= '3.12' and extra == 'ar6-locked'
   - scipy==1.13.1 ; python_full_version == '3.9.*' and extra == 'ar6-locked'
   - scmdata==0.18.0 ; extra == 'ar6-locked'
   - seaborn==0.13.2 ; extra == 'ar6-locked'
   - setuptools==75.6.0 ; extra == 'ar6-locked'
-  - setuptools-scm==9.2.0 ; (python_full_version == '3.9.*' and extra == 'ar6-locked') or (python_full_version >= '3.13' and extra == 'ar6-locked')
+  - setuptools-scm==9.2.2 ; (python_full_version == '3.9.*' and extra == 'ar6-locked') or (python_full_version >= '3.13' and extra == 'ar6-locked')
   - shellingham==1.5.4 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
   - silicone==1.3.0 ; extra == 'ar6-locked'
   - six==1.17.0 ; extra == 'ar6-locked'
@@ -5337,12 +5341,12 @@ packages:
   - sqlalchemy==2.0.44 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
   - sqlalchemy-utils==0.42.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
   - sqlalchemy[mypy]==2.0.44 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
-  - starlette==0.48.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
+  - starlette==0.50.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
   - toml==0.10.2 ; extra == 'ar6-locked'
   - tomli==2.3.0 ; python_full_version >= '3.9' and python_full_version < '3.11' and extra == 'ar6-locked'
   - tqdm==4.67.1 ; extra == 'ar6-locked'
   - typeguard==4.4.4 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
-  - typer==0.19.2 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
+  - typer==0.20.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
   - typing-extensions==4.15.0 ; extra == 'ar6-locked'
   - typing-inspect==0.9.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
   - typing-inspection==0.4.2 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
@@ -5350,17 +5354,17 @@ packages:
   - urllib3==2.3.0 ; extra == 'ar6-locked'
   - versioneer==0.29 ; extra == 'ar6-locked'
   - wquantiles==0.6 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'ar6-locked'
-  - wrapt==1.17.3 ; extra == 'ar6-locked'
+  - wrapt==2.0.1 ; extra == 'ar6-locked'
   - xarray==2025.6.1 ; python_full_version >= '3.10' and python_full_version < '3.12' and extra == 'ar6-locked'
-  - xarray==2025.10.1 ; python_full_version >= '3.12' and extra == 'ar6-locked'
+  - xarray==2025.11.0 ; python_full_version >= '3.12' and extra == 'ar6-locked'
   - xarray==2024.7.0 ; python_full_version == '3.9.*' and extra == 'ar6-locked'
   - xlrd==2.0.2 ; extra == 'ar6-locked'
   - xlsxwriter==3.2.9 ; python_full_version >= '3.9' and python_full_version < '3.13' and extra == 'ar6-locked'
   - zipp==3.23.0 ; (python_full_version == '3.9.*' and extra == 'ar6-locked') or (python_full_version >= '3.13' and extra == 'ar6-locked')
   - attrs==24.3.0 ; extra == 'cmip7scenariomip-locked'
-  - deprecated==1.2.18 ; extra == 'cmip7scenariomip-locked'
+  - deprecated==1.3.1 ; extra == 'cmip7scenariomip-locked'
   - numpy==2.2.6 ; python_full_version >= '3.10' and python_full_version < '3.12' and extra == 'cmip7scenariomip-locked'
-  - numpy==2.3.3 ; python_full_version >= '3.12' and extra == 'cmip7scenariomip-locked'
+  - numpy==2.3.5 ; python_full_version >= '3.12' and extra == 'cmip7scenariomip-locked'
   - numpy==2.0.2 ; python_full_version == '3.9.*' and extra == 'cmip7scenariomip-locked'
   - pandas==2.3.3 ; extra == 'cmip7scenariomip-locked'
   - pandas-indexing==0.6.3 ; extra == 'cmip7scenariomip-locked'
@@ -5368,16 +5372,18 @@ packages:
   - pytz==2025.2 ; extra == 'cmip7scenariomip-locked'
   - six==1.17.0 ; extra == 'cmip7scenariomip-locked'
   - tzdata==2025.2 ; extra == 'cmip7scenariomip-locked'
-  - wrapt==1.17.3 ; extra == 'cmip7scenariomip-locked'
+  - wrapt==2.0.1 ; extra == 'cmip7scenariomip-locked'
   - colorama==0.4.6 ; extra == 'progress-locked'
   - tqdm==4.67.1 ; extra == 'progress-locked'
-  - alembic==1.16.5 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
+  - alembic==1.17.2 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
   - aneris-iamc==0.4.2 ; python_full_version >= '3.10' and extra == 'full-locked'
+  - annotated-doc==0.0.4 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
   - annotated-types==0.7.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
   - anyio==4.8.0 ; extra == 'full-locked'
   - attrs==24.3.0 ; extra == 'full-locked'
   - certifi==2024.12.14 ; extra == 'full-locked'
-  - cftime==1.6.4.post1 ; extra == 'full-locked'
+  - cftime==1.6.5 ; python_full_version >= '3.10' and extra == 'full-locked'
+  - cftime==1.6.4.post1 ; python_full_version == '3.9.*' and extra == 'full-locked'
   - charset-normalizer==3.4.1 ; extra == 'full-locked'
   - click==8.1.8 ; extra == 'full-locked'
   - colorama==0.4.6 ; extra == 'full-locked'
@@ -5385,16 +5391,17 @@ packages:
   - contourpy==1.3.3 ; python_full_version >= '3.12' and extra == 'full-locked'
   - contourpy==1.3.0 ; python_full_version == '3.9.*' and extra == 'full-locked'
   - cycler==0.12.1 ; extra == 'full-locked'
-  - deprecated==1.2.18 ; extra == 'full-locked'
+  - deprecated==1.3.1 ; extra == 'full-locked'
   - et-xmlfile==2.0.0 ; extra == 'full-locked'
-  - exceptiongroup==1.3.0 ; python_full_version >= '3.9' and python_full_version < '3.11' and extra == 'full-locked'
+  - exceptiongroup==1.3.1 ; python_full_version >= '3.9' and python_full_version < '3.11' and extra == 'full-locked'
   - f90nml==1.5 ; extra == 'full-locked'
-  - fastapi==0.118.3 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
+  - fastapi==0.123.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
   - filelock==3.20.0 ; python_full_version >= '3.10' and extra == 'full-locked'
   - filelock==3.19.1 ; python_full_version == '3.9.*' and extra == 'full-locked'
   - flexcache==0.3 ; extra == 'full-locked'
   - flexparser==0.4 ; extra == 'full-locked'
-  - fonttools==4.60.1 ; extra == 'full-locked'
+  - fonttools==4.61.0 ; python_full_version >= '3.10' and extra == 'full-locked'
+  - fonttools==4.60.1 ; python_full_version == '3.9.*' and extra == 'full-locked'
   - globalwarmingpotentials==0.11.1 ; extra == 'full-locked'
   - greenlet==3.2.4 ; (python_full_version >= '3.10' and python_full_version < '3.13' and platform_machine == 'AMD64' and extra == 'full-locked') or (python_full_version >= '3.10' and python_full_version < '3.13' and platform_machine == 'WIN32' and extra == 'full-locked') or (python_full_version >= '3.10' and python_full_version < '3.13' and platform_machine == 'aarch64' and extra == 'full-locked') or (python_full_version >= '3.10' and python_full_version < '3.13' and platform_machine == 'amd64' and extra == 'full-locked') or (python_full_version >= '3.10' and python_full_version < '3.13' and platform_machine == 'ppc64le' and extra == 'full-locked') or (python_full_version >= '3.10' and python_full_version < '3.13' and platform_machine == 'win32' and extra == 'full-locked') or (python_full_version >= '3.10' and python_full_version < '3.13' and platform_machine == 'x86_64' and extra == 'full-locked')
   - h11==0.14.0 ; extra == 'full-locked'
@@ -5404,11 +5411,11 @@ packages:
   - httpx==0.28.1 ; extra == 'full-locked'
   - httpx[http2]==0.28.1 ; python_full_version >= '3.9' and python_full_version < '3.13' and extra == 'full-locked'
   - hyperframe==6.1.0 ; python_full_version >= '3.9' and python_full_version < '3.13' and extra == 'full-locked'
-  - iam-units==2025.9.12 ; extra == 'full-locked'
+  - iam-units==2025.10.13 ; extra == 'full-locked'
   - idna==3.10 ; extra == 'full-locked'
   - importlib-metadata==8.7.0 ; (python_full_version == '3.9.*' and extra == 'full-locked') or (python_full_version >= '3.13' and extra == 'full-locked')
   - importlib-resources==6.5.2 ; python_full_version >= '3.9' and python_full_version < '3.12' and extra == 'full-locked'
-  - ixmp4==0.13.1 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
+  - ixmp4==0.14.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
   - kiwisolver==1.4.9 ; python_full_version >= '3.10' and extra == 'full-locked'
   - kiwisolver==1.4.7 ; python_full_version == '3.9.*' and extra == 'full-locked'
   - mako==1.3.10 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
@@ -5420,7 +5427,7 @@ packages:
   - mypy==1.14.0 ; extra == 'full-locked'
   - mypy-extensions==1.1.0 ; extra == 'full-locked'
   - numpy==2.2.6 ; python_full_version >= '3.10' and python_full_version < '3.12' and extra == 'full-locked'
-  - numpy==2.3.3 ; python_full_version >= '3.12' and extra == 'full-locked'
+  - numpy==2.3.5 ; python_full_version >= '3.12' and extra == 'full-locked'
   - numpy==2.0.2 ; python_full_version == '3.9.*' and extra == 'full-locked'
   - openpyxl==3.1.5 ; extra == 'full-locked'
   - openscm-runner==0.13.0 ; extra == 'full-locked'
@@ -5432,41 +5439,42 @@ packages:
   - pandas-indexing[units]==0.6.3 ; extra == 'full-locked'
   - pandas-openscm==0.9.0 ; extra == 'full-locked'
   - pandas-openscm[db]==0.9.0 ; extra == 'full-locked'
-  - pandera==0.26.1 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
-  - pillow==11.3.0 ; extra == 'full-locked'
+  - pandera==0.27.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
+  - pillow==12.0.0 ; python_full_version >= '3.10' and extra == 'full-locked'
+  - pillow==11.3.0 ; python_full_version == '3.9.*' and extra == 'full-locked'
   - pint==0.24.4 ; python_full_version >= '3.9' and python_full_version < '3.12' and extra == 'full-locked'
-  - pint==0.25 ; python_full_version >= '3.12' and extra == 'full-locked'
+  - pint==0.25.2 ; python_full_version >= '3.12' and extra == 'full-locked'
   - pint-pandas==0.7.1 ; extra == 'full-locked'
   - platformdirs==4.3.6 ; extra == 'full-locked'
   - ply==3.11 ; python_full_version >= '3.10' and extra == 'full-locked'
-  - psycopg==3.2.10 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
-  - psycopg-binary==3.2.10 ; python_full_version >= '3.10' and python_full_version < '3.13' and implementation_name != 'pypy' and extra == 'full-locked'
-  - psycopg[binary]==3.2.10 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
-  - pyam-iamc==3.1.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
+  - psycopg==3.3.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
+  - psycopg-binary==3.3.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and implementation_name != 'pypy' and extra == 'full-locked'
+  - psycopg[binary]==3.3.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
+  - pyam-iamc==3.2.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
   - pyam-iamc==1.2.0 ; python_full_version >= '3.13' and extra == 'full-locked'
   - pyam-iamc==1.6.0 ; python_full_version == '3.9.*' and extra == 'full-locked'
   - pycountry==24.6.1 ; python_full_version >= '3.10' and extra == 'full-locked'
-  - pydantic==2.12.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
-  - pydantic-core==2.41.1 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
-  - pydantic-settings==2.11.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
+  - pydantic==2.12.5 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
+  - pydantic-core==2.41.5 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
+  - pydantic-settings==2.12.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
   - pygments==2.19.1 ; extra == 'full-locked'
   - pyjwt==2.10.1 ; python_full_version >= '3.9' and python_full_version < '3.13' and extra == 'full-locked'
   - pymagicc==2.1.5 ; extra == 'full-locked'
-  - pyomo==6.9.4 ; python_full_version >= '3.10' and extra == 'full-locked'
+  - pyomo==6.9.5 ; python_full_version >= '3.10' and extra == 'full-locked'
   - pyparsing==3.2.5 ; extra == 'full-locked'
   - python-dateutil==2.9.0.post0 ; extra == 'full-locked'
-  - python-dotenv==1.1.1 ; extra == 'full-locked'
+  - python-dotenv==1.2.1 ; extra == 'full-locked'
   - pytz==2025.2 ; extra == 'full-locked'
   - pyyaml==6.0.2 ; extra == 'full-locked'
   - requests==2.32.3 ; extra == 'full-locked'
   - rich==14.2.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
   - scipy==1.15.3 ; python_full_version >= '3.10' and python_full_version < '3.12' and extra == 'full-locked'
-  - scipy==1.16.2 ; python_full_version >= '3.12' and extra == 'full-locked'
+  - scipy==1.16.3 ; python_full_version >= '3.12' and extra == 'full-locked'
   - scipy==1.13.1 ; python_full_version == '3.9.*' and extra == 'full-locked'
   - scmdata==0.18.0 ; extra == 'full-locked'
   - seaborn==0.13.2 ; extra == 'full-locked'
   - setuptools==75.6.0 ; extra == 'full-locked'
-  - setuptools-scm==9.2.0 ; (python_full_version == '3.9.*' and extra == 'full-locked') or (python_full_version >= '3.13' and extra == 'full-locked')
+  - setuptools-scm==9.2.2 ; (python_full_version == '3.9.*' and extra == 'full-locked') or (python_full_version >= '3.13' and extra == 'full-locked')
   - shellingham==1.5.4 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
   - silicone==1.3.0 ; extra == 'full-locked'
   - six==1.17.0 ; extra == 'full-locked'
@@ -5474,12 +5482,12 @@ packages:
   - sqlalchemy==2.0.44 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
   - sqlalchemy-utils==0.42.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
   - sqlalchemy[mypy]==2.0.44 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
-  - starlette==0.48.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
+  - starlette==0.50.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
   - toml==0.10.2 ; extra == 'full-locked'
   - tomli==2.3.0 ; python_full_version >= '3.9' and python_full_version < '3.11' and extra == 'full-locked'
   - tqdm==4.67.1 ; extra == 'full-locked'
   - typeguard==4.4.4 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
-  - typer==0.19.2 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
+  - typer==0.20.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
   - typing-extensions==4.15.0 ; extra == 'full-locked'
   - typing-inspect==0.9.0 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
   - typing-inspection==0.4.2 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
@@ -5487,9 +5495,9 @@ packages:
   - urllib3==2.3.0 ; extra == 'full-locked'
   - versioneer==0.29 ; extra == 'full-locked'
   - wquantiles==0.6 ; python_full_version >= '3.10' and python_full_version < '3.13' and extra == 'full-locked'
-  - wrapt==1.17.3 ; extra == 'full-locked'
+  - wrapt==2.0.1 ; extra == 'full-locked'
   - xarray==2025.6.1 ; python_full_version >= '3.10' and python_full_version < '3.12' and extra == 'full-locked'
-  - xarray==2025.10.1 ; python_full_version >= '3.12' and extra == 'full-locked'
+  - xarray==2025.11.0 ; python_full_version >= '3.12' and extra == 'full-locked'
   - xarray==2024.7.0 ; python_full_version == '3.9.*' and extra == 'full-locked'
   - xlrd==2.0.2 ; extra == 'full-locked'
   - xlsxwriter==3.2.9 ; python_full_version >= '3.9' and python_full_version < '3.13' and extra == 'full-locked'
@@ -14133,7 +14141,7 @@ packages:
   timestamp: 1726802555076
 - pypi: git+https://github.com/gidden/ptolemy.git?rev=015aa843c340bd57464eb7cfd5f3c8e397201266#015aa843c340bd57464eb7cfd5f3c8e397201266
   name: ptolemy-iamc
-  version: 0.4.dev3+g015aa843c
+  version: 0.4.dev3+g015aa84
   requires_dist:
   - pandas>=1.2
   - deprecated
