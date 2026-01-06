@@ -1106,8 +1106,7 @@ continuous_timeseries_extended["stage"] = "extended"
 continuous_timeseries_extended = continuous_timeseries_extended.set_index("stage", append=True)
 continuous_timeseries_extended = continuous_timeseries_extended.droplevel("workflow")
 print(continuous_timeseries_extended.index.names)
-# Keep integer columns for compatibility with downstream notebooks
-INFILLED_SCENARIOS_DB.delete()
+# Save extended data without deleting complete data (both should coexist in final DB)
 INFILLED_SCENARIOS_DB.save(continuous_timeseries_extended, allow_overwrite=True)
 
 print("✅ Final database saved with both complete and extended stages")
