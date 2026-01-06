@@ -230,9 +230,9 @@ if scm in ["MAGICCv7.5.3", "MAGICCv7.6.0a3"]:
     )
 
     # Reduce ensemble size for faster testing (normally 600+ members)
-    n_ensemble_members = 10
-    climate_models_cfgs["MAGICC7"] = climate_models_cfgs["MAGICC7"][:n_ensemble_members]
-    print(f"Using {len(climate_models_cfgs['MAGICC7'])} MAGICC ensemble members for testing")
+    # n_ensemble_members = 10
+    # climate_models_cfgs["MAGICC7"] = climate_models_cfgs["MAGICC7"][:n_ensemble_members]
+    # print(f"Using {len(climate_models_cfgs['MAGICC7'])} MAGICC ensemble members for testing")
 
     complete_scm = get_complete_scenarios_for_magicc(
         scenarios=complete_scenarios,
