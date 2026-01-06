@@ -128,6 +128,10 @@ history = HISTORY_HARMONISATION_DB.load(pix.ismatch(purpose="global_workflow_emi
     "purpose", drop=True
 )
 
+# Drop workflow level if present (from older database format)
+if "workflow" in history.index.names:
+    history = history.reset_index("workflow", drop=True)
+
 # history.loc[:, :2023]
 
 # %% [markdown]

@@ -7,7 +7,7 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.18.1
 #   kernelspec:
-#     display_name: Python 3 (ipykernel)
+#     display_name: default
 #     language: python
 #     name: python3
 # ---
@@ -764,9 +764,6 @@ print(f"\nProcessed {processed_count} scenarios")
 # %%
 # Create a sanity check plot: stacked area plot of positive and negative CO2 components
 # with separate subplots for each scenario
-PLOT_GRID_COLS = 4  # Number of columns in the subplot grid
-fig, axes = plt.subplots(2, PLOT_GRID_COLS, figsize=(20, 12))
-axes = axes.flatten()  # Make it easier to iterate
 
 # Get year columns for plotting
 years = [col for col in co2_gross_positive_ext.columns if isinstance(col, int | float)]
@@ -783,6 +780,15 @@ scenarios_to_plot = []
 for model, scenario, var, unit in co2_gross_positive_ext.index:
     if (model, scenario) not in scenarios_to_plot:
         scenarios_to_plot.append((model, scenario))
+
+# Calculate grid size dynamically based on number of scenarios
+PLOT_GRID_COLS = 4  # Number of columns in the subplot grid
+n_scenarios = len(scenarios_to_plot)
+n_rows = (n_scenarios + PLOT_GRID_COLS - 1) // PLOT_GRID_COLS  # Ceiling division
+print(f"Creating {n_rows}x{PLOT_GRID_COLS} grid for {n_scenarios} scenarios")
+
+fig, axes = plt.subplots(n_rows, PLOT_GRID_COLS, figsize=(20, 6 * n_rows))
+axes = axes.flatten()  # Make it easier to iterate
 
 # Plot for each scenario in its own subplot
 for i, (model, scenario) in enumerate(scenarios_to_plot):
@@ -863,8 +869,9 @@ for i, (model, scenario) in enumerate(scenarios_to_plot):
         if i == 0:
             ax.legend(fontsize=9)
 
-# Hide the last subplot since we only have 7 scenarios
-axes[7].set_visible(False)
+# Hide unused subplots
+for i in range(len(scenarios_to_plot), len(axes)):
+    axes[i].set_visible(False)
 
 # Add overall title
 fig.suptitle(
@@ -947,7 +954,14 @@ if test_year in co2_beccs_ext.columns:
 
 
 # %% [markdown]
-# # Merge dataframes into df_everything
+#
+
+# %% [markdown]
+# # Extended missing sectors for regional (non-cdr fossil)
+#
+
+# %%
+# Merge dataframes into df_everything
 print("=== MERGING ALL DATAFRAMES INTO df_everything ===")
 df_everything = fix_up_and_concatenate_extensions(
     {
@@ -970,8 +984,6 @@ print(f"✅ Successfully merged all DataFrames! Shape: {df_everything.shape}")
 print(df_everything.shape)
 print(df_all.index.names)
 
-# %% [markdown]
-# # Extended missing sectors for regional (non-cdr fossil)
 df_everything = extend_regional_for_missing(df_everything, scenarios_regional, fractions_fossil_total)
 print(df_everything.shape)
 
