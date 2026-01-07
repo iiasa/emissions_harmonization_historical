@@ -7,7 +7,7 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.18.1
 #   kernelspec:
-#     display_name: Python 3 (ipykernel)
+#     display_name: default
 #     language: python
 #     name: python3
 # ---
@@ -100,12 +100,12 @@ TUPLE_LENGTH_WITH_STAGE = 6
 # %% tags=["parameters"]
 # Papermill parameters
 make_plots: bool = False
+dump_csvs: bool = False
 
 # %% [markdown]
 # More preamble
 
 # %%
-save_plots = make_plots
 dump_with_full_scenario_names = True
 
 pandas_openscm.register_pandas_accessor()
@@ -387,7 +387,7 @@ def do_all_non_co2_extensions(scenarios_complete_global, history):  # noqa: PLR0
                 plt.show()
                 plt.clf()
                 plt.close()
-            else:
+            elif make_plots:
                 plot_just_global(
                     meta[0],
                     meta[1],
@@ -408,26 +408,26 @@ def do_all_non_co2_extensions(scenarios_complete_global, history):  # noqa: PLR0
 # Set this to true if running for the first time to generate CSVs
 # Otherwise you can set to false to speed-up by not running throuhg
 # all the non-CO2 and afolu extensions again
-do_and_write_to_csv = False
+do_and_write_to_csv = True
 if do_and_write_to_csv:
     df_all = do_all_non_co2_extensions(scenarios_complete_global, history)
-    df_all.to_csv("first_draft_extended_nonCO2_all.csv")
-    afolu_dfs = calculate_afolu_extensions(scenarios_complete_global, history, cumulative_history_afolu, plot=True)
-    # print(df_all)
-    for name, afolu_df in afolu_dfs.items():
-        afolu_df.to_csv(f"first_draft_extended_afolu_{name}.csv")
-
+    afolu_dfs = calculate_afolu_extensions(
+        scenarios_complete_global, history, cumulative_history_afolu, plot=make_plots
+    )
+    if dump_csvs:
+        df_all.to_csv("first_draft_extended_nonCO2_all.csv")
+        for name, afolu_df in afolu_dfs.items():
+            afolu_df.to_csv(f"first_draft_extended_afolu_{name}.csv")
 
 # %%
 if not do_and_write_to_csv:
     df_all = pd.read_csv("first_draft_extended_nonCO2_all.csv", index_col=[0, 1, 2, 3, 4, 5])
-afolu_dfs = {}
-for afolu_file in glob.glob("first_draft_extended_afolu_linear*.csv"):
-    print("Reading " + afolu_file)
-    name = afolu_file.split("first_draft_extended_")[-1].split(".csv")[0]
+    afolu_dfs = {}
+    for afolu_file in glob.glob("first_draft_extended_afolu_linear*.csv"):
+        print("Reading " + afolu_file)
+        name = afolu_file.split("first_draft_extended_afolu_")[-1].split(".csv")[0]
 
-    afolu_dfs[name] = pd.read_csv(afolu_file)
-
+        afolu_dfs[name] = pd.read_csv(afolu_file, index_col=[0, 1, 2, 3, 4])
 
 # %% [markdown]
 # # Total CO2 Storyline dictionaries
@@ -477,9 +477,10 @@ fossil_evolution_dictionary = {
 # Looping over afolu variants to get CO2
 
 # %%
-name = "afolu_linear_afolu_rampdown"
+name = "linear_afolu_rampdown"
 df_afolu = afolu_dfs[name]
-fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(30, 15))
+if make_plots:
+    fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(30, 15))
 temp_list_for_new_data = []
 for s, meta in scenario_model_match.items():
     print(f"Processing fossil CO2 to match storyline and AFOLU for {s}")
@@ -507,7 +508,8 @@ for s, meta in scenario_model_match.items():
         )
     ]
     co2_fossil = co2_fossil[non_year_cols + year_cols]
-    co2_afolu = df_afolu.loc[(df_afolu["model"] == meta[1]) & (df_afolu["scenario"] == meta[0])]
+    # co2_afolu = df_afolu.loc[(df_afolu["model"] == meta[1]) & (df_afolu["scenario"] == meta[0])]
+    co2_afolu = df_afolu.loc[pix.ismatch(model=meta[1], scenario=meta[0])]
 
     co2_total_extend, co2_fossil_extend, extend_years = extend_co2_for_scen_storyline(
         co2_afolu, co2_fossil, fossil_evolution_dictionary[s]
@@ -516,34 +518,38 @@ for s, meta in scenario_model_match.items():
     df_total = pd.DataFrame(data=[co2_fossil_extend], columns=extend_years, index=co2_fossil.index)
     temp_list_for_new_data.append(df_total)
 
-    axs[0].plot(co2_fossil.columns, co2_fossil.values.flatten(), label=s, color=meta[2])
-    axs[0].plot(extend_years, co2_fossil_extend, label=s, color=meta[2], linestyle="--")
-    axs[0].plot(co2_fossil.columns, co2_fossil.values.flatten(), label=s, color=meta[2])
-    axs[1].plot(
-        extend_years,
-        co2_afolu.loc[:, "2023":].to_numpy().flatten(),
-        label=s,
-        color=meta[2],
-        linestyle="--",
-    )
-    axs[2].plot(extend_years, co2_total_extend, label=s, color=meta[2], linestyle="--")
-    axs[2].plot(
-        co2_fossil.columns,
-        co2_fossil.values.flatten() + co2_afolu.loc[:, "2023":"2100"].to_numpy().flatten(),
-        label=s,
-        color=meta[2],
-    )
+    if make_plots:
+        axs[0].plot(co2_fossil.columns, co2_fossil.values.flatten(), label=s, color=meta[2])
+        axs[0].plot(extend_years, co2_fossil_extend, label=s, color=meta[2], linestyle="--")
+        axs[0].plot(co2_fossil.columns, co2_fossil.values.flatten(), label=s, color=meta[2])
+        axs[1].plot(
+            extend_years,
+            co2_afolu.loc[:, "2023":].to_numpy().flatten(),
+            label=s,
+            color=meta[2],
+            linestyle="--",
+        )
+        axs[2].plot(extend_years, co2_total_extend, label=s, color=meta[2], linestyle="--")
+        axs[2].plot(
+            co2_fossil.columns,
+            co2_fossil.values.flatten() + co2_afolu.loc[:, "2023":"2100"].to_numpy().flatten(),
+            label=s,
+            color=meta[2],
+        )
 
 fossil_extension_df = pd.concat(temp_list_for_new_data)
-fossil_extension_df.to_csv(f"co2_fossil_fuel_extenstions_{name}.csv")
-axs[0].set_title("CO2 fossil", fontsize="x-large")
-axs[1].set_title("CO2 AFOLU", fontsize="x-large")
-axs[2].set_title("CO2 total", fontsize="x-large")
-for ax in axs:
-    ax.set_xlabel("Years", fontsize="x-large")
-axs[2].legend(fontsize="x-large")
+if dump_csvs:
+    fossil_extension_df.to_csv(f"co2_fossil_fuel_extenstions_{name}.csv")
+if make_plots:
+    axs[0].set_title("CO2 fossil", fontsize="x-large")
+    axs[1].set_title("CO2 AFOLU", fontsize="x-large")
+    axs[2].set_title("CO2 total", fontsize="x-large")
+    for ax in axs:
+        ax.set_xlabel("Years", fontsize="x-large")
+    axs[2].legend(fontsize="x-large")
 
-plt.savefig(f"co2_fossil_fuel_extenstions_{name}.png")
+    plt.savefig(f"co2_fossil_fuel_extenstions_{name}.png")
+    plt.clf()
 
 # %% [markdown]
 # # Dataframe cleanup
@@ -764,117 +770,126 @@ print(f"\nProcessed {processed_count} scenarios")
 # %%
 # Create a sanity check plot: stacked area plot of positive and negative CO2 components
 # with separate subplots for each scenario
-PLOT_GRID_COLS = 4  # Number of columns in the subplot grid
-fig, axes = plt.subplots(2, PLOT_GRID_COLS, figsize=(20, 12))
-axes = axes.flatten()  # Make it easier to iterate
 
-# Get year columns for plotting
-years = [col for col in co2_gross_positive_ext.columns if isinstance(col, int | float)]
-years = sorted(years)
+if make_plots:
+    # Get year columns for plotting
+    years = [col for col in co2_gross_positive_ext.columns if isinstance(col, int | float)]
+    years = sorted(years)
 
-years_extension = [col for col in fossil_extension_df.columns if isinstance(col, int | float)]
-years_extension = sorted(years_extension)
-# Define consistent colors
-positive_color = "tab:brown"
-negative_color = "tab:green"
+    years_extension = [col for col in fossil_extension_df.columns if isinstance(col, int | float)]
+    years_extension = sorted(years_extension)
+    # Define consistent colors
+    positive_color = "tab:brown"
+    negative_color = "tab:green"
 
-# Get unique scenarios from our data
-scenarios_to_plot = []
-for model, scenario, var, unit in co2_gross_positive_ext.index:
-    if (model, scenario) not in scenarios_to_plot:
-        scenarios_to_plot.append((model, scenario))
+    # Get unique scenarios from our data
+    scenarios_to_plot = []
+    for model, scenario, var, unit in co2_gross_positive_ext.index:
+        if (model, scenario) not in scenarios_to_plot:
+            scenarios_to_plot.append((model, scenario))
 
-# Plot for each scenario in its own subplot
-for i, (model, scenario) in enumerate(scenarios_to_plot):
-    ax = axes[i]
+    # Calculate grid size dynamically based on number of scenarios
+    PLOT_GRID_COLS = 4  # Number of columns in the subplot grid
+    n_scenarios = len(scenarios_to_plot)
+    n_rows = (n_scenarios + PLOT_GRID_COLS - 1) // PLOT_GRID_COLS  # Ceiling division
+    print(f"Creating {n_rows}x{PLOT_GRID_COLS} grid for {n_scenarios} scenarios")
 
-    # Get data for this scenario
-    gross_positive_data = co2_gross_positive_ext.loc[
-        (model, scenario, "Emissions|CO2|Gross Positive Emissions", "Mt CO2/yr"), years
-    ]
-    cdr_data = global_cdr_ext.loc[(model, scenario, "Emissions|CO2|Gross Removals", "Mt CO2/yr"), years]
+    fig, axes = plt.subplots(n_rows, PLOT_GRID_COLS, figsize=(20, 6 * n_rows))
+    axes = axes.flatten()  # Make it easier to iterate
 
-    # Get corresponding FFI data for comparison
-    ffi_data = fossil_extension_df.loc[
-        (fossil_extension_df.index.get_level_values("model") == model)
-        & (fossil_extension_df.index.get_level_values("scenario") == scenario)
-        & (fossil_extension_df.index.get_level_values("unit") == "Mt CO2/yr")
-    ]
+    # Plot for each scenario in its own subplot
+    for i, (model, scenario) in enumerate(scenarios_to_plot):
+        ax = axes[i]
 
-    if len(ffi_data) > 0:
-        ffi_values = ffi_data.iloc[0][years]
+        # Get data for this scenario
+        gross_positive_data = co2_gross_positive_ext.loc[
+            (model, scenario, "Emissions|CO2|Gross Positive Emissions", "Mt CO2/yr"), years
+        ]
+        cdr_data = global_cdr_ext.loc[(model, scenario, "Emissions|CO2|Gross Removals", "Mt CO2/yr"), years]
 
-        # Find marker code for this scenario
-        marker_code = None
-        for marker, info in scenario_model_match.items():
-            if info[1] == model and info[0] == scenario:
-                marker_code = marker
-                break
+        # Get corresponding FFI data for comparison
+        ffi_data = fossil_extension_df.loc[
+            (fossil_extension_df.index.get_level_values("model") == model)
+            & (fossil_extension_df.index.get_level_values("scenario") == scenario)
+            & (fossil_extension_df.index.get_level_values("unit") == "Mt CO2/yr")
+        ]
 
-        # Plot stacked areas with consistent colors
-        ax.fill_between(
-            years,
-            0,
-            gross_positive_data.values,
-            alpha=0.6,
-            color=positive_color,
-            label="Gross Positive",
-        )
-        ax.fill_between(
-            years,
-            0,
-            cdr_data.values,
-            alpha=0.6,
-            color=negative_color,
-            label="CDR (negative)",
-        )
+        if len(ffi_data) > 0:
+            ffi_values = ffi_data.iloc[0][years]
 
-        # Overlay the net FFI line for comparison
-        ax.plot(
-            years_extension,
-            ffi_data.T.values,
-            color="black",
-            linewidth=2,
-            linestyle="-",
-            alpha=0.8,
-            label="Net FFI",
-        )
+            # Find marker code for this scenario
+            marker_code = None
+            for marker, info in scenario_model_match.items():
+                if info[1] == model and info[0] == scenario:
+                    marker_code = marker
+                    break
 
-        # Add vertical line at 2023 (historical/future boundary)
-        ax.axvline(x=2023, color="red", linestyle="--", alpha=0.7, linewidth=1)
+            # Plot stacked areas with consistent colors
+            ax.fill_between(
+                years,
+                0,
+                gross_positive_data.values,
+                alpha=0.6,
+                color=positive_color,
+                label="Gross Positive",
+            )
+            ax.fill_between(
+                years,
+                0,
+                cdr_data.values,
+                alpha=0.6,
+                color=negative_color,
+                label="CDR (negative)",
+            )
 
-        # Add horizontal line at zero
-        ax.axhline(y=0, color="black", linestyle="-", alpha=0.3, linewidth=0.5)
+            # Overlay the net FFI line for comparison
+            ax.plot(
+                years_extension,
+                ffi_data.T.values,
+                color="black",
+                linewidth=2,
+                linestyle="-",
+                alpha=0.8,
+                label="Net FFI",
+            )
 
-        # Formatting for each subplot
-        ax.set_title(f"{marker_code}: {scenario[:30]}...", fontsize=12, fontweight="bold")
-        ax.set_xlim(min(years), 2300)
-        ax.grid(True, alpha=0.3)
+            # Add vertical line at 2023 (historical/future boundary)
+            ax.axvline(x=2023, color="red", linestyle="--", alpha=0.7, linewidth=1)
 
-        # Only add x-labels to bottom row
-        if i >= PLOT_GRID_COLS:
-            ax.set_xlabel("Year", fontsize=10)
+            # Add horizontal line at zero
+            ax.axhline(y=0, color="black", linestyle="-", alpha=0.3, linewidth=0.5)
 
-        # Only add y-labels to left column
-        if i % PLOT_GRID_COLS == 0:
-            ax.set_ylabel("CO2 Emissions (Mt CO2/yr)", fontsize=10)
+            # Formatting for each subplot
+            ax.set_title(f"{marker_code}: {scenario[:30]}...", fontsize=12, fontweight="bold")
+            ax.set_xlim(min(years), 2300)
+            ax.grid(True, alpha=0.3)
 
-        # Add legend to first subplot only
-        if i == 0:
-            ax.legend(fontsize=9)
+            # Only add x-labels to bottom row
+            if i >= PLOT_GRID_COLS:
+                ax.set_xlabel("Year", fontsize=10)
 
-# Hide the last subplot since we only have 7 scenarios
-axes[7].set_visible(False)
+            # Only add y-labels to left column
+            if i % PLOT_GRID_COLS == 0:
+                ax.set_ylabel("CO2 Emissions (Mt CO2/yr)", fontsize=10)
 
-# Add overall title
-fig.suptitle(
-    "Gross Positive vs CDR vs Net FFI Emissions by Scenario\nBrown = Positive, Green = CDR, Black lines = Net result",
-    fontsize=16,
-    fontweight="bold",
-)
+            # Add legend to first subplot only
+            if i == 0:
+                ax.legend(fontsize=9)
 
-plt.tight_layout()
-plt.savefig("gross_positive_vs_cdr_vs_ffi_by_scenario.png")
+    # Hide unused subplots
+    for i in range(len(scenarios_to_plot), len(axes)):
+        axes[i].set_visible(False)
+
+    # Add overall title
+    fig.suptitle(
+        "Gross Positive vs CDR vs Net FFI Emissions by Scenario\n"
+        "Brown = Positive, Green = CDR, Black lines = Net result",
+        fontsize=16,
+        fontweight="bold",
+    )
+
+    plt.tight_layout()
+    plt.savefig("gross_positive_vs_cdr_vs_ffi_by_scenario.png")
 
 
 # %% [markdown]
@@ -947,7 +962,14 @@ if test_year in co2_beccs_ext.columns:
 
 
 # %% [markdown]
-# # Merge dataframes into df_everything
+#
+
+# %% [markdown]
+# # Extended missing sectors for regional (non-cdr fossil)
+#
+
+# %%
+# Merge dataframes into df_everything
 print("=== MERGING ALL DATAFRAMES INTO df_everything ===")
 df_everything = fix_up_and_concatenate_extensions(
     {
@@ -970,8 +992,6 @@ print(f"✅ Successfully merged all DataFrames! Shape: {df_everything.shape}")
 print(df_everything.shape)
 print(df_all.index.names)
 
-# %% [markdown]
-# # Extended missing sectors for regional (non-cdr fossil)
 df_everything = extend_regional_for_missing(df_everything, scenarios_regional, fractions_fossil_total)
 print(df_everything.shape)
 
@@ -1092,7 +1112,9 @@ continuous_timeseries_extended = continuous_timeseries_extended.loc[
 
 continuous_timeseries_extended["stage"] = "extended"
 continuous_timeseries_extended = continuous_timeseries_extended.set_index("stage", append=True)
-# Keep integer columns for compatibility with downstream notebooks
+continuous_timeseries_extended = continuous_timeseries_extended.droplevel("workflow")
+print(continuous_timeseries_extended.index.names)
+# Save extended data without deleting complete data (both should coexist in final DB)
 INFILLED_SCENARIOS_DB.save(continuous_timeseries_extended, allow_overwrite=True)
 
 print("✅ Final database saved with both complete and extended stages")
@@ -1100,7 +1122,9 @@ print("✅ Final database saved with both complete and extended stages")
 
 # %%
 # Simple CSV output
-
-# Execute the simple CSV save
-result = save_continuous_timeseries_to_csv(continuous_timeseries_concise, "continuous_emissions_timeseries_1750_2500")
-result_full = save_continuous_timeseries_to_csv(df_everything, "extensions_full_emissions_timeseries_2023_2500")
+if dump_csvs:
+    # Execute the simple CSV save
+    result = save_continuous_timeseries_to_csv(
+        continuous_timeseries_concise, "continuous_emissions_timeseries_1750_2500"
+    )
+    result_full = save_continuous_timeseries_to_csv(df_everything, "extensions_full_emissions_timeseries_2023_2500")

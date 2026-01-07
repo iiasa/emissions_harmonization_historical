@@ -131,6 +131,10 @@ history = HISTORY_HARMONISATION_DB.load(pix.ismatch(purpose="global_workflow_emi
     "purpose", drop=True
 )
 
+# Drop workflow level if present (from older database format)
+if "workflow" in history.index.names:
+    history = history.reset_index("workflow", drop=True)
+
 # history.loc[:, :2023]
 
 # %% [markdown]
@@ -238,6 +242,11 @@ if scm in ["MAGICCv7.5.3", "MAGICCv7.6.0a3"]:
         output_variables=output_variables,
         startyear=1750,
     )
+
+    # Reduce ensemble size for faster testing (normally 600+ members)
+    # n_ensemble_members = 10
+    # climate_models_cfgs["MAGICC7"] = climate_models_cfgs["MAGICC7"][:n_ensemble_members]
+    # print(f"Using {len(climate_models_cfgs['MAGICC7'])} MAGICC ensemble members for testing")
 
     complete_scm = get_complete_scenarios_for_magicc(
         scenarios=complete_scenarios,
@@ -371,68 +380,11 @@ run_scms(
     force_rerun=True,  # CHANGED: Must re-run for extended scenarios to 2500
 )
 
-# %%
-# Check what was actually saved by run_scms to the database
-scm_output_check = SCM_OUTPUT_DB.load(pix.ismatch(model=f"*{model}*", climate_model=f"*{scm}*"))
-if not scm_output_check.empty:
-    print(f"Year range in SCM_OUTPUT_DB: {scm_output_check.columns.min()} to {scm_output_check.columns.max()}")
-    print(f"Variables in SCM_OUTPUT_DB: {sorted(scm_output_check.pix.unique('variable'))}")
-
-    # DIAGNOSTIC: Check scenarios and their year ranges
-    print("DIAGNOSTIC: Scenarios in database:")
-    for scenario in sorted(scm_output_check.pix.unique("scenario")):
-        scenario_data = scm_output_check.loc[scm_output_check.index.get_level_values("scenario") == scenario]
-        temp_data = scenario_data.loc[
-            scenario_data.index.get_level_values("variable") == "Surface Air Temperature Change"
-        ]
-        if not temp_data.empty:
-            print(f"  {scenario}: {temp_data.columns.min()} to {temp_data.columns.max()}")
-
-    # DIAGNOSTIC: Check year range for Surface Air Temperature Change specifically
-    temp_var = scm_output_check.loc[
-        scm_output_check.index.get_level_values("variable") == "Surface Air Temperature Change"
-    ]
-    if not temp_var.empty:
-        print(
-            f"DIAGNOSTIC: 'Surface Air Temperature Change' year range: "
-            f"{temp_var.columns.min()} to {temp_var.columns.max()}"
-        )
-        # Check if there's a 'stage' index level
-        if "stage" in temp_var.index.names:
-            print(f"DIAGNOSTIC: 'stage' values in temp data: {sorted(temp_var.pix.unique('stage'))}")
-        else:
-            print("DIAGNOSTIC: No 'stage' index level found in temperature data!")
-    else:
-        print("DIAGNOSTIC: 'Surface Air Temperature Change' not found in database!")
-else:
-    print("No SCM output found in database yet")
-
 # %% [markdown]
 # ## Save
 #
 # The SCM output is already saved in the db.
 # Here we also save the emissions that were actually used by the SCM.
 
-# %%
-# DIAGNOSTIC: Check what's in complete_scm before saving
-print(f"DIAGNOSTIC: complete_scm year range before save: {complete_scm.columns.min()} to {complete_scm.columns.max()}")
-print(f"DIAGNOSTIC: complete_scm variables: {sorted(complete_scm.pix.unique('variable')[:5])}...")  # Show first 5
-
-# Check what's already in the database before overwriting
-existing_data = SCM_OUTPUT_DB.load(pix.ismatch(model=f"*{model}*", climate_model=f"*{scm}*"))
-if not existing_data.empty:
-    print(
-        f"DIAGNOSTIC: Existing data in SCM_OUTPUT_DB before overwrite: "
-        f"{existing_data.columns.min()} to {existing_data.columns.max()}"
-    )
-    print(f"DIAGNOSTIC: Existing variables: {sorted(existing_data.pix.unique('variable')[:5])}...")
-
 # %% editable=true slideshow={"slide_type": ""}
 SCM_OUTPUT_DB.save(complete_scm.pix.assign(climate_model=scm), allow_overwrite=True)
-
-# DIAGNOSTIC: Check what's in the database AFTER saving
-final_data = SCM_OUTPUT_DB.load(pix.ismatch(model=f"*{model}*", climate_model=f"*{scm}*"))
-print(
-    f"DIAGNOSTIC: Final data in SCM_OUTPUT_DB after save: " f"{final_data.columns.min()} to {final_data.columns.max()}"
-)
-print(f"DIAGNOSTIC: Final variables: {sorted(final_data.pix.unique('variable')[:5])}...")
