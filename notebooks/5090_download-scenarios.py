@@ -215,7 +215,7 @@ def check_negatives(df):  # noqa : D103
         warnings.warn(msg)
 
         for idx, row in tmp_not_co2[negative_rows].iterrows():
-            minimum_allowed = -0.5
+            minimum_allowed = -0.50
             neg_rows = row.where(row < minimum_allowed).dropna()
 
             if not neg_rows.empty:
