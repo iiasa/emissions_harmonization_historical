@@ -12,6 +12,8 @@
 #     name: python3
 # ---
 
+# ruff: noqa
+
 # %% [markdown]
 # # Examine climate differences
 #
