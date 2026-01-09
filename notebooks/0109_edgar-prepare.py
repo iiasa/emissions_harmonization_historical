@@ -18,9 +18,12 @@
 # Process data from [EDGAR](https://edgar.jrc.ec.europa.eu/dataset_ghg2024).
 #
 #
-# We also have 0151_EDGAR_harmonisation_sectors.py, which is used to serve the vetting of IAM scenarios based on national level harmonization sectors in the same format as what is produced in CEDS-prepare.py
+# We also have 0151_EDGAR_harmonisation_sectors.py,
+# which is used to serve the vetting of IAM scenarios based on national level harmonization sectors in the same format
+# as what is produced in CEDS-prepare.py
 #
-# Instead, this notebook is especially for minor gases (F-gases), on the global level, for comparison with climate emulator input (which is based on other sources).
+# Instead, this notebook is especially for minor gases (F-gases), on the global level,
+# for comparison with climate emulator input (which is based on other sources).
 
 # %%
 from pathlib import Path

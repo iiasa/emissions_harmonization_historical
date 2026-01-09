@@ -78,6 +78,9 @@ scenario_files
 
 # %%
 def load_velders_scenario(sf: Path, sheet: str) -> pd.DataFrame:
+    """
+    Load one of Velders' scenarios
+    """
     scenario_name_base = sf.name.split("HFC_")[1].split("_Scenario")[0]
 
     scenario_name = f"{scenario_name_base}-{sheet.lower()}"

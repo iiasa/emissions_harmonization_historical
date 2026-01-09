@@ -94,8 +94,11 @@ ceds_map.to_frame(index=False)
 
 # %%
 ceds = pd.concat(
-    # read_CEDS(Path(ceds_data_folder) / f"{s}_CEDS_emissions_by_country_sector_v{ceds_release}.csv") for s in species # for all earlier versions processed here (i.e. Drive_2025_03_18, Drive_2025_03_11, Zenodo_2024_07_08) 
-    read_CEDS(Path(ceds_data_folder) / f"{s}_CEDS_estimates_by_country_sector_v{ceds_release}.csv") for s in species # for Zenodo_2025_03_18
+    # # for all earlier versions processed here (i.e. Drive_2025_03_18, Drive_2025_03_11, Zenodo_2024_07_08)
+    # read_CEDS(Path(ceds_data_folder) / f"{s}_CEDS_emissions_by_country_sector_v{ceds_release}.csv")
+    # for s in species
+    read_CEDS(Path(ceds_data_folder) / f"{s}_CEDS_estimates_by_country_sector_v{ceds_release}.csv")
+    for s in species  # for Zenodo_2025_03_18
 ).rename_axis(index={"region": "country"})
 ceds = ceds.pix.semijoin(ceds_map, how="outer")
 ceds.loc[isna].pix.unique(["sector_59", "sector"])  # print sectors with NAs

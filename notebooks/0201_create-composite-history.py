@@ -180,13 +180,13 @@ combined_processed_output_file
 # irrespective of what we do above.
 
 # %%
-primap_global = load_csv(
+primap_global = load_timeseries_csv(
     DATA_ROOT / "national/primap-hist/processed" / f"primap-hist-tp_cmip7_global_{PRIMAP_HIST_PROCESSING_ID}.csv"
 )
 primap_global
 
 # %%
-bb4cmip_global = load_csv(
+bb4cmip_global = load_timeseries_csv(
     DATA_ROOT / "national/gfed-bb4cmip/processed" / f"gfed-bb4cmip_cmip7_global_{GFED_PROCESSING_ID}.csv"
 )
 bb4cmip_global
@@ -338,7 +338,7 @@ primap_ceds_biomass_burning_composite
 # ### Create our global composite
 
 # %%
-adam_et_al_2024 = load_csv(
+adam_et_al_2024 = load_timeseries_csv(
     DATA_ROOT
     / "global"
     / "adam-et-al-2024"
@@ -348,19 +348,19 @@ adam_et_al_2024 = load_csv(
 adam_et_al_2024
 
 # %%
-edgar = load_csv(
+edgar = load_timeseries_csv(
     DATA_ROOT / "global" / "edgar" / "processed" / f"edgar_cmip7_global_{EDGAR_PROCESSING_ID}.csv",
 ).pix.assign(scenario=HISTORY_SCENARIO_NAME)
 edgar
 
 # %%
-gcb_afolu = load_csv(
+gcb_afolu = load_timeseries_csv(
     DATA_ROOT / "global" / "gcb" / "processed" / f"gcb-afolu_cmip7_global_{GCB_PROCESSING_ID}.csv"
 ).pix.assign(scenario=HISTORY_SCENARIO_NAME)
 gcb_afolu
 
 # %%
-velders_et_al_2022 = load_csv(
+velders_et_al_2022 = load_timeseries_csv(
     DATA_ROOT
     / "global"
     / "velders-et-al-2022"
@@ -370,14 +370,14 @@ velders_et_al_2022 = load_csv(
 velders_et_al_2022
 
 # %%
-wmo_2022 = load_csv(
+wmo_2022 = load_timeseries_csv(
     DATA_ROOT / "global" / "wmo-2022" / "processed" / f"wmo-2022_cmip7_global_{WMO_2022_PROCESSING_ID}.csv"
 ).pix.assign(scenario=HISTORY_SCENARIO_NAME)
 wmo_2022
 
 # %%
 # To create these, run notebook "0110_cmip-conc-inversions"
-cmip_inversions = load_csv(
+cmip_inversions = load_timeseries_csv(
     DATA_ROOT / "global" / "esgf" / "CR-CMIP-1-0-0" / f"inverse_emissions_{CMIP_CONCENTRATION_INVERSION_ID}.csv"
 ).pix.assign(scenario=HISTORY_SCENARIO_NAME)
 
