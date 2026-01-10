@@ -12,7 +12,7 @@ from emissions_harmonization_historical.constants_5000 import (
     HARMONISED_SCENARIO_DB,
     HISTORY_FOR_HARMONISATION_ID,
     HISTORY_HARMONISATION_DB,
-    INFILLED_SCENARIOS_DB_2100,
+    INFILLED_SCENARIOS_DB,
     INFILLING_ID,
 )
 
@@ -26,7 +26,7 @@ def main(pack: bool = False) -> None:
 
         # raw_scenario_data = RAW_SCENARIO_DB.load(pix.ismatch(model=f"**{model_to_grab}**"))
         harmonisation_history = HISTORY_HARMONISATION_DB.load()
-        infilling_db_data = INFILLED_SCENARIOS_DB_2100.load()
+        infilling_db_data = INFILLED_SCENARIOS_DB.load()
         harmonised_scenarios = HARMONISED_SCENARIO_DB.load()
 
         for data, gzip in (
@@ -57,13 +57,12 @@ def main(pack: bool = False) -> None:
         for gzip, dest in (
             # (REPO_ROOT / f"raw-scenarios_{DOWNLOAD_SCENARIOS_ID}.tar.gz", RAW_SCENARIO_DB.db_dir),
             (
-                harmonisation_history,
                 REPO_ROOT / f"harmonisation-history_{HISTORY_FOR_HARMONISATION_ID}.tar.gz",
+                HISTORY_HARMONISATION_DB.db_dir,
             ),
-            (infilling_db_data, REPO_ROOT / f"infilling-db_{INFILLING_ID}.tar.gz"),
+            (REPO_ROOT / f"infilling-db_{INFILLING_ID}.tar.gz", INFILLED_SCENARIOS_DB.db_dir),
             (
-                harmonised_scenarios,
-                REPO_ROOT / f"harmonised-scenarios_{HARMONISATION_ID}.tar.gz",
+                REPO_ROOT / f"harmonised-scenarios_{HARMONISATION_ID}.tar.gz", HARMONISED_SCENARIO_DB.db_dir
             ),
         ):
             OpenSCMDB.from_gzipped_tar_archive(

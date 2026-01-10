@@ -43,7 +43,7 @@ from emissions_harmonization_historical.constants_5000 import (
     HARMONISED_SCENARIO_DB,
     HISTORY_HARMONISATION_DB,
     INFILLED_OUT_DIR,
-    INFILLED_SCENARIOS_DB_2100,
+    INFILLED_SCENARIOS_DB,
     INFILLING_DB,
     MARKERS_BY_SCENARIOMIP_NAME,
     WMO_2022_PROCESSED_DB,
@@ -492,6 +492,6 @@ for ids, df in (
     ("complete", complete),
 ):
     if df is not None:
-        INFILLED_SCENARIOS_DB_2100.save(
+        INFILLED_SCENARIOS_DB.save(
             df.pix.assign(stage=ids).sort_index(axis="columns"), allow_overwrite=True, progress=True
         )

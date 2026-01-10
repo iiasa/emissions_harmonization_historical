@@ -32,7 +32,6 @@ from emissions_harmonization_historical.constants_5000 import (
     HARMONISED_SCENARIO_DB,
     HISTORY_HARMONISATION_DB,
     INFILLED_SCENARIOS_DB,
-    INFILLED_SCENARIOS_DB_2100,
 )
 from emissions_harmonization_historical.extensions.cdr_and_fossil_splits import (
     add_removals_and_positive_fossil_emissions_to_historical,
@@ -46,9 +45,7 @@ from emissions_harmonization_historical.extensions.finish_regional_extensions im
 
 # %%
 
-scenarios_pre_extensions = (
-    INFILLED_SCENARIOS_DB_2100.load()
-)  # (pix.isin(stage="complete")).reset_index("stage", drop=True)
+scenarios_pre_extensions = INFILLED_SCENARIOS_DB.load()  # (pix.isin(stage="complete")).reset_index("stage", drop=True)
 scenarios_post_extensions = INFILLED_SCENARIOS_DB.load()
 scenarios_harmonised = HARMONISED_SCENARIO_DB.load()
 scenarios_ext_out = EXTENSIONS_OUTPUT_DB.load()
