@@ -43,12 +43,12 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
 
     elif notebook_name in [
         "5190_infilling.py",
-        "5191_post-process-emissions.py",
+        "5194_post-process-emissions.py",
     ]:
         res = {"model": iam}
 
     elif notebook_name in [
-        "5190a_extension_pipeline.py",
+        "5191_extension.py",
     ]:
         # Extensions run once for all IAMs, no IAM parameter needed
         # But we can control plotting behavior
@@ -65,6 +65,7 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
         if notebook_name == "5195_run-simple-climate-model.py":
             res["markers_only"] = False
             res["markers_only"] = True
+            res["run_w_extensions"] = True
 
     else:
         raise NotImplementedError(notebook_name)

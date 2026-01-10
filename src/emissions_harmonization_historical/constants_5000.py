@@ -435,7 +435,7 @@ INFILLED_OUT_DIR = DATA_ROOT / "processed" / "infilled" / INFILLED_OUT_DIR_ID
 
 # Temporary database for infilled data before extensions (1750-2100)
 # This is written by 5190_infilling.py and read by 5190a_extension_pipeline.py
-INFILLED_SCENARIOS_DB_2100 = OpenSCMDB(
+INFILLED_SCENARIOS_DB = OpenSCMDB(
     db_dir=INFILLED_OUT_DIR / "db",
     backend_data=FeatherDataBackend(),
     backend_index=FeatherIndexBackend(),
@@ -460,7 +460,7 @@ INFILLED_OUT_DIR_WITH_EXTENSIONS = DATA_ROOT / "processed" / "infilled" / INFILL
 
 # Final database for infilled data after extensions (1750-2100 for all, 1750-2500 for markers)
 # This is written by 5190a_extension_pipeline.py and read by downstream notebooks
-INFILLED_SCENARIOS_DB = OpenSCMDB(
+INFILLED_SCENARIOS_DB_EXTENSIONS = OpenSCMDB(
     db_dir=INFILLED_OUT_DIR_WITH_EXTENSIONS / "db",
     backend_data=FeatherDataBackend(),
     backend_index=FeatherIndexBackend(),

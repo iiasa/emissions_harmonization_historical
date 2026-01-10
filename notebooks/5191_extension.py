@@ -52,7 +52,7 @@ from emissions_harmonization_historical.constants_5000 import (
     HARMONISED_SCENARIO_DB,
     HISTORY_HARMONISATION_DB,
     INFILLED_SCENARIOS_DB,
-    INFILLED_SCENARIOS_DB_2100,
+    INFILLED_SCENARIOS_DB_EXTENSIONS,
 )
 
 # Package imports
@@ -99,8 +99,8 @@ TUPLE_LENGTH_WITH_STAGE = 6
 
 # %% tags=["parameters"]
 # Papermill parameters
-make_plots: bool = False
-dump_csvs: bool = False
+make_plots: bool = True
+dump_csvs: bool = True
 
 # %% [markdown]
 # More preamble
@@ -117,7 +117,7 @@ Q = UR.Quantity
 # ## Loading scenarios
 
 # %%
-scenarios_complete_global = INFILLED_SCENARIOS_DB_2100.load(pix.isin(stage="complete")).reset_index("stage", drop=True)
+scenarios_complete_global = INFILLED_SCENARIOS_DB.load(pix.isin(stage="complete")).reset_index("stage", drop=True)
 scenarios_complete_global  # TODO: drop 2100 end once we have usable scenario data post-2100
 history = HISTORY_HARMONISATION_DB.load(pix.ismatch(purpose="global_workflow_emissions")).reset_index(
     "purpose", drop=True
@@ -1083,19 +1083,19 @@ for model in df_everything.pix.unique("model"):
 # ## Save to final database
 #
 # Save both stage="complete" (passthrough from 2100 infilling) and
-# stage="extended" (extended markers to 2500) to the final INFILLED_SCENARIOS_DB.
+# stage="extended" (extended markers to 2500) to the final INFILLED_SCENARIOS_DB_EXTENSIONS.
 
 # %%
 print("\n=== SAVING TO FINAL DATABASE ===")
 
 # Load all stage="complete" data from the temp database (all IAMs, 1750-2100)
 print("Loading stage='complete' data from temp database...")
-scenarios_complete_all = INFILLED_SCENARIOS_DB_2100.load(pix.isin(stage="complete"))
+scenarios_complete_all = INFILLED_SCENARIOS_DB.load(pix.isin(stage="complete"))
 print(f"Loaded complete scenarios: {scenarios_complete_all.shape}")
 
 # Save complete scenarios to final database (passthrough)
 print("Saving stage='complete' to final database...")
-INFILLED_SCENARIOS_DB.save(scenarios_complete_all, allow_overwrite=True)
+INFILLED_SCENARIOS_DB_EXTENSIONS.save(scenarios_complete_all, allow_overwrite=True)
 
 # Save extended scenarios to final database (7 markers, 1750-2500)
 print("Saving stage='extended' to final database...")
@@ -1115,7 +1115,7 @@ continuous_timeseries_extended = continuous_timeseries_extended.set_index("stage
 continuous_timeseries_extended = continuous_timeseries_extended.droplevel("workflow")
 print(continuous_timeseries_extended.index.names)
 # Save extended data without deleting complete data (both should coexist in final DB)
-INFILLED_SCENARIOS_DB.save(continuous_timeseries_extended, allow_overwrite=True)
+INFILLED_SCENARIOS_DB_EXTENSIONS.save(continuous_timeseries_extended, allow_overwrite=True)
 
 print("✅ Final database saved with both complete and extended stages")
 

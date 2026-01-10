@@ -39,6 +39,7 @@ from pandas_openscm.index_manipulation import update_index_levels_func
 from emissions_harmonization_historical.constants_5000 import (
     HISTORY_HARMONISATION_DB,
     INFILLED_SCENARIOS_DB,
+    INFILLED_SCENARIOS_DB_EXTENSIONS,
     MARKERS,
     RCMIP_PROCESSED_DB,
     REPO_ROOT,
@@ -73,6 +74,7 @@ Q = UR.Quantity
 model: str = "REMIND"
 scm: str = "MAGICCv7.6.0a3"
 markers_only: bool = True
+run_w_extensions: bool = True  # Whether to run with scenarios extended to 2500
 
 # %%
 output_dir_model = SCM_OUT_DIR / model
@@ -88,9 +90,14 @@ output_dir_model
 # %%
 # Load extended scenarios (1750-2500) for climate model runs
 # These are the 7 marker scenarios extended beyond 2100
-complete_scenarios = INFILLED_SCENARIOS_DB.load(
-    pix.isin(stage="extended") & pix.ismatch(model=f"*{model}*")
-).reset_index("stage", drop=True)
+if run_w_extensions:
+    complete_scenarios = INFILLED_SCENARIOS_DB_EXTENSIONS.load(
+        pix.isin(stage="extended") & pix.ismatch(model=f"*{model}*")
+    ).reset_index("stage", drop=True)
+else:
+    complete_scenarios = INFILLED_SCENARIOS_DB.load(
+        pix.isin(stage="complete") & pix.ismatch(model=f"*{model}*")
+    ).reset_index("stage", drop=True)
 
 # Filter out internal diagnostic variables that aren't part of CMIP7 naming convention
 internal_variables = [

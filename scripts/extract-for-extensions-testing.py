@@ -10,7 +10,7 @@ import pandas_openscm
 from emissions_harmonization_historical.constants_5000 import (
     HARMONISED_OUT_DIR,
     HARMONISED_SCENARIO_DB,
-    INFILLED_SCENARIOS_DB,
+    INFILLED_SCENARIOS_DB_EXTENSIONS,
     INFILLING_DB_DIR,
 )
 
@@ -25,7 +25,7 @@ def main():
     OUT_PATH = REPO_ROOT / "for-extension-testing" / INFILLING_DB_DIR.name
 
     harmonised_for_gridding = HARMONISED_SCENARIO_DB.load(pix.ismatch(variable="Emissions**", workflow="gridding"))
-    infilled_for_scms = INFILLED_SCENARIOS_DB.load(pix.ismatch(variable="Emissions**", stage="complete"))
+    infilled_for_scms = INFILLED_SCENARIOS_DB_EXTENSIONS.load(pix.ismatch(variable="Emissions**", stage="complete"))
 
     out_path_infilled = OUT_PATH / f"{INFILLING_DB_DIR.name}_infilled-emissions.csv"
     out_path_infilled.parent.mkdir(exist_ok=True, parents=True)
