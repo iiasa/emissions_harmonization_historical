@@ -26,7 +26,7 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
     """
     if notebook_name == "5090_download-scenarios.py":
         res = {"model_search": iam, "markers_only": True}
-        res = {"model_search": iam, "markers_only": False}
+        # res = {"model_search": iam, "markers_only": False}
 
     elif notebook_name in [
         "5091_check-reporting.py",
@@ -43,9 +43,16 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
 
     elif notebook_name in [
         "5190_infilling.py",
-        "5191_post-process-emissions.py",
+        "5194_post-process-emissions.py",
     ]:
         res = {"model": iam}
+
+    elif notebook_name in [
+        "5191_extension.py",
+    ]:
+        # Extensions run once for all IAMs, no IAM parameter needed
+        # But we can control plotting behavior
+        res = {"make_plots": False, "dump_csvs": False}
 
     elif notebook_name in [
         "5195_run-simple-climate-model.py",
@@ -58,6 +65,7 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
         if notebook_name == "5195_run-simple-climate-model.py":
             res["markers_only"] = False
             res["markers_only"] = True
+            res["run_w_extensions"] = True
 
     else:
         raise NotImplementedError(notebook_name)
@@ -79,7 +87,7 @@ def run_notebook(notebook: Path, run_notebooks_dir: Path, parameters: dict[str, 
     output_notebook = run_notebooks_dir / f"{notebook.stem}_{idn}.ipynb"
     output_notebook.parent.mkdir(exist_ok=True, parents=True)
 
-    print(f"Executing {notebook.name=} with {parameters=} from {in_notebook=}. " f"Writing to {output_notebook=}")
+    print(f"Executing {notebook.name=} with {parameters=} from {in_notebook=}. Writing to {output_notebook=}")
     # Execute to specific directory
     pm.execute_notebook(in_notebook, output_notebook, parameters=parameters)
 
@@ -90,7 +98,12 @@ def run_notebook_iam(notebook: Path, run_notebooks_dir: Path, iam: str) -> None:
     """
     parameters = get_notebook_parameters(notebook.name, iam=iam)
 
-    run_notebook(notebook=notebook, run_notebooks_dir=run_notebooks_dir, parameters=parameters, idn=iam)
+    run_notebook(
+        notebook=notebook,
+        run_notebooks_dir=run_notebooks_dir,
+        parameters=parameters,
+        idn=iam,
+    )
 
 
 def run_notebook_with_scm(notebook: Path, run_notebooks_dir: Path, iam: str, scm: str) -> None:
@@ -99,7 +112,12 @@ def run_notebook_with_scm(notebook: Path, run_notebooks_dir: Path, iam: str, scm
     """
     parameters = get_notebook_parameters(notebook.name, iam=iam, scm=scm)
 
-    run_notebook(notebook=notebook, run_notebooks_dir=run_notebooks_dir, parameters=parameters, idn=f"{iam}_{scm}")
+    run_notebook(
+        notebook=notebook,
+        run_notebooks_dir=run_notebooks_dir,
+        parameters=parameters,
+        idn=f"{iam}_{scm}",
+    )
 
 
 def main():  # noqa: PLR0912
@@ -217,18 +235,77 @@ def main():  # noqa: PLR0912
     # notebook_prefixes = ["5093","5094"]
     # # # Downloading and reporting checking
     # # notebook_prefixes = ["5090", "5091", "5092"]
-    # Everything up to infilling
+    # Everything
     notebook_prefixes = ["5090", "5091", "5092", "5093", "5094"]
     # # Harmonisation, infilling and post-processing
     # notebook_prefixes = ["5094", "5190", "5191"]
     # Infilling and post-processing
-    notebook_prefixes = ["5190", "5191"]
+    # notebook_prefixes = ["5190", "5191"]
     # # Everything
     # notebook_prefixes = ["5090", "5091", "5092", "5093", "5094", "5190", "5191"]
     # # Skip this step
-    # notebook_prefixes = []
+    notebook_prefixes = []
 
     for iam in tqdm.tqdm(iams, desc="IAMs up to emissions post-processing"):
+        for notebook in all_notebooks:
+            if any(notebook.name.startswith(np) for np in notebook_prefixes):
+                run_notebook_iam(
+                    notebook=notebook,
+                    run_notebooks_dir=RUN_NOTEBOOKS_DIR,
+                    iam=iam,
+                )
+
+    ### Infilling database creation
+    # This just creates a database based on whatever you have run above.
+    # Hence, this can change depend on order of running, which isn't ideal.
+    # However, infilling only really matters for some models
+    # (and even then only to a limited degree because it is mostly for F-gases)
+    # so this shouldn't make such a big impact.
+    # Run the notebook
+    notebook_prefixes = ["5095"]
+    # # Skip this step
+    notebook_prefixes = []
+    for notebook in all_notebooks:
+        if any(notebook.name.startswith(np) for np in notebook_prefixes):
+            run_notebook(
+                notebook=notebook,
+                run_notebooks_dir=RUN_NOTEBOOKS_DIR,
+                parameters={},
+                idn="only",
+            )
+
+    ### Infilling & Post-processing of emissions
+    # Step 1: Infilling per IAM (writes to temp database)
+    #
+    notebook_prefixes = ["5190"]
+    # Skip this step
+    notebook_prefixes = []
+    for iam in iams:
+        for notebook in all_notebooks:
+            if any(notebook.name.startswith(np) for np in notebook_prefixes):
+                run_notebook_iam(
+                    notebook=notebook,
+                    run_notebooks_dir=RUN_NOTEBOOKS_DIR,
+                    iam=iam,
+                )
+
+    # Step 2: Extensions (run once, reads temp DB, writes final DB with both stages)
+    notebook_prefixes = ["5191"]
+    # Skip this step
+    # notebook_prefixes = []
+    for notebook in all_notebooks:
+        if any(notebook.name.startswith(np) for np in notebook_prefixes):
+            run_notebook_iam(
+                notebook=notebook,
+                run_notebooks_dir=RUN_NOTEBOOKS_DIR,
+                iam="all_iams",
+            )
+
+    # Step 3: Post-processing per IAM (reads final DB)
+    notebook_prefixes = ["5194"]
+    # Skip this step
+    notebook_prefixes = []
+    for iam in iams:
         for notebook in all_notebooks:
             if any(notebook.name.startswith(np) for np in notebook_prefixes):
                 run_notebook_iam(
@@ -246,7 +323,7 @@ def main():  # noqa: PLR0912
     # notebook_prefixes = ["5196"]
     # # Skip this step
     # notebook_prefixes = []
-    # Single SCM
+    # Single SCMcd
     scms = ["MAGICCv7.6.0a3"]
     # # All available SCMs
     # scms = ["MAGICCv7.6.0a3", "MAGICCv7.5.3"]

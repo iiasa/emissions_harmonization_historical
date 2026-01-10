@@ -142,7 +142,12 @@ def download_zenodo_url(
         desc = url
 
     with (
-        httpx.stream("GET", url, follow_redirects=True, params={"access_token": zenodo_interactor.token}) as request,
+        httpx.stream(
+            "GET",
+            url,
+            follow_redirects=True,
+            params={"access_token": zenodo_interactor.token},
+        ) as request,
     ):
         with (
             tqdm.auto.tqdm(

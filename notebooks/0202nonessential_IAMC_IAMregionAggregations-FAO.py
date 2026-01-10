@@ -25,7 +25,7 @@ import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 
-from emissions_harmonization_historical.constants import FAO_PROCESSING_ID, DATA_ROOT, IAMC_REGION_PROCESSING_ID
+from emissions_harmonization_historical.constants import DATA_ROOT, FAO_PROCESSING_ID, IAMC_REGION_PROCESSING_ID
 from emissions_harmonization_historical.region_mapping import create_region_mapping
 
 # %%
@@ -62,9 +62,9 @@ iamc_commondefinitions_regions_history_missing_iso = DATA_ROOT / Path(
 )
 
 # %%
-fao_history = pd.concat([pd.read_csv(fao_history_file_national),
-                           pd.read_csv(fao_history_file_global)],
-                         ignore_index=True, sort=False)
+fao_history = pd.concat(
+    [pd.read_csv(fao_history_file_national), pd.read_csv(fao_history_file_global)], ignore_index=True, sort=False
+)
 fao_history
 
 # %%
@@ -112,15 +112,20 @@ history_for_all_iamc_regions = history_for_all_iamc_regions[columns_order]
 # run a few tests to ensure processing went as intended
 pd.testing.assert_index_equal(history_for_all_iamc_regions.columns, fao_history.columns, check_order=False)
 if FAO_PROCESSING_ID != "0010":
-    np.testing.assert_array_equal(history_for_all_iamc_regions["region"].unique(), region_mapping["model_region"].unique())
+    np.testing.assert_array_equal(
+        history_for_all_iamc_regions["region"].unique(), region_mapping["model_region"].unique()
+    )
 else:
     # Turkey is missing in this version of the FAO data
     np.testing.assert_array_equal(
-        np.sort(np.unique(np.concatenate([
-         history_for_all_iamc_regions["region"].unique(),
-         np.array(['IMAGE 3.4|Turkey', 'AIM 3.0|Turkey'])   
-        ]))),
-        np.sort(region_mapping["model_region"].unique())
+        np.sort(
+            np.unique(
+                np.concatenate(
+                    [history_for_all_iamc_regions["region"].unique(), np.array(["IMAGE 3.4|Turkey", "AIM 3.0|Turkey"])]
+                )
+            )
+        ),
+        np.sort(region_mapping["model_region"].unique()),
     )
 
 # %%
@@ -195,9 +200,7 @@ hist_sources_countries
 # as well as the R5/9/10 region aggregations
 iams = region_mapping["model"].unique()
 
-missing_iso = pd.DataFrame(
-    columns=["model", "iso_list", "missing_vs_fao", "missing_from_fao"]
-)
+missing_iso = pd.DataFrame(columns=["model", "iso_list", "missing_vs_fao", "missing_from_fao"])
 
 missing_iso_l = []
 for m in iams:
@@ -208,9 +211,9 @@ for m in iams:
     # compare against fao
     # list the iso codes present in the respective historical dataset but not in the IAM region aggregations
     missing_vs_fao = sorted(list(set(hist_sources_countries["iso_list"][0]) - set(unique)))
-    
+
     missing_from_fao = sorted(list(set(unique) - set(hist_sources_countries["iso_list"][0])))
-    
+
     temp_df = pd.DataFrame(
         {
             "model": m,

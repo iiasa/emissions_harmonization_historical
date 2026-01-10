@@ -12,6 +12,7 @@ import warnings
 from typing import TYPE_CHECKING
 
 import aneris.utils
+import openscm_units
 import pandas as pd
 import pandas_indexing as pix
 import tqdm.auto
@@ -339,8 +340,6 @@ def assert_harmonised(
         Tolerance to apply while checking harmonisation of different species
     """
     # Protect this with try except in gcagees
-    import openscm_units
-
     Q = openscm_units.unit_registry.Quantity
 
     if species_tolerances is None:

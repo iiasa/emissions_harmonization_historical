@@ -16,7 +16,7 @@ from emissions_harmonization_historical.constants_5000 import (
     CEDS_TOP_LEVEL_RAW_PATH,
     HARMONISED_SCENARIO_DB,
     HISTORY_HARMONISATION_DB,
-    INFILLED_SCENARIOS_DB,
+    INFILLED_SCENARIOS_DB_EXTENSIONS,
     INFILLING_DB_DIR,
 )
 from emissions_harmonization_historical.harmonisation import (
@@ -115,7 +115,7 @@ def main():
 
     history = HISTORY_HARMONISATION_DB.load(pix.isin(purpose="global_workflow_emissions"))
 
-    complete = INFILLED_SCENARIOS_DB.load(pix.isin(stage="complete"))
+    complete = INFILLED_SCENARIOS_DB_EXTENSIONS.load(pix.isin(stage="complete"))
 
     for (model, scenario), msdf in complete.groupby(["model", "scenario"]):
         relevant_emissions = msdf.index.droplevel(msdf.index.names.difference(["variable", "unit"])).drop_duplicates()

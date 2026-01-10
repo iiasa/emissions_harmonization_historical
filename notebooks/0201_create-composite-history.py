@@ -30,7 +30,7 @@ import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 import seaborn as sns
-from pandas_openscm.io import load_timeseries_csv
+from pandas_openscm.io import load_timeseries_csv as load_csv
 from scipy.stats import linregress
 
 from emissions_harmonization_historical.constants import (
@@ -112,11 +112,11 @@ if CEDS_SOURCE in [
 ]:
     ceds = pix.concat(
         [
-            load_timeseries_csv(
+            load_csv(
                 DATA_ROOT / Path("national", "ceds", "processed", f"ceds_cmip7_national_{CEDS_PROCESSING_ID}.csv"),
                 index_columns=index_cols,
             ),
-            load_timeseries_csv(
+            load_csv(
                 DATA_ROOT / Path("national", "ceds", "processed", f"ceds_cmip7_global_{CEDS_PROCESSING_ID}.csv"),
                 index_columns=index_cols,
             ),
@@ -135,11 +135,11 @@ ceds
 if BIOMASS_BURNING_SOURCE == BiomassBurningOption.GFED4_1s:
     biomass_burning = pix.concat(
         [
-            load_timeseries_csv(
+            load_csv(
                 DATA_ROOT / Path("national", "gfed", "processed", f"gfed_cmip7_national_{GFED_PROCESSING_ID}.csv"),
                 index_columns=index_cols,
             ),
-            load_timeseries_csv(
+            load_csv(
                 DATA_ROOT / Path("national", "gfed", "processed", f"gfed_cmip7_World_{GFED_PROCESSING_ID}.csv"),
                 index_columns=index_cols,
             ),

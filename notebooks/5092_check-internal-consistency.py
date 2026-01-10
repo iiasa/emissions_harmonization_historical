@@ -267,7 +267,7 @@ def write_errors_sheet(  # noqa: PLR0913
             )
         )
         if possible_replacements:
-            msg = f"{v} is not included in the sum anywhere. " f"Some possible renamings: {possible_replacements}"
+            msg = f"{v} is not included in the sum anywhere. Some possible renamings: {possible_replacements}"
         else:
             msg = (
                 f"{v} is not included in the sum anywhere. "

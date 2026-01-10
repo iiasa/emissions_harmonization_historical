@@ -25,7 +25,7 @@ import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 
-from emissions_harmonization_historical.constants import EDGAR_PROCESSING_ID, DATA_ROOT, IAMC_REGION_PROCESSING_ID
+from emissions_harmonization_historical.constants import DATA_ROOT, EDGAR_PROCESSING_ID, IAMC_REGION_PROCESSING_ID
 from emissions_harmonization_historical.region_mapping import create_region_mapping
 
 # %%
@@ -46,8 +46,12 @@ if not region_file.exists() or force_generation:
     )
 
 # %%
-edgar_history_file_national = DATA_ROOT / Path("national", "edgar", "processed", f"edgar_national_{EDGAR_PROCESSING_ID}.csv")
-edgar_history_file_global = DATA_ROOT / Path("national", "edgar", "processed", f"edgar_global_{EDGAR_PROCESSING_ID}.csv")
+edgar_history_file_national = DATA_ROOT / Path(
+    "national", "edgar", "processed", f"edgar_national_{EDGAR_PROCESSING_ID}.csv"
+)
+edgar_history_file_global = DATA_ROOT / Path(
+    "national", "edgar", "processed", f"edgar_global_{EDGAR_PROCESSING_ID}.csv"
+)
 
 # file name for output
 # TODO: add versioning / ID to this file
@@ -62,9 +66,9 @@ iamc_commondefinitions_regions_history_missing_iso = DATA_ROOT / Path(
 )
 
 # %%
-edgar_history = pd.concat([pd.read_csv(edgar_history_file_national),
-                           pd.read_csv(edgar_history_file_global)],
-                         ignore_index=True, sort=False)
+edgar_history = pd.concat(
+    [pd.read_csv(edgar_history_file_national), pd.read_csv(edgar_history_file_global)], ignore_index=True, sort=False
+)
 edgar_history
 
 # %%
@@ -185,9 +189,7 @@ hist_sources_countries
 # as well as the R5/9/10 region aggregations
 iams = region_mapping["model"].unique()
 
-missing_iso = pd.DataFrame(
-    columns=["model", "iso_list", "missing_vs_edgar", "missing_from_edgar"]
-)
+missing_iso = pd.DataFrame(columns=["model", "iso_list", "missing_vs_edgar", "missing_from_edgar"])
 
 missing_iso_l = []
 for m in iams:
@@ -198,9 +200,9 @@ for m in iams:
     # compare against edgar
     # list the iso codes present in the respective historical dataset but not in the IAM region aggregations
     missing_vs_edgar = sorted(list(set(hist_sources_countries["iso_list"][0]) - set(unique)))
-    
+
     missing_from_edgar = sorted(list(set(unique) - set(hist_sources_countries["iso_list"][0])))
-    
+
     temp_df = pd.DataFrame(
         {
             "model": m,

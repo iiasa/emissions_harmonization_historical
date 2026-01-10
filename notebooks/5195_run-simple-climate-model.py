@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -21,9 +21,11 @@
 # ## Imports
 
 # %%
+import logging
 import multiprocessing
 import os
 import platform
+import warnings
 from functools import partial
 
 import openscm_units
@@ -37,13 +39,29 @@ from pandas_openscm.index_manipulation import update_index_levels_func
 from emissions_harmonization_historical.constants_5000 import (
     HISTORY_HARMONISATION_DB,
     INFILLED_SCENARIOS_DB,
+    INFILLED_SCENARIOS_DB_EXTENSIONS,
     MARKERS,
     RCMIP_PROCESSED_DB,
     REPO_ROOT,
     SCM_OUT_DIR,
     SCM_OUTPUT_DB,
 )
-from emissions_harmonization_historical.scm_running import get_complete_scenarios_for_magicc, load_magicc_cfgs
+from emissions_harmonization_historical.scm_running import (
+    get_complete_scenarios_for_magicc,
+    load_magicc_cfgs,
+)
+
+# Suppress expected MAGICC warnings about extending solar forcing to 2500
+# The solar RF data is already extended to 2500, but MAGICC's Fortran code
+# warns that it's using extrapolated (not observed) data beyond 2100
+warnings.filterwarnings("ignore", message=".*Extending solar RF.*")
+warnings.filterwarnings("ignore", message=".*magicc logged a WARNING message.*")
+warnings.filterwarnings(
+    "ignore", message=r"magicc logged a WARNING message\. Check the 'stderr' key.*", category=UserWarning
+)
+warnings.filterwarnings("ignore", category=UserWarning, module="pymagicc.core")
+# Also suppress at the source
+logging.getLogger("pymagicc").setLevel(logging.ERROR)
 
 # %% [markdown]
 # ## Set up
@@ -59,6 +77,7 @@ Q = UR.Quantity
 model: str = "REMIND"
 scm: str = "MAGICCv7.6.0a3"
 markers_only: bool = True
+run_w_extensions: bool = True  # Whether to run with scenarios extended to 2500
 
 # %%
 output_dir_model = SCM_OUT_DIR / model
@@ -69,13 +88,34 @@ output_dir_model
 # ## Load data
 
 # %% [markdown]
-# ### Complete scenarios
+# ### Complete scenarios (extended to 2500)
 
 # %%
-complete_scenarios = INFILLED_SCENARIOS_DB.load(
-    pix.isin(stage="complete") & pix.ismatch(model=f"*{model}*")
-).reset_index("stage", drop=True)
+# Load extended scenarios (1750-2500) for climate model runs
+# These are the 7 marker scenarios extended beyond 2100
+if run_w_extensions:
+    complete_scenarios = INFILLED_SCENARIOS_DB_EXTENSIONS.load(
+        pix.isin(stage="extended") & pix.ismatch(model=f"*{model}*")
+    ).reset_index("stage", drop=True)
+else:
+    complete_scenarios = INFILLED_SCENARIOS_DB.load(
+        pix.isin(stage="complete") & pix.ismatch(model=f"*{model}*")
+    ).reset_index("stage", drop=True)
 
+# Filter out internal diagnostic variables that aren't part of CMIP7 naming convention
+internal_variables = [
+    "Emissions|CO2|Gross Positive Emissions",
+    "Emissions|CO2|Gross Removals",
+]
+complete_scenarios = complete_scenarios.loc[
+    ~complete_scenarios.index.get_level_values("variable").isin(internal_variables)
+]
+
+# %%
+# Check year range to verify we have extended scenarios
+print(f"Year range in complete_scenarios: {complete_scenarios.columns.min()} to {complete_scenarios.columns.max()}")
+print(f"Number of scenarios: {len(complete_scenarios.pix.unique('scenario'))}")
+print(f"Scenarios: {list(complete_scenarios.pix.unique('scenario'))}")
 # %%
 if markers_only:
     markers_l = []
@@ -97,6 +137,10 @@ if markers_only:
 history = HISTORY_HARMONISATION_DB.load(pix.ismatch(purpose="global_workflow_emissions")).reset_index(
     "purpose", drop=True
 )
+
+# Drop workflow level if present (from older database format)
+if "workflow" in history.index.names:
+    history = history.reset_index("workflow", drop=True)
 
 # history.loc[:, :2023]
 
@@ -158,6 +202,17 @@ if scm in ["MAGICCv7.5.3", "MAGICCv7.6.0a3"]:
             raise NotImplementedError(platform.system())
         elif platform.system().lower().startswith("linux"):
             magicc_exe_path = REPO_ROOT / "magicc" / "magicc-v7.6.0a3" / "bin" / "magicc"
+            # Set library path for GCC 13.3.0 (MAGICC was built with this version)
+            # This ensures gfortran libraries are found even when modules aren't loaded
+            gcc_lib_path = "/opt/software/easybuild/software/GCCcore/13.3.0/lib64"
+            if "LD_LIBRARY_PATH" in os.environ:
+                os.environ["LD_LIBRARY_PATH"] = f"{gcc_lib_path}:{os.environ['LD_LIBRARY_PATH']}"
+            else:
+                os.environ["LD_LIBRARY_PATH"] = gcc_lib_path
+
+            # Use /scratch instead of /tmp for MAGICC worker temporary directories
+            # /tmp is only 10 GB and fills up with 32 parallel MAGICC processes
+            os.environ["MAGICC_WORKER_ROOT_DIR"] = "/scratch/bensan"
         else:
             raise NotImplementedError(platform.system())
 
@@ -195,16 +250,26 @@ if scm in ["MAGICCv7.5.3", "MAGICCv7.6.0a3"]:
         startyear=1750,
     )
 
+    # Reduce ensemble size for faster testing (normally 600+ members)
+    # n_ensemble_members = 10
+    # climate_models_cfgs["MAGICC7"] = climate_models_cfgs["MAGICC7"][:n_ensemble_members]
+    # print(f"Using {len(climate_models_cfgs['MAGICC7'])} MAGICC ensemble members for testing")
+
     complete_scm = get_complete_scenarios_for_magicc(
         scenarios=complete_scenarios,
         history=history,
     )
 
-elif scm in ["FAIRv2.2.2"]:
-    raise NotImplementedError(scm)
+    # Convert year columns from float to int to avoid MAGICC namelist errors
+    # MAGICC's Fortran namelist reader expects integer years, not floats
+    complete_scm.columns = complete_scm.columns.astype(int)
 
-else:
-    raise NotImplementedError(scm)
+# Check year range after MAGICC preparation
+print(f"Year range in complete_scm: {complete_scm.columns.min()} to {complete_scm.columns.max()}")
+
+
+# %%
+
 
 # complete_scm
 
@@ -288,13 +353,24 @@ class db_hack:
 
     def save(self, *args, **kwargs):
         """Save"""
-        return self.actual_db.save(*args, **kwargs, groupby=["model", "scenario", "variable"], allow_overwrite=True)
+        return self.actual_db.save(
+            *args,
+            **kwargs,
+            groupby=["model", "scenario", "variable"],
+            allow_overwrite=True,
+        )
 
 
 # %%
 db = db_hack(SCM_OUTPUT_DB)
 
 # %%
+# Limit parallel processes to avoid memory issues on high-core-count systems
+# Each MAGICC process loads full scenario data, so too many processes causes OOM
+# Rule of thumb: ~4-8 GB per MAGICC process for extended scenarios
+max_processes = min(multiprocessing.cpu_count(), 32)  # Cap at 32 processes
+print(f"Running with {max_processes} parallel processes (system has {multiprocessing.cpu_count()} cores)")
+
 # if scm in ["FAIRv2.2.2"]:
 #    some custom code
 # else:
@@ -303,12 +379,12 @@ run_scms(
     climate_models_cfgs=climate_models_cfgs,
     output_variables=output_variables,
     scenario_group_levels=["model", "scenario"],
-    n_processes=multiprocessing.cpu_count(),
+    n_processes=max_processes,
     db=db,
     verbose=True,
     progress=True,
     batch_size_scenarios=15,
-    force_rerun=False,
+    force_rerun=True,  # CHANGED: Must re-run for extended scenarios to 2500
 )
 
 # %% [markdown]
