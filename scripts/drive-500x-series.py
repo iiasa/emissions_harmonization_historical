@@ -52,7 +52,7 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
     ]:
         # Extensions run once for all IAMs, no IAM parameter needed
         # But we can control plotting behavior
-        res = {"make_plots": False}
+        res = {"make_plots": False, "dump_csvs": False}
 
     elif notebook_name in [
         "5195_run-simple-climate-model.py",
@@ -277,7 +277,7 @@ def main():  # noqa: PLR0912
     ### Infilling & Post-processing of emissions
     # Step 1: Infilling per IAM (writes to temp database)
     #
-    notebook_prefixes = ["5190_"]
+    notebook_prefixes = ["5190"]
     # Skip this step
     notebook_prefixes = []
     for iam in iams:
@@ -290,22 +290,21 @@ def main():  # noqa: PLR0912
                 )
 
     # Step 2: Extensions (run once, reads temp DB, writes final DB with both stages)
-    notebook_prefixes = ["5190a"]
+    notebook_prefixes = ["5191"]
     # Skip this step
     # notebook_prefixes = []
     for notebook in all_notebooks:
         if any(notebook.name.startswith(np) for np in notebook_prefixes):
-            run_notebook(
+            run_notebook_iam(
                 notebook=notebook,
                 run_notebooks_dir=RUN_NOTEBOOKS_DIR,
-                parameters={},
-                idn="all_iams",
+                iam="all_iams",
             )
 
     # Step 3: Post-processing per IAM (reads final DB)
-    notebook_prefixes = ["5191"]
+    notebook_prefixes = ["5194"]
     # Skip this step
-    # notebook_prefixes = []
+    notebook_prefixes = []
     for iam in iams:
         for notebook in all_notebooks:
             if any(notebook.name.startswith(np) for np in notebook_prefixes):
@@ -323,7 +322,7 @@ def main():  # noqa: PLR0912
     # Single notebook: run post-processing of climate outputs
     # notebook_prefixes = ["5196"]
     # # Skip this step
-    notebook_prefixes = []
+    # notebook_prefixes = []
     # Single SCMcd
     scms = ["MAGICCv7.6.0a3"]
     # # All available SCMs
