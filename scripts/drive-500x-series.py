@@ -25,8 +25,8 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
     and I can't see a better solution (maybe someone else can).
     """
     if notebook_name == "5090_download-scenarios.py":
-        res = {"model_search": iam, "markers_only": True}
-        # res = {"model_search": iam, "markers_only": False}
+        # res = {"model_search": iam, "markers_only": True}
+        res = {"model_search": iam, "markers_only": False}
 
     elif notebook_name in [
         "5091_check-reporting.py",
@@ -57,7 +57,7 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
         res = {"model": iam, "scm": scm}
         if notebook_name == "5195_run-simple-climate-model.py":
             res["markers_only"] = False
-            res["markers_only"] = True
+            # res["markers_only"] = True
 
     else:
         raise NotImplementedError(notebook_name)
