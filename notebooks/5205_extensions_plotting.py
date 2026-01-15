@@ -60,6 +60,8 @@ scenarios_ext_out.columns = [
     for col in scenarios_ext_out.columns
 ]
 raw_output = merge_historical_future_timeseries(history, scenarios_ext_out)
+raw_output = raw_output.loc[raw_output.index.get_level_values("workflow") == "for_scms"]
+# sys.exit(4)
 
 # %% [markdown]
 # ## Constants
@@ -134,6 +136,10 @@ class HistoryPlotConfig:
 
 # %%
 co2_gross_positive_ext = scenarios_ext_out.loc[pix.ismatch(variable="Emissions|CO2|Gross Positive Emissions")]
+print(co2_gross_positive_ext.shape)
+co2_gross_positive_ext = co2_gross_positive_ext.loc[
+    co2_gross_positive_ext.index.get_level_values("workflow") != "for_scms"
+]
 co2_beccs_ext = scenarios_ext_out.loc[pix.ismatch(variable="Emissions|CO2|BECCS")]
 co2_dacc_ext = scenarios_ext_out.loc[pix.ismatch(variable="Emissions|CO2|Direct Air Capture")]
 co2_ocean_ext = scenarios_ext_out.loc[pix.ismatch(variable="Emissions|CO2|Ocean")]
@@ -142,6 +148,10 @@ co2_soil_carbon_ext = scenarios_ext_out.loc[pix.ismatch(variable="Emissions|CO2|
 co2_biochar_ext = scenarios_ext_out.loc[pix.ismatch(variable="Emissions|CO2|Biochar")]
 co2_other_cdr_ext = scenarios_ext_out.loc[pix.ismatch(variable="Emissions|CO2|Other CDR")]
 fossil_extension_df = scenarios_ext_out.loc[pix.ismatch(variable="Emissions|CO2|Energy and Industrial Processes")]
+
+print(co2_gross_positive_ext.shape)
+print(co2_gross_positive_ext)
+# sys.exit(4)
 
 
 # %%
@@ -158,6 +168,8 @@ def _get_annual_data_for_scenario(scenario, year_cols):
     gross_pos_annual = co2_gross_positive_ext.loc[
         co2_gross_positive_ext.index.get_level_values("scenario") == scenario
     ][year_cols].sum()
+    print(gross_pos_annual)
+    sys.exit(4)
 
     beccs_annual = co2_beccs_ext.loc[co2_beccs_ext.index.get_level_values("scenario") == scenario][year_cols].sum()
 
