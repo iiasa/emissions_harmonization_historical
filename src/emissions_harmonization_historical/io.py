@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pandas as pd
 import pandas_indexing as pix
+import tqdm.auto
 from gcages.io import load_timeseries_csv
 
 
@@ -59,9 +60,7 @@ def load_global_scenario_data(scenario_path: Path, scenario_time_id: str, progre
         raise AssertionError(msg)
 
     if progress:
-        from tqdm.auto import tqdm
-
-        scenario_files = tqdm(scenario_files, desc="Scenario files")
+        scenario_files = tqdm.auto.tqdm(scenario_files, desc="Scenario files")
 
     scenarios_raw = pix.concat(
         [

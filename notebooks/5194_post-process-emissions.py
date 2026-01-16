@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -150,7 +150,8 @@ def calculate_co2_total(indf: pd.DataFrame) -> pd.DataFrame:  # noqa: D103
     return res
 
 
-def interpolate_to_annual(indf: pd.DataFrame, copy: bool = True) -> pd.DataFrame:  # noqa: D103
+def interpolate_to_annual(indf: pd.DataFrame, copy: bool = True) -> pd.DataFrame:
+    """Interpolate dataframe to annual values."""
     if copy:
         indf = indf.copy()
 
@@ -175,7 +176,10 @@ def calculate_cumulative_co2s(indf: pd.DataFrame) -> pd.DataFrame:  # noqa: D103
 
         co2_cumulative_df = update_index_levels_func(
             co2_df.cumsum(axis="columns"),
-            {"unit": lambda x: x.replace("/yr", ""), "variable": lambda x: f"Cumulative {x}"},
+            {
+                "unit": lambda x: x.replace("/yr", ""),
+                "variable": lambda x: f"Cumulative {x}",
+            },
         ).pix.convert_unit("Gt CO2")
 
         res_l.append(co2_cumulative_df)
@@ -456,13 +460,69 @@ for ax in fg.axes.flatten():
     ax.axhline(0.0, linestyle="--", color="gray")
 
 # %% [markdown]
+# ### Extended (if present)
+
+# %%
+# Check if extended scenarios exist for this model
+extended_emissions_raw = infilled_emms.loc[pix.isin(stage="extended")]
+
+if not extended_emissions_raw.empty:
+    print(f"Processing extended scenarios for model: {model}")
+    extended_emissions = extended_emissions_raw.reset_index("stage", drop=True)
+
+    extended_emissions_annual = interpolate_to_annual(extended_emissions)
+    extended_emissions_annual_gcages = update_index_levels_func(extended_emissions_annual, {"variable": to_gcages})
+    extended_emissions_annual_gcages_incl_co2_total = pix.concat(
+        [
+            extended_emissions_annual_gcages,
+            calculate_co2_total(extended_emissions_annual_gcages),
+        ]
+    )
+
+    extended_emissions_annual_incl_co2_total = update_index_levels_func(
+        extended_emissions_annual_gcages_incl_co2_total, {"variable": from_gcages}
+    )
+
+    extended_emissions_out = pix.concat(
+        [
+            extended_emissions_annual_incl_co2_total,
+            calculate_cumulative_co2s(extended_emissions_annual_incl_co2_total),
+            calculate_kyoto_ghgs(extended_emissions_annual_gcages_incl_co2_total),
+            calculate_ghgs(extended_emissions_annual_gcages_incl_co2_total),
+        ]
+    )
+else:
+    print(f"No extended scenarios for model: {model}")
+    extended_emissions_out = None
+
+# %% [markdown]
 # ## Save
 
 # %%
-for df, db in (
-    (pre_processed_emms_scms_out.pix.assign(stage="pre-processed-scms"), POST_PROCESSED_TIMESERIES_DB),
-    (harmonised_emms_gridding.pix.assign(stage="harmonised-gridding"), POST_PROCESSED_TIMESERIES_DB),
-    (harmonised_emms_scms_out.pix.assign(stage="harmonised-scms"), POST_PROCESSED_TIMESERIES_DB),
+save_list = [
+    (
+        pre_processed_emms_scms_out.pix.assign(stage="pre-processed-scms"),
+        POST_PROCESSED_TIMESERIES_DB,
+    ),
+    (
+        harmonised_emms_gridding.pix.assign(stage="harmonised-gridding"),
+        POST_PROCESSED_TIMESERIES_DB,
+    ),
+    (
+        harmonised_emms_scms_out.pix.assign(stage="harmonised-scms"),
+        POST_PROCESSED_TIMESERIES_DB,
+    ),
     (complete_emissions_out.pix.assign(stage="complete"), POST_PROCESSED_TIMESERIES_DB),
-):
+]
+
+# Add extended scenarios if they exist
+if extended_emissions_out is not None:
+    save_list.append(
+        (
+            extended_emissions_out.pix.assign(stage="extended"),
+            POST_PROCESSED_TIMESERIES_DB,
+        )
+    )
+
+for df, db in save_list:
     db.save(df, allow_overwrite=True)

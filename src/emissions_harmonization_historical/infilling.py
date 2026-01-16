@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
 import numpy as np
 import pandas as pd
 import pandas_indexing as pix
+import pyam
 import tqdm.auto
 
 if TYPE_CHECKING:
@@ -51,8 +52,6 @@ def get_silicone_based_infiller(
     :
         Function which can be used to infill `follower_variable` in scenarios
     """
-    import pyam
-
     if derive_relationship_kwargs is None:
         derive_relationship_kwargs = {}
 

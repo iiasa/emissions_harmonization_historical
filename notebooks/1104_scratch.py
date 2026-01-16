@@ -607,6 +607,11 @@ match_criteria
 # ## B
 
 # %%
+# Constants
+PEAK_WARMING_THRESHOLD = 1.75  # Temperature threshold for filtering scenarios
+EXCEEDANCE_PROBABILITY_THRESHOLD = 33.0  # Probability threshold for 2°C exceedance
+EOC_WARMING_THRESHOLD = 1.6  # End of century warming threshold
+
 variables = [
     "Emissions|CO2|Energy and Industrial Processes",
     "Emissions|CO2|AFOLU",
@@ -617,9 +622,13 @@ variables = [
 ]
 years = range(2020, 2100 + 1)
 
-tmp = metadata_updated[(metadata_updated["category"] == "C2") & (metadata_updated["Peak warming 50.0"] > 1.75)]
+tmp = metadata_updated[
+    (metadata_updated["category"] == "C2") & (metadata_updated["Peak warming 50.0"] > PEAK_WARMING_THRESHOLD)
+]
 match_criteria = (tmp["Peak warming 50.0"] - tmp["EOC warming 50.0"]).sort_values(ascending=False)[:20]
-# match_criteria = metadata_updated[metadata_updated["category"] == "C2"].sort_values("Peak warming 50.0", ascending=False).iloc[:10, :]
+# match_criteria = metadata_updated[metadata_updated["category"] == "C2"].sort_values(
+#     "Peak warming 50.0", ascending=False
+# ).iloc[:10, :]
 
 sns_df = db_incl_wu_meta.loc[pix.isin(variable=variables)].loc[:, years].melt(ignore_index=False, var_name="year")
 
@@ -683,11 +692,13 @@ variables = [
 years = range(2020, 2100 + 1)
 
 match_criteria = metadata_updated[
-    (metadata_updated["2.00°C exceedance probability"] <= 33.0)
+    (metadata_updated["2.00°C exceedance probability"] <= EXCEEDANCE_PROBABILITY_THRESHOLD)
     & (ghg_eq_total.min(axis="columns") <= 0.0).reset_index(["region", "unit", "scenario_group", "variable"], drop=True)
-    & (metadata_updated["EOC warming 50.0"] >= 1.6)
+    & (metadata_updated["EOC warming 50.0"] >= EOC_WARMING_THRESHOLD)
 ].sort_values("Peak warming 50.0", ascending=False)[:20]
-# match_criteria = metadata_updated[metadata_updated["category"] == "C2"].sort_values("Peak warming 50.0", ascending=False).iloc[:10, :]
+# match_criteria = metadata_updated[metadata_updated["category"] == "C2"].sort_values(
+#     "Peak warming 50.0", ascending=False
+# ).iloc[:10, :]
 
 sns_df = db_incl_wu_meta.loc[pix.isin(variable=variables)].loc[:, years].melt(ignore_index=False, var_name="year")
 

@@ -5,9 +5,9 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.11.2
 #   kernelspec:
-#     display_name: Python 3 (ipykernel)
+#     display_name: default
 #     language: python
 #     name: python3
 # ---
@@ -21,7 +21,6 @@
 # ## Imports
 
 # %%
-import multiprocessing
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -102,7 +101,7 @@ raw_scm_output = SCM_OUTPUT_DB.load(
         ]
     ),
     progress=True,
-    max_workers=multiprocessing.cpu_count(),
+    max_workers=8,
 )
 
 # %% [markdown]
@@ -571,21 +570,21 @@ for i, (ax, quantile_plumes) in enumerate(
 
 plt.show()
 
-magicc_diff = (
-    tmp.stack().unstack("climate_model")["MAGICCv7.6.0a3"] - tmp.stack().unstack("climate_model")["MAGICCv7.5.3"]
-).unstack("time")
-ax = magicc_diff.openscm.plot_plume_after_calculating_quantiles(
-    quantile_over="run_id",
-)
-ax.grid()
+# magicc_diff = (
+#     tmp.stack().unstack("climate_model")["MAGICCv7.6.0a3"] - tmp.stack().unstack("climate_model")["MAGICCv7.5.3"]
+# ).unstack("time")
+# ax = magicc_diff.openscm.plot_plume_after_calculating_quantiles(
+#     quantile_over="run_id",
+# )
+# ax.grid()
 plt.show()
 
 # %% editable=true slideshow={"slide_type": ""}
-tmp = metadata_quantile.unstack("climate_model")
-magicc_diff = tmp["MAGICCv7.6.0a3"] - tmp["MAGICCv7.5.3"]
-magicc_diff.unstack(["metric", "unit", "quantile"])[
-    [(metric, "K", percentile) for metric in ["max", "2100"] for percentile in [0.33, 0.5, 0.67, 0.95]]
-].sort_values(by=("max", "K", 0.5)).describe().round(3)
+# tmp = metadata_quantile.unstack("climate_model")
+# magicc_diff = tmp["MAGICCv7.6.0a3"] - tmp["MAGICCv7.5.3"]
+# magicc_diff.unstack(["metric", "unit", "quantile"])[
+#     [(metric, "K", percentile) for metric in ["max", "2100"] for percentile in [0.33, 0.5, 0.67, 0.95]]
+# ].sort_values(by=("max", "K", 0.5)).describe().round(3)
 
 # %% editable=true slideshow={"slide_type": ""}
 iam = "REMIND"
