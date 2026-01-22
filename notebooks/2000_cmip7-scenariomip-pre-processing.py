@@ -25,10 +25,14 @@
 
 # %%
 import gcages.cmip7_scenariomip.pre_processing.reaggregation.basic
+import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 from gcages.cmip7_scenariomip import CMIP7ScenarioMIPPreProcessor
+from gcages.cmip7_scenariomip.pre_processing.reaggregation import ReaggregatorBasic
+from gcages.cmip7_scenariomip.pre_processing.reaggregation.basic import get_required_timeseries_index
 from gcages.completeness import get_missing_levels
+from gcages.index_manipulation import create_levels_based_on_existing, set_new_single_value_levels
 from pandas_openscm.db import (
     FeatherDataBackend,
     FeatherIndexBackend,
@@ -121,11 +125,6 @@ if not model_regions:
 # ### Temporary hack: assume zero for missing reporting
 
 # %%
-import numpy as np
-from gcages.cmip7_scenariomip.pre_processing.reaggregation import ReaggregatorBasic
-from gcages.cmip7_scenariomip.pre_processing.reaggregation.basic import get_required_timeseries_index
-from gcages.index_manipulation import create_levels_based_on_existing, set_new_single_value_levels
-
 reaggregator = ReaggregatorBasic(model_regions=model_regions)
 pre_processor = CMIP7ScenarioMIPPreProcessor(
     reaggregator=reaggregator,

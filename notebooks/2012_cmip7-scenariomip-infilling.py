@@ -22,8 +22,12 @@
 # ## Imports
 
 # %%
+import json
+from collections.abc import Callable
 from functools import partial
 
+import numpy as np
+import openscm_units
 import pandas as pd
 import pandas_indexing as pix
 import pandas_openscm
@@ -46,10 +50,12 @@ from emissions_harmonization_historical.constants import (
     CMIP7_SCENARIOMIP_HARMONISATION_ID,
     CMIP7_SCENARIOMIP_INFILLING_ID,
     CMIP7_SCENARIOMIP_PRE_PROCESSING_ID,
+    CMIP_CONCENTRATION_INVERSION_ID,
     COMBINED_HISTORY_ID,
     DATA_ROOT,
     IAMC_REGION_PROCESSING_ID,
     SCENARIO_TIME_ID,
+    WMO_2022_PROCESSING_ID,
 )
 from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR
 
@@ -308,6 +314,20 @@ infilling_db_harmonised.pix.unique("variable")
 
 # %%
 def get_silicone_based_infiller(infiller):
+    """
+    Get an infiller that uses silicone for relationship derivation.
+
+    Parameters
+    ----------
+    infiller :
+        Silicone infiller object
+
+    Returns
+    -------
+    callable
+        Function that can infill data using the provided silicone infiller
+    """
+
     def res(inp: pd.DataFrame) -> pd.DataFrame:
         res_h = infiller(pyam.IamDataFrame(inp)).timeseries()
         # The fact that this is needed suggests there's a bug in silicone
@@ -336,6 +356,21 @@ for variable in tqdm.auto.tqdm([v for v in infill_silicone_gcages if v != lead])
 
 # %%
 def infill(indf: pd.DataFrame, infillers) -> pd.DataFrame | None:
+    """
+    Infill missing variables using the provided infillers.
+
+    Parameters
+    ----------
+    indf : pd.DataFrame
+        Input dataframe with potentially missing variables
+    infillers : dict
+        Dictionary mapping variables to infiller functions
+
+    Returns
+    -------
+    pd.DataFrame or None
+        Infilled dataframe, or None if no infilling was performed
+    """
     infilled_l = []
     for variable in tqdm.tqdm(infillers):
         for (model, scenario), msdf in indf.groupby(["model", "scenario"]):
@@ -351,6 +386,21 @@ def infill(indf: pd.DataFrame, infillers) -> pd.DataFrame | None:
 
 # %%
 def get_complete(indf: pd.DataFrame, infilled: pd.DataFrame | None) -> pd.DataFrame:
+    """
+    Combine original and infilled data to create complete dataset.
+
+    Parameters
+    ----------
+    indf : pd.DataFrame
+        Original input dataframe
+    infilled : pd.DataFrame or None
+        Infilled data, or None if no infilling was performed
+
+    Returns
+    -------
+    pd.DataFrame
+        Combined dataframe with original and infilled data
+    """
     if infilled is not None:
         complete = pix.concat([indf, infilled])
 
@@ -372,10 +422,8 @@ complete_silicone = get_complete(harmonised, infilled_silicone)
 # Infill by direct copy
 # TODO: move functions
 
+
 # %%
-from collections.abc import Callable
-
-
 def get_direct_copy_infiller(variable: str, copy_from: pd.DataFrame) -> Callable[[pd.DataFrame], pd.DataFrame]:
     """Get an infiller which just copies the scenario from another scenario"""
 
@@ -398,9 +446,6 @@ def get_direct_copy_infiller(variable: str, copy_from: pd.DataFrame) -> Callable
 
 
 # %%
-from emissions_harmonization_historical.constants import WMO_2022_PROCESSING_ID
-
-# %%
 wmo_2022_scenarios = load_timeseries_csv(
     DATA_ROOT / "global" / "wmo-2022" / "processed" / f"wmo-2022_cmip7_global_{WMO_2022_PROCESSING_ID}.csv",
     index_columns=["model", "scenario", "region", "variable", "unit"],
@@ -409,6 +454,22 @@ wmo_2022_scenarios = load_timeseries_csv(
 
 
 def fix_variable(v: str) -> str:
+    """
+    Fix variable names by extracting first and last components.
+
+    Replaces '43-10' with '4310mee' and returns only the first and last
+    components separated by '|'.
+
+    Parameters
+    ----------
+    v : str
+        Variable name to fix
+
+    Returns
+    -------
+    str
+        Fixed variable name with first and last components
+    """
     toks = v.replace("43-10", "4310mee").split("|")
     return "|".join([toks[0], toks[-1]])
 
@@ -477,14 +538,6 @@ scaling_leaders = {
     "Emissions|CH3Cl": "Emissions|CF4",
     "Emissions|NF3": "Emissions|SF6",
 }
-
-# %%
-import json
-
-import numpy as np
-import openscm_units
-
-from emissions_harmonization_historical.constants import CMIP_CONCENTRATION_INVERSION_ID
 
 # %%
 input_file_pi_leaders = (

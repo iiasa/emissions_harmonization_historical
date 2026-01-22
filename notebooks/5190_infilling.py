@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -363,8 +363,6 @@ scaling_leaders_gcages = {
     "Emissions|HFC365mfc": "Emissions|HFC134a",
     "Emissions|CH2Cl2": "Emissions|HFC134a",
     "Emissions|CHCl3": "Emissions|C2F6",
-    "Emissions|CH3Br": "Emissions|C2F6",
-    "Emissions|CH3Cl": "Emissions|CF4",
     "Emissions|NF3": "Emissions|SF6",
 }
 scaling_leaders = {to_reporting_names(k): to_reporting_names(v) for k, v in scaling_leaders_gcages.items()}

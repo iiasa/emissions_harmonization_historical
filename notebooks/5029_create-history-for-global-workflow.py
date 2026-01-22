@@ -428,24 +428,24 @@ global_variable_sources = {
     "Emissions|HFC32": "Velders et al., 2022_cmip-inverse-extended",
     "Emissions|HFC365mfc": "Velders et al., 2022_cmip-inverse-extended",
     "Emissions|HFC4310mee": "Velders et al., 2022_cmip-inverse-extended",
-    "Emissions|CCl4": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|CFC11": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|CFC113": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|CFC114": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|CFC115": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|CFC12": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
+    "Emissions|CCl4": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|CFC11": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|CFC113": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|CFC114": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|CFC115": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|CFC12": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
     "Emissions|CH2Cl2": "CR-CMIP-1-0-0-inverse-smooth-extrapolated",
-    "Emissions|CH3Br": "CR-CMIP-1-0-0-inverse-smooth-extrapolated",
-    "Emissions|CH3CCl3": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|CH3Cl": "CR-CMIP-1-0-0-inverse-smooth-extrapolated",
+    "Emissions|CH3Br": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|CH3CCl3": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|CH3Cl": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
     "Emissions|CHCl3": "CR-CMIP-1-0-0-inverse-smooth-extrapolated",
-    "Emissions|HCFC141b": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|HCFC142b": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|HCFC22": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|Halon1202": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|Halon1211": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|Halon1301": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
-    "Emissions|Halon2402": "WMO 2022 projections v20250129 smoothed_cmip-inverse-extended",
+    "Emissions|HCFC141b": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|HCFC142b": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|HCFC22": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|Halon1202": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|Halon1211": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|Halon1301": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
+    "Emissions|Halon2402": "WMO-2022-CMIP7-concentration-inversions_cmip-inverse-extended",
     "Emissions|N2O": "gridding-emissions-incl-ceds-extension",
     "Emissions|NF3": "CR-CMIP-1-0-0-inverse-smooth-extrapolated",
     "Emissions|NH3": "gridding-emissions-incl-ceds-extension",
@@ -498,7 +498,7 @@ if global_workflow_harmonisation_emissions.shape[0] != exp_n_timeseries:
 global_workflow_harmonisation_emissions_reporting_names = (
     global_workflow_harmonisation_emissions_reporting_names.rename_axis("year", axis="columns")
 )
-global_workflow_harmonisation_emissions_reporting_names
+# global_workflow_harmonisation_emissions_reporting_names
 
 # %% [markdown]
 # ## Last checks

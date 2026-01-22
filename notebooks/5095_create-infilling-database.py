@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -54,7 +54,6 @@ from emissions_harmonization_historical.harmonisation import (
     HARMONISATION_YEAR,
     harmonise,
 )
-from emissions_harmonization_historical.zenodo import upload_to_zenodo
 
 # %% [markdown]
 # ## Set up
@@ -99,13 +98,17 @@ if scenarios_for_infilling_db.empty:
 if scenarios_for_infilling_db.isnull().any().any():
     raise AssertionError
 
-# scenarios_for_infilling_db
+scenarios_for_infilling_db.index.droplevel(
+    scenarios_for_infilling_db.index.names.difference(["model", "scenario"])
+).drop_duplicates()
 
 # %% [markdown]
 # ### WMO 2022
 
 # %%
-wmo_2022_scenarios = WMO_2022_PROCESSED_DB.load(pix.ismatch(model="*projections*"))
+wmo_2022_scenarios = WMO_2022_PROCESSED_DB.load(pix.ismatch(model="WMO-2022-CMIP7-concentration-inversions")).loc[
+    :, HARMONISATION_YEAR:2100
+]
 if wmo_2022_scenarios.empty:
     raise AssertionError
 
@@ -169,7 +172,7 @@ harmonise_res = harmonise(
     user_overrides=user_overrides,
 )
 if harmonise_res.timeseries.isnull().any().any():
-    raise AssertionError
+    raise AssertionError(harmonise_res.timeseries.isnull().any(axis=1))
 
 # %%
 compare_infilling_harmonisation = compare_close(
@@ -368,9 +371,4 @@ logger.enable("openscm_zenodo")
 # )
 
 # %%
-upload_to_zenodo(
-    files_for_zenodo,
-    any_deposition_id="17514979",
-    remove_existing=True,
-    metadata=metadata,
-)
+# upload_to_zenodo([out_file_infilling_db], remove_existing=False, update_metadata=True)

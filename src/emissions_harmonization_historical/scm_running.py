@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+import pandas_indexing as pix
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.scm_running import convert_openscm_runner_output_names_to_magicc_output_names
 from pandas_openscm.indexing import multi_index_lookup
@@ -233,8 +234,6 @@ def get_complete_scenarios_for_magicc(
     :
         Complete scenario to use with MAGICC
     """
-    import pandas_indexing as pix
-
     scenarios_start_year = scenarios.columns.min()
 
     history_to_add = (

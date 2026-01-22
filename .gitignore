@@ -82,6 +82,10 @@ data/national/cams/data_raw/
 # PRIMAP-hist data
 data/national/primap-hist/data_raw
 
+data/fair-inputs/emissions_1750-2500.csv
+data/fair-inputs/calibrated_constrained_parameters_1.4.1.csv
+data/fair-inputs/1.5.0/calibrated_constrained_parameters.csv
+
 # pixi stuff
 .pixi
 
@@ -223,3 +227,9 @@ dmypy.json
 
 # Mac stuff
 *.DS_Store
+
+# Notebook output dumps
+notebooks/*.csv
+notebooks/*.json
+
+*.csv

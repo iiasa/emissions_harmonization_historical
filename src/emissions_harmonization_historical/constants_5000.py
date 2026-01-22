@@ -208,6 +208,8 @@ WMO_2022_RAW_PATH = DATA_ROOT / "raw" / "wmo-2022"
 # Moved to portable OpenSCMDB
 WMO_2022_PROCESSING_ID = "0003"
 WMO_2022_PROCESSING_ID = "202511040855"
+# Switch to using CMIP7 recommended inverse emissions
+WMO_2022_PROCESSING_ID = "202512071232"
 
 WMO_2022_PROCESSED_DB = OpenSCMDB(
     db_dir=DATA_ROOT / "processed" / "wmo-2022" / WMO_2022_PROCESSING_ID / "db",
@@ -307,7 +309,7 @@ HISTORY_HARMONISATION_INTERIM_DIR = DATA_ROOT / "interim" / "history-for-harmoni
 HISTORY_HARMONISATION_DIR = DATA_ROOT / "processed" / "history-for-harmonisation" / HISTORY_FOR_HARMONISATION_ID
 
 # ID of the Zenodo record that contains the harmonised historical emissions to use
-HISTORY_ZENODO_RECORD_ID = "17800990"
+HISTORY_ZENODO_RECORD_ID = "17845154"
 
 # Database to hold historical emissions for harmonisation
 HISTORY_HARMONISATION_DB = OpenSCMDB(
@@ -318,7 +320,13 @@ HISTORY_HARMONISATION_DB = OpenSCMDB(
 
 
 # # ID for the scenario download step
+# Run by Marco
+DOWNLOAD_SCENARIOS_ID = "All_23Oct"
+DOWNLOAD_SCENARIOS_ID = "311020251815"
+DOWNLOAD_SCENARIOS_ID = "202511011723"
+DOWNLOAD_SCENARIOS_ID = "ben_nov18"
 DOWNLOAD_SCENARIOS_ID = "202512021030"
+DOWNLOAD_SCENARIOS_ID = "20251212_test"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(
@@ -335,6 +343,7 @@ PRE_PROCESSING_ID = "0002"
 PRE_PROCESSING_ID = "0003"
 # Upgrade to gcages which puts CDR in the Emissions tree
 PRE_PROCESSING_ID = "0004"
+# PRE_PROCESSING_ID = "0005"
 PRE_PROCESSING_ID = "202512021030"
 
 # Database into which pre-processed scenarios are saved
@@ -388,7 +397,7 @@ INFILLING_DB_DIR = (
 )
 
 # ID of the Zenodo record that contains the infilling database to use
-INFILLING_DB_ZENODO_RECORD_ID = "17802976"
+INFILLING_DB_ZENODO_RECORD_ID = "17844114"
 
 # Database into which infilled emissions are saved
 INFILLING_DB = OpenSCMDB(
@@ -424,9 +433,35 @@ INFILLED_OUT_DIR_ID = "_".join(
 
 INFILLED_OUT_DIR = DATA_ROOT / "processed" / "infilled" / INFILLED_OUT_DIR_ID
 
-# Database into which infilled data is saved
+# Temporary database for infilled data before extensions (1750-2100)
+# This is written by 5190_infilling.py and read by 5190a_extension_pipeline.py
 INFILLED_SCENARIOS_DB = OpenSCMDB(
     db_dir=INFILLED_OUT_DIR / "db",
+    backend_data=FeatherDataBackend(),
+    backend_index=FeatherIndexBackend(),
+)
+
+# ID for the scenario extension step
+# Moved to portable OpenSCMDB
+EXTENSIONS_ID = "0001"
+
+INFILLED_OUT_DIR_ID_WITH_EXTENSIONS = "_".join(
+    [
+        DOWNLOAD_SCENARIOS_ID,
+        PRE_PROCESSING_ID,
+        HISTORY_FOR_HARMONISATION_ID,
+        HARMONISATION_ID,
+        INFILLING_ID,
+        EXTENSIONS_ID,
+    ]
+)
+
+INFILLED_OUT_DIR_WITH_EXTENSIONS = DATA_ROOT / "processed" / "infilled" / INFILLED_OUT_DIR_ID_WITH_EXTENSIONS
+
+# Final database for infilled data after extensions (1750-2100 for all, 1750-2500 for markers)
+# This is written by 5190a_extension_pipeline.py and read by downstream notebooks
+INFILLED_SCENARIOS_DB_EXTENSIONS = OpenSCMDB(
+    db_dir=INFILLED_OUT_DIR_WITH_EXTENSIONS / "db",
     backend_data=FeatherDataBackend(),
     backend_index=FeatherIndexBackend(),
 )
@@ -459,6 +494,34 @@ SCM_OUTPUT_DB = OpenSCMDB(
     backend_data=FeatherDataBackend(),
     backend_index=FeatherIndexBackend(),
 )
+
+# ID for the scenario extension step
+# Moved to portable OpenSCMDB
+EXTENSIONS_ID = "0001"
+
+EXTENSIONS_OUT_DIR = (
+    DATA_ROOT
+    / "processed"
+    / "extension-output"
+    / "_".join(
+        [
+            DOWNLOAD_SCENARIOS_ID,
+            PRE_PROCESSING_ID,
+            HISTORY_FOR_HARMONISATION_ID,
+            HARMONISATION_ID,
+            INFILLING_ID,
+            EXTENSIONS_ID,
+        ]
+    )
+)
+
+# Database into which extensions output is saved
+EXTENSIONS_OUTPUT_DB = OpenSCMDB(
+    db_dir=EXTENSIONS_OUT_DIR / "db",
+    backend_data=FeatherDataBackend(),
+    backend_index=FeatherIndexBackend(),
+)
+
 
 # ID for the post-processing step
 # POST_PROCESSING_ID = "0001"
