@@ -239,11 +239,11 @@ def main():  # noqa: PLR0912
 
     ### Running the SCMs and post-processing climate outputs
     # SCM related notebooks
-    # notebook_prefixes = ["5195", "5196"]
+    notebook_prefixes = ["5195", "5196"]
     # Single notebook: run SCM
     # notebook_prefixes = ["5195"]
     # Single notebook: run post-processing of climate outputs
-    notebook_prefixes = ["5196"]
+    # notebook_prefixes = ["5196"]
     # # Skip this step
     # notebook_prefixes = []
     # Single SCM

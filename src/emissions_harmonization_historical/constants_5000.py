@@ -24,21 +24,23 @@ from pandas_openscm.db import (
 )
 
 MARKERS = (
-    # (model, scenario, ScenarioMIP name)
-    ("REMIND-MAgPIE 3.5-4.11", "SSP1 - Very Low Emissions", "vl"),
-    ("AIM 3.0", "SSP2 - Low Overshoot_a", "ln"),
-    ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions", "l"),
-    ("COFFEE 1.6", "SSP2 - Medium-Low Emissions", "ml"),
-    ("IMAGE 3.4", "SSP2 - Medium Emissions", "m"),
-    ("WITCH 6.0", "SSP5 - Medium-Low Emissions_a", "hl"),
-    ("GCAM 8s", "SSP3 - High Emissions", "h"),
+    # (model, scenario, ScenarioMIP name, final_version)
+    ("REMIND-MAgPIE 3.5-4.11", "SSP1 - Very Low Emissions", "vl", 5),
+    ("AIM 3.0", "SSP2 - Low Overshoot_a", "ln", 21),
+    ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions", "l", 19),
+    ("COFFEE 1.6", "SSP2 - Medium-Low Emissions", "ml", 13),
+    ("IMAGE 3.4", "SSP2 - Medium Emissions", "m", 25),
+    ("WITCH 6.0", "SSP5 - Medium-Low Emissions_a", "hl", 31),
+    ("GCAM 8s", "SSP3 - High Emissions", "h", 3),
 )
+
 MARKERS_BY_SCENARIOMIP_NAME = {
     scenariomip_name: {
         "model": model,
         "scenario": scenario,
+        "version": version,
     }
-    for model, scenario, scenariomip_name in MARKERS
+    for model, scenario, scenariomip_name, version in MARKERS
 }
 
 # Chosen to match the CMIP experiment ID
@@ -320,7 +322,7 @@ HISTORY_HARMONISATION_DB = OpenSCMDB(
 
 
 # # ID for the scenario download step
-DOWNLOAD_SCENARIOS_ID = "202601121626"
+DOWNLOAD_SCENARIOS_ID = "202601301330"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(

@@ -131,8 +131,12 @@ if model_search == "GCAM":
 
 if markers_only:
     markers_l = []
-    for model, scenario, _ in MARKERS:
-        tmp = to_download[(to_download["model"] == model) & (to_download["scenario"] == scenario)]
+    for model, scenario, _, version in MARKERS:
+        tmp = to_download[
+            (to_download["model"] == model)
+            & (to_download["scenario"] == scenario)
+            & (to_download["version"] == version)
+        ]
         if not tmp.empty:
             markers_l.append(tmp)
 
