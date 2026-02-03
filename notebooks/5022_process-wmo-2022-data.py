@@ -25,7 +25,6 @@
 from functools import partial
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pandas_indexing as pix
@@ -143,16 +142,6 @@ inversions
 wmo_raw = pd.read_excel(WMO_2022_RAW_PATH / "Emissions_fromWMO2022.xlsx").rename({"Unnamed: 0": "year"}, axis="columns")
 wmo_raw
 
-# %%
-wmo_raw["CCl4"]
-
-# %%
-
-plt.figure()
-plt.plot(wmo_raw["year"], wmo_raw["CCl4"])
-plt.show
-
-
 # %% [markdown]
 # ### Inversions based on recommended CMIP7 concentrations
 #
@@ -179,9 +168,6 @@ for variable, vdf in wmo_2022_emissions.groupby("variable"):
 
 inverse_emissions_clean = pix.concat(inverse_emissions_clean_l)
 # inverse_emissions_clean
-
-# %%
-wmo_2022_emissions[0:1].loc[:, 2000:2100].pix.project("variable").T.plot()
 
 # %% [markdown]
 # ## Extrapolate the inversions provided by WMO 2022 author team
@@ -281,7 +267,7 @@ for variable, vdf in wmo_clean.groupby("variable"):
     wmo_emissions_smooth_l.append(vdf)
 
 wmo_emissions_smooth = pix.concat(wmo_emissions_smooth_l).pix.assign(model="WMO 2022 projections v20250129 smoothed")
-wmo_emissions_smooth[0:3]
+wmo_emissions_smooth
 
 # %%
 pdf = (
@@ -316,8 +302,6 @@ for ax in fg.figure.axes:
 # and the WMO 2022 values.
 
 # %%
-
-# %%
 pdf = (
     pix.concat(
         [
@@ -333,7 +317,7 @@ pdf = (
 )
 
 fg = sns.relplot(
-    data=pdf[pdf["variable"] == "Emissions|CCl4"],
+    data=pdf,
     x="year",
     y="value",
     col="variable",
@@ -360,7 +344,7 @@ res = pix.concat(
     ]
 )
 
-res[0:3].loc[:, 1990:2030]
+res.loc[:, 1990:2030]
 
 # %% [markdown]
 # ## Save
