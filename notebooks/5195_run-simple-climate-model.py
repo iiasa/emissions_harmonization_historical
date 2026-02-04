@@ -79,7 +79,7 @@ complete_scenarios = INFILLED_SCENARIOS_DB.load(
 # %%
 if markers_only:
     markers_l = []
-    for model, scenario, _ in MARKERS:
+    for model, scenario, _, _ in MARKERS:
         tmp = complete_scenarios.loc[pix.isin(model=model, scenario=scenario)]
         if not tmp.empty:
             markers_l.append(tmp)
