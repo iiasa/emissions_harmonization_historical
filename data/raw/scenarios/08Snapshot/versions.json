@@ -1,0 +1,14 @@
+{
+  "AIM 3.0": {
+    "SSP2 - Low Overshoot": 37,
+    "SSP2 - Low Overshoot_a": 15,
+    "SSP2 - Low Overshoot_b": 14,
+    "SSP2 - Low Overshoot_c": 14,
+    "SSP2 - Low Overshoot_d": 11,
+    "SSP2 - Low Overshoot_e": 4,
+    "SSP2 - Low Overshoot_f": 1
+  },
+  "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12": {
+    "SSP2 - Low Emissions": 14
+  }
+}

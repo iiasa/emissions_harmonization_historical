@@ -46,3 +46,9 @@ repos:
         language: system
         require_serial: true
         pass_filenames: false
+      - id: force-add-version-files
+        name: force-add-version-files
+        entry: git add -f data/raw/scenarios/**/versions.json
+        language: system
+        require_serial: true
+        pass_filenames: false
