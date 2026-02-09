@@ -119,7 +119,7 @@ print(f"Scenarios: {list(complete_scenarios.pix.unique('scenario'))}")
 # %%
 if markers_only:
     markers_l = []
-    for model, scenario, _ in MARKERS:
+    for model, scenario, _, _ in MARKERS:
         tmp = complete_scenarios.loc[pix.isin(model=model, scenario=scenario)]
         if not tmp.empty:
             markers_l.append(tmp)

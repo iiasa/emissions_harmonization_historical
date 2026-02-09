@@ -78,9 +78,9 @@ def add_marker_index_level(inv):
     """
     Add a marker index level to the input value (a pandas object)
     """
-    markers_mapping = pd.DataFrame(MARKERS, columns=["model", "scenario", "marker"]).set_index(["model", "scenario"])[
-        "marker"
-    ]
+    markers_mapping = pd.DataFrame(MARKERS, columns=["model", "scenario", "marker", "version"]).set_index(
+        ["model", "scenario"]
+    )["marker"]
     res = pd.concat(
         [
             pd.Series(
