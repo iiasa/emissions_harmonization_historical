@@ -26,7 +26,7 @@ from pandas_openscm.db import (
 MARKERS = (
     # (model, scenario, ScenarioMIP name, final_version)
     ("REMIND-MAgPIE 3.5-4.11", "SSP1 - Very Low Emissions", "vl", 5),
-    ("AIM 3.0", "SSP2 - Low Overshoot_a", "ln", 22),
+    ("AIM 3.0", "SSP2 - Low Overshoot_a", "ln", 23),
     ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions", "l", 19),
     ("COFFEE 1.6", "SSP2 - Medium-Low Emissions", "ml", 13),
     ("IMAGE 3.4", "SSP2 - Medium Emissions", "m", 25),
