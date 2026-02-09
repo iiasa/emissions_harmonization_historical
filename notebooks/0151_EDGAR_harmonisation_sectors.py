@@ -15,26 +15,28 @@
 # %% [markdown]
 # # Prepare EDGAR
 #
-# Prepare data from EDGAR that has already been prepared in CEDS-aligned sectors (currently as provided by Steve Smith).
+# Prepare data from EDGAR that has already been prepared in CEDS-aligned sectors
+# (currently as provided by Steve Smith).
 #
-# We also have 0109_edgar-prepare.py, which is used especially for minor gases (F-gases), on the global level, for climate emulator input.
+# We also have 0109_edgar-prepare.py, which is used especially for minor gases (F-gases),
+# on the global level, for climate emulator input.
 #
-# Instead, this notebook is used to serve the vetting of IAM scenarios based on national level harmonization sectors in the same format as what is produced in CEDS-prepare.py
+# Instead, this notebook is used to serve the vetting of IAM scenarios based on national
+# level harmonization sectors in the same format as what is produced in CEDS-prepare.py
 
 # %%
 # import external packages and functions
+import os
 from pathlib import Path
 
-import numpy as np
-import os
 import pandas as pd
 import pandas_indexing as pix
 from pandas_indexing.core import isna
 
 from emissions_harmonization_historical.ceds import add_global, get_map, read_CEDS
 from emissions_harmonization_historical.constants import (
-    EDGAR_PROCESSING_ID,
     DATA_ROOT,
+    EDGAR_PROCESSING_ID,
     HISTORY_SCENARIO_NAME,
 )
 from emissions_harmonization_historical.units import assert_units_match_wishes
@@ -49,7 +51,7 @@ pix.units.set_openscm_registry_as_default()
 # %%
 edgar_data_folder = DATA_ROOT / Path("national", "edgar", "data_raw")
 
-edgar_csv_files = [f for f in os.listdir(edgar_data_folder) if f.endswith('.csv')]
+edgar_csv_files = [f for f in os.listdir(edgar_data_folder) if f.endswith(".csv")]
 
 edgar_sector_mapping_file = DATA_ROOT / Path("national", "edgar", "data_aux", "sector_mapping_edgar.xlsx")
 
@@ -87,7 +89,9 @@ species = [
 
 # %%
 edgar_mapping = pd.read_excel(edgar_sector_mapping_file, sheet_name="EDGAR mapping")
-edgar_map = get_map(edgar_mapping, sector_column="EDGAR_sectors",sector_output_column_name="edgar_sectors")  # note; with 7BC now added it is actually 60 sectors, not 59?!
+edgar_map = get_map(
+    edgar_mapping, sector_column="EDGAR_sectors", sector_output_column_name="edgar_sectors"
+)  # note; with 7BC now added it is actually 60 sectors, not 59?!
 edgar_map.to_frame(index=False)
 
 # %% [markdown]
@@ -96,8 +100,7 @@ edgar_map.to_frame(index=False)
 # %%
 edgar = pd.concat(
     read_CEDS(Path(edgar_data_folder) / f"E.{s}_EDGAR.csv").pix.assign(em=s, units=f"kt{s}") for s in species
-).rename_axis(index={"iso": "country",
-                    "sector_59": "edgar_sectors"})
+).rename_axis(index={"iso": "country", "sector_59": "edgar_sectors"})
 edgar = edgar.pix.semijoin(edgar_map, how="outer")
 edgar.loc[isna].pix.unique(["edgar_sectors", "sector", "sector_description"])  # print sectors with NAs
 
@@ -116,7 +119,14 @@ edgar = pix.units.convert_unit(edgar, lambda x: "kt " + x.removeprefix("Mt").str
 # unit of NOx from NOx to NO2
 edgar.index = pd.MultiIndex.from_tuples(
     [
-        (country, edgar_sectors, sector_description, em, sector, "Mt NO2/yr" if unit == "Mt NOx/yr" and em == "NOx" else unit)
+        (
+            country,
+            edgar_sectors,
+            sector_description,
+            em,
+            sector,
+            "Mt NO2/yr" if unit == "Mt NOx/yr" and em == "NOx" else unit,
+        )
         for country, edgar_sectors, sector_description, em, sector, unit in edgar.index
     ],
     names=edgar.index.names,
@@ -160,13 +170,13 @@ edgar_reformatted
 # rename to IAMC-style variable names including standard index order
 edgar_reformatted_iamc = (
     edgar_reformatted.pix.format(variable="Emissions|{variable}|{sector}", drop=True)
-    .pix.assign(scenario=HISTORY_SCENARIO_NAME, model=f"EDGAR")
+    .pix.assign(scenario=HISTORY_SCENARIO_NAME, model="EDGAR")
     .reorder_levels(["model", "scenario", "region", "variable", "unit"])
 ).sort_values(by=["region", "variable"])
 edgar_reformatted_iamc
 
 # %%
-edgar_reformatted_iamc.pix.unique(['variable'])
+edgar_reformatted_iamc.pix.unique(["variable"])
 
 # %%
 assert_units_match_wishes(edgar_reformatted_iamc)
@@ -176,9 +186,7 @@ assert_units_match_wishes(edgar_reformatted_iamc)
 
 # %%
 out_global = edgar_reformatted_iamc.loc[pix.isin(region="World")]  # only the added "World" region
-out_national = edgar_reformatted_iamc.loc[
-    ~pix.isin(region="World")
-] 
+out_national = edgar_reformatted_iamc.loc[~pix.isin(region="World")]
 
 # %% [markdown]
 # Check that national sums equal global total.

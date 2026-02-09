@@ -173,12 +173,7 @@ metadata = {
         "title": "CMIP7 ScenarioMIP historical timeseries for harmonisation and simple climate model workflow",
         "description": MarkdownIt().render(readme_txt),
         "upload_type": "dataset",
-        # Sometime in the future.
-        # We can make it open manually sooner,
-        # but using embargo here means it will be open
-        # eventually, even if we forget.
-        "access_right": "embargoed",
-        "embargo_date": "2026-06-30",
+        "access_right": "open",
         # TODO: check
         # Note: you can't set None, so you have to go in
         # and manually remove the license before publishing.
@@ -203,7 +198,7 @@ metadata = {
             {
                 "name": "Zecchetto, Marco",
                 "affiliation": "International Institute for Applied Systems Analysis",
-                "orcid": "0000-0002-7506-2631",
+                "orcid": "0009-0007-8254-0391",
             },
             {
                 "name": "Hoegner, Annika",
