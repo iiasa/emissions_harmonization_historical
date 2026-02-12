@@ -1,0 +1,26 @@
+{
+  "GCAM 7.1 scenarioMIP": {
+    "SSP3 - High Emissions": 24,
+    "SSP3 - High Emissions_a": 4
+  },
+  "IMAGE 3.4": {
+    "SSP1 - Low Emissions": 18,
+    "SSP1 - Low Overshoot": 19,
+    "SSP1 - Low Overshoot_a": 3,
+    "SSP1 - Medium Emissions": 21,
+    "SSP1 - Medium Emissions_a": 18,
+    "SSP1 - Medium-Low Emissions": 18,
+    "SSP1 - Very Low Emissions": 19,
+    "SSP2 - Low Emissions": 18,
+    "SSP2 - Low Overshoot": 19,
+    "SSP2 - Low Overshoot_a": 3,
+    "SSP2 - Medium Emissions": 21,
+    "SSP2 - Medium Emissions_a": 2,
+    "SSP2 - Medium-Low Emissions": 18,
+    "SSP2 - Very Low Emissions": 20,
+    "SSP2 - Very Low Emissions_a": 13,
+    "SSP3 - High Emissions": 22,
+    "SSP5 - High Emissions": 22,
+    "SSP5 - Medium-Low Emissions": 1
+  }
+}
