@@ -1,5 +1,8 @@
 {
   "GCAM 7.1 scenarioMIP": {
     "SSP3 - High Emissions": 28
+  },
+  "IMAGE 3.4": {
+    "SSP2 - Medium Emissions": 23
   }
 }

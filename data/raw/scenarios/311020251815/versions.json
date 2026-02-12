@@ -1,6 +1,5 @@
 {
   "AIM 3.0": {
-    "SSP2 - Low Overshoot": 41,
     "SSP2 - Low Overshoot_a": 20
   },
   "COFFEE 1.6": {
@@ -13,7 +12,7 @@
     "SSP2 - Medium Emissions": 23
   },
   "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12": {
-    "SSP2 - Low Emissions_f": 1
+    "SSP2 - Low Emissions": 18
   },
   "REMIND-MAgPIE 3.5-4.11": {
     "SSP1 - Very Low Emissions": 5

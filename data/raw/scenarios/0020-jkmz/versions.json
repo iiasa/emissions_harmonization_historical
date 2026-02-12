@@ -1,0 +1,50 @@
+{
+  "AIM 3.0": {
+    "SSP1 - Medium Emissions": 13,
+    "SSP1 - Very Low Emissions": 30,
+    "SSP1 - Very Low Emissions_a": 7,
+    "SSP2 - Low Emissions": 30,
+    "SSP2 - Low Emissions_a": 3,
+    "SSP2 - Low Overshoot": 32,
+    "SSP2 - Low Overshoot_a": 10,
+    "SSP2 - Low Overshoot_b": 9,
+    "SSP2 - Low Overshoot_c": 9,
+    "SSP2 - Low Overshoot_d": 7,
+    "SSP2 - Low Overshoot_e": 1,
+    "SSP2 - Low Overshoot_f": 1,
+    "SSP2 - Medium Emissions": 31,
+    "SSP2 - Medium-Low Emissions": 21,
+    "SSP2 - Very Low Emissions": 29,
+    "SSP3 - High Emissions": 30,
+    "SSP5 - High Emissions": 30
+  },
+  "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12": {
+    "SSP1 - Low Emissions": 9,
+    "SSP1 - Low Emissions_a": 5,
+    "SSP1 - Very Low Emissions": 9,
+    "SSP2 - Low Emissions": 10,
+    "SSP2 - Low Emissions_a": 5,
+    "SSP2 - Low Overshoot": 9,
+    "SSP2 - Low Overshoot_a": 3,
+    "SSP2 - Medium Emissions": 10,
+    "SSP2 - Medium Emissions_a": 1,
+    "SSP2 - Medium-Low Emissions": 9,
+    "SSP2 - Very Low Emissions": 9,
+    "SSP3 - High Emissions": 9,
+    "SSP4 - Low Overshoot": 9,
+    "SSP5 - High Emissions": 9,
+    "SSP5 - Low Overshoot": 9
+  },
+  "WITCH 6.0": {
+    "SSP1 - Low Emissions": 29,
+    "SSP1 - Low Overshoot": 26,
+    "SSP1 - Very Low Emissions": 28,
+    "SSP2 - Low Emissions": 30,
+    "SSP2 - Low Overshoot": 27,
+    "SSP2 - Medium Emissions": 30,
+    "SSP2 - Medium-Low Emissions": 26,
+    "SSP2 - Very Low Emissions": 29,
+    "SSP5 - High Emissions": 31,
+    "SSP5 - Medium-Low Emissions_a": 24
+  }
+}
