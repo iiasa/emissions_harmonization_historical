@@ -1,0 +1,29 @@
+{
+  "GCAM 8s": {
+    "SSP3 - High Emissions": 2
+  },
+  "REMIND-MAgPIE 3.5-4.11": {
+    "SSP1 - Low Emissions": 4,
+    "SSP1 - Low Emissions_c": 4,
+    "SSP1 - Low Emissions_d": 4,
+    "SSP1 - Medium Emissions": 3,
+    "SSP1 - Medium-Low Emissions": 3,
+    "SSP1 - Very Low Emissions": 5,
+    "SSP1 - Very Low Emissions_c": 4,
+    "SSP2 - High Emissions": 4,
+    "SSP2 - Low Emissions": 4,
+    "SSP2 - Low Emissions_c": 4,
+    "SSP2 - Low Emissions_d": 4,
+    "SSP2 - Low Overshoot": 4,
+    "SSP2 - Low Overshoot_b": 3,
+    "SSP2 - Low Overshoot_c": 4,
+    "SSP2 - Low Overshoot_d": 4,
+    "SSP2 - Medium Emissions": 4,
+    "SSP2 - Medium-Low Emissions": 4,
+    "SSP2 - Very Low Emissions": 4,
+    "SSP2 - Very Low Emissions_c": 4,
+    "SSP3 - High Emissions": 4,
+    "SSP3 - Medium Emissions": 3,
+    "SSP3 - Medium-Low Emissions": 4
+  }
+}

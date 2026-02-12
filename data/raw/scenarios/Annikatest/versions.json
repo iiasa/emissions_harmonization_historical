@@ -1,16 +1,8 @@
 {
-  "AIM 3.0": {
-    "SSP2 - Low Overshoot_e": 4
-  },
-  "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12": {
-    "SSP1 - Low Emissions": 9,
-    "SSP2 - Low Emissions": 13
-  },
-  "REMIND-MAgPIE 3.5-4.11": {
-    "SSP1 - Very Low Emissions": 2,
-    "SSP2 - Low Emissions": 2,
-    "SSP2 - Medium Emissions": 2,
-    "SSP3 - High Emissions": 2
+  "GCAM 7.1 scenarioMIP": {
+    "SSP2 - High Emissions": 6,
+    "SSP3 - High Emissions": 24,
+    "SSP5 - High Emissions": 14
   },
   "WITCH 6.0": {
     "SSP1 - Low Emissions": 32,

@@ -1,0 +1,9 @@
+{
+  "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12": {
+    "SSP1 - Low Emissions": 9,
+    "SSP2 - Low Emissions": 12
+  },
+  "REMIND-MAgPIE 3.5-4.11": {
+    "SSP2 - Low Emissions": 1
+  }
+}

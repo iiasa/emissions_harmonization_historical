@@ -1,9 +1,9 @@
 {
   "AIM 3.0": {
-    "SSP2 - Low Overshoot": 37,
-    "SSP2 - Low Overshoot_a": 15,
-    "SSP2 - Low Overshoot_b": 14,
-    "SSP2 - Low Overshoot_c": 14,
+    "SSP2 - Low Overshoot": 39,
+    "SSP2 - Low Overshoot_a": 17,
+    "SSP2 - Low Overshoot_b": 16,
+    "SSP2 - Low Overshoot_c": 16,
     "SSP2 - Low Overshoot_d": 11,
     "SSP2 - Low Overshoot_e": 4,
     "SSP2 - Low Overshoot_f": 1
@@ -12,18 +12,18 @@
     "SSP2 - Medium-Low Emissions": 9
   },
   "GCAM 7.1 scenarioMIP": {
-    "SSP3 - High Emissions": 24,
-    "SSP3 - High Emissions_a": 4
+    "SSP3 - High Emissions": 27,
+    "SSP3 - High Emissions_a": 6,
+    "SSP3 - High Emissions_b": 2
   },
   "IMAGE 3.4": {
     "SSP2 - Medium Emissions": 21
   },
   "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12": {
-    "SSP2 - Low Emissions": 13
+    "SSP2 - Low Emissions": 16
   },
   "REMIND-MAgPIE 3.5-4.11": {
-    "SSP1 - Very Low Emissions": 2,
-    "SSP2 - Very Low Emissions": 2
+    "SSP1 - Very Low Emissions": 2
   },
   "WITCH 6.0": {
     "SSP2 - Medium-Low Emissions": 29,
