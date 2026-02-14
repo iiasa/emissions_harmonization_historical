@@ -24,6 +24,7 @@
 # ## Imports
 
 # %% editable=true slideshow={"slide_type": ""}
+import os
 import sys
 import tempfile
 
@@ -80,7 +81,8 @@ for prefix, purpose in (
     file_info = file_info_l[0]
 
     print(f"Downloading {purpose} emissions from https://zenodo.org/uploads/{HISTORY_ZENODO_RECORD_ID}")
-    with tempfile.NamedTemporaryFile(suffix=".parquet.gzip") as tf:
+    with tempfile.NamedTemporaryFile(suffix=".parquet.gzip", delete=False) as tf:
+        temp_path = tf.name
         download_zenodo_url(
             file_info["url"],
             # We require the interactor while the record's files are embargoed.
@@ -88,7 +90,9 @@ for prefix, purpose in (
             fh=tf,
             size=file_info["size"],
         )
-        df = pd.read_parquet(tf.name)
+
+    df = pd.read_parquet(temp_path)
+    os.unlink(temp_path)
 
     print(f"Adding {purpose} emissions to the history for harmonisation database")
     HISTORY_HARMONISATION_DB.save(df.pix.assign(purpose=purpose))
@@ -114,7 +118,8 @@ if len(file_info_l) != 1:
 file_info = file_info_l[0]
 
 print(f"Downloading infilling database from https://zenodo.org/uploads/{INFILLING_DB_ZENODO_RECORD_ID}")
-with tempfile.NamedTemporaryFile(suffix=".parquet.gzip") as tf:
+with tempfile.NamedTemporaryFile(suffix=".parquet.gzip", delete=False) as tf:
+    temp_path = tf.name
     download_zenodo_url(
         file_info["url"],
         # We require the interactor while the record's files are embargoed.
@@ -122,7 +127,9 @@ with tempfile.NamedTemporaryFile(suffix=".parquet.gzip") as tf:
         fh=tf,
         size=file_info["size"],
     )
-    df = pd.read_parquet(tf.name)
+
+df = pd.read_parquet(temp_path)
+os.unlink(temp_path)
 
 print("Saving infilling database")
 INFILLING_DB.save(df)
