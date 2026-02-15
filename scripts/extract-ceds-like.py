@@ -27,7 +27,7 @@ def main():
 
     if MARKERS_ONLY:
         harmonised_emissions_l = []
-        for model, scenario, _ in MARKERS:
+        for model, scenario, _, _ in MARKERS:
             harmonised_emissions_l.append(HARMONISED_SCENARIO_DB.load(pix.isin(model=model, scenario=scenario)))
         harmonised_emissions = pix.concat(harmonised_emissions_l)
 
