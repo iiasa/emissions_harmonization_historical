@@ -142,6 +142,9 @@ if markers_only:
 
     to_download = pd.concat(markers_l)
 
+else:
+    to_download = to_download[to_download["is_default"]]
+
 to_download.shape[0]
 
 # %%
