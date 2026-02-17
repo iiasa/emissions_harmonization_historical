@@ -242,7 +242,7 @@ def main():  # noqa: PLR0912
     # Infilling and post-processing
     # notebook_prefixes = ["5190", "5191"]
     # # Everything
-    notebook_prefixes = ["5090", "5091", "5092", "5093", "5094", "5190", "5191"]
+    notebook_prefixes = ["5090", "5091", "5092", "5093", "5094", "5190"]
     # # Skip this step
     notebook_prefixes = []
 
