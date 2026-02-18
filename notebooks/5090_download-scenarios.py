@@ -56,6 +56,13 @@ from emissions_harmonization_historical.constants_5000 import (
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
 model_search: str = "REMIND"
 markers_only: bool = True
+use_defaults: bool = False
+
+# Will not download all versions in database
+# If you want different specific version, change to suit your needs using
+# MARKERS in the constants_5000 file
+if not markers_only:
+    use_defaults = True
 
 # %%
 output_dir_model = DATA_ROOT / "raw" / "scenarios" / DOWNLOAD_SCENARIOS_ID / model_search
@@ -92,7 +99,7 @@ known_versions
 # %%
 pyam.iiasa.Connection("ssp_submission")
 conn_ssp = pyam.iiasa.Connection("ssp_submission")
-props = conn_ssp.properties(default_only=False).reset_index()
+props = conn_ssp.properties(default_only=use_defaults).reset_index()
 
 # %% [markdown]
 # ### Find scenarios to download
@@ -132,11 +139,17 @@ if model_search == "GCAM":
 if markers_only:
     markers_l = []
     for model, scenario, _, version in MARKERS:
-        tmp = to_download[
-            (to_download["model"] == model)
-            & (to_download["scenario"] == scenario)
-            & (to_download["version"] == version)
-        ]
+        if use_defaults:
+            tmp = to_download[
+                (to_download["model"] == model) & (to_download["scenario"] == scenario)
+                # & (to_download["version"] == version)
+            ]
+        else:
+            tmp = to_download[
+                (to_download["model"] == model)
+                & (to_download["scenario"] == scenario)
+                & (to_download["version"] == version)
+            ]
         if not tmp.empty:
             markers_l.append(tmp)
 
