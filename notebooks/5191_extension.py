@@ -53,6 +53,8 @@ from emissions_harmonization_historical.constants_5000 import (
     HISTORY_HARMONISATION_DB,
     INFILLED_SCENARIOS_DB,
     INFILLED_SCENARIOS_DB_EXTENSIONS,
+    MARKERS,
+    MARKERS_BY_SCENARIOMIP_NAME,
 )
 
 # Package imports
@@ -144,19 +146,40 @@ for i, (model, scenario) in enumerate(unique_model_scenario_pairs, 1):
 # Marker definitions
 
 # %%
-scenario_model_match = {
-    "VL": [
-        "SSP1 - Very Low Emissions",
-        "REMIND-MAgPIE 3.5-4.11",
-        "tab:blue",
-    ],  # old VLLO
-    "LN": ["SSP2 - Low Overshoot_a", "AIM 3.0", "tab:cyan"],  # old VLHO
-    "L": ["SSP2 - Low Emissions", "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "tab:green"],
-    "ML": ["SSP2 - Medium-Low Emissions", "COFFEE 1.6", "tab:pink"],
-    "M": ["SSP2 - Medium Emissions", "IMAGE 3.4", "tab:purple"],
-    "H": ["SSP3 - High Emissions", "GCAM 8s", "tab:red"],
-    "HL": ["SSP5 - Medium-Low Emissions_a", "WITCH 6.0", "tab:brown"],
+MARKERS
+
+# %%
+MARKERS_BY_SCENARIOMIP_NAME
+
+# %%
+marker_colours = {
+    "vl": "tab:blue",
+    "ln": "tab:cyan",
+    "l": "tab:green",
+    "ml": "tab:pink",
+    "m": "tab:purple",
+    "h": "tab:red",
+    "hl": "tab:brown",
 }
+scenario_model_match = {
+    k.upper(): [v["scenario"], v["model"], marker_colours[k]] for k, v in MARKERS_BY_SCENARIOMIP_NAME.items()
+}
+scenario_model_match
+
+# %%
+# scenario_model_match = {
+#     "VL": [
+#         "SSP1 - Very Low Emissions",
+#         "REMIND-MAgPIE 3.5-4.11",
+#         "tab:blue",
+#     ],  # old VLLO
+#     "LN": ["SSP2 - Low Overshoot_a", "AIM 3.0", "tab:cyan"],  # old VLHO
+#     "L": ["SSP2 - Low Emissions", "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "tab:green"],
+#     "ML": ["SSP2 - Medium-Low Emissions", "COFFEE 1.6", "tab:pink"],
+#     "M": ["SSP2 - Medium Emissions", "IMAGE 3.4", "tab:purple"],
+#     "H": ["SSP3 - High Emissions", "GCAM 8s", "tab:red"],
+#     "HL": ["SSP5 - Medium-Low Emissions_a", "WITCH 6.0", "tab:brown"],
+# }
 
 # %%
 scenarios_regional = scenarios_regional.sort_index(axis="columns").T.interpolate("index").T
@@ -193,7 +216,17 @@ def calculate_afolu_extensions(scenarios_complete_global, history, cumulative_hi
         _fig, axs = plt.subplots(nrows=1, ncols=4, figsize=(30, 10))
     temp_list_for_new_data_linear_ramp_down = []
     for s, meta in scenario_model_match.items():
-        scen = scenarios_complete_global.loc[pix.ismatch(variable="**CO2|AFOLU", model=meta[1], scenario=meta[0])]
+        scenario = meta[0]
+        model = meta[1]
+
+        have_data_for_mod_scen = pandas_openscm.indexing.multi_index_match(
+            scenarios_complete_global.index, pd.MultiIndex.from_tuples([(model, scenario)], names=["model", "scenario"])
+        ).any()
+        if not have_data_for_mod_scen:
+            print(f"Skipping CO2 AFOLU for {model} {scenario} due to a lack of input data")
+            continue
+
+        scen = scenarios_complete_global.loc[pix.ismatch(variable="**CO2|AFOLU", model=model, scenario=scenario)]
         scen_full = glue_with_historical(scen, history.loc[pix.ismatch(variable="Emissions|CO2|AFOLU")])
         cumulative_2100 = get_cumulative_afolu_fill_from_hist(scen, meta[1], meta[0], cumulative_history_afolu)
         em_ext_linear_ramp_down = extend_linear_rampdown(
@@ -331,18 +364,29 @@ def do_all_non_co2_extensions(scenarios_complete_global, history):  # noqa: PLR0
         if history.loc[pix.ismatch(variable=f"{variable}")].shape[0] < 1:
             continue
         for s, meta in tqdm.auto.tqdm(scenario_model_match.items()):
+            scenario = meta[0]
+            model = meta[1]
+
+            have_data_for_mod_scen = pandas_openscm.indexing.multi_index_match(
+                scenarios_complete_global.index,
+                pd.MultiIndex.from_tuples([(model, scenario)], names=["model", "scenario"]),
+            ).any()
+            if not have_data_for_mod_scen:
+                print(f"Skipping {variable} for {model} {scenario} due to a lack of input data")
+                continue
+
             if variable in component_global_targets.keys():
                 global_target = component_global_targets[variable][s]
             else:
                 global_target = None
             print(f"{s}: {meta}, target: {global_target}")
             df_comp_scen_model = do_single_component_for_scenario_model_regionally(
-                meta[0],
-                meta[1],
-                variable,
-                scenarios_regional,
-                scenarios_complete_global,
-                history,
+                scen=scenario,
+                model=model,
+                variable=variable,
+                scenarios_regional=scenarios_regional,
+                scenarios_complete_global=scenarios_complete_global,
+                history=history,
                 global_target=global_target,
             )
             # if "workflow" in df_comp_scen_model.index.names:
@@ -484,15 +528,23 @@ if make_plots:
 temp_list_for_new_data = []
 for s, meta in scenario_model_match.items():
     print(f"Processing fossil CO2 to match storyline and AFOLU for {s}")
+
+    model = meta[1]
+    scenario = meta[0]
+
     co2_fossil = interpolate_to_annual(
         scenarios_complete_global.loc[
             pix.ismatch(
                 variable="Emissions|CO2|Energy and Industrial Processes",
-                model=meta[1],
-                scenario=meta[0],
+                model=model,
+                scenario=scenario,
             )
         ]
     )
+    if co2_fossil.empty:
+        print(f"Skipping {model} {scenario} due to a lack of data")
+        continue
+
     year_cols = [
         col
         for col in co2_fossil.columns
@@ -960,9 +1012,6 @@ if test_year in co2_beccs_ext.columns:
 
     global_reference = global_cdr_ext[test_year].groupby("scenario").first()
 
-
-# %% [markdown]
-#
 
 # %% [markdown]
 # # Extended missing sectors for regional (non-cdr fossil)
