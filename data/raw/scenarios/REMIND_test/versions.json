@@ -1,0 +1,23 @@
+{
+  "REMIND-MAgPIE 3.5-4.11": {
+    "SSP1 - Low Emissions": 2,
+    "SSP1 - Low Emissions_c": 2,
+    "SSP1 - Low Emissions_d": 2,
+    "SSP1 - Medium-Low Emissions": 2,
+    "SSP1 - Very Low Emissions": 3,
+    "SSP1 - Very Low Emissions_c": 2,
+    "SSP2 - High Emissions": 2,
+    "SSP2 - Low Emissions": 2,
+    "SSP2 - Low Emissions_c": 2,
+    "SSP2 - Low Emissions_d": 2,
+    "SSP2 - Low Overshoot": 2,
+    "SSP2 - Low Overshoot_b": 2,
+    "SSP2 - Low Overshoot_c": 2,
+    "SSP2 - Low Overshoot_d": 2,
+    "SSP2 - Medium Emissions": 2,
+    "SSP2 - Medium-Low Emissions": 2,
+    "SSP2 - Very Low Emissions": 2,
+    "SSP2 - Very Low Emissions_c": 2,
+    "SSP3 - High Emissions": 2
+  }
+}

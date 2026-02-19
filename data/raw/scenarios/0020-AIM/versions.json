@@ -1,0 +1,25 @@
+{
+  "AIM 3.0": {
+    "SSP1 - Medium Emissions": 14,
+    "SSP1 - Very Low Emissions": 31,
+    "SSP1 - Very Low Emissions_a": 8,
+    "SSP2 - Low Emissions": 31,
+    "SSP2 - Low Emissions_a": 4,
+    "SSP2 - Low Overshoot": 33,
+    "SSP2 - Low Overshoot_a": 11,
+    "SSP2 - Low Overshoot_b": 10,
+    "SSP2 - Low Overshoot_c": 10,
+    "SSP2 - Low Overshoot_d": 8,
+    "SSP2 - Low Overshoot_e": 1,
+    "SSP2 - Low Overshoot_f": 1,
+    "SSP2 - Medium Emissions": 32,
+    "SSP2 - Medium-Low Emissions": 22,
+    "SSP2 - Very Low Emissions": 30,
+    "SSP3 - High Emissions": 31,
+    "SSP5 - High Emissions": 31
+  },
+  "REMIND-MAgPIE 3.5-4.11": {
+    "SSP2 - High Emissions": 1,
+    "SSP3 - High Emissions": 1
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "GCAM 7.1 scenarioMIP": {
+    "SSP3 - High Emissions": 27
+  },
+  "IMAGE 3.4": {
+    "SSP2 - Medium Emissions": 21
+  },
+  "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12": {
+    "SSP2 - Low Emissions_f": 1
+  },
+  "REMIND-MAgPIE 3.5-4.11": {
+    "SSP1 - Very Low Emissions": 5
+  }
+}

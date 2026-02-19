@@ -10,8 +10,12 @@
     "SSP2 - Low Overshoot_a": 3,
     "SSP2 - Medium Emissions": 23,
     "SSP2 - Medium Emissions_a": 4,
+    "SSP2 - Medium-Low Emissions": 20,
     "SSP3 - High Emissions": 24,
     "SSP5 - High Emissions": 24,
     "SSP5 - Medium-Low Emissions": 3
+  },
+  "REMIND-MAgPIE 3.5-4.11": {
+    "SSP1 - Very Low Emissions": 5
   }
 }
