@@ -184,8 +184,6 @@ for _, row in tqdm.auto.tqdm(to_download.iterrows(), total=to_download.shape[0])
                 f"Current version: {version}. "
                 f"Known version: {known_versions[model][scenario]}. "
                 "Please update the value of `DOWNLOAD_SCENARIOS_ID`."
-                "Or run with use_dfaults=False and adjusted values"
-                "for MARKERS to match the known_versions for this"
                 f"DOWNLOAD_SCENARIOS_ID ({DOWNLOAD_SCENARIOS_ID})"
             )
             raise AssertionError(msg)
