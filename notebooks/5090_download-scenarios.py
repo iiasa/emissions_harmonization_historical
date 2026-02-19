@@ -54,7 +54,7 @@ from emissions_harmonization_historical.constants_5000 import (
 # ## Set up
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model_search: str = "MESSAGE"
+model_search: str = "AIM"
 markers_only: bool = True
 
 # %%
@@ -183,8 +183,8 @@ for _, row in tqdm.auto.tqdm(to_download.iterrows(), total=to_download.shape[0])
                 f"Scenario data has changed for {model} {scenario}. "
                 f"Current version: {version}. "
                 f"Known version: {known_versions[model][scenario]}. "
-                "Please update the value of `DOWNLOAD_SCENARIOS_ID`."
-                f"DOWNLOAD_SCENARIOS_ID ({DOWNLOAD_SCENARIOS_ID})"
+                "Please update the value of `DOWNLOAD_SCENARIOS_ID` "
+                f"({DOWNLOAD_SCENARIOS_ID=})."
             )
             raise AssertionError(msg)
         # else:

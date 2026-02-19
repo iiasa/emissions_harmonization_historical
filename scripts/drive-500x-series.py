@@ -39,7 +39,7 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
         "5094_harmonisation.py",
     ]:
         res = {"model": iam, "make_region_sector_plots": True, "output_to_pdf": True}
-        # res = {"model": iam, "make_region_sector_plots": False, "output_to_pdf": False}
+        res = {"model": iam, "make_region_sector_plots": False, "output_to_pdf": False}
 
     elif notebook_name in [
         "5190_infilling.py",
@@ -223,7 +223,7 @@ def main():  # noqa: PLR0912
         "MESSAGE",
         "IMAGE",
         "GCAM",
-        "COFFEE",
+        # "COFFEE",
         "AIM",
     ]
 
@@ -244,7 +244,7 @@ def main():  # noqa: PLR0912
     # # Everything
     notebook_prefixes = ["5090", "5091", "5092", "5093", "5094", "5190"]
     # # Skip this step
-    notebook_prefixes = []
+    # notebook_prefixes = []
 
     for iam in tqdm.tqdm(iams, desc="IAMs up to emissions post-processing"):
         for notebook in all_notebooks:
@@ -274,9 +274,7 @@ def main():  # noqa: PLR0912
                 idn="only",
             )
 
-    ### Infilling & Post-processing of emissions
-    # Step 1: Infilling per IAM (writes to temp database)
-    #
+    ### Infilling if needed because we re-created the infilling database in the previous step
     notebook_prefixes = ["5190"]
     # Skip this step
     notebook_prefixes = []
@@ -289,10 +287,10 @@ def main():  # noqa: PLR0912
                     iam=iam,
                 )
 
-    # Step 2: Extensions (run once, reads temp DB, writes final DB with both stages)
+    # Extensions
     notebook_prefixes = ["5191"]
     # Skip this step
-    # notebook_prefixes = []
+    notebook_prefixes = []
     for notebook in all_notebooks:
         if any(notebook.name.startswith(np) for np in notebook_prefixes):
             run_notebook_iam(
@@ -322,8 +320,8 @@ def main():  # noqa: PLR0912
     # Single notebook: run post-processing of climate outputs
     # notebook_prefixes = ["5196"]
     # # Skip this step
-    # notebook_prefixes = []
-    # Single SCMcd
+    notebook_prefixes = []
+    # Single SCM
     scms = ["MAGICCv7.6.0a3"]
     # # All available SCMs
     # scms = ["MAGICCv7.6.0a3", "MAGICCv7.5.3"]
