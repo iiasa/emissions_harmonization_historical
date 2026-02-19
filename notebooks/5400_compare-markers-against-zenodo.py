@@ -13,11 +13,6 @@
 # ---
 
 # %%
-# TODO: get file from Zenodo here.
-# Right now all I have is the raw file from Jarmo,
-# which is hopefully correct...
-
-# %%
 import matplotlib.pyplot as plt
 import pandas as pd
 import pandas_indexing as pix
@@ -32,9 +27,13 @@ from emissions_harmonization_historical.constants_5000 import (
 pandas_openscm.register_pandas_accessor()
 
 # %%
-zenodo_df = pd.read_excel("/Users/znicholls/Downloads/climate_assessment_with_README.xlsx", sheet_name="data")
+# Downloaded from https://zenodo.org/records/18497404
+zenodo_df = pd.read_excel(
+    "/Users/znicholls/Downloads/ScenarioMIP_emissions_marker_scenarios_v0.1.xlsx", sheet_name="data"
+)
 zenodo_df = zenodo_df.set_index(["model", "scenario", "region", "variable", "unit"])
 zenodo_df.columns = zenodo_df.columns.astype(int)
+zenodo_df.columns.name = "year"
 zenodo_df.head(2)
 
 # %%
@@ -71,6 +70,8 @@ for model, mdf in compare_df.groupby(["model"]):
             pd.testing.assert_frame_equal(
                 tmp.loc[pix.isin(source="local")].reset_index(["source", "unit"], drop=True),
                 tmp.loc[pix.isin(source="zenodo")].reset_index(["source", "unit"], drop=True),
+                rtol=1e-5,
+                atol=1e-6,
             )
         except AssertionError as exc:
             print(exc)
