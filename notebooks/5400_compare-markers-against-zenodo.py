@@ -28,9 +28,7 @@ pandas_openscm.register_pandas_accessor()
 
 # %%
 # Downloaded from https://zenodo.org/records/18497404
-zenodo_df = pd.read_excel(
-    "/Users/znicholls/Downloads/ScenarioMIP_emissions_marker_scenarios_v0.1.xlsx", sheet_name="data"
-)
+zenodo_df = pd.read_excel("ScenarioMIP_emissions_marker_scenarios_v0.1.xlsx", sheet_name="data")
 zenodo_df = zenodo_df.set_index(["model", "scenario", "region", "variable", "unit"])
 zenodo_df.columns = zenodo_df.columns.astype(int)
 zenodo_df.columns.name = "year"
