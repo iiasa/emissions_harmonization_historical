@@ -11,27 +11,32 @@
 # %%
 
 import sys
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas_indexing as pix
 
-# Add notebooks directory to path for helper function imports
-# When run by papermill, we need to find the notebooks directory relative to the repo root
-repo_root = Path.cwd()
-notebooks_dir = repo_root / "notebooks"
-if notebooks_dir.exists() and str(notebooks_dir) not in sys.path:
-    sys.path.insert(0, str(notebooks_dir))
-elif str(Path.cwd()) not in sys.path:
-    # Fallback: add current directory
-    sys.path.insert(0, str(Path.cwd()))
-
+# Hacking sys.path should never be needed
+# (it's just asking for trouble for a bunch of reasons).
+# If you have to use a hack like this, it's a sign that you're running your notebook incorrectly
+# (likely not within the right environment).
+# Probably you need something like `pixi run python ...` or `pixi run jupyter lab`
+# rather than plain `python ...` or `jupyter lab`
+# # Add notebooks directory to path for helper function imports
+# # When run by papermill, we need to find the notebooks directory relative to the repo root
+# repo_root = Path.cwd()
+# notebooks_dir = repo_root / "notebooks"
+# if notebooks_dir.exists() and str(notebooks_dir) not in sys.path:
+#     sys.path.insert(0, str(notebooks_dir))
+# elif str(Path.cwd()) not in sys.path:
+#     # Fallback: add current directory
+#     sys.path.insert(0, str(Path.cwd()))
 from emissions_harmonization_historical.constants_5000 import (
     EXTENSIONS_OUTPUT_DB,
     HARMONISED_SCENARIO_DB,
     HISTORY_HARMONISATION_DB,
     INFILLED_SCENARIOS_DB,
+    MARKERS_BY_SCENARIOMIP_NAME,
 )
 from emissions_harmonization_historical.extensions.cdr_and_fossil_splits import (
     add_removals_and_positive_fossil_emissions_to_historical,
@@ -81,19 +86,19 @@ make_plots = True
 # Marker definitions
 
 # %%
-scenario_model_match = {
-    "VL": [
-        "SSP1 - Very Low Emissions",
-        "REMIND-MAgPIE 3.5-4.11",
-        "tab:blue",
-    ],  # old VLLO
-    "LN": ["SSP2 - Low Overshoot_a", "AIM 3.0", "tab:cyan"],  # old VLHO
-    "L": ["SSP2 - Low Emissions", "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "tab:green"],
-    "ML": ["SSP2 - Medium-Low Emissions", "COFFEE 1.6", "tab:pink"],
-    "M": ["SSP2 - Medium Emissions", "IMAGE 3.4", "tab:purple"],
-    "H": ["SSP3 - High Emissions", "GCAM 8s", "tab:red"],
-    "HL": ["SSP5 - Medium-Low Emissions_a", "WITCH 6.0", "tab:brown"],
+marker_colours = {
+    "vl": "tab:blue",
+    "ln": "tab:cyan",
+    "l": "tab:green",
+    "ml": "tab:pink",
+    "m": "tab:purple",
+    "h": "tab:red",
+    "hl": "tab:brown",
 }
+scenario_model_match = {
+    k.upper(): [v["scenario"], v["model"], marker_colours[k]] for k, v in MARKERS_BY_SCENARIOMIP_NAME.items()
+}
+scenario_model_match
 
 # %% [markdown]
 # Create inverse dictionaries for scenario_model_match
@@ -125,9 +130,6 @@ class HistoryPlotConfig:
         self.axes = axes
         self.colors = colors
 
-
-# %% [markdown]
-# ##
 
 # %% [markdown]
 # ## Various helper functions
