@@ -1,3 +1,8 @@
+# Version files that were accidentally committed
+# and we don't want to come back
+# Leading space in version string
+data/raw/scenarios/ 20250602-123212/versions.json
+
 # Clone of common-definitions
 common-definitions
 
