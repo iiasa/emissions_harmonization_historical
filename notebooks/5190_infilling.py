@@ -36,8 +36,6 @@ from gcages.completeness import assert_all_groups_are_complete
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from pandas_openscm.index_manipulation import update_index_levels_func
 
-# ## Set up
-# %%
 from emissions_harmonization_historical.constants_5000 import (
     CMIP7_GHG_PROCESSED_DB,
     HARMONISED_SCENARIO_DB,
@@ -60,6 +58,9 @@ from emissions_harmonization_historical.infilling import (
     infill,
 )
 from emissions_harmonization_historical.scm_running import complete_index_reporting_names
+
+# %% [markdown]
+# ## Set up
 
 # %%
 UR = openscm_units.unit_registry
