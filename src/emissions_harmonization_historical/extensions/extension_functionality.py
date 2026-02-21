@@ -238,7 +238,7 @@ def extend_linear_rampdown(function: np.ndarray, t_vals: np.ndarray, rampdown_en
     np.ndarray
         Extended function.
     """
-    data_extend = np.zeros_like(t_vals)
+    data_extend = np.zeros(len(t_vals))
     data_extend[: len(function)] = function
     data_extend[len(function) : rampdown_end - t_vals[0]] = np.linspace(
         function[-1], 0, rampdown_end - t_vals[len(function)]

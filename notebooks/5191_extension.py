@@ -194,6 +194,7 @@ def calculate_afolu_extensions(scenarios_complete_global, history, cumulative_hi
     temp_list_for_new_data_linear_ramp_down = []
     for s, meta in scenario_model_match.items():
         scen = scenarios_complete_global.loc[pix.ismatch(variable="**CO2|AFOLU", model=meta[1], scenario=meta[0])]
+
         scen_full = glue_with_historical(scen, history.loc[pix.ismatch(variable="Emissions|CO2|AFOLU")])
         cumulative_2100 = get_cumulative_afolu_fill_from_hist(scen, meta[1], meta[0], cumulative_history_afolu)
         em_ext_linear_ramp_down = extend_linear_rampdown(
@@ -987,13 +988,12 @@ df_everything = fix_up_and_concatenate_extensions(
         "other_cdr_extensions": co2_other_cdr_ext,
     }
 )
-print(df_everything.head())
 print(f"✅ Successfully merged all DataFrames! Shape: {df_everything.shape}")
-print(df_everything.shape)
-print(df_all.index.names)
+
 
 df_everything = extend_regional_for_missing(df_everything, scenarios_regional, fractions_fossil_total)
 print(df_everything.shape)
+# sys.exit(4)
 
 # %%
 # Check for and handle duplicate metadata (CSV preparation only)
@@ -1049,7 +1049,6 @@ for i, (marker, info) in enumerate(scenario_model_match.items(), 1):
 # %%
 year_cols = [col for col in df_everything.columns if str(col).isdigit()]
 df_everything.rename(columns={col: float(col) for col in year_cols}, inplace=True)
-df_everything.head()
 
 # %%
 # Add Gross Positive Emissions and Gross Removals to history dataframe
@@ -1067,7 +1066,6 @@ print("=== EXECUTING CONCISE HISTORICAL-FUTURE MERGE ===")
 
 # Execute the concise merge
 continuous_timeseries_concise = merge_historical_future_timeseries(history, df_everything)
-
 
 # %% [markdown]
 # ## Dump per model to database
@@ -1100,7 +1098,6 @@ INFILLED_SCENARIOS_DB_EXTENSIONS.save(scenarios_complete_all, allow_overwrite=Tr
 # Save extended scenarios to final database (7 markers, 1750-2500)
 print("Saving stage='extended' to final database...")
 continuous_timeseries_extended = continuous_timeseries_concise.copy()
-
 # Filter out internal diagnostic variables that aren't part of CMIP7 naming convention
 internal_variables = [
     "Emissions|CO2|Gross Positive Emissions",
@@ -1113,7 +1110,7 @@ continuous_timeseries_extended = continuous_timeseries_extended.loc[
 continuous_timeseries_extended["stage"] = "extended"
 continuous_timeseries_extended = continuous_timeseries_extended.set_index("stage", append=True)
 continuous_timeseries_extended = continuous_timeseries_extended.droplevel("workflow")
-print(continuous_timeseries_extended.index.names)
+
 # Save extended data without deleting complete data (both should coexist in final DB)
 INFILLED_SCENARIOS_DB_EXTENSIONS.save(continuous_timeseries_extended, allow_overwrite=True)
 

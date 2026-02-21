@@ -223,7 +223,7 @@ def main():  # noqa: PLR0912
         "MESSAGE",
         "IMAGE",
         "GCAM",
-        # "COFFEE",
+        "COFFEE",
         "AIM",
     ]
 
