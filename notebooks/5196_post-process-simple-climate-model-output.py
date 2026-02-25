@@ -95,12 +95,12 @@ raw_gsat_variable_in = "Surface Air Temperature Change"
 # %%
 in_df = SCM_OUTPUT_DB.load(pix.ismatch(variable=raw_gsat_variable_in, model=f"*{model}*", climate_model=f"*{scm}*"))
 # in_df
-
 if output_to_pdf:
     output_dir_model = SCM_OUT_DIR / model
+    output_dir_model.mkdir(exist_ok=True, parents=True)
     file = f"{model}_{scm}_ensamble_members.csv"
     file_path = output_dir_model / file
-    in_df.to_csv(file_path, index=False)
+    in_df.to_csv(file_path, index=True)
 
 # %%
 # Diagnostic: Check year range loaded from database
