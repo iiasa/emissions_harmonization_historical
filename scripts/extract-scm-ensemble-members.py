@@ -1,23 +1,7 @@
-# ---
-# jupyter:
-#   jupytext:
-#     text_representation:
-#       extension: .py
-#       format_name: percent
-#       format_version: '1.3'
-#       jupytext_version: 1.18.1
-#   kernelspec:
-#     display_name: Python 3 (ipykernel)
-#     language: python
-#     name: python3
-# ---
-
-# %%
 """
-Extract the 600 ensemble members to csv
+Extract the scm ensemble members to csv
 """
 
-# %%
 from pathlib import Path
 
 import pandas_indexing as pix
@@ -29,7 +13,6 @@ from emissions_harmonization_historical.constants_5000 import (
 )
 
 
-# %%
 def main():
     """
     Extract the data
@@ -56,6 +39,5 @@ def main():
         gmt_df.to_csv(out_dir / out_file)
 
 
-# %%
 if __name__ == "__main__":
     main()
