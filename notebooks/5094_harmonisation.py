@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -200,6 +200,20 @@ if model.startswith("IMAGE"):
     )
 
     user_overrides_gridding.loc[mask] = "constant_offset"
+
+    # additional method tweaks for critical region Feb 26
+    mask = (
+        user_overrides_gridding.index.get_level_values("variable")
+        .astype(str)
+        .str.contains("Emissions|CO2|Transportation Sector", regex=False)
+        & user_overrides_gridding.index.get_level_values("region").astype(str).str.contains("Ukraine", regex=False)
+    ) | (
+        user_overrides_gridding.index.get_level_values("variable")
+        .astype(str)
+        .str.contains("Emissions|CO2|Residential Commercial Other", regex=False)
+        & user_overrides_gridding.index.get_level_values("region").astype(str).str.contains("Ukraine", regex=False)
+    )
+    user_overrides_gridding.loc[mask] = "reduce_ratio_2050"
 
     user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
 
@@ -474,6 +488,29 @@ if model.startswith("AIM"):
         & ~user_overrides_gridding.index.get_level_values("variable").astype(str).str.contains("CO2")
     )
     user_overrides_gridding.loc[mask] = "reduce_ratio_2080"
+
+    # additional method tweaks for critical region Feb 26
+    mask = (
+        (
+            user_overrides_gridding.index.get_level_values("variable")
+            .astype(str)
+            .str.contains("Emissions|CO2|Energy Sector", regex=False)
+            & user_overrides_gridding.index.get_level_values("region").astype(str).str.contains("EU & UK", regex=False)
+        )
+        | (
+            user_overrides_gridding.index.get_level_values("variable")
+            .astype(str)
+            .str.contains("Emissions|CO2|Residential Commercial Other", regex=False)
+            & user_overrides_gridding.index.get_level_values("region").astype(str).str.contains("EU & UK", regex=False)
+        )
+        | (
+            user_overrides_gridding.index.get_level_values("variable")
+            .astype(str)
+            .str.contains("Emissions|CO2|Energy Sector", regex=False)
+            & user_overrides_gridding.index.get_level_values("region").astype(str).str.contains("Brazil", regex=False)
+        )
+    )
+    user_overrides_gridding.loc[mask] = "reduce_ratio_2050"
 
     user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
 
