@@ -1,4 +1,5 @@
 model,scenario,region,variable,method
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|CO2|International Shipping,constant_offset
 MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,MESSAGEix-GLOBIOM-GAINS 2.1-R12|China,Emissions|CH4|Residential Commercial Other,reduce_ratio_2080
 MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,MESSAGEix-GLOBIOM-GAINS 2.1-R12|China,Emissions|N2O|Residential Commercial Other,reduce_ratio_2060
 MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,MESSAGEix-GLOBIOM-GAINS 2.1-R12|China,Emissions|NH3|Industrial Sector,constant_ratio
@@ -41,7 +42,7 @@ MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,MESSAGEix-GLOBIOM-GAINS 2
 MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,MESSAGEix-GLOBIOM-GAINS 2.1-R12|Pacific OECD,Emissions|CH4|Transportation Sector,reduce_ratio_2060
 MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,MESSAGEix-GLOBIOM-GAINS 2.1-R12|Pacific OECD,Emissions|N2O|Residential Commercial Other,reduce_ratio_2060
 MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,MESSAGEix-GLOBIOM-GAINS 2.1-R12|Pacific OECD,Emissions|VOC|Industrial Sector,reduce_ratio_2040
-MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,MESSAGEix-GLOBIOM-GAINS 2.1-R12|Pacific OECD,Emissions|CO2|Energy Sector,reduce_ratio_2050
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,MESSAGEix-GLOBIOM-GAINS 2.1-R12|Pacific OECD,Emissions|CO2|Energy Sector,constant_offset
 MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,MESSAGEix-GLOBIOM-GAINS 2.1-R12|Rest of Centrally Planned Asia,Emissions|BC|Energy Sector,reduce_ratio_2040
 MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,MESSAGEix-GLOBIOM-GAINS 2.1-R12|Rest of Centrally Planned Asia,Emissions|N2O|Residential Commercial Other,reduce_ratio_2060
 MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,MESSAGEix-GLOBIOM-GAINS 2.1-R12|Rest of Centrally Planned Asia,Emissions|NH3|Industrial Sector,constant_ratio
