@@ -140,18 +140,14 @@ if markers_only:
         if not tmp.empty:
             markers_l.append(tmp)
 
-    to_download = pd.concat(markers_l)
-
-to_download.shape[0]
-
-# %%
-to_download
-
-# %% [markdown]
-# ### Check the versions
-#
-# If the scenario doesn't match what we expect, raise an error
-# because we need to update to use the new data.
+    if markers_l:
+        to_download = pd.concat(markers_l)
+    else:
+        msg = (
+            f"No marker scenarios found for {model_search}. "
+            f"Check MARKERS constant and/or verify the model/scenario/version exists in IIASA database. (e.g. a new upload to the database could mean there now is a new default version of the same scenario)"
+        )
+        raise ValueError(msg)
 
 # %%
 for _, row in tqdm.auto.tqdm(to_download.iterrows(), total=to_download.shape[0]):
