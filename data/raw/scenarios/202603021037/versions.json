@@ -1,0 +1,14 @@
+{
+  "AIM 3.0": {
+    "SSP2 - Low Overshoot_a": 23
+  },
+  "IMAGE 3.4": {
+    "SSP2 - Medium Emissions": 25
+  },
+  "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12": {
+    "SSP2 - Low Emissions": 20
+  },
+  "WITCH 6.0": {
+    "SSP5 - Medium-Low Emissions_a": 32
+  }
+}

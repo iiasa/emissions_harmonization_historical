@@ -65,7 +65,7 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
         if notebook_name == "5195_run-simple-climate-model.py":
             # res["markers_only"] = False
             res["markers_only"] = True
-            res["run_w_extensions"] = True
+            # res["run_w_extensions"] = True
             res["run_w_extensions"] = False
 
     else:
@@ -219,7 +219,7 @@ def main():  # noqa: PLR0912
     # ]
     # All
     iams = [
-        # "WITCH",
+        "WITCH",
         # "REMIND",
         "MESSAGE",
         "IMAGE",
@@ -245,7 +245,7 @@ def main():  # noqa: PLR0912
     # # Everything
     notebook_prefixes = ["5090", "5091", "5092", "5093", "5094", "5190", "5194"]
     # # Skip this step
-    notebook_prefixes = []
+    # notebook_prefixes = []
 
     for iam in tqdm.tqdm(iams, desc="IAMs up to emissions post-processing"):
         for notebook in all_notebooks:
