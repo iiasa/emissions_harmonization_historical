@@ -209,10 +209,6 @@ if scm in ["MAGICCv7.5.3", "MAGICCv7.6.0a3"]:
                 os.environ["LD_LIBRARY_PATH"] = f"{gcc_lib_path}:{os.environ['LD_LIBRARY_PATH']}"
             else:
                 os.environ["LD_LIBRARY_PATH"] = gcc_lib_path
-
-            # Use /scratch instead of /tmp for MAGICC worker temporary directories
-            # /tmp is only 10 GB and fills up with 32 parallel MAGICC processes
-            os.environ["MAGICC_WORKER_ROOT_DIR"] = "/scratch/bensan"
         else:
             raise NotImplementedError(platform.system())
 

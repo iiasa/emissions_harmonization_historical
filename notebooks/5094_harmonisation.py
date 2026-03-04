@@ -5,9 +5,9 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.18.1
 #   kernelspec:
-#     display_name: Python 3 (ipykernel)
+#     display_name: default
 #     language: python
 #     name: python3
 # ---
@@ -54,7 +54,7 @@ from emissions_harmonization_historical.harmonisation import HARMONISATION_YEAR,
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "REMIND"
+model: str = "MESSAGE"
 
 make_region_sector_plots: bool = False
 output_to_pdf: bool = False
@@ -200,6 +200,20 @@ if model.startswith("IMAGE"):
     )
 
     user_overrides_gridding.loc[mask] = "constant_offset"
+
+    # additional method tweaks for critical region Feb 26
+    mask = (
+        user_overrides_gridding.index.get_level_values("variable")
+        .astype(str)
+        .str.contains("Emissions|CO2|Transportation Sector", regex=False)
+        & user_overrides_gridding.index.get_level_values("region").astype(str).str.contains("Ukraine", regex=False)
+    ) | (
+        user_overrides_gridding.index.get_level_values("variable")
+        .astype(str)
+        .str.contains("Emissions|CO2|Residential Commercial Other", regex=False)
+        & user_overrides_gridding.index.get_level_values("region").astype(str).str.contains("Ukraine", regex=False)
+    )
+    user_overrides_gridding.loc[mask] = "reduce_ratio_2050"
 
     user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
 
@@ -475,6 +489,25 @@ if model.startswith("AIM"):
     )
     user_overrides_gridding.loc[mask] = "reduce_ratio_2080"
 
+    # additional method tweaks for critical region Feb 26
+    mask = (
+        user_overrides_gridding.index.get_level_values("variable")
+        .astype(str)
+        .str.contains("Emissions|CO2|Energy Sector", regex=False)
+        & user_overrides_gridding.index.get_level_values("region").astype(str).str.contains("EU & UK", regex=False)
+    ) | (
+        user_overrides_gridding.index.get_level_values("variable")
+        .astype(str)
+        .str.contains("Emissions|CO2|Residential Commercial Other", regex=False)
+        & user_overrides_gridding.index.get_level_values("region").astype(str).str.contains("EU & UK", regex=False)
+    )
+    user_overrides_gridding.loc[mask] = "reduce_ratio_2050"
+
+    mask = user_overrides_gridding.index.get_level_values("variable").astype(str).str.contains(
+        "Emissions|CO2|Energy Sector", regex=False
+    ) & user_overrides_gridding.index.get_level_values("region").astype(str).str.contains("Brazil", regex=False)
+    user_overrides_gridding.loc[mask] = "reduce_ratio_2080"
+
     user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
 
 
@@ -566,15 +599,22 @@ for key, idf, user_overrides in (
 for key in ["gridding", "global"]:
     tmp = res[key].timeseries
 
-    # Filter rows where 'unit' is not "CO2"
-    tmp_not_co2 = tmp.loc[~tmp.index.get_level_values("unit").str.contains("CO2")]
+    # CO2 carbon removal, AFOLU (and Agriculture), Industrial rows are the only allowed negatives
+    other_negatives = [
+        "Emissions|CO2|Agriculture",
+        "Emissions|CO2|AFOLU",
+        "Emissions|CO2|Industrial Sector",
+        "Emissions|CO2|Energy and Industrial Processes",
+    ]
+    allowed_negatives = cdr_var_matcher + other_negatives
+    tmp_not_co2_cdr = tmp.loc[~pix.ismatch(variable=allowed_negatives)]
 
     # Check for negative values
-    negative_rows = (tmp_not_co2 < 0).any(axis=1)
+    negative_rows = (tmp_not_co2_cdr < 0).any(axis=1)
 
     if negative_rows.any():
         # Extract indices of negative rows
-        negative_indices = tmp_not_co2.index[negative_rows]
+        negative_indices = tmp_not_co2_cdr.index[negative_rows]
 
         negative = list(
             zip(
