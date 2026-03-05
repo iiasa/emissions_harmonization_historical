@@ -394,7 +394,7 @@ def extend_co2_for_scen_storyline(  # noqa: PLR0913
     `make_linear_function_with_smooth_transition` for constructing the extended emissions profiles.
     """
     extended_years = np.arange(start, end + 1)
-    co2_fossil_extend = np.zeros_like(extended_years)
+    co2_fossil_extend = np.zeros(len(extended_years))
     co2_fossil_extend[: scenario_end + 1 - start] = df_fossil.loc[f"{start}" :, :].to_numpy().flatten()
     co2_total_extend = co2_fossil_extend + df_extended_afolu.loc[:, f"{start}" :].to_numpy().flatten()
 
