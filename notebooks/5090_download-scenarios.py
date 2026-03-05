@@ -92,7 +92,7 @@ known_versions
 # %%
 pyam.iiasa.Connection("ssp_submission")
 conn_ssp = pyam.iiasa.Connection("ssp_submission")
-props = conn_ssp.properties().reset_index()
+props = conn_ssp.properties(default_only=False).reset_index()
 
 # %% [markdown]
 # ### Find scenarios to download
