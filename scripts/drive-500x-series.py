@@ -219,13 +219,13 @@ def main():  # noqa: PLR0912
     # ]
     # All
     iams = [
-        "WITCH",
+        # "WITCH",
         # "REMIND",
-        "MESSAGE",
-        "IMAGE",
+        # "MESSAGE",
+        # "IMAGE",
         # "GCAM",
-        # "COFFEE",
-        "AIM",
+        "COFFEE",
+        # "AIM",
     ]
 
     #### Emissions downloading, pre-processing, harmonisation, infilling and post-processing

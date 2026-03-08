@@ -510,6 +510,35 @@ if model.startswith("AIM"):
 
     user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
 
+# additional method tweaks advised by Luiz Bernardo on 08 March 2026
+if model.startswith("COFFEE"):
+    user_overrides_gridding = pd.Series(
+        np.nan,
+        index=model_pre_processed_for_gridding.index.droplevel(
+            model_pre_processed_for_gridding.index.names.difference(["model", "scenario", "region", "variable"])
+        ),
+        name="method",
+    ).astype(str)
+
+    mask = (
+        user_overrides_gridding.index.get_level_values("variable")
+        .astype(str)
+        .str.contains("Emissions|CO2|Transportation Sector", regex=False)
+        & user_overrides_gridding.index.get_level_values("region")
+        .astype(str)
+        .str.contains("Rest of Europe", regex=False)
+    ) | (
+        user_overrides_gridding.index.get_level_values("variable")
+        .astype(str)
+        .str.contains("Emissions|CO2|Waste", regex=False)
+        & user_overrides_gridding.index.get_level_values("region")
+        .astype(str)
+        .str.contains("United States", regex=False)
+    )
+    user_overrides_gridding.loc[mask] = "reduce_ratio_2050"
+
+    user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
+
 
 # %% [markdown]
 # #### CDR
