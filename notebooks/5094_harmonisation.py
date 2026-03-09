@@ -535,7 +535,7 @@ if model.startswith("COFFEE"):
         .astype(str)
         .str.contains("United States", regex=False)
     )
-    user_overrides_gridding.loc[mask] = "reduce_ratio_2050"
+    user_overrides_gridding.loc[mask] = "constant_ratio"
 
     user_overrides_gridding = user_overrides_gridding[user_overrides_gridding != "nan"]
 
