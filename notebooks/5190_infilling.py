@@ -277,31 +277,33 @@ else:
 
 
 # %%
-wmo_2022_smoothed_full = WMO_2022_PROCESSED_DB.load(pix.isin(model=infilling_db_wmo.pix.unique("model")))
-# wmo_2022_smoothed_full
+if not WMO_2022_PROCESSED_DB.is_empty:
+    wmo_2022_smoothed_full = WMO_2022_PROCESSED_DB.load(pix.isin(model=infilling_db_wmo.pix.unique("model")))
+    # wmo_2022_smoothed_full
 
-# %%
-pdf = pix.concat(
-    [
-        infilling_db_wmo.pix.assign(use="infilling_db"),
-        wmo_2022_smoothed_full.pix.assign(use="full_ts"),
-    ]
-).openscm.to_long_data()
-sns.relplot(
-    data=pdf,
-    x="time",
-    y="value",
-    hue="use",
-    style="use",
-    dashes={
-        "infilling_db": "",
-        "full_ts": (1, 2),
-    },
-    col="variable",
-    col_wrap=7,
-    kind="line",
-    facet_kws=dict(sharey=False),
-)
+    pdf = pix.concat(
+        [
+            infilling_db_wmo.pix.assign(use="infilling_db"),
+            wmo_2022_smoothed_full.pix.assign(use="full_ts"),
+        ]
+    ).openscm.to_long_data()
+    sns.relplot(
+        data=pdf,
+        x="time",
+        y="value",
+        hue="use",
+        style="use",
+        dashes={
+            "infilling_db": "",
+            "full_ts": (1, 2),
+        },
+        col="variable",
+        col_wrap=7,
+        kind="line",
+        facet_kws=dict(sharey=False),
+    )
+else:
+    print("WMO_2022_PROCESSED_DB is empty, skipping comparison plot")
 
 # %% [markdown]
 # #### Infill
