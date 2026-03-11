@@ -39,7 +39,7 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
         "5094_harmonisation.py",
     ]:
         res = {"model": iam, "make_region_sector_plots": True, "output_to_pdf": True}
-        # res = {"model": iam, "make_region_sector_plots": False, "output_to_pdf": False}
+        res = {"model": iam, "make_region_sector_plots": False, "output_to_pdf": False}
 
     elif notebook_name in [
         "5190_infilling.py",
@@ -275,9 +275,7 @@ def main():  # noqa: PLR0912
                 idn="only",
             )
 
-    ### Infilling & Post-processing of emissions
-    # Step 1: Infilling per IAM (writes to temp database)
-    #
+    ### Infilling if needed because we re-created the infilling database in the previous step
     notebook_prefixes = ["5190"]
     # Skip this step
     notebook_prefixes = []
@@ -290,7 +288,7 @@ def main():  # noqa: PLR0912
                     iam=iam,
                 )
 
-    # Step 2: Extensions (run once, reads temp DB, writes final DB with both stages)
+    # Extensions
     notebook_prefixes = ["5191"]
     # Skip this step
     notebook_prefixes = []
@@ -323,8 +321,8 @@ def main():  # noqa: PLR0912
     # Single notebook: run post-processing of climate outputs
     # notebook_prefixes = ["5196"]
     # # Skip this step
-    # notebook_prefixes = []
-    # Single SCMcd
+    notebook_prefixes = []
+    # Single SCM
     scms = ["MAGICCv7.6.0a3"]
     # # All available SCMs
     # scms = ["MAGICCv7.6.0a3", "MAGICCv7.5.3"]
