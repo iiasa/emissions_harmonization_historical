@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -54,7 +54,7 @@ from emissions_harmonization_historical.constants_5000 import (
 # ## Set up
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model_search: str = "REMIND"
+model_search: str = "AIM"
 markers_only: bool = True
 
 # %%
@@ -92,42 +92,24 @@ known_versions
 # %%
 pyam.iiasa.Connection("ssp_submission")
 conn_ssp = pyam.iiasa.Connection("ssp_submission")
-props = conn_ssp.properties(default_only=False).reset_index()
+if markers_only:
+    # Need to be able to get specific version for the markers
+    default_only = False
+
+else:
+    # Feel free to change this to whatever you need.
+    # If `default_only=True`, you only get the default version of each scenario.
+    # If `default_only=False`, you can get older versions of each scenario
+    # (you have to implement the sorting logic yourself in the next cell).
+    default_only = True
+
+props = conn_ssp.properties(default_only=default_only).reset_index()
 
 # %% [markdown]
 # ### Find scenarios to download
 
 # %% editable=true slideshow={"slide_type": ""}
 to_download = props[props["model"].str.contains(model_search)]
-
-# if model_search == "REMIND":
-#     ssp = ("SSP1 - Very Low Emissions",)
-#     to_download = to_download[to_download["scenario"].str.endswith(ssp)]
-if model_search == "AIM":
-    to_download = to_download[
-        # No CO2 AFOLU for some reason
-        ~to_download["scenario"].isin(["SSP1 - Very Low Emissions_a", "SSP2 - Low Emissions_a"])
-    ]
-
-# if model_search == "MESSAGE":
-#     to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Low Emissions")]
-# if model_search == "IMAGE":
-#     # skip = (
-#     #     "SSP1 - Very Low Emissions",
-#     #     "SSP2 - Low Emissions",
-#     #     "SSP2 - Medium-Low Emissions",
-#     #     "SSP2 - Very Low Emissions",
-#     #     "SSP2 - Very Low Emissions_a",
-#     # )
-#     # to_download = to_download[~to_download["scenario"].str.endswith(skip)]
-#     to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Medium Emissions")]
-# if model_search == "COFFEE":
-#     to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Medium-Low Emissions")]
-if model_search == "GCAM":
-    to_download = to_download[to_download["model"].str.startswith("GCAM 8")]
-#     to_download = to_download[to_download["scenario"].str.endswith("SSP3 - High Emissions")]
-# if model_search == "WITCH":
-#     to_download = to_download[to_download["scenario"].str.endswith("SSP5 - Medium-Low Emissions_a")]
 
 if markers_only:
     markers_l = []
@@ -137,10 +119,42 @@ if markers_only:
             & (to_download["scenario"] == scenario)
             & (to_download["version"] == version)
         ]
+
         if not tmp.empty:
             markers_l.append(tmp)
 
     to_download = pd.concat(markers_l)
+
+else:
+    # Whatever custom scenario/version filtering logic you want goes here.
+    # if model_search == "REMIND":
+    #     ssp = ("SSP1 - Very Low Emissions",)
+    #     to_download = to_download[to_download["scenario"].str.endswith(ssp)]
+    if model_search == "AIM":
+        to_download = to_download[
+            # No CO2 AFOLU for some reason
+            ~to_download["scenario"].isin(["SSP1 - Very Low Emissions_a", "SSP2 - Low Emissions_a"])
+        ]
+
+    # if model_search == "MESSAGE":
+    #     to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Low Emissions")]
+    # if model_search == "IMAGE":
+    #     # skip = (
+    #     #     "SSP1 - Very Low Emissions",
+    #     #     "SSP2 - Low Emissions",
+    #     #     "SSP2 - Medium-Low Emissions",
+    #     #     "SSP2 - Very Low Emissions",
+    #     #     "SSP2 - Very Low Emissions_a",
+    #     # )
+    #     # to_download = to_download[~to_download["scenario"].str.endswith(skip)]
+    #     to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Medium Emissions")]
+    # if model_search == "COFFEE":
+    #     to_download = to_download[to_download["scenario"].str.endswith("SSP2 - Medium-Low Emissions")]
+    if model_search == "GCAM":
+        to_download = to_download[to_download["model"].str.startswith("GCAM 8")]
+    #     to_download = to_download[to_download["scenario"].str.endswith("SSP3 - High Emissions")]
+    # if model_search == "WITCH":
+    #     to_download = to_download[to_download["scenario"].str.endswith("SSP5 - Medium-Low Emissions_a")]
 
 to_download.shape[0]
 
@@ -169,7 +183,8 @@ for _, row in tqdm.auto.tqdm(to_download.iterrows(), total=to_download.shape[0])
                 f"Scenario data has changed for {model} {scenario}. "
                 f"Current version: {version}. "
                 f"Known version: {known_versions[model][scenario]}. "
-                "Please update the value of `DOWNLOAD_SCENARIOS_ID`."
+                "Please update the value of `DOWNLOAD_SCENARIOS_ID` "
+                f"({DOWNLOAD_SCENARIOS_ID=})."
             )
             raise AssertionError(msg)
         # else:
