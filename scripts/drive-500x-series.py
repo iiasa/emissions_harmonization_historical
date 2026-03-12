@@ -221,10 +221,10 @@ def main():  # noqa: PLR0912
     iams = [
         # "WITCH",
         # "REMIND",
-        # "MESSAGE",
+        "MESSAGE",
         # "IMAGE",
         # "GCAM",
-        "COFFEE",
+        # "COFFEE",
         # "AIM",
     ]
 
