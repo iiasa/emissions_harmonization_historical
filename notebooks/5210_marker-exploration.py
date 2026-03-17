@@ -253,14 +253,15 @@ def create_legend(ax, handles) -> None:
 
 
 fig, axes = plt.subplots(ncols=1, figsize=(10, 8), sharex=True)
-for i, (ax, yticks) in enumerate(zip([axes], [np.arange(-1.5, 8.01, 0.5)])):
+for i, (ax, yticks) in enumerate(zip([axes], [np.arange(-2.0, 11.01, 0.5)])):
     pdf_temperature.openscm.plot_plume_after_calculating_quantiles(
         quantile_over="run_id",
         hue_var=hue,
         style_var="climate_model",
         palette=palette,
-        quantiles_plumes=((0.5, 1.0), ((0.33, 0.67), 0.75)),
-        # quantiles_plumes=((0.5, 1.0), ((0.33, 0.67), 0.0), ((0.05, 0.95), 0.0)),
+        # quantiles_plumes=((0.5, 1.0), ((0.33, 0.67), 0.75)),
+        quantiles_plumes=((0.5, 1.0), ((1 / 6, 5 / 6), 0.7)),
+        # quantiles_plumes=((0.5, 1.0), ((1 / 6, 5 / 6), 0.7), ((0.05, 0.95), 0.3)),
         ax=ax,
         create_legend=create_legend,
     )

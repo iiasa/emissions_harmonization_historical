@@ -4,6 +4,7 @@ Extract results required for GHG concentration projections
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 import pandas_openscm
@@ -115,7 +116,7 @@ def main():
 
     history = HISTORY_HARMONISATION_DB.load(pix.isin(purpose="global_workflow_emissions"))
 
-    complete = INFILLED_SCENARIOS_DB_EXTENSIONS.load(pix.isin(stage="complete"))
+    complete = INFILLED_SCENARIOS_DB_EXTENSIONS.load(pix.isin(stage="extended"))
 
     for (model, scenario), msdf in complete.groupby(["model", "scenario"]):
         relevant_emissions = msdf.index.droplevel(msdf.index.names.difference(["variable", "unit"])).drop_duplicates()
@@ -143,6 +144,7 @@ def main():
         raise AssertionError
 
     res = pix.concat([res, history.reset_index("purpose", drop=True)])
+    res.columns = res.columns.astype(int)
 
     out_path = OUT_PATH / f"{INFILLING_DB_DIR.name}_complete-emissions.csv"
     out_path.parent.mkdir(exist_ok=True, parents=True)
@@ -202,6 +204,32 @@ def main():
         history=out.loc[pix.isin(scenario="historical")].pix.project(["variable", "unit"]),
         harmonisation_time=HARMONISATION_YEAR,
     )
+
+    # Extend into the future.
+    extension_years = np.setdiff1d(res.columns, out.columns)
+    out.loc[:, extension_years] = np.nan
+    # Keep biosphere constant, fossil picks up the rest.
+    # Yuck but only used for extending latitudinal gradients etc. so ok
+    out.loc[pix.ismatch(variable="**Biosphere"), extension_years] = out.loc[pix.ismatch(variable="**Biosphere"), 2100]
+
+    biosphere_scenarios_helper = out.loc[pix.ismatch(variable="**Biosphere") & ~pix.ismatch(scenario="historical")]
+    biosphere_scenarios_helper = biosphere_scenarios_helper.openscm.update_index_levels(
+        {"variable": lambda x: x.replace("|Biosphere", "")}
+    )
+
+    fossil_extensions = (
+        res.openscm.mi_loc(biosphere_scenarios_helper.index)
+        .subtract(biosphere_scenarios_helper)
+        .loc[:, extension_years]
+    )
+    fossil_extensions = fossil_extensions.openscm.update_index_levels({"variable": lambda x: f"{x}|Fossil"})
+    fossil_extensions = fossil_extensions.reset_index("region", drop=True)
+
+    out.loc[pix.ismatch(variable="**Fossil") & ~pix.ismatch(scenario="historical"), extension_years] = (
+        fossil_extensions.reorder_levels(out.index.names)
+    )
+
+    assert False, "Add assertion that sum of variables in out matches res i.e. we didn't lose mass etc. in the above"
 
     out_path = OUT_PATH / f"{INFILLING_DB_DIR.name}_harmonised-emissions-fossil-biosphere-aggregation.csv"
     out_path.parent.mkdir(exist_ok=True, parents=True)
