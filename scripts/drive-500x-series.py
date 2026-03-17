@@ -63,10 +63,10 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
 
         res = {"model": iam, "scm": scm}
         if notebook_name == "5195_run-simple-climate-model.py":
-            # res["markers_only"] = False
             res["markers_only"] = True
-            # res["run_w_extensions"] = True
-            res["run_w_extensions"] = False
+            # res["markers_only"] = False
+            res["run_w_extensions"] = True
+            # res["run_w_extensions"] = False
 
     else:
         raise NotImplementedError(notebook_name)
@@ -254,8 +254,8 @@ def main():  # noqa: PLR0912
         # # because the extensions only work if all the scenarios are there.
         # "5194",
     ]
-    # # Skip this step
-    # notebook_prefixes = []
+    # Skip this step
+    notebook_prefixes = []
 
     for iam in tqdm.tqdm(iams, desc="IAMs up to emissions post-processing"):
         for notebook in all_notebooks:
@@ -300,8 +300,8 @@ def main():  # noqa: PLR0912
 
     # Extensions
     notebook_prefixes = ["5191"]
-    # # Skip this step
-    # notebook_prefixes = []
+    # Skip this step
+    notebook_prefixes = []
     for notebook in all_notebooks:
         if any(notebook.name.startswith(np) for np in notebook_prefixes):
             run_notebook_iam(
@@ -314,8 +314,8 @@ def main():  # noqa: PLR0912
     # (The extensions only run on all scenarios at once,
     # so we can't use the workflow above to make this work)
     notebook_prefixes = ["5194"]
-    # # Skip this step
-    # notebook_prefixes = []
+    # Skip this step
+    notebook_prefixes = []
     for iam in iams:
         for notebook in all_notebooks:
             if any(notebook.name.startswith(np) for np in notebook_prefixes):

@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -244,6 +244,31 @@ for i, (ax, yticks) in enumerate(zip(axes, [np.arange(0.5, 4.01, 0.5), np.arange
 
 # %%
 fig.savefig("temperature_all_marker.pdf", format="pdf", bbox_inches="tight")
+
+
+# %%
+def create_legend(ax, handles) -> None:
+    """Create legend helper"""
+    ax.legend(handles=handles, loc="center left", bbox_to_anchor=(1.05, 0.5))
+
+
+fig, axes = plt.subplots(ncols=1, figsize=(10, 8), sharex=True)
+for i, (ax, yticks) in enumerate(zip([axes], [np.arange(-1.5, 8.01, 0.5)])):
+    pdf_temperature.openscm.plot_plume_after_calculating_quantiles(
+        quantile_over="run_id",
+        hue_var=hue,
+        style_var="climate_model",
+        palette=palette,
+        quantiles_plumes=((0.5, 1.0), ((0.33, 0.67), 0.75)),
+        # quantiles_plumes=((0.5, 1.0), ((0.33, 0.67), 0.0), ((0.05, 0.95), 0.0)),
+        ax=ax,
+        create_legend=create_legend,
+    )
+    ax.set_xlim([2000, 2500])
+    ax.set_yticks(yticks)
+    ax.set_ylim(ymin=yticks.min(), ymax=yticks.max())
+    # ax.set_ylim(ymax=ymax)
+    ax.grid()
 
 # %% [markdown]
 # ### Peak and 2100 warming
