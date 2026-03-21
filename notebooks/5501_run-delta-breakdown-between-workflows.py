@@ -32,7 +32,6 @@ import pandas as pd
 import pandas_indexing as pix
 import pandas_openscm
 import pyam
-import seaborn as sns
 from gcages.ar6.post_processing import (
     get_temperatures_in_line_with_assessment,
 )
@@ -43,6 +42,7 @@ from pandas_openscm.db import FeatherDataBackend, FeatherIndexBackend, OpenSCMDB
 from pandas_openscm.index_manipulation import update_index_levels_func
 
 from emissions_harmonization_historical.constants_5000 import (
+    AR6_LIKE_SCM_OUTPUT_DB,
     DATA_ROOT,
     REPO_ROOT,
     SCM_OUTPUT_DB,
@@ -59,6 +59,25 @@ logger.disable("gcages")
 
 # %% [markdown]
 # ## General set up
+
+# %%
+# put scenario loading config stuff here so it's easier to see
+
+# %%
+model = "REMIND-MAgPIE 3.5-4.11"
+scenario = "SSP1 - Very Low Emissions"
+climate_model = "MAGICCv7.5.3"
+
+# base_workflow_emissions_db = AR6_LIKE_EMISSIONS_DB
+base_workflow_scm_output_db = AR6_LIKE_SCM_OUTPUT_DB
+base_workflow_id = "ar6"
+
+# other_workflow_emissions_db = SCM_OUTPUT_DB
+other_workflow_scm_output_db = SCM_OUTPUT_DB
+other_workflow_id = "scenariomip"
+
+# %%
+# SCM_OUTPUT_DB.load_metadata().get_level_values("climate_model").unique()
 
 # %% [markdown]
 # ## Have a look at ERF differences
@@ -83,38 +102,36 @@ forcing_breakdown_to_plot = [
 ]
 
 # %%
-model = "REMIND-MAgPIE 3.5-4.11"
-scenario = "SSP1 - Very Low Emissions"
-
-# %%
-erfs_scenariomip = SCM_OUTPUT_DB.load(
-    pix.isin(climate_model="MAGICCv7.6.0a3")
+erfs_base = base_workflow_scm_output_db.load(
+    pix.isin(climate_model="MAGICCv7.5.3")
     & pix.isin(variable=forcing_breakdown_to_plot)
     & pix.isin(model=model)
     & pix.isin(scenario=scenario),
     progress=True,
     out_columns_type=int,
-).pix.assign(source="scenariomip-magicc-v76")
-erfs_scenariomip
+).pix.assign(source=base_workflow_id)
+erfs_base
 
 # %%
-# TODO: fix this info passing
-erfs_ar6 = (
-    pd.read_feather("erfs-ar6.feather").loc[pix.isin(variable=forcing_breakdown_to_plot)].pix.assign(source="ar6")
+erfs_other = other_workflow_scm_output_db.load(
+    pix.isin(climate_model="MAGICCv7.5.3")
+    & pix.isin(variable=forcing_breakdown_to_plot)
+    & pix.isin(model=model)
+    & pix.isin(scenario=scenario),
+    progress=True,
+    out_columns_type=int,
+).pix.assign(source=other_workflow_id)
+erfs_other
+
+# %%
+erfs_deltas_median = (
+    erfs_base.reset_index(["source"], drop=True).openscm.groupby_except("run_id").median()
+    - erfs_other.reset_index(["source"], drop=True).openscm.groupby_except("run_id").median()
 )
-erfs_ar6
+# erfs_deltas_median.sort_index().loc[:, 2005:2020].sort_values(by=2005)#.sum(axis=0)
 
 # %%
-erfs_deltas = erfs_scenariomip.reset_index(["source", "climate_model"], drop=True) - erfs_ar6.reset_index(
-    ["source", "climate_model"], drop=True
-)
-erfs_deltas = erfs_deltas.round(4)
-erfs_deltas = erfs_deltas.dropna(how="all", axis="columns")
-erfs_deltas_median = erfs_deltas.groupby(erfs_deltas.index.names.difference(["run_id"])).median()
-erfs_deltas_median.sort_index().loc[:, 2035:2045]
-
-# %%
-plot_years = range(2017, 2100 + 1)
+plot_years = range(2010, 2100 + 1)
 for (model, scenario), msdf in erfs_deltas_median.loc[:, plot_years].groupby(["model", "scenario"]):
     ax = pyam.IamDataFrame(msdf).plot.stack(
         stack="variable",
@@ -126,64 +143,74 @@ for (model, scenario), msdf in erfs_deltas_median.loc[:, plot_years].groupby(["m
     )
     # ax.set_title(f"{model} {scenario}\nrel. to\n{base_model} {base_scenario}")
     ax.axhline(0.0, color="k")
+    ax.set_title(f"{base_workflow_id} - {other_workflow_id}")
     fig = ax.get_figure()
     # fig.savefig(f"{model}vs{base_model}_erf_diff.pdf", format="pdf", bbox_inches="tight")
     plt.show()
 
 
 # %%
-plt_years = [2030, 2040, 2050, 2060, 2080, 2100]
-pdf = erfs_deltas[plt_years].melt(ignore_index=False, var_name="year").reset_index()
-pdf["variable"] = pdf["variable"].str.replace("Effective Radiative Forcing|", "")
+# plt_years = [2030, 2040, 2050, 2060, 2080, 2100]
+# pdf = erfs_deltas[plt_years].melt(ignore_index=False, var_name="year").reset_index()
+# pdf["variable"] = pdf["variable"].str.replace("Effective Radiative Forcing|", "")
 
-for (model, scenario), msdf in pdf.groupby(["model", "scenario"]):
-    fig, ax = plt.subplots(figsize=(12, 5))
-    sns.boxplot(
-        data=msdf,
-        y="value",
-        x="variable",
-        hue="year",
-        # hue="variable",
-        # x="year",
-    )
-    ax.set_xticks(ax.get_xticks())
-    ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
-    ax.legend(loc="center left", bbox_to_anchor=(1.05, 0.5))
-    # ax.set_title(f"{model} {scenario}\nrel. to\n{base_model} {base_scenario}")
-    ax.axhline(0.0, color="tab:gray", zorder=1.2)
-    fig = ax.get_figure()
-    # fig.savefig(f"{model}vs{base_model}_erf_years_diff.pdf", format="pdf")
-    plt.show()
+# for (model, scenario), msdf in pdf.groupby(["model", "scenario"]):
+#     fig, ax = plt.subplots(figsize=(12, 5))
+#     sns.boxplot(
+#         data=msdf,
+#         y="value",
+#         x="variable",
+#         hue="year",
+#         # hue="variable",
+#         # x="year",
+#     )
+#     ax.set_xticks(ax.get_xticks())
+#     ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
+#     ax.legend(loc="center left", bbox_to_anchor=(1.05, 0.5))
+#     # ax.set_title(f"{model} {scenario}\nrel. to\n{base_model} {base_scenario}")
+#     ax.axhline(0.0, color="tab:gray", zorder=1.2)
+#     fig = ax.get_figure()
+#     # fig.savefig(f"{model}vs{base_model}_erf_years_diff.pdf", format="pdf")
+#     plt.show()
 
-
-# %%
-assert False, "Up to here"
 
 # %% [markdown]
 # ## Load complete scenario data
 
 # %%
-SCM_OUTPUT_DB.load_metadata().get_level_values("variable")
-
-# %%
-complete_scenarios = SCM_OUTPUT_DB.load(
-    pix.isin(climate_model="MAGICCv7.6.0a3")
-    & pix.ismatch(variable="Emissions**")
-    & pix.isin(model=[*base.get_level_values("model"), *others.get_level_values("model")])
-    & pix.isin(scenario=[*base.get_level_values("scenario"), *others.get_level_values("scenario")]),
+complete_scenarios_base = base_workflow_scm_output_db.load(
+    pix.ismatch(variable="Emissions**") & pix.isin(model=model) & pix.isin(scenario=scenario),
     progress=True,
     out_columns_type=int,
 )
-complete_scenarios = complete_scenarios.openscm.mi_loc(others.join(base, how="outer"))
-complete_scenarios
+# Hmm don't love this, but ok for now
+complete_scenarios_base = complete_scenarios_base.openscm.update_index_levels(
+    {
+        "variable": partial(
+            convert_variable_name,
+            from_convention=SupportedNamingConventions.GCAGES,
+            to_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+        )
+    }
+)
+# complete_scenarios_base
+
+# %%
+complete_scenarios_other = other_workflow_scm_output_db.load(
+    pix.ismatch(variable="Emissions**") & pix.isin(model=model) & pix.isin(scenario=scenario),
+    progress=True,
+    out_columns_type=int,
+)
+# Hmm don't love this, but ok for now
+complete_scenarios_other = (
+    complete_scenarios_other.loc[pix.isin(climate_model="MAGICCv7.5.3"), complete_scenarios_base.columns]
+    .dropna(how="all", axis="columns")
+    .reset_index("climate_model", drop=True)
+)
+# complete_scenarios_other
 
 # %% [markdown]
 # ## Calculate breakdown scenario runs
-
-# %%
-base_scen = complete_scenarios.openscm.mi_loc(base)
-base_model = base.pix.unique("model")[0]
-base_scenario = base.pix.unique("scenario")[0]
 
 # %%
 to_attribute = [
@@ -202,7 +229,7 @@ to_attribute = [
     (
         "Montreal gases",
         [
-            *[v for v in base_scen.pix.unique("variable") if "Montreal" in v],
+            *[v for v in complete_scenarios_base.pix.unique("variable") if "Montreal" in v],
             *[
                 "Emissions|CH3CCl3",
                 "Emissions|CH3Br",
@@ -223,9 +250,9 @@ to_attribute = [
     (
         "HFCs PFCs SF6 NF3 SO2F2",
         [
-            *[v for v in base_scen.pix.unique("variable") if "HFC" in v],
+            *[v for v in complete_scenarios_base.pix.unique("variable") if "HFC" in v],
             "Emissions|CF4",
-            *[v for v in base_scen.pix.unique("variable") if re.match(r"Emissions\|c?C\d*F\d*", v)],
+            *[v for v in complete_scenarios_base.pix.unique("variable") if re.match(r"Emissions\|c?C\d*F\d*", v)],
             "Emissions|SF6",
             "Emissions|NF3",
             "Emissions|SO2F2",
@@ -235,7 +262,7 @@ to_attribute = [
 # to_attribute
 
 # %%
-not_attributed = set(base_scen.pix.unique("variable"))
+not_attributed = set(complete_scenarios_base.pix.unique("variable"))
 for v in to_attribute:
     missing = set(v[1]).difference(not_attributed)
     if missing:
@@ -247,27 +274,26 @@ if not_attributed:
     raise AssertionError(not_attributed)
 
 # %%
-to_run_l = []
-for i in range(others.size):
-    other_idx_mi = others[[i]]
-    other_idx_tuple = others[i]
-    for label, emms in to_attribute:
-        model = other_idx_tuple[others.names.index("model")]
-        scenario = other_idx_tuple[others.names.index("scenario")]
+model_tmp = f"{model} {scenario} {base_workflow_id} replaced by {other_workflow_id}".replace(".", "_").replace(" ", "_")
 
-        variable_loc = pix.isin(variable=emms)
-        start = complete_scenarios.openscm.mi_loc(other_idx_mi).loc[~variable_loc]
-        replace = base_scen.loc[variable_loc]
-        to_run_tmp = pix.concat([start, replace]).pix.assign(
-            model=f"{model} -- {scenario} --- {base_model} -- {base_scenario}",
-            # model=f"{model} {scenario} - {base_model} {base_scenario}".replace(".", "_").replace(" ", "_"),
-            scenario=label,
-        )
-        exp_n_ts = 52
-        if to_run_tmp.shape[0] != exp_n_ts:
-            raise AssertionError
+to_run_l = [
+    complete_scenarios_base.pix.assign(model=model_tmp, scenario=base_workflow_id),
+    complete_scenarios_other.pix.assign(model=model_tmp, scenario=other_workflow_id),
+]
 
-        to_run_l.append(to_run_tmp)
+for label, emms in to_attribute:
+    variable_loc = pix.isin(variable=emms)
+    start = complete_scenarios_base.loc[~variable_loc]
+    replace = complete_scenarios_other.loc[variable_loc]
+    to_run_tmp = pix.concat([start, replace]).pix.assign(
+        model=model_tmp,
+        scenario=label,
+    )
+    exp_n_ts = 52
+    if to_run_tmp.shape[0] != exp_n_ts:
+        raise AssertionError
+
+    to_run_l.append(to_run_tmp)
 
 to_run = pix.concat(to_run_l)
 to_run
@@ -279,7 +305,7 @@ to_run.pix.unique(["model", "scenario"]).to_frame(index=False)
 # ## Run SCMs
 
 # %%
-db_dir = DATA_ROOT / "processed" / "delta-breakdown" / "zn-001"
+db_dir = DATA_ROOT / "processed" / "delta-workflow-breakdown" / "zn-002"
 db_dir.mkdir(exist_ok=True, parents=True)
 
 db = OpenSCMDB(
@@ -314,6 +340,23 @@ magicc_prob_distribution_path = (
     REPO_ROOT / "magicc" / "magicc-v7.6.0a3" / "configs" / "magicc-ar7-fast-track-drawnset-v0-3-0.json"
 )
 
+MAGICC_EXE_PATH = REPO_ROOT / "magicc" / "magicc-v7.5.3" / "bin"
+if platform.system() == "Darwin":
+    if platform.processor() == "arm":
+        magicc_exe_path = MAGICC_EXE_PATH / "magicc-darwin-arm64"
+        os.environ["DYLD_LIBRARY_PATH"] = "/opt/homebrew/lib/gcc/current/"
+
+elif platform.system() == "Linux":
+    magicc_exe_path = MAGICC_EXE_PATH / "magicc"
+
+elif platform.system() == "Windows":
+    magicc_exe_path = MAGICC_EXE_PATH / "magicc.exe"
+
+magicc_expected_version = "v7.5.3"
+magicc_prob_distribution_path = (
+    REPO_ROOT / "magicc" / "magicc-v7.5.3" / "configs" / "0fd0f62-derived-metrics-id-f023edb-drawnset.json"
+)
+
 os.environ["MAGICC_EXECUTABLE_7"] = str(magicc_exe_path)
 
 climate_models_cfgs = load_magicc_cfgs(
@@ -321,10 +364,11 @@ climate_models_cfgs = load_magicc_cfgs(
     output_variables=output_variables,
     startyear=1750,
 )
+# climate_models_cfgs["MAGICC7"] = climate_models_cfgs["MAGICC7"][:5]
 
 # %%
 to_run_openscm_runner = update_index_levels_func(
-    to_run.reset_index("climate_model", drop=True),
+    to_run,
     {
         "variable": partial(
             convert_variable_name,
@@ -337,7 +381,7 @@ to_run_openscm_runner
 
 # %%
 # If you need a clean start
-# db.delete()
+db.delete()
 run_scms(
     scenarios=to_run_openscm_runner,
     climate_models_cfgs=climate_models_cfgs,
@@ -381,37 +425,21 @@ gsat_out_runs = update_index_levels_func(
 # gsat_out_runs
 
 # %%
-gsat_out_normal_workflow_raw = SCM_OUTPUT_DB.load(
-    pix.isin(climate_model="MAGICCv7.6.0a3")
-    & pix.isin(variable="Surface Air Temperature Change")
-    & pix.isin(model=[*base.get_level_values("model"), *others.get_level_values("model")])
-    & pix.isin(scenario=[*base.get_level_values("scenario"), *others.get_level_values("scenario")]),
-    progress=True,
-    out_columns_type=int,
-)
-gsat_out_normal_workflow_raw = gsat_out_normal_workflow_raw.openscm.mi_loc(others.join(base, how="outer"))
-# gsat_out_normal_workflow_raw
-
-# %%
-gsat_out_normal_workflow = update_index_levels_func(
-    get_assessed_gsat(gsat_out_normal_workflow_raw),
-    {"variable": lambda x: assessed_gsat_variable},
-)
-gsat_out_normal_workflow = gsat_out_normal_workflow.loc[pix.isin(run_id=gsat_out_runs.index.get_level_values("run_id"))]
-# gsat_out_normal_workflow
-
-# %%
-deltas_total = gsat_out_normal_workflow.openscm.mi_loc(others) - gsat_out_normal_workflow.openscm.mi_loc(
-    base
-).reset_index(["model", "scenario"], drop=True)
+deltas_total = (
+    gsat_out_runs.loc[pix.isin(scenario=other_workflow_id)]
+    - gsat_out_runs.loc[pix.isin(scenario=base_workflow_id)].reset_index(["model", "scenario"], drop=True)
+).pix.assign(model=model, scenario=scenario)
 deltas_total
 
 # %%
-gsat_out_runs = gsat_out_runs.pix.format(component="{scenario}").pix.extract(
-    model="{model} -- {scenario} --- {model_base} -- {scenario_base}"
+gsat_out_runs_decomp = gsat_out_runs.pix.format(component="{scenario}").pix.assign(
+    model=model,
+    scenario=scenario,
 )
-deltas_components = -1 * (gsat_out_runs - gsat_out_normal_workflow.openscm.mi_loc(others))
-deltas_components.head(1)
+deltas_components = gsat_out_runs_decomp.loc[
+    ~pix.isin(component=[base_workflow_id, other_workflow_id])
+] - gsat_out_runs.loc[pix.isin(scenario=base_workflow_id)].reset_index(["model", "scenario"], drop=True)
+deltas_components.head(10)
 
 # %%
 deltas_components_total = deltas_components.groupby(deltas_components.index.names.difference(["component"])).sum()
@@ -426,9 +454,7 @@ deltas_all_components = pix.concat([deltas_residual, deltas_components])
 # Sanity check
 pd.testing.assert_frame_equal(
     deltas_total,
-    deltas_all_components.groupby(deltas_components.index.names.difference(["component"]))
-    .sum()
-    .reset_index(["model_base", "scenario_base"], drop=True),
+    deltas_all_components.groupby(deltas_components.index.names.difference(["component"])).sum(),
     check_like=True,
 )
 # deltas_all_components
@@ -437,7 +463,7 @@ pd.testing.assert_frame_equal(
 deltas_all_components_median = deltas_all_components.groupby(
     deltas_all_components.index.names.difference(["run_id"])
 ).median()
-deltas_all_components_median
+deltas_all_components_median  # .max(axis=1)
 
 # %%
 plot_years = range(2000, 2100 + 1)
@@ -450,12 +476,36 @@ for (model, scenario), msdf in deltas_all_components_median.groupby(["model", "s
         # legend=legend,
         cmap="tab20",
     )
-    ax.set_title(f"{model} {scenario}\nrel. to\n{base_model} {base_scenario}")
+    ax.set_title(f"{other_workflow_id} rel. to {base_workflow_id}")
     ax.axhline(0.0, color="k")
-    ax.set_yticks(np.arange(-0.4, 0.6, 0.1))
+    ax.set_yticks(np.arange(-0.2, 0.2, 0.1))
     ax.grid()
     fig = ax.get_figure()
-    fig.savefig(f"{model}vs{base_model}_erf_deltas_components.pdf", format="pdf", bbox_inches="tight")
+    # fig.savefig(f"{model}vs{base_model}_erf_deltas_components.pdf", format="pdf", bbox_inches="tight")
+    plt.show()
+
+# %%
+deltas_all_components_median.sort_values(by=2030).loc[:, 2030]
+
+# %%
+plot_years = range(2000, 2100 + 1)
+for (model, scenario), msdf in deltas_all_components_median.loc[
+    pix.isin(component=["BC", "OC", "CH4", "CO", "NMVOCs"])
+].groupby(["model", "scenario"]):
+    ax = pyam.IamDataFrame(msdf.loc[:, plot_years]).plot.stack(
+        stack="component",
+        title=None,
+        total=True,
+        # ax=ax,
+        # legend=legend,
+        cmap="tab20",
+    )
+    ax.set_title(f"{other_workflow_id} rel. to {base_workflow_id}")
+    ax.axhline(0.0, color="k")
+    ax.set_yticks(np.arange(-0.2, 0.2, 0.1))
+    ax.grid()
+    fig = ax.get_figure()
+    # fig.savefig(f"{model}vs{base_model}_erf_deltas_components.pdf", format="pdf", bbox_inches="tight")
     plt.show()
 
 # %%
@@ -469,8 +519,8 @@ for (model, scenario), msdf in erfs_deltas_median.groupby(["model", "scenario"])
         # legend=legend,
         cmap="tab20",
     )
-    ax.set_title(f"{model} {scenario}\nrel. to\n{base_model} {base_scenario}")
+    ax.set_title(f"{other_workflow_id} rel. to {base_workflow_id}")
     ax.axhline(0.0, color="k")
     fig = ax.get_figure()
-    fig.savefig(f"{model}vs{base_model}_erf_deltas_median.pdf", format="pdf", bbox_inches="tight")
+    # fig.savefig(f"{model}vs{base_model}_erf_deltas_median.pdf", format="pdf", bbox_inches="tight")
     plt.show()
