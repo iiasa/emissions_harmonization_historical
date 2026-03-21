@@ -76,6 +76,7 @@ Q = UR.Quantity
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
 model: str = "REMIND"
 scm: str = "MAGICCv7.6.0a3"
+scm: str = "MAGICCv7.5.3"
 markers_only: bool = True
 run_w_extensions: bool = True  # Whether to run with scenarios extended to 2500
 
@@ -95,8 +96,9 @@ output_dir_model
 # These are the 7 marker scenarios extended beyond 2100
 if run_w_extensions:
     complete_scenarios = INFILLED_SCENARIOS_DB_EXTENSIONS.load(
-        pix.isin(stage="extended") & pix.ismatch(model=f"*{model}*")
+        pix.isin(stage="extended-scenarios-only") & pix.ismatch(model=f"*{model}*")
     ).reset_index("stage", drop=True)
+
 else:
     complete_scenarios = INFILLED_SCENARIOS_DB.load(
         pix.isin(stage="complete") & pix.ismatch(model=f"*{model}*")
@@ -265,11 +267,6 @@ print(f"Year range in complete_scm: {complete_scm.columns.min()} to {complete_sc
 
 
 # %%
-
-
-# complete_scm
-
-# %%
 climate_models_cfgs["MAGICC7"][0]["out_dynamic_vars"]
 
 # %% [markdown]
@@ -380,7 +377,7 @@ run_scms(
     verbose=True,
     progress=True,
     batch_size_scenarios=15,
-    force_rerun=True,  # CHANGED: Must re-run for extended scenarios to 2500
+    # force_rerun=True,
 )
 
 # %% [markdown]

@@ -1114,8 +1114,16 @@ continuous_timeseries_extended = continuous_timeseries_extended.droplevel("workf
 # Save extended data without deleting complete data (both should coexist in final DB)
 INFILLED_SCENARIOS_DB_EXTENSIONS.save(continuous_timeseries_extended, allow_overwrite=True)
 
+continuous_timeseries_extended_future_only = continuous_timeseries_extended.loc[
+    :, df_everything.columns.min() :
+].pix.assign(stage="extended-scenarios-only")
+INFILLED_SCENARIOS_DB_EXTENSIONS.save(continuous_timeseries_extended_future_only, allow_overwrite=True)
+
 print("✅ Final database saved with both complete and extended stages")
 
+
+# %%
+continuous_timeseries_extended_future_only
 
 # %%
 # Simple CSV output
