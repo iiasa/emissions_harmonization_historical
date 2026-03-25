@@ -2,13 +2,16 @@
 Extract results required for GHG concentration projections
 """
 
+from functools import partial
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pandas_indexing as pix
 import pandas_openscm
 from gcages.cmip7_scenariomip.gridding_emissions import CO2_BIOSPHERE_SECTORS_GRIDDING
 from gcages.harmonisation import assert_harmonised
+from gcages.renaming import SupportedNamingConventions, convert_variable_name
 
 from emissions_harmonization_historical.ceds import get_map
 from emissions_harmonization_historical.constants_5000 import (
@@ -103,7 +106,7 @@ def add_ceds_extension(
     return res
 
 
-def main():
+def main():  # noqa: PLR0915
     """
     Extract the data
     """
@@ -115,7 +118,7 @@ def main():
 
     history = HISTORY_HARMONISATION_DB.load(pix.isin(purpose="global_workflow_emissions"))
 
-    complete = INFILLED_SCENARIOS_DB_EXTENSIONS.load(pix.isin(stage="complete"))
+    complete = INFILLED_SCENARIOS_DB_EXTENSIONS.load(pix.isin(stage="extended"))
 
     for (model, scenario), msdf in complete.groupby(["model", "scenario"]):
         relevant_emissions = msdf.index.droplevel(msdf.index.names.difference(["variable", "unit"])).drop_duplicates()
@@ -143,6 +146,7 @@ def main():
         raise AssertionError
 
     res = pix.concat([res, history.reset_index("purpose", drop=True)])
+    res.columns = res.columns.astype(int)
 
     out_path = OUT_PATH / f"{INFILLING_DB_DIR.name}_complete-emissions.csv"
     out_path.parent.mkdir(exist_ok=True, parents=True)
@@ -196,6 +200,8 @@ def main():
                 out_l.append(mdf.openscm.groupby_except("region").sum(min_count=1))
 
     out = pix.concat(out_l)
+    # Drop out CO2, we already have this split in the extensions
+    out = out.loc[~pix.ismatch(variable="**CO2**")]
     # Make sure we didn't use a broken historical region aggregation
     assert_harmonised(
         df=out.loc[~pix.isin(scenario="historical")],
@@ -203,9 +209,70 @@ def main():
         harmonisation_time=HARMONISATION_YEAR,
     )
 
+    # Extend into the future.
+    extension_years = np.setdiff1d(res.columns, out.columns)
+    out.loc[:, extension_years] = np.nan
+    # Keep biosphere constant, fossil picks up the rest.
+    # Yuck but only used for extending latitudinal gradients etc. so ok
+    out.loc[pix.ismatch(variable="**Biosphere"), extension_years] = out.loc[pix.ismatch(variable="**Biosphere"), 2100]
+
+    biosphere_scenarios_helper = out.loc[pix.ismatch(variable="**Biosphere") & ~pix.ismatch(scenario="historical")]
+    biosphere_scenarios_helper = biosphere_scenarios_helper.openscm.update_index_levels(
+        {"variable": lambda x: x.replace("|Biosphere", "")}
+    )
+
+    fossil_extensions = (
+        res.openscm.mi_loc(biosphere_scenarios_helper.index)
+        .subtract(biosphere_scenarios_helper)
+        .loc[:, extension_years]
+    )
+    fossil_extensions = fossil_extensions.openscm.update_index_levels({"variable": lambda x: f"{x}|Fossil"})
+    fossil_extensions = fossil_extensions.reset_index("region", drop=True)
+
+    out.loc[pix.ismatch(variable="**Fossil") & ~pix.ismatch(scenario="historical"), extension_years] = (
+        fossil_extensions.reorder_levels(out.index.names)
+    )
+
+    out_sum = (
+        out.openscm.update_index_levels({"variable": lambda x: "|".join(x.split("|")[:-1])})
+        .groupby(out.index.names)
+        .sum(min_count=2)
+    )
+    out_sum_compare = out_sum.loc[~pix.ismatch(scenario="historical"), 2023:]
+    res_compare = (
+        res.openscm.mi_loc(out_sum.index)
+        .reset_index("region", drop=True)
+        .reorder_levels(out_sum.index.names)
+        .rename_axis("year", axis="columns")
+        .loc[~pix.ismatch(scenario="historical"), 2023:]
+    )
+
+    pd.testing.assert_frame_equal(
+        out_sum_compare,
+        res_compare,
+        check_like=True,
+    )
+    # Add back in CO2 from the extensions
+    out_incl_co2 = pix.concat(
+        [
+            out,
+            res.loc[pix.ismatch(variable="**CO2**")]
+            .openscm.update_index_levels(
+                {
+                    "variable": partial(
+                        convert_variable_name,
+                        from_convention=SupportedNamingConventions.IAMC,
+                        to_convention=SupportedNamingConventions.GCAGES,
+                    )
+                }
+            )
+            .reset_index("region", drop=True),
+        ]
+    )
+
     out_path = OUT_PATH / f"{INFILLING_DB_DIR.name}_harmonised-emissions-fossil-biosphere-aggregation.csv"
     out_path.parent.mkdir(exist_ok=True, parents=True)
-    out.to_csv(out_path)
+    out_incl_co2.to_csv(out_path)
     print(f"Wrote {out_path}")
 
 

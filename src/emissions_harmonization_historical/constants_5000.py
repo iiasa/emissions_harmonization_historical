@@ -592,3 +592,16 @@ POST_PROCESSED_TIMESERIES_RUN_ID_DB = OpenSCMDB(
     backend_data=FeatherDataBackend(),
     backend_index=FeatherIndexBackend(),
 )
+
+AR6_LIKE_RUN_ID = "0001"
+AR6_LIKE_DIR = DATA_ROOT / "processed" / "ar6-like" / AR6_LIKE_RUN_ID
+AR6_LIKE_EMISSIONS_DB = OpenSCMDB(
+    db_dir=AR6_LIKE_DIR / "emissions",
+    backend_data=FeatherDataBackend(),
+    backend_index=FeatherIndexBackend(),
+)
+AR6_LIKE_SCM_OUTPUT_DB = OpenSCMDB(
+    db_dir=AR6_LIKE_DIR / "scm-output",
+    backend_data=FeatherDataBackend(),
+    backend_index=FeatherIndexBackend(),
+)
