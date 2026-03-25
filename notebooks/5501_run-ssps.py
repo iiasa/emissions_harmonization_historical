@@ -173,7 +173,11 @@ complete_scenarios = start
 complete_scenarios
 
 # %%
-AR6_LIKE_SCM_OUTPUT_DB.save(complete_scenarios, allow_overwrite=True)
+AR6_LIKE_SCM_OUTPUT_DB.save(
+    complete_scenarios,
+    allow_overwrite=True,
+    # groupby=["model", "scenario", "variable"]
+)
 
 # %% [markdown]
 # ## Run MAGICC
@@ -267,11 +271,19 @@ post_processed_results_magicc_v76 = post_processor(scm_results_magiccv760)
 
 # %%
 for v in [scm_results_magiccv753, scm_results_magiccv760]:
-    AR6_LIKE_SCM_OUTPUT_DB.save(v, allow_overwrite=True)
+    AR6_LIKE_SCM_OUTPUT_DB.save(
+        v,
+        allow_overwrite=True,
+        # groupby=["model", "scenario", "variable"]
+    )
 
 # %%
 for v in [post_processed_results, post_processed_results_magicc_v76]:
-    AR6_LIKE_SCM_OUTPUT_DB.save(v.timeseries_run_id, allow_overwrite=True)
+    AR6_LIKE_SCM_OUTPUT_DB.save(
+        v.timeseries_run_id,
+        allow_overwrite=True,
+        # groupby=["model", "scenario", "variable"]
+    )
 
 # %% [markdown]
 # ## Compare MAGICC versions
