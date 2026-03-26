@@ -1,0 +1,11 @@
+{
+  "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12": {
+    "SSP2 - Low Emissions": 24
+  },
+  "REMIND-MAgPIE 3.5-4.11": {
+    "SSP1 - Very Low Emissions": 5
+  },
+  "WITCH 6.0": {
+    "SSP5 - Medium-Low Emissions_a": 34
+  }
+}

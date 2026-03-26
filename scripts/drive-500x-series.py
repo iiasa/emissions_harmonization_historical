@@ -254,8 +254,10 @@ def main():  # noqa: PLR0912
         # # because the extensions only work if all the scenarios are there.
         # "5194",
     ]
-    # Skip this step
-    notebook_prefixes = []
+    # # Skip this step
+    # notebook_prefixes = []
+    # # Skip this step
+    # notebook_prefixes = []
 
     for iam in tqdm.tqdm(iams, desc="IAMs up to emissions post-processing"):
         for notebook in all_notebooks:
@@ -300,8 +302,8 @@ def main():  # noqa: PLR0912
 
     # Extensions
     notebook_prefixes = ["5191"]
-    # Skip this step
-    notebook_prefixes = []
+    # # Skip this step
+    # notebook_prefixes = []
     for notebook in all_notebooks:
         if any(notebook.name.startswith(np) for np in notebook_prefixes):
             run_notebook_iam(
@@ -314,8 +316,8 @@ def main():  # noqa: PLR0912
     # (The extensions only run on all scenarios at once,
     # so we can't use the workflow above to make this work)
     notebook_prefixes = ["5194"]
-    # Skip this step
-    notebook_prefixes = []
+    # # Skip this step
+    # notebook_prefixes = []
     for iam in iams:
         for notebook in all_notebooks:
             if any(notebook.name.startswith(np) for np in notebook_prefixes):
@@ -336,8 +338,8 @@ def main():  # noqa: PLR0912
     # notebook_prefixes = []
     # Single SCM
     scms = ["MAGICCv7.6.0a3"]
-    # # All available SCMs
-    # scms = ["MAGICCv7.6.0a3", "MAGICCv7.5.3"]
+    # All available SCMs
+    scms = ["MAGICCv7.6.0a3", "MAGICCv7.5.3"]
     for iam, scm in tqdm.tqdm(itertools.product(iams, scms), desc="IAM SCM runs"):
         for notebook in all_notebooks:
             if any(notebook.name.startswith(np) for np in notebook_prefixes):
