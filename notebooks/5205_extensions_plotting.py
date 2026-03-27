@@ -49,6 +49,7 @@ scenarios_pre_extensions = INFILLED_SCENARIOS_DB.load()  # (pix.isin(stage="comp
 scenarios_post_extensions = INFILLED_SCENARIOS_DB.load()
 scenarios_harmonised = HARMONISED_SCENARIO_DB.load()
 scenarios_ext_out = EXTENSIONS_OUTPUT_DB.load()
+
 harmonised_history = history = HISTORY_HARMONISATION_DB.load(
     pix.ismatch(purpose="global_workflow_emissions")
 ).reset_index("purpose", drop=True)
@@ -59,7 +60,8 @@ scenarios_ext_out.columns = [
     else col
     for col in scenarios_ext_out.columns
 ]
-raw_output = merge_historical_future_timeseries(history, scenarios_ext_out)
+scenarios_ext_global = scenarios_ext_out.loc[pix.ismatch(region="World", workflow="for_scms")]
+raw_output = merge_historical_future_timeseries(history, scenarios_ext_global)
 raw_output = raw_output.loc[raw_output.index.get_level_values("workflow") == "for_scms"]
 # sys.exit(4)
 
@@ -136,10 +138,9 @@ class HistoryPlotConfig:
 
 # %%
 co2_gross_positive_ext = scenarios_ext_out.loc[pix.ismatch(variable="Emissions|CO2|Gross Positive Emissions")]
-print(co2_gross_positive_ext.shape)
-co2_gross_positive_ext = co2_gross_positive_ext.loc[
-    co2_gross_positive_ext.index.get_level_values("workflow") != "for_scms"
-]
+# co2_gross_positive_ext = co2_gross_positive_ext.loc[
+#     co2_gross_positive_ext.index.get_level_values("workflow") != "for_scms"
+# ]
 co2_beccs_ext = scenarios_ext_out.loc[pix.ismatch(variable="Emissions|CO2|BECCS")]
 co2_dacc_ext = scenarios_ext_out.loc[pix.ismatch(variable="Emissions|CO2|Direct Air Capture")]
 co2_ocean_ext = scenarios_ext_out.loc[pix.ismatch(variable="Emissions|CO2|Ocean")]
@@ -148,9 +149,6 @@ co2_soil_carbon_ext = scenarios_ext_out.loc[pix.ismatch(variable="Emissions|CO2|
 co2_biochar_ext = scenarios_ext_out.loc[pix.ismatch(variable="Emissions|CO2|Biochar")]
 co2_other_cdr_ext = scenarios_ext_out.loc[pix.ismatch(variable="Emissions|CO2|Other CDR")]
 fossil_extension_df = scenarios_ext_out.loc[pix.ismatch(variable="Emissions|CO2|Energy and Industrial Processes")]
-
-print(co2_gross_positive_ext.shape)
-print(co2_gross_positive_ext)
 # sys.exit(4)
 
 
@@ -168,8 +166,6 @@ def _get_annual_data_for_scenario(scenario, year_cols):
     gross_pos_annual = co2_gross_positive_ext.loc[
         co2_gross_positive_ext.index.get_level_values("scenario") == scenario
     ][year_cols].sum()
-    print(gross_pos_annual)
-    sys.exit(4)
 
     beccs_annual = co2_beccs_ext.loc[co2_beccs_ext.index.get_level_values("scenario") == scenario][year_cols].sum()
 
@@ -406,6 +402,7 @@ def plot_comprehensive_co2_analysis_with_history():
         _plot_single_scenario_with_history(i, scenario, config)
 
     plt.tight_layout()
+    plt.savefig("comprehensive_co2_analysis_with_history.png", dpi=300, bbox_inches="tight")
     return fig
 
 
@@ -453,8 +450,8 @@ def plot_comprehensive_co2_analysis():
         & set(co2_ew_ext.index.get_level_values("scenario"))
         & set(fossil_extension_df.index.get_level_values("scenario"))
     )
-
-    scenarios = sorted(list(scenarios))
+    scenarios = _get_common_scenarios_with_history()
+    # scenarios = sorted(list(scenarios))
     n_scenarios = len(scenarios)
 
     print(f"Creating comprehensive flux analysis for {n_scenarios} scenarios across {len(year_cols)} years")
@@ -546,6 +543,7 @@ def _get_historical_data_for_scenario(scenario, all_years, future_years):
                 slice(None),
                 scenario,
                 slice(None),
+                slice(None),
                 "Emissions|CO2|Gross Positive Emissions",
                 slice(None),
             ),
@@ -566,6 +564,7 @@ def _get_historical_data_for_scenario(scenario, all_years, future_years):
                 slice(None),
                 scenario,
                 slice(None),
+                slice(None),
                 "Emissions|CO2|Energy and Industrial Processes",
                 slice(None),
             ),
@@ -575,7 +574,7 @@ def _get_historical_data_for_scenario(scenario, all_years, future_years):
     )
     afolu_annual = (
         raw_output.loc[
-            (slice(None), scenario, slice(None), "Emissions|CO2|AFOLU", slice(None)),
+            (slice(None), scenario, slice(None), slice(None), "Emissions|CO2|AFOLU", slice(None)),
             all_years,
         ].T
         / 1000
@@ -806,7 +805,7 @@ def plot_co2_transition_period(data, scenario_colors=None, start_year=1990, end_
         ax.axvline(x=year, color="gray", linestyle=":", alpha=0.3, linewidth=0.5)
 
     plt.tight_layout()
-
+    plt.savefig("co2_transition_period.png", dpi=300, bbox_inches="tight")
     plt.show()
 
     return fig, ax
