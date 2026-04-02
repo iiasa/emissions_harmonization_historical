@@ -542,8 +542,12 @@ multi_index_lookup(metadata_quantile, scratch_selection).unstack(["metric", "uni
 # ### How much difference is the MAGICC update making?
 
 # %%
-iam = "REMIND"
-tmp = temperatures_in_line_with_assessment.loc[pix.ismatch(model=f"{iam}**"), 2000:]
+iams = ["REMIND", "MESSAGE", "AIM", "COFFEE", "GCAM", "IMAGE", "WITCH"]
+tmp = temperatures_in_line_with_assessment.loc[
+    pix.ismatch(model=[f"{iam}**" for iam in iams]),
+    # & pix.ismatch(climate_model="MAGICCv7.6.0a3")
+    2000:2100,
+]
 
 fig, axes = plt.subplots(ncols=2, figsize=(16, 4))
 
@@ -562,10 +566,13 @@ for i, (ax, quantile_plumes) in enumerate(
         quantiles_plumes=quantile_plumes,
         ax=ax,
         create_legend=create_legend,
+        dashes={"MAGICCv7.6.0a3": "-", "MAGICCv7.5.3": "--"},
     )
-    ax.set_yticks(np.arange(0.5, 5.01, 0.5))
+    ax.set_yticks(np.arange(0.5, 3.51, 0.5))
     ax.axhline(1.5, linestyle="--", color="k")
     ax.axhline(2.0, linestyle="--", color="k")
+    ax.set_xlim([2000, 2100])
+    ax.set_ylim([0.5, 3.5])
     ax.grid()
 
 plt.show()
@@ -580,23 +587,50 @@ plt.show()
 plt.show()
 
 # %% editable=true slideshow={"slide_type": ""}
-# tmp = metadata_quantile.unstack("climate_model")
-# magicc_diff = tmp["MAGICCv7.6.0a3"] - tmp["MAGICCv7.5.3"]
-# magicc_diff.unstack(["metric", "unit", "quantile"])[
-#     [(metric, "K", percentile) for metric in ["max", "2100"] for percentile in [0.33, 0.5, 0.67, 0.95]]
-# ].sort_values(by=("max", "K", 0.5)).describe().round(3)
+tmp = metadata_quantile.unstack("climate_model")
+magicc_diff = tmp["MAGICCv7.6.0a3"] - tmp["MAGICCv7.5.3"]
+magicc_diff.loc[pix.isin(metric=["2100", "max"], quantile=[0.05, 0.5, 0.95])].unstack(
+    ["metric", "unit", "quantile"]
+).sort_index(axis="columns", ascending=False).round(3).sort_values(by=("max", "K", 0.50)).reset_index(
+    "region", drop=True
+)
 
 # %% editable=true slideshow={"slide_type": ""}
-iam = "REMIND"
-pdf = raw_scm_output.loc[pix.isin(variable="Atmospheric Concentrations|CH4") & pix.ismatch(model=f"*{iam}*"), :]
+iams = ["REMIND", "MESSAGE", "AIM", "COFFEE", "GCAM", "IMAGE", "WITCH"]
+pdf = raw_scm_output.loc[
+    pix.isin(variable="Atmospheric Concentrations|CH4") & pix.ismatch(model=[f"{iam}**" for iam in iams]), :2100
+]
 
 ax = pdf.loc[:, 2000:].openscm.plot_plume_after_calculating_quantiles(
     quantile_over="run_id",
     style_var="climate_model",
     quantiles_plumes=quantile_plumes,
     create_legend=create_legend,
+    dashes={"MAGICCv7.6.0a3": "-", "MAGICCv7.5.3": "--"},
 )
 ax.axhline(pdf[1750].unique(), linestyle="--", color="gray", label="pre-industrial levels")
 ax.annotate("pre-industrial concentration", (2040, pdf[1750].unique()))
 
+ax.set_xlim([2000, 2100])
 ax.set_ylim(ymin=500.0)
+
+# %%
+iams = ["REMIND", "MESSAGE", "AIM", "COFFEE", "GCAM", "IMAGE", "WITCH"]
+pdf = raw_scm_output.loc[
+    pix.isin(variable="Atmospheric Concentrations|CO2") & pix.ismatch(model=[f"{iam}**" for iam in iams]), :2100
+]
+
+ax = pdf.loc[:, 2000:].openscm.plot_plume_after_calculating_quantiles(
+    quantile_over="run_id",
+    style_var="climate_model",
+    quantiles_plumes=quantile_plumes,
+    create_legend=create_legend,
+    dashes={"MAGICCv7.6.0a3": "-", "MAGICCv7.5.3": "--"},
+)
+ax.axhline(pdf[1750].unique(), linestyle="--", color="gray", label="pre-industrial levels")
+ax.annotate("pre-industrial concentration", (2040, pdf[1750].unique()))
+
+ax.set_xlim([2000, 2100])
+# ax.set_ylim(ymin=500.0)
+
+# %%
