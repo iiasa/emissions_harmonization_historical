@@ -10,7 +10,9 @@ import pandas_indexing as pix
 from emissions_harmonization_historical.constants_5000 import (
     HARMONISED_OUT_DIR,
     HARMONISED_SCENARIO_DB,
+    INFILLED_SCENARIOS_DB,
     MARKERS,
+    POST_PROCESSED_TIMESERIES_DB,
     PRE_PROCESSED_SCENARIO_DB,
 )
 
@@ -32,6 +34,15 @@ def main():
 
         harmonised = HARMONISED_SCENARIO_DB.load(pix.ismatch(model=model, scenario=scenario))
         harmonised.to_csv(OUT_PATH / f"{model}_{scenario}_harmonised.csv")
+
+        complete = INFILLED_SCENARIOS_DB.load(
+            pix.ismatch(model=model, scenario=scenario, stage="complete")
+        ).reset_index("stage", drop=True)
+        complete.to_csv(OUT_PATH / f"{model}_{scenario}_complete.csv")
+
+        ghg_aggregates = POST_PROCESSED_TIMESERIES_DB.load(pix.ismatch(model=model, scenario=scenario))
+        # breakpoint()
+        ghg_aggregates.to_csv(OUT_PATH / f"{model}_{scenario}_ghg-aggregates.csv")
 
     overrides_global_l = []
     overrides_gridding_l = []
