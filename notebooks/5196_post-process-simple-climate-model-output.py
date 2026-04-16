@@ -7,7 +7,7 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.18.1
 #   kernelspec:
-#     display_name: default
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
@@ -127,6 +127,12 @@ temperatures_in_line_with_assessment = update_index_levels_func(
     {"variable": lambda x: assessed_gsat_variable},
 )
 # temperatures_in_line_with_assessment
+
+# %%
+ax = temperatures_in_line_with_assessment.loc[:, 2010:].openscm.plot_plume_after_calculating_quantiles(
+    quantile_over="run_id", hue_var="scenario", style_var="climate_model"
+)
+ax.grid()
 
 # %%
 ax = temperatures_in_line_with_assessment.loc[:, 2010:2100].openscm.plot_plume_after_calculating_quantiles(

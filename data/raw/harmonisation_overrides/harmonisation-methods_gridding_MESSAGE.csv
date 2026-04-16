@@ -1,5 +1,4 @@
 model,scenario,region,variable,method
-MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|CO2|International Shipping,reduce_offset_2080
 MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,MESSAGEix-GLOBIOM-GAINS 2.1-R12|China,Emissions|CH4|Residential Commercial Other,reduce_ratio_2080
 MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,MESSAGEix-GLOBIOM-GAINS 2.1-R12|China,Emissions|N2O|Residential Commercial Other,reduce_ratio_2060
 MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,MESSAGEix-GLOBIOM-GAINS 2.1-R12|China,Emissions|NH3|Industrial Sector,constant_ratio

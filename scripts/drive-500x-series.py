@@ -39,7 +39,7 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
         "5094_harmonisation.py",
     ]:
         res = {"model": iam, "make_region_sector_plots": True, "output_to_pdf": True}
-        # res = {"model": iam, "make_region_sector_plots": False, "output_to_pdf": False}
+        res = {"model": iam, "make_region_sector_plots": False, "output_to_pdf": False}
 
     elif notebook_name in [
         "5190_infilling.py",
@@ -63,10 +63,10 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
 
         res = {"model": iam, "scm": scm}
         if notebook_name == "5195_run-simple-climate-model.py":
-            # res["markers_only"] = False
             res["markers_only"] = True
-            # res["run_w_extensions"] = True
-            res["run_w_extensions"] = False
+            # res["markers_only"] = False
+            res["run_w_extensions"] = True
+            # res["run_w_extensions"] = False
 
     else:
         raise NotImplementedError(notebook_name)
@@ -217,14 +217,14 @@ def main():  # noqa: PLR0912
     # iams = [
     #     "GCAM",
     # ]
-    # All
+    # All (required to run extensions)
     iams = [
         "WITCH",
-        # "REMIND",
+        "REMIND",
         "MESSAGE",
         "IMAGE",
-        # "GCAM",
-        # "COFFEE",
+        "GCAM",
+        "COFFEE",
         "AIM",
     ]
 
@@ -243,9 +243,19 @@ def main():  # noqa: PLR0912
     # Infilling and post-processing
     # notebook_prefixes = ["5190", "5191"]
     # # Everything
-    notebook_prefixes = ["5090", "5091", "5092", "5093", "5094", "5190", "5194"]
-    # # Skip this step
-    # notebook_prefixes = []
+    notebook_prefixes = [
+        "5090",
+        "5091",
+        "5092",
+        "5093",
+        "5094",
+        "5190",
+        # # If you run extensions, you have to run this notebook later
+        # # because the extensions only work if all the scenarios are there.
+        # "5194",
+    ]
+    # Skip this step
+    notebook_prefixes = []
 
     for iam in tqdm.tqdm(iams, desc="IAMs up to emissions post-processing"):
         for notebook in all_notebooks:
@@ -275,9 +285,7 @@ def main():  # noqa: PLR0912
                 idn="only",
             )
 
-    ### Infilling & Post-processing of emissions
-    # Step 1: Infilling per IAM (writes to temp database)
-    #
+    ### Infilling if needed because we re-created the infilling database in the previous step
     notebook_prefixes = ["5190"]
     # Skip this step
     notebook_prefixes = []
@@ -290,7 +298,7 @@ def main():  # noqa: PLR0912
                     iam=iam,
                 )
 
-    # Step 2: Extensions (run once, reads temp DB, writes final DB with both stages)
+    # Extensions
     notebook_prefixes = ["5191"]
     # Skip this step
     notebook_prefixes = []
@@ -302,7 +310,9 @@ def main():  # noqa: PLR0912
                 iam="all_iams",
             )
 
-    # Step 3: Post-processing per IAM (reads final DB)
+    # Step 3: Post-processing per IAM after running the extensions too
+    # (The extensions only run on all scenarios at once,
+    # so we can't use the workflow above to make this work)
     notebook_prefixes = ["5194"]
     # Skip this step
     notebook_prefixes = []
@@ -324,7 +334,7 @@ def main():  # noqa: PLR0912
     # notebook_prefixes = ["5196"]
     # # Skip this step
     # notebook_prefixes = []
-    # Single SCMcd
+    # Single SCM
     scms = ["MAGICCv7.6.0a3"]
     # # All available SCMs
     # scms = ["MAGICCv7.6.0a3", "MAGICCv7.5.3"]
