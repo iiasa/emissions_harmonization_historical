@@ -23,7 +23,7 @@ def main():
     """
     HERE = Path(__file__).parent
     REPO_ROOT = HERE.parent
-    ID = "0001"
+    ID = "0003"
     OUT_PATH = REPO_ROOT / "regression-testing-outputs" / ID
 
     OUT_PATH.mkdir(exist_ok=True, parents=True)
@@ -40,9 +40,10 @@ def main():
         ).reset_index("stage", drop=True)
         complete.to_csv(OUT_PATH / f"{model}_{scenario}_complete.csv")
 
-        ghg_aggregates = POST_PROCESSED_TIMESERIES_DB.load(pix.ismatch(model=model, scenario=scenario))
-        # breakpoint()
-        ghg_aggregates.to_csv(OUT_PATH / f"{model}_{scenario}_ghg-aggregates.csv")
+        ghg_aggregates = POST_PROCESSED_TIMESERIES_DB.load(
+            pix.ismatch(model=model, scenario=scenario, stage="complete", variable="**GHG**")
+        ).reset_index("stage", drop=True)
+        ghg_aggregates.to_csv(OUT_PATH / f"{model}_{scenario}_complete_ghg-aggregates.csv")
 
     overrides_global_l = []
     overrides_gridding_l = []
