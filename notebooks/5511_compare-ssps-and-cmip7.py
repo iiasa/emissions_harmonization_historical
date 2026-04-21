@@ -228,19 +228,22 @@ variables_to_plot = [
     "Emissions|OC",
     "Emissions|BC",
 ]
-pdf = emissions.loc[pix.isin(variable=variables_to_plot), 2015:2100]
+pdf = emissions.loc[pix.isin(variable=variables_to_plot), 2015:2500]
+
 fg = sns.relplot(
-    data=pdf.openscm.to_long_data(),
+    data=pdf.loc[pix.isin(cmip_era="CMIP7")].openscm.to_long_data(),
     x="time",
     y="value",
     hue="cmip_name",
     palette=palette,
     hue_order=scenario_order,
-    style="cmip_era",
-    dashes={"CMIP6": (3, 3), "CMIP7": ""},
-    col="group",
-    col_order=["peak-temp<2", "peak-temp<3", "peak-temp>=3"],
-    row="variable",
+    # style="cmip_era",
+    # dashes={"CMIP6": (3, 3), "CMIP7": ""},
+    # col="group",
+    # col_order=["peak-temp<2", "peak-temp<3", "peak-temp>=3"],
+    col="variable",
+    col_order=variables_to_plot,
+    col_wrap=3,
     kind="line",
     # facet_kws=dict(sharey="row"),
     facet_kws=dict(sharey=False),
@@ -252,13 +255,118 @@ for ax in fg.axes.flatten():
     else:
         ax.set_ylim(ymin=0.0)
 
+    ax.grid()
+
+plt.show()
+fg = sns.relplot(
+    data=pdf.openscm.to_long_data(),
+    x="time",
+    y="value",
+    hue="cmip_name",
+    palette=palette,
+    hue_order=scenario_order,
+    style="cmip_era",
+    dashes={"CMIP6": (3, 3), "CMIP7": ""},
+    # col="group",
+    # col_order=["peak-temp<2", "peak-temp<3", "peak-temp>=3"],
+    col="variable",
+    col_order=variables_to_plot,
+    col_wrap=3,
+    kind="line",
+    # facet_kws=dict(sharey="row"),
+    facet_kws=dict(sharey=False),
+)
+
+for ax in fg.axes.flatten():
+    if "CO2" in ax.get_title():
+        ax.axhline(0.0, color="gray", linestyle="--")
+    else:
+        ax.set_ylim(ymin=0.0)
+
+    ax.grid()
+
+plt.show()
+
+fg = sns.relplot(
+    data=pdf.openscm.to_long_data(),
+    x="time",
+    y="value",
+    hue="cmip_name",
+    palette=palette,
+    hue_order=scenario_order,
+    style="cmip_era",
+    dashes={"CMIP6": (3, 3), "CMIP7": ""},
+    col="group",
+    col_order=["peak-temp<2", "peak-temp<3", "peak-temp>=3"],
+    row="variable",
+    row_order=variables_to_plot,
+    kind="line",
+    # facet_kws=dict(sharey="row"),
+    facet_kws=dict(sharey=False),
+)
+
+for ax in fg.axes.flatten():
+    if "CO2" in ax.get_title():
+        ax.axhline(0.0, color="gray", linestyle="--")
+    else:
+        ax.set_ylim(ymin=0.0)
+
+    ax.grid()
+
+plt.show()
+
 # %%
 variables_to_plot = [
     "Surface Temperature (GSAT)",
-    "Effective Radiative Forcing",
+    # "Effective Radiative Forcing",
 ]
-pdf = scm_output.loc[pix.isin(variable=variables_to_plot, climate_model="MAGICCv7.6.0a3"), 2015:2100]
+pdf = scm_output.loc[pix.isin(variable=variables_to_plot, climate_model="MAGICCv7.6.0a3"), 2015:2500]
 pdf = pdf.openscm.groupby_except("run_id").median()
+
+fg = sns.relplot(
+    data=pdf.loc[pix.isin(cmip_era="CMIP7")].openscm.to_long_data(),
+    x="time",
+    y="value",
+    hue="cmip_name",
+    palette=palette,
+    hue_order=scenario_order,
+    # style="cmip_era",
+    # dashes={"CMIP6": (3, 3), "CMIP7": ""},
+    # col="group",
+    # col_order=["peak-temp<2", "peak-temp<3", "peak-temp>=3"],
+    col="variable",
+    col_order=variables_to_plot,
+    kind="line",
+    # facet_kws=dict(sharey="row"),
+    facet_kws=dict(sharey=False),
+)
+for ax in fg.axes.flatten():
+    ax.grid()
+
+plt.show()
+
+fg = sns.relplot(
+    data=pdf.openscm.to_long_data(),
+    x="time",
+    y="value",
+    hue="cmip_name",
+    palette=palette,
+    hue_order=scenario_order,
+    style="cmip_era",
+    dashes={"CMIP6": (3, 3), "CMIP7": ""},
+    # col="group",
+    # col_order=["peak-temp<2", "peak-temp<3", "peak-temp>=3"],
+    col="variable",
+    col_order=variables_to_plot,
+    kind="line",
+    # facet_kws=dict(sharey="row"),
+    facet_kws=dict(sharey=False),
+)
+for ax in fg.axes.flatten():
+    ax.grid()
+
+plt.show()
+
 fg = sns.relplot(
     data=pdf.openscm.to_long_data(),
     x="time",
@@ -275,6 +383,10 @@ fg = sns.relplot(
     # facet_kws=dict(sharey="row"),
     facet_kws=dict(sharey=False),
 )
+for ax in fg.axes.flatten():
+    ax.grid()
+
+plt.show()
 
 # %%
 scm_output.columns = scm_output.columns.astype(int)
