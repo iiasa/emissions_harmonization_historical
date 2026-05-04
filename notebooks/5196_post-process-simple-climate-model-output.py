@@ -60,7 +60,7 @@ pandas_openscm.register_pandas_accessor()
 pix.set_openscm_registry_as_default()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "REMIND"
+model: str = "AIM"
 scm: str = "MAGICCv7.6.0a3"
 output_to_pdf: bool = False
 
@@ -135,8 +135,15 @@ ax = temperatures_in_line_with_assessment.loc[:, 2010:].openscm.plot_plume_after
 ax.grid()
 
 # %%
-ax = temperatures_in_line_with_assessment.loc[:, 2010:2100].openscm.plot_plume_after_calculating_quantiles(
-    quantile_over="run_id", hue_var="scenario", style_var="climate_model"
+ax = (
+    temperatures_in_line_with_assessment.loc[pix.ismatch(scenario="**- Low Emissions**")]
+    .loc[:, 2010:2100]
+    .openscm.plot_plume_after_calculating_quantiles(
+        quantile_over="run_id",
+        hue_var="scenario",
+        style_var="climate_model",
+        quantiles_plumes=((0.5, 0.9), ((0.33, 0.67), 0.5)),
+    )
 )
 ax.grid()
 
@@ -247,10 +254,10 @@ res = PostProcessingResult(
 )
 
 # %%
-res.metadata_categories.unstack(["metric"]).sort_values("category")
+res.metadata_categories.loc[pix.ismatch(scenario="**- Low Emissions**")].unstack(["metric"]).sort_values("category")
 
 # %%
-res.metadata_quantile.unstack(["metric", "unit", "quantile"]).loc[
+res.metadata_quantile.loc[pix.ismatch(scenario="**- Low Emissions**")].unstack(["metric", "unit", "quantile"]).loc[
     :,
     [
         (metric, "K", p)

@@ -25,8 +25,8 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
     and I can't see a better solution (maybe someone else can).
     """
     if notebook_name == "5090_download-scenarios.py":
-        res = {"model_search": iam, "markers_only": True}
-        # res = {"model_search": iam, "markers_only": False}
+        # res = {"model_search": iam, "markers_only": True}
+        res = {"model_search": iam, "markers_only": False}
 
     elif notebook_name in [
         "5091_check-reporting.py",
@@ -63,10 +63,10 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
 
         res = {"model": iam, "scm": scm}
         if notebook_name == "5195_run-simple-climate-model.py":
-            res["markers_only"] = True
-            # res["markers_only"] = False
-            res["run_w_extensions"] = True
-            # res["run_w_extensions"] = False
+            # res["markers_only"] = True
+            res["markers_only"] = False
+            # res["run_w_extensions"] = True
+            res["run_w_extensions"] = False
 
     else:
         raise NotImplementedError(notebook_name)
@@ -210,23 +210,23 @@ def main():  # noqa: PLR0912
     # iams = ["REMIND"]
     # iams = ["GCAM"]
     # iams = ["WITCH"]
-    # iams = ["AIM"]
+    iams = ["AIM"]
     # Combos
     # iams = ["COFFEE", "WITCH"]
     # # Waiting for submission
     # iams = [
     #     "GCAM",
     # ]
-    # All (required to run extensions)
-    iams = [
-        "WITCH",
-        "REMIND",
-        "MESSAGE",
-        "IMAGE",
-        "GCAM",
-        "COFFEE",
-        "AIM",
-    ]
+    # # All (required to run extensions)
+    # iams = [
+    #     "WITCH",
+    #     "REMIND",
+    #     "MESSAGE",
+    #     "IMAGE",
+    #     "GCAM",
+    #     "COFFEE",
+    #     "AIM",
+    # ]
 
     #### Emissions downloading, pre-processing, harmonisation, infilling and post-processing
     # # Single notebook
@@ -252,7 +252,7 @@ def main():  # noqa: PLR0912
         "5190",
         # # If you run extensions, you have to run this notebook later
         # # because the extensions only work if all the scenarios are there.
-        # "5194",
+        "5194",
     ]
     # Skip this step
     notebook_prefixes = []

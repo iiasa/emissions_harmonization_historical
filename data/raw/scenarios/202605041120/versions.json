@@ -1,0 +1,20 @@
+{
+  "AIM 3.0": {
+    "SSP1 - Medium Emissions": 27,
+    "SSP1 - Very Low Emissions": 44,
+    "SSP2 - Low Emissions": 45,
+    "SSP2 - Low Emissions_b": 1,
+    "SSP2 - Low Overshoot": 47,
+    "SSP2 - Low Overshoot_a": 25,
+    "SSP2 - Low Overshoot_b": 24,
+    "SSP2 - Low Overshoot_c": 24,
+    "SSP2 - Low Overshoot_d": 11,
+    "SSP2 - Low Overshoot_e": 4,
+    "SSP2 - Low Overshoot_f": 1,
+    "SSP2 - Medium Emissions": 45,
+    "SSP2 - Medium-Low Emissions": 35,
+    "SSP2 - Very Low Emissions": 43,
+    "SSP3 - High Emissions": 44,
+    "SSP5 - High Emissions": 44
+  }
+}
