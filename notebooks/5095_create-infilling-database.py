@@ -264,7 +264,10 @@ https://github.com/iiasa/emissions_harmonization_historical.
 
 # %%
 repo = git.Repo(REPO_ROOT)
-if not repo.is_dirty():
+if repo.is_dirty():
+    raise AssertionError()
+
+else:
     readme_txt = f"""{readme_txt}
 The files were produced with the following commit:
 [{repo.head.object.hexsha}](https://github.com/iiasa/emissions_harmonization_historical/tree/{repo.head.object.hexsha})"""
