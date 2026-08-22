@@ -78,6 +78,7 @@ PROVED_FOSSIL_RESERVES = 2032 + 2400  # Gt CO2
 PROBABLE_FOSSIL_RESERVES = 8036 + 2400  # Gt CO2
 MAX_YEARS_FOR_MARKERS = 50
 make_plots = True
+to_file = True
 
 # %% [markdown]
 # Marker definitions
@@ -263,7 +264,6 @@ def _plot_single_scenario_comprehensive(i, scenario, year_cols, axes, colors):
 
     # === RIGHT COLUMN: CUMULATIVE FLUXES ===
     ax_cumul = axes[i, 1]
-
     _plot_cumulative_fluxes(ax_cumul, annual_data, years, colors)
 
     # === FORMATTING FOR BOTH COLUMNS ===
@@ -536,21 +536,14 @@ def _plot_annual_fluxes_with_history(ax_annual, data, years, colors):
 
 def _get_historical_data_for_scenario(scenario, all_years, future_years):
     """Get all data for scenario including historical padding."""
-    # Gross positive: full historical+future
+    just_gross_pos = raw_output.loc[
+        raw_output.index.get_level_values("variable") == "Emissions|CO2|Gross Positive Emissions"
+    ]
     gross_pos_annual = (
-        raw_output.loc[
-            (
-                slice(None),
-                scenario,
-                slice(None),
-                slice(None),
-                "Emissions|CO2|Gross Positive Emissions",
-                slice(None),
-            ),
-            all_years,
-        ].sum()
-        / 1000
+        just_gross_pos.loc[just_gross_pos.index.get_level_values("scenario") == scenario][all_years].sum() / 1000
     )
+
+    fossil_extension_df.index.get_level_values("scenario") == scenario
 
     beccs_annual = pad_future_with_zeros(co2_beccs_ext, all_years, future_years, scenario) / 1000
     daccs_annual = pad_future_with_zeros(co2_dacc_ext, all_years, future_years, scenario) / 1000
@@ -558,28 +551,12 @@ def _get_historical_data_for_scenario(scenario, all_years, future_years):
     ew_annual = pad_future_with_zeros(co2_ew_ext, all_years, future_years, scenario) / 1000
 
     # Fossil and AFOLU data
-    fossil_annual = (
-        raw_output.loc[
-            (
-                slice(None),
-                scenario,
-                slice(None),
-                slice(None),
-                "Emissions|CO2|Energy and Industrial Processes",
-                slice(None),
-            ),
-            all_years,
-        ].T
-        / 1000
-    )
-    afolu_annual = (
-        raw_output.loc[
-            (slice(None), scenario, slice(None), slice(None), "Emissions|CO2|AFOLU", slice(None)),
-            all_years,
-        ].T
-        / 1000
-    )
-
+    just_fossil = raw_output.loc[
+        raw_output.index.get_level_values("variable") == "Emissions|CO2|Energy and Industrial Processes"
+    ]
+    fossil_annual = just_fossil.loc[just_fossil.index.get_level_values("scenario") == scenario][all_years].T / 1000
+    just_afolu = raw_output.loc[raw_output.index.get_level_values("variable") == "Emissions|CO2|AFOLU"]
+    afolu_annual = just_afolu.loc[just_afolu.index.get_level_values("scenario") == scenario][all_years].T / 1000
     return {
         "gross_pos": gross_pos_annual,
         "beccs": beccs_annual,
@@ -694,7 +671,11 @@ def _format_axes_with_history(ax_annual, ax_cumul, scenario, i, all_years):
 
 # %%
 fig_comprehensive_history = plot_comprehensive_co2_analysis_with_history()
-plt.show()
+if make_plots:
+    if to_file:
+        fig_comprehensive_history.savefig("comprehensive_co2_fluxes_with_history.png", dpi=300, bbox_inches="tight")
+    else:
+        plt.show()
 
 
 # %%
@@ -805,8 +786,8 @@ def plot_co2_transition_period(data, scenario_colors=None, start_year=1990, end_
         ax.axvline(x=year, color="gray", linestyle=":", alpha=0.3, linewidth=0.5)
 
     plt.tight_layout()
-    plt.savefig("co2_transition_period.png", dpi=300, bbox_inches="tight")
-    plt.show()
+
+    # plt.show()
 
     return fig, ax
 
@@ -820,11 +801,20 @@ def plot_co2_transition_period(data, scenario_colors=None, start_year=1990, end_
 # %%
 if make_plots:
     fig_transition, ax_transition = plot_co2_transition_period(raw_output, scenario_model_match)
+    if to_file:
+        fig_transition.savefig("co2_transition_period.png", dpi=300, bbox_inches="tight")
+    else:
+        plt.show()
 
 # %% [markdown]
 # Create the comprehensive plot
 
 # %%
 if make_plots:
+    print("Creating comprehensive plot...")
     fig_comprehensive = plot_comprehensive_co2_analysis()
-    plt.show()
+    print("Comprehensive plot created")
+    if to_file:
+        fig_comprehensive.savefig("comprehensive_co2_fluxes.png", dpi=300, bbox_inches="tight")
+    else:
+        plt.show()
