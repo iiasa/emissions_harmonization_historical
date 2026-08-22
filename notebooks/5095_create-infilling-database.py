@@ -25,6 +25,7 @@
 
 # %% editable=true slideshow={"slide_type": ""}
 import datetime as dt
+import os
 import sys
 from functools import partial
 
@@ -33,7 +34,11 @@ import numpy as np
 import pandas as pd
 import pandas.io.excel
 import pandas_indexing as pix
+import pandas_openscm.indexing
+import pandas_openscm.testing
+import pooch
 import seaborn as sns
+from dotenv import load_dotenv
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from loguru import logger
 from markdown_it import MarkdownIt
@@ -54,6 +59,7 @@ from emissions_harmonization_historical.harmonisation import (
     HARMONISATION_YEAR,
     harmonise,
 )
+from emissions_harmonization_historical.zenodo import upload_to_zenodo
 
 # %% [markdown]
 # ## Set up
@@ -71,23 +77,19 @@ pd.set_option("display.max_colwidth", None)
 # ### Scenarios
 
 # %%
-# Only World level data for specific variables
-# is used for infilling
-# (we deliberately don't include all variables
-# so people don't think that the infilling database
-# is the full scenario set,
-# if people want that they have to go to the scenario explorer).
+# Keep everything so we can support SCI scenarios
+# that don't report anything except CO2 fossil.
 variables_not_for_infilling = [
-    "Emissions|BC",
-    "Emissions|CH4",
-    "Emissions|CO",
-    "Emissions|N2O",
-    "Emissions|NH3",
-    "Emissions|NOx",
-    "Emissions|OC",
-    "Emissions|Sulfur",
-    "Emissions|VOC",
-    "Emissions|CO2|AFOLU",
+    # "Emissions|BC",
+    # "Emissions|CH4",
+    # "Emissions|CO",
+    # "Emissions|N2O",
+    # "Emissions|NH3",
+    # "Emissions|NOx",
+    # "Emissions|OC",
+    # "Emissions|Sulfur",
+    # "Emissions|VOC",
+    # "Emissions|CO2|AFOLU",
 ]
 scenarios_for_infilling_db = HARMONISED_SCENARIO_DB.load(
     pix.isin(region="World", workflow="for_scms") & ~pix.isin(variable=variables_not_for_infilling), progress=True
@@ -234,6 +236,33 @@ for suffix, method, kwargs in (
     files_for_zenodo.append(out_file)
     print(f"Wrote {out_file.relative_to(REPO_ROOT)}")
 
+# %%
+assert_same_as_version = "17844114"
+filename = "infiling-db_202512021030_202512071232_202511040855_202511040855.parquet.gzip"
+known_hash = "sha256:ee230ab72f2fd5f074339e4a92ef771e1498a33b1a2967af37269432ea460374"
+if assert_same_as_version is not None:
+    load_dotenv()
+
+    downloader = pooch.HTTPDownloader(
+        headers={"Authorization": f"Bearer {os.environ['ZENODO_TOKEN']}"},
+        progressbar=True,
+    )
+
+    file_path = pooch.retrieve(
+        url=f"https://zenodo.org/api/records/{assert_same_as_version}/files/{filename}/content",
+        fname=filename,
+        path=pooch.os_cache("zenodo"),
+        known_hash=known_hash,
+        downloader=downloader,
+    )
+
+    regression_data = pd.read_parquet(file_path)
+
+    out_to_check_against_regression = pandas_openscm.indexing.multi_index_lookup(out, regression_data.index)
+
+    pandas_openscm.testing.assert_frame_alike(out_to_check_against_regression, regression_data)
+    print(f"Same as Zenodo record {assert_same_as_version}")
+
 # %% [markdown]
 # ## Write README
 
@@ -264,7 +293,10 @@ https://github.com/iiasa/emissions_harmonization_historical.
 
 # %%
 repo = git.Repo(REPO_ROOT)
-if not repo.is_dirty():
+if repo.is_dirty():
+    raise AssertionError()
+
+else:
     readme_txt = f"""{readme_txt}
 The files were produced with the following commit:
 [{repo.head.object.hexsha}](https://github.com/iiasa/emissions_harmonization_historical/tree/{repo.head.object.hexsha})"""
@@ -371,4 +403,9 @@ logger.enable("openscm_zenodo")
 # )
 
 # %%
-# upload_to_zenodo([out_file_infilling_db], remove_existing=False, update_metadata=True)
+upload_to_zenodo(
+    files_for_zenodo,
+    any_deposition_id="17844114",
+    remove_existing=True,
+    metadata=metadata,
+)
