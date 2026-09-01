@@ -219,7 +219,7 @@ class AR7FTPostProcessor:
         """
         return cls(
             gsat_variable_name="Surface Air Temperature Change",
-            gsat_in_line_with_assessment_variable_name="Assessed Surface Air Temperature Change",
+            gsat_in_line_with_assessment_variable_name="Surface Temperature (GSAT)",
             gsat_assessment_median=0.85,
             gsat_assessment_time_period=range(1995, 2014 + 1),
             gsat_assessment_pre_industrial_period=range(1850, 1900 + 1),

@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -55,10 +55,13 @@ POST_PROCESSED_METADATA_CATEGORIES_DB.load_metadata().to_frame(index=False)
 # %%
 scenarios_to_analyse = [
     # Note: still waiting to decide which variant
-    ("AIM 3.0", "SSP2 - Low Overshoot"),
-    ("AIM 3.0", "SSP2 - Low Overshoot_a"),
-    ("AIM 3.0", "SSP2 - Low Overshoot_b"),
-    ("AIM 3.0", "SSP2 - Low Overshoot_c"),
+    # ("AIM 3.0", "SSP2 - Low Overshoot"),
+    # ("AIM 3.0", "SSP2 - Low Overshoot_a"),
+    # ("AIM 3.0", "SSP2 - Low Overshoot_b"),
+    # ("AIM 3.0", "SSP2 - Low Overshoot_c"),
+    ("AIM 3.0", "SSP2 - Low Emissions"),
+    ("AIM 3.0", "SSP2 - Low Emissions_a"),
+    ("AIM 3.0", "SSP2 - Low Emissions_b"),
     # ("MESSAGE*", "SSP2 - Low Emissions_d"),
     # ("MESSAGE*", "SSP2 - Low Emissions_e"),
 ]
@@ -184,7 +187,7 @@ for i, (ax, yticks) in enumerate(zip(axes, [np.arange(0.5, 4.01, 0.5), np.arange
         quantile_over="run_id",
         hue_var=hue,
         style_var="climate_model",
-        quantiles_plumes=((0.5, 1.0), ((0.33, 0.67), 0.75)),
+        quantiles_plumes=((0.5, 1.0), ((0.33, 0.67), 0.5)),
         # quantiles_plumes=((0.5, 1.0), ((0.33, 0.67), 0.0), ((0.05, 0.95), 0.0)),
         ax=ax,
         create_legend=(lambda x, y: None) if i > 0 else create_legend,
@@ -246,7 +249,7 @@ for i, variable_to_plot in enumerate(erfs_to_plot):
         quantile_over="run_id",
         hue_var=hue,
         style_var="climate_model",
-        quantiles_plumes=((0.5, 1.0), ((0.33, 0.67), 0.75)),
+        quantiles_plumes=((0.5, 1.0), ((0.33, 0.67), 0.5)),
         # quantiles_plumes=((0.5, 1.0), ((0.33, 0.67), 0.0), ((0.05, 0.95), 0.0)),
         ax=ax,
         create_legend=create_legend,
@@ -273,12 +276,13 @@ fig.savefig("AIM_forcings.png", bbox_inches="tight")
 
 # %%
 emissions_to_plot = [
-    "Emissions|CO2|Energy and Industrial Processes",
     "Emissions|GHG AR6GWP100",
+    "Emissions|Kyoto GHG AR6GWP100",
+    "Emissions|CO2|Energy and Industrial Processes",
     "Emissions|CO2|AFOLU",
     "Cumulative Emissions|CO2",
     "Emissions|CH4",
-    "Emissions|CFC12",
+    # "Emissions|CFC12",
     "Emissions|N2O",
     "Emissions|Sulfur",
     "Emissions|CO",
@@ -322,6 +326,3 @@ for i, variable_to_plot in enumerate(emissions_to_plot):
 
 # %%
 fig.savefig("AIM_emissions.png", bbox_inches="tight")
-
-
-# %%

@@ -1,0 +1,39 @@
+{
+  "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12": {
+    "SSP1 - Low Emissions": 22,
+    "SSP1 - Very Low Emissions": 22,
+    "SSP2 - Low Overshoot": 21,
+    "SSP2 - Medium Emissions": 22,
+    "SSP2 - Medium-Low Emissions": 21,
+    "SSP2 - Very Low Emissions": 22,
+    "SSP3 - High Emissions": 20,
+    "SSP4 - Low Overshoot": 22,
+    "SSP5 - High Emissions": 22,
+    "SSP5 - Low Overshoot": 22,
+    "SSP5 - Medium-Low Emissions_a": 9
+  },
+  "REMIND-MAgPIE 3.5-4.11": {
+    "SSP1 - Low Emissions": 5,
+    "SSP1 - Low Emissions_c": 5,
+    "SSP1 - Low Emissions_d": 5,
+    "SSP1 - Medium Emissions": 4,
+    "SSP1 - Medium-Low Emissions": 4,
+    "SSP1 - Very Low Emissions": 5,
+    "SSP1 - Very Low Emissions_c": 5,
+    "SSP2 - High Emissions": 5,
+    "SSP2 - Low Emissions": 5,
+    "SSP2 - Low Emissions_c": 5,
+    "SSP2 - Low Emissions_d": 5,
+    "SSP2 - Low Overshoot": 5,
+    "SSP2 - Low Overshoot_b": 4,
+    "SSP2 - Low Overshoot_c": 5,
+    "SSP2 - Low Overshoot_d": 5,
+    "SSP2 - Medium Emissions": 5,
+    "SSP2 - Medium-Low Emissions": 5,
+    "SSP2 - Very Low Emissions": 5,
+    "SSP2 - Very Low Emissions_c": 5,
+    "SSP3 - High Emissions": 5,
+    "SSP3 - Medium Emissions": 4,
+    "SSP3 - Medium-Low Emissions": 5
+  }
+}

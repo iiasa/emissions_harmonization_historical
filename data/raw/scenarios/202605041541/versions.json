@@ -1,0 +1,38 @@
+{
+  "AIM 3.0": {
+    "SSP2 - Low Emissions": 45,
+    "SSP2 - Low Emissions_a": 5,
+    "SSP2 - Low Emissions_b": 1
+  },
+  "GCAM 8s": {
+    "SSP1 - Low Emissions": 4,
+    "SSP1 - Low Overshoot": 1,
+    "SSP1 - Very Low Emissions": 3,
+    "SSP2 - Low Emissions": 4,
+    "SSP2 - Low Overshoot": 4,
+    "SSP2 - Medium Emissions": 4,
+    "SSP2 - Medium-Low Emissions": 4,
+    "SSP3 - Medium-Low Emissions": 2,
+    "SSP3 - Medium-Low Emissions_a": 2,
+    "SSP5 - High Emissions": 4,
+    "SSP5 - Medium-Low Emissions": 1,
+    "SSP5 - Medium-Low Emissions_a": 3
+  },
+  "IMAGE 3.4": {
+    "SSP1 - Low Emissions": 24,
+    "SSP1 - Low Overshoot": 25,
+    "SSP1 - Medium Emissions": 27,
+    "SSP1 - Medium Emissions_a": 24,
+    "SSP1 - Medium-Low Emissions": 24,
+    "SSP1 - Very Low Emissions": 25,
+    "SSP2 - Low Emissions": 24,
+    "SSP2 - Low Overshoot": 25,
+    "SSP2 - Medium Emissions_a": 8,
+    "SSP2 - Medium-Low Emissions": 24,
+    "SSP2 - Very Low Emissions": 26,
+    "SSP2 - Very Low Emissions_a": 19,
+    "SSP3 - High Emissions": 28,
+    "SSP5 - High Emissions": 28,
+    "SSP5 - Medium-Low Emissions": 6
+  }
+}

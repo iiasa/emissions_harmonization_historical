@@ -25,8 +25,8 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
     and I can't see a better solution (maybe someone else can).
     """
     if notebook_name == "5090_download-scenarios.py":
-        res = {"model_search": iam, "markers_only": True}
-        # res = {"model_search": iam, "markers_only": False}
+        # res = {"model_search": iam, "markers_only": True}
+        res = {"model_search": iam, "markers_only": False}
 
     elif notebook_name in [
         "5091_check-reporting.py",
@@ -39,7 +39,7 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
         "5094_harmonisation.py",
     ]:
         res = {"model": iam, "make_region_sector_plots": True, "output_to_pdf": True}
-        res = {"model": iam, "make_region_sector_plots": False, "output_to_pdf": False}
+        # res = {"model": iam, "make_region_sector_plots": False, "output_to_pdf": False}
 
     elif notebook_name in [
         "5190_infilling.py",
@@ -63,10 +63,10 @@ def get_notebook_parameters(notebook_name: str, iam: str, scm: str | None = None
 
         res = {"model": iam, "scm": scm}
         if notebook_name == "5195_run-simple-climate-model.py":
-            res["markers_only"] = True
-            # res["markers_only"] = False
-            res["run_w_extensions"] = True
-            # res["run_w_extensions"] = False
+            res["markers_only"] = False
+            # res["markers_only"] = True
+            # res["run_w_extensions"] = True
+            res["run_w_extensions"] = False
 
     else:
         raise NotImplementedError(notebook_name)
@@ -230,16 +230,15 @@ def main():  # noqa: PLR0912
 
     #### Emissions downloading, pre-processing, harmonisation, infilling and post-processing
     # # Single notebook
-    # notebook_prefixes = ["5094"]
     # notebook_prefixes = ["5093", "5094"]
     # # Everything except downloads and reporting checking
     # notebook_prefixes = ["5093","5094"]
     # # # Downloading and reporting checking
-    # # notebook_prefixes = ["5090", "5091", "5092"]
+    # notebook_prefixes = ["5090", "5091", "5092"]
     # Everything up to infilling
     # notebook_prefixes = ["5090", "5091", "5092", "5093", "5094"]
     # # Harmonisation, infilling and post-processing
-    # notebook_prefixes = ["5094", "5190", "5191"]
+    # notebook_prefixes = ["5094", "5190", "5194"]
     # Infilling and post-processing
     # notebook_prefixes = ["5190", "5191"]
     # # Everything
@@ -274,7 +273,7 @@ def main():  # noqa: PLR0912
     # so this shouldn't make such a big impact.
     # Run the notebook
     notebook_prefixes = ["5095"]
-    # # Skip this step
+    # Skip this step
     notebook_prefixes = []
     for notebook in all_notebooks:
         if any(notebook.name.startswith(np) for np in notebook_prefixes):

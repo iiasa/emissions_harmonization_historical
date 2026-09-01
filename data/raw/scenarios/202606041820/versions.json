@@ -1,0 +1,49 @@
+{
+  "AIM 3.0": {
+    "SSP1 - Medium Emissions": 27,
+    "SSP1 - Very Low Emissions": 44,
+    "SSP2 - Low Emissions": 46,
+    "SSP2 - Low Emissions_a": 6,
+    "SSP2 - Low Emissions_b": 2,
+    "SSP2 - Low Overshoot": 47,
+    "SSP2 - Low Overshoot_b": 24,
+    "SSP2 - Low Overshoot_c": 24,
+    "SSP2 - Low Overshoot_d": 11,
+    "SSP2 - Low Overshoot_e": 4,
+    "SSP2 - Low Overshoot_f": 1,
+    "SSP2 - Medium Emissions": 45,
+    "SSP2 - Medium-Low Emissions": 35,
+    "SSP2 - Very Low Emissions": 43,
+    "SSP3 - High Emissions": 44,
+    "SSP5 - High Emissions": 44
+  },
+  "IMAGE 3.4": {
+    "SSP1 - Low Emissions": 28,
+    "SSP1 - Low Overshoot": 29,
+    "SSP1 - Medium Emissions": 31,
+    "SSP1 - Medium Emissions_a": 28,
+    "SSP1 - Medium-Low Emissions": 28,
+    "SSP1 - Very Low Emissions": 29,
+    "SSP2 - Low Emissions": 28,
+    "SSP2 - Low Overshoot": 29,
+    "SSP2 - Medium Emissions_a": 12,
+    "SSP2 - Medium-Low Emissions": 28,
+    "SSP2 - Very Low Emissions": 30,
+    "SSP2 - Very Low Emissions_a": 23,
+    "SSP3 - High Emissions": 32,
+    "SSP5 - High Emissions": 32,
+    "SSP5 - Medium-Low Emissions": 10
+  },
+  "WITCH 6.0": {
+    "SSP1 - Low Emissions": 42,
+    "SSP1 - Low Overshoot": 39,
+    "SSP1 - Very Low Emissions": 41,
+    "SSP2 - Low Emissions": 43,
+    "SSP2 - Low Overshoot": 40,
+    "SSP2 - Medium Emissions": 42,
+    "SSP2 - Medium-Low Emissions": 38,
+    "SSP2 - Very Low Emissions": 42,
+    "SSP5 - High Emissions": 43,
+    "SSP5 - Medium-Low Emissions_a": 34
+  }
+}
