@@ -7,7 +7,7 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.18.1
 #   kernelspec:
-#     display_name: default
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
@@ -55,6 +55,7 @@ pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
 model: str = "MESSAGE"
+model: str = "CGEM"
 
 make_region_sector_plots: bool = False
 output_to_pdf: bool = False
@@ -595,6 +596,12 @@ user_overrides_gridding
 
 # %% [markdown]
 # ### Harmonization
+
+# %%
+if history_for_harmonisation.loc[pix.isin(region=model_pre_processed_for_gridding.pix.unique("region"))].pix.unique(
+    "region"
+).values.tolist() == ["World"]:
+    raise AssertionError
 
 # %%
 res = {}

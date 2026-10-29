@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -91,6 +91,20 @@ for in_file, loader in (
         getattr(df, method)(out_file, **kwargs)
         files_for_zenodo.append(out_file)
         print(f"Wrote {out_file.relative_to(REPO_ROOT)}")
+
+# %%
+
+from emissions_harmonization_historical.constants_5000 import HISTORY_HARMONISATION_DB
+
+# %%
+HISTORY_HARMONISATION_DB.delete()
+HISTORY_HARMONISATION_DB.save(df.pix.assign(purpose="gridding_emissions"))
+HISTORY_HARMONISATION_DB.save(
+    pd.read_feather(
+        HISTORY_HARMONISATION_INTERIM_DIR / f"global-workflow-history_{HISTORY_FOR_HARMONISATION_ID}.feather"
+    ).pix.assign(purpose="global_workflow_emissions")
+)
+
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Write README

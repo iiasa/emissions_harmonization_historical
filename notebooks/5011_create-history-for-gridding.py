@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -73,33 +73,58 @@ region_mapping = region_mapping[region_mapping["model"].isin(marker_models)]
 region_mapping
 
 # %%
+tmp = pd.read_csv("../data/SSP2-com-CMIP7_regional_emissions/region_country_mapping.csv")
+model_l = tmp["model"].unique()
+if len(model_l) != 1:
+    raise AssertionError
+
+region_list_d = {}
+for _, row in tmp.iterrows():
+    region_list_d.setdefault(row.region, []).append(row.loc["country_iso3"].lower())
+
+# region_list_d
+
+# %%
+region_mapping_l = [
+    {
+        "model_region": key,
+        "model": model_l[0],
+        "iso_list": value,
+    }
+    for key, value in region_list_d.items()
+]
+
+# %%
+region_mapping = pd.DataFrame(region_mapping_l)
+
+# %%
 region_mapping["model"].unique()
 
 # %%
-# Manual hacks
-# TODO: push upstream into common-definitions
-for model, iso_to_add, iso_group_to_match in (
-    ("MESSAGEix-GLOBIOM-GAINS 2.1-R12", "sxm", "jam"),
-    ("IMAGE 3.4", "sjm", "nor"),
-    ("AIM 3.0", "ggy", "gbr"),
-    ("AIM 3.0", "imn", "gbr"),
-    ("AIM 3.0", "jey", "gbr"),
-):
-    region_mapping_model = region_mapping[region_mapping["model"] == model]
-    if region_mapping_model.empty:
-        raise AssertionError
+# # Manual hacks
+# # TODO: push upstream into common-definitions
+# for model, iso_to_add, iso_group_to_match in (
+#     ("MESSAGEix-GLOBIOM-GAINS 2.1-R12", "sxm", "jam"),
+#     ("IMAGE 3.4", "sjm", "nor"),
+#     ("AIM 3.0", "ggy", "gbr"),
+#     ("AIM 3.0", "imn", "gbr"),
+#     ("AIM 3.0", "jey", "gbr"),
+# ):
+#     region_mapping_model = region_mapping[region_mapping["model"] == model]
+#     if region_mapping_model.empty:
+#         raise AssertionError
 
-    for model_region, mrdf in region_mapping_model.groupby("model_region"):
-        if iso_group_to_match in mrdf["iso_list"].values[0]:
-            model_region_to_add_to = model_region
-            break
+#     for model_region, mrdf in region_mapping_model.groupby("model_region"):
+#         if iso_group_to_match in mrdf["iso_list"].values[0]:
+#             model_region_to_add_to = model_region
+#             break
 
-    else:
-        msg = f"{model} {iso_group_to_match}"
-        raise AssertionError(msg)
+#     else:
+#         msg = f"{model} {iso_group_to_match}"
+#         raise AssertionError(msg)
 
-    region_mapping.loc[region_mapping["model_region"] == model_region_to_add_to, "iso_list"].iloc[0].append(iso_to_add)
-    print(f"Added {iso_to_add} to {model_region_to_add_to}")
+#     region_mapping.loc[region_mapping["model_region"] == model_region_to_add_to, "iso_list"].iloc[0].append(iso_to_add)
+#     print(f"Added {iso_to_add} to {model_region_to_add_to}")
 
 # %%
 # region_mapping[region_mapping["model"].str.startswith("GCAM")]
@@ -156,6 +181,9 @@ for model, iso_codes in model_included_codes.items():
 
 missing_isos = pd.DataFrame(missing_isos_l)
 missing_isos  # .set_index("model").loc["AIM 3.0"]["missing_vs_GFED4"]
+
+# %%
+missing_isos["extra_vs_CEDS_v_2025_03_18"].iloc[0]
 
 # %% [markdown]
 # ## Aggregate into regions we need for harmonising gridding emissions
@@ -309,3 +337,5 @@ out_file = HISTORY_HARMONISATION_INTERIM_DIR / f"gridding-history_{CREATE_HISTOR
 out_file.parent.mkdir(exist_ok=True, parents=True)
 
 history_for_gridding_incl_cdr.to_feather(out_file)
+
+# %%

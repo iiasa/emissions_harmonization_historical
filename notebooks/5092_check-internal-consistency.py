@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -39,7 +39,6 @@ from pandas_openscm.indexing import multi_index_lookup
 from emissions_harmonization_historical.constants_5000 import (
     DATA_ROOT,
     DOWNLOAD_SCENARIOS_ID,
-    RAW_SCENARIO_DB,
 )
 from emissions_harmonization_historical.excel_writing import set_cell
 
@@ -51,6 +50,7 @@ pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
 model: str = "GCAM"
+model: str = "CGEM"
 
 # %%
 output_dir_model = DATA_ROOT / "raw" / "scenarios" / DOWNLOAD_SCENARIOS_ID / model
@@ -71,20 +71,29 @@ pd.set_option("display.max_colwidth", None)
 # ### Scenarios
 
 # %%
-model_raw = RAW_SCENARIO_DB.load(pix.ismatch(model=f"*{model}*"), progress=True)
-if model_raw.empty:
-    raise AssertionError
+# model_raw = RAW_SCENARIO_DB.load(pix.ismatch(model=f"*{model}*"), progress=True)
+# if model_raw.empty:
+#     raise AssertionError
 
-# model_raw
+import pandas_openscm.io
+
+model_raw = pandas_openscm.io.load_timeseries_csv(
+    "../data/SSP2-com-CMIP7_regional_emissions/SSP2-COM-CMIP7_CGEM17_regional_sectoral_2015_2500.csv",
+    index_columns=["model", "scenario", "region", "variable", "unit"],
+    out_columns_name="year",
+    out_columns_type=int,
+)
+
+model_raw
 
 # %% [markdown]
 # ### Properties
 
 # %%
-properties = pd.concat([pd.read_csv(f) for f in output_dir_model.glob("*properties.csv")]).drop(
-    "metadata", axis="columns"
-)
-# properties
+# properties = pd.concat([pd.read_csv(f) for f in output_dir_model.glob("*properties.csv")]).drop(
+#     "metadata", axis="columns"
+# )
+# # properties
 
 # %% [markdown]
 # ## Check internal consistency
@@ -161,12 +170,12 @@ with pd.ExcelWriter(out_file, engine="openpyxl", mode="w") as writer:
         ws=workbook.create_sheet(title=sheet_name),
         font=Font(bold=True),
     )
-    properties.to_excel(
-        writer,
-        sheet_name=sheet_name,
-        startrow=2,
-        index=False,
-    )
+    # properties.to_excel(
+    #     writer,
+    #     sheet_name=sheet_name,
+    #     startrow=2,
+    #     index=False,
+    # )
 
 # %% [markdown]
 # ### Calculate the totals
@@ -311,6 +320,12 @@ def write_errors_sheet(  # noqa: PLR0913
 tols = gcages.cmip7_scenariomip.pre_processing.reaggregation.basic.get_default_internal_conistency_checking_tolerances()
 # tols
 
+# %%
+out_file
+
+# %%
+# !open /Users/znicholls/Documents/repos/emissions_harmonization_historical/data/raw/scenarios/202603251220/CGEM/internal-consistency-checking_CGEM.xlsx
+
 # %% editable=true slideshow={"slide_type": ""}
 for variable in tqdm.auto.tqdm(sorted(totals_exp.pix.unique("variable")), desc="Reported total variables"):
     species = variable.split("|")[1]
@@ -356,3 +371,5 @@ for variable in tqdm.auto.tqdm(sorted(totals_exp.pix.unique("variable")), desc="
                 internal_consistency_checking_variables=internal_consistency_checking_variables,
                 writer=writer,
             )
+
+# %%

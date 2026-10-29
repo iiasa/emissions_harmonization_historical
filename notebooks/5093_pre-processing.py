@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -31,7 +31,6 @@ from gcages.completeness import get_missing_levels
 
 from emissions_harmonization_historical.constants_5000 import (
     PRE_PROCESSED_SCENARIO_DB,
-    RAW_SCENARIO_DB,
 )
 
 # %% [markdown]
@@ -42,6 +41,7 @@ pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
 model: str = "REMIND"
+model: str = "CGEM"
 
 # %% [markdown]
 # ## Load data
@@ -50,11 +50,20 @@ model: str = "REMIND"
 # ### Scenarios
 
 # %%
-model_raw = RAW_SCENARIO_DB.load(pix.ismatch(model=f"*{model}*"), progress=True)
-if model_raw.empty:
-    raise AssertionError
+# model_raw = RAW_SCENARIO_DB.load(pix.ismatch(model=f"*{model}*"), progress=True)
+# if model_raw.empty:
+#     raise AssertionError
 
-# sorted(model_raw.pix.unique("variable"))
+import pandas_openscm.io
+
+model_raw = pandas_openscm.io.load_timeseries_csv(
+    "../data/SSP2-com-CMIP7_regional_emissions/SSP2-COM-CMIP7_CGEM17_regional_sectoral_2015_2500.csv",
+    index_columns=["model", "scenario", "region", "variable", "unit"],
+    out_columns_name="year",
+    out_columns_type=int,
+)
+
+sorted(model_raw.pix.unique("variable"))
 
 # %%
 model_raw.loc[pix.ismatch(variable="**CO2|AFOLU", region="World")].sort_index(axis="columns")
@@ -283,3 +292,5 @@ for stage, df in (
 ):
     PRE_PROCESSED_SCENARIO_DB.save(df.pix.assign(stage=stage), allow_overwrite=True)
     print(f"Saved {stage}")
+
+# %%
