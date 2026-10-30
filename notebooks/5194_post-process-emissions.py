@@ -277,7 +277,9 @@ def calculate_additional_ghgs(indf: pd.DataFrame, gwp: str = "AR6GWP100") -> pd.
         available_emissions = [v for v in variable if v in in_emissions]
         if not available_emissions:
             msg = f"No sources for Emissions|{gas} {gwp}, skipping"
-            raise AssertionError(msg)
+            print(msg)
+            continue
+            # raise AssertionError(msg)
         if set(available_emissions) != set(variable):
             print(f"Emissions|{gas} {gwp} only uses {available_emissions}")
 

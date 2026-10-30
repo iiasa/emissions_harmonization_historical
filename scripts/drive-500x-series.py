@@ -252,10 +252,10 @@ def main():  # noqa: PLR0912
         "5190",
         # # If you run extensions, you have to run this notebook later
         # # because the extensions only work if all the scenarios are there.
-        # "5194",
+        "5194",
     ]
     # Skip this step
-    notebook_prefixes = []
+    # notebook_prefixes = []
 
     for iam in tqdm.tqdm(iams, desc="IAMs up to emissions post-processing"):
         for notebook in all_notebooks:
@@ -301,7 +301,7 @@ def main():  # noqa: PLR0912
     # Extensions
     notebook_prefixes = ["5191"]
     # Skip this step
-    notebook_prefixes = []
+    # notebook_prefixes = []
     for notebook in all_notebooks:
         if any(notebook.name.startswith(np) for np in notebook_prefixes):
             run_notebook_iam(
