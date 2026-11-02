@@ -279,7 +279,12 @@ def calculate_additional_ghgs(indf: pd.DataFrame, gwp: str = "AR6GWP100") -> pd.
             msg = f"No sources for Emissions|{gas} {gwp}, skipping"
             print(msg)
             continue
-            # raise AssertionError(msg)
+        # We used to be able to run this for harmonised
+        # emissions (which did not include all GHGs).
+        # However, with the addition of harmonised GHGs,
+        # this is no longer possible, as not all models
+        # report all the required species.
+        # raise AssertionError(msg)
         if set(available_emissions) != set(variable):
             print(f"Emissions|{gas} {gwp} only uses {available_emissions}")
 
