@@ -256,12 +256,41 @@ for _, row in tqdm.auto.tqdm(to_download.iterrows(), total=to_download.shape[0])
     model = row.model
     scenario = row.scenario
 
-    df = pyam.read_iiasa("ssp_submission", model=model, scenario=scenario, variable=["Emissions|*", "Carbon Removal|*"])
+    if markers_only:
+        version = row.version
+        # pyam has no server-side version filter: it requests every run whose
+        # model/scenario matches meta. Restrict meta to the one version we want
+        # so only that run_id is downloaded (otherwise AIM 25 versions are heavy).
+        meta_all = conn_ssp.meta(default_only=False, run_id=True)
+        idx = meta_all.index
+        meta_one = meta_all[
+            (idx.get_level_values("model") == model)
+            & (idx.get_level_values("scenario") == scenario)
+            & (idx.get_level_values("version") == version)
+        ]
+        conn_ssp.meta = lambda *a, **k: meta_one.copy()
+        try:
+            df = conn_ssp.query(
+                default_only=False,
+                model=model,
+                scenario=scenario,
+                variable=["Emissions|*", "Carbon Removal|*"],
+            )
+        finally:
+            del conn_ssp.meta  # restore the class method
+    else:
+        df = pyam.read_iiasa(
+            "ssp_submission", model=model, scenario=scenario, variable=["Emissions|*", "Carbon Removal|*"]
+        )
+
     if df.empty:
         msg = f"No data for {model=} {scenario=}"
         raise AssertionError(msg)
 
     df_ts = df.timeseries()
+    if markers_only:
+        # With default_only=False, pyam adds a 'version' level to the index
+        df_ts = df_ts.droplevel("version")
 
     check_negatives(df_ts)
 
