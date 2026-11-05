@@ -36,6 +36,7 @@ from pandas_openscm.indexing import multi_index_match
 from emissions_harmonization_historical.constants_5000 import (
     DATA_ROOT,
     DOWNLOAD_SCENARIOS_ID,
+    RAW_SCENARIO_DB,
 )
 from emissions_harmonization_historical.excel_writing import set_cell
 
@@ -65,20 +66,9 @@ pd.set_option("display.max_colwidth", None)
 # ### Scenarios
 
 # %%
-# model_raw = RAW_SCENARIO_DB.load(pix.ismatch(model=f"*{model}*"), progress=True)
-# if model_raw.empty:
-#     raise AssertionError
-
-import pandas_openscm.io
-
-model_raw = pandas_openscm.io.load_timeseries_csv(
-    "../data/SSP2-com-CMIP7_regional_emissions/SSP2-COM-CMIP7_CGEM17_regional_sectoral_2015_2500.csv",
-    index_columns=["model", "scenario", "region", "variable", "unit"],
-    out_columns_name="year",
-    out_columns_type=int,
-)
-
-model_raw
+model_raw = RAW_SCENARIO_DB.load(pix.ismatch(model=f"*{model}*"), progress=True)
+if model_raw.empty:
+    raise AssertionError
 
 # %% [markdown]
 # ### Properties
@@ -249,22 +239,22 @@ missing_world = missing[world_locator]
 missing_model_region = missing[~world_locator]
 
 # %%
-# with pd.ExcelWriter(out_file, engine="openpyxl", mode="w") as writer:
-#     workbook = writer.book
-#     sheet_name = "scenario_database_info"
-#     set_cell(
-#         "Scenario properties as downloaded from the database",
-#         row=0,
-#         col=0,
-#         ws=workbook.create_sheet(title=sheet_name),
-#         font=Font(bold=True),
-#     )
-#     properties.to_excel(
-#         writer,
-#         sheet_name=sheet_name,
-#         startrow=2,
-#         index=False,
-#     )
+with pd.ExcelWriter(out_file, engine="openpyxl", mode="w") as writer:
+    workbook = writer.book
+    sheet_name = "scenario_database_info"
+    set_cell(
+        "Scenario properties as downloaded from the database",
+        row=0,
+        col=0,
+        ws=workbook.create_sheet(title=sheet_name),
+        font=Font(bold=True),
+    )
+    # properties.to_excel(
+    #     writer,
+    #     sheet_name=sheet_name,
+    #     startrow=2,
+    #     index=False,
+    # )
 
 # %%
 out_file.parent.mkdir(exist_ok=True, parents=True)
@@ -273,9 +263,8 @@ out_file.parent.mkdir(exist_ok=True, parents=True)
 with pd.ExcelWriter(
     out_file,
     engine="openpyxl",
-    # mode="a",
-    # if_sheet_exists="overlay",
-    mode="w",
+    mode="a",
+    if_sheet_exists="overlay",
 ) as writer:
     workbook = writer.book
     wms = partial(write_missing_sheet, workbook=workbook, writer=writer)

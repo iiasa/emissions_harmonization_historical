@@ -147,6 +147,8 @@ BB4CMIP7_PROCESSED_DB = OpenSCMDB(
 # the creation of historical emissions dataset for gridding
 # Gcages CDR split
 MOD_HISTORY_FOR_GRIDDING_ID = "202512021030"
+# GCEM
+MOD_HISTORY_FOR_GRIDDING_ID = "202611051220_ssp2-com-cmip7"
 
 # Commit from https://github.com/IAMconsortium/common-definitions
 # COMMON_DEFINITIONS_COMMIT = get_latest_commit_hash(
@@ -324,6 +326,7 @@ HISTORY_HARMONISATION_DB = OpenSCMDB(
 # # ID for the scenario download step
 DOWNLOAD_SCENARIOS_ID = "202603081555"
 DOWNLOAD_SCENARIOS_ID = "202603251220"
+DOWNLOAD_SCENARIOS_ID = "202611051220_ssp2-com-cmip7"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(

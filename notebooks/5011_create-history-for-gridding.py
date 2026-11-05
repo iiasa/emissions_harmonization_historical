@@ -83,8 +83,6 @@ for _, row in tmp.iterrows():
     region_list_d.setdefault(row.region, []).append(row.loc["country_iso3"].lower())
 
 # region_list_d
-
-# %%
 region_mapping_l = [
     {
         "model_region": key,
@@ -94,11 +92,10 @@ region_mapping_l = [
     for key, value in region_list_d.items()
 ]
 
-# %%
 region_mapping = pd.DataFrame(region_mapping_l)
 
-# %%
-region_mapping["model"].unique()
+# region_mapping["model"].unique()
+region_mapping
 
 # %%
 # # Manual hacks
@@ -337,5 +334,3 @@ out_file = HISTORY_HARMONISATION_INTERIM_DIR / f"gridding-history_{CREATE_HISTOR
 out_file.parent.mkdir(exist_ok=True, parents=True)
 
 history_for_gridding_incl_cdr.to_feather(out_file)
-
-# %%

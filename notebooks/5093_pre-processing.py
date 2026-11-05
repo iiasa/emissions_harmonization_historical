@@ -31,6 +31,7 @@ from gcages.completeness import get_missing_levels
 
 from emissions_harmonization_historical.constants_5000 import (
     PRE_PROCESSED_SCENARIO_DB,
+    RAW_SCENARIO_DB,
 )
 
 # %% [markdown]
@@ -50,20 +51,9 @@ model: str = "CGEM"
 # ### Scenarios
 
 # %%
-# model_raw = RAW_SCENARIO_DB.load(pix.ismatch(model=f"*{model}*"), progress=True)
-# if model_raw.empty:
-#     raise AssertionError
-
-import pandas_openscm.io
-
-model_raw = pandas_openscm.io.load_timeseries_csv(
-    "../data/SSP2-com-CMIP7_regional_emissions/SSP2-COM-CMIP7_CGEM17_regional_sectoral_2015_2500.csv",
-    index_columns=["model", "scenario", "region", "variable", "unit"],
-    out_columns_name="year",
-    out_columns_type=int,
-)
-
-sorted(model_raw.pix.unique("variable"))
+model_raw = RAW_SCENARIO_DB.load(pix.ismatch(model=f"*{model}*"), progress=True)
+if model_raw.empty:
+    raise AssertionError
 
 # %%
 model_raw.loc[pix.ismatch(variable="**CO2|AFOLU", region="World")].sort_index(axis="columns")
@@ -73,10 +63,10 @@ model_raw.loc[pix.ismatch(variable="**CO2|AFOLU", region="World")].sort_index(ax
 #
 # - only reported timesteps
 # - only data from 2015 onwards (we don't care about data before this)
-# - only data up to 2100 (while reporting is still weird for data post 2100)
+# <!-- - only data up to 2100 (while reporting is still weird for data post 2100) --> TODO handle this better
 
 # %%
-model_df = model_raw.loc[:, 2015:2100].dropna(how="all", axis="columns")
+model_df = model_raw.loc[:, 2015:].dropna(how="all", axis="columns")
 if model_df.empty:
     raise AssertionError
 

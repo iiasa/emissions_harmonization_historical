@@ -22,6 +22,11 @@
 # regardless of who/where/how we have run
 # the rest of the workflow.
 
+# %%
+## TODO: we have disabled the use of zenodo and are just hard-coding the writing.
+## We need to decide what we want to do about this long-term,
+## This is a temporary hack.
+
 # %% [markdown]
 # ## Imports
 
@@ -32,6 +37,7 @@ from functools import partial
 
 import git
 import pandas as pd
+import pandas_indexing as pix  # noqa: F401
 from IPython.display import display
 from loguru import logger
 from markdown_it import MarkdownIt
@@ -41,6 +47,7 @@ from emissions_harmonization_historical.constants_5000 import (
     COUNTRY_LEVEL_HISTORY,
     CREATE_HISTORY_FOR_GRIDDING_ID,
     HISTORY_FOR_HARMONISATION_ID,
+    HISTORY_HARMONISATION_DB,
     HISTORY_HARMONISATION_INTERIM_DIR,
     REPO_ROOT,
 )
@@ -93,10 +100,6 @@ for in_file, loader in (
         print(f"Wrote {out_file.relative_to(REPO_ROOT)}")
 
 # %%
-
-from emissions_harmonization_historical.constants_5000 import HISTORY_HARMONISATION_DB
-
-# %%
 HISTORY_HARMONISATION_DB.delete()
 HISTORY_HARMONISATION_DB.save(df.pix.assign(purpose="gridding_emissions"))
 HISTORY_HARMONISATION_DB.save(
@@ -105,6 +108,9 @@ HISTORY_HARMONISATION_DB.save(
     ).pix.assign(purpose="global_workflow_emissions")
 )
 
+
+# %%
+assert False, "Rmove the hacks before continuing"
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Write README
@@ -284,3 +290,5 @@ upload_to_zenodo(
     remove_existing=True,
     metadata=metadata,
 )
+
+# %%

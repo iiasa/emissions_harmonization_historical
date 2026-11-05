@@ -74,11 +74,11 @@ UR = openscm_units.unit_registry
 Q = UR.Quantity
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "REMIND"
+model: str = "CGEM"
 scm: str = "MAGICCv7.6.0a3"
-scm: str = "MAGICCv7.5.3"
-markers_only: bool = True
-run_w_extensions: bool = True  # Whether to run with scenarios extended to 2500
+# scm: str = "MAGICCv7.5.3"
+markers_only: bool = False
+run_w_extensions: bool = False  # Whether to run with scenarios extended to 2500: TODO fix meaning for CGEM
 
 # %%
 output_dir_model = SCM_OUT_DIR / model
@@ -388,3 +388,5 @@ run_scms(
 
 # %% editable=true slideshow={"slide_type": ""}
 SCM_OUTPUT_DB.save(complete_scm.pix.assign(climate_model=scm), allow_overwrite=True)
+
+# %%
