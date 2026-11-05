@@ -19,7 +19,7 @@ from emissions_harmonization_historical.constants_5000 import (
     CEDS_TOP_LEVEL_RAW_PATH,
     HARMONISED_SCENARIO_DB,
     HISTORY_HARMONISATION_DB,
-    INFILLED_SCENARIOS_DB_EXTENSIONS,
+    INFILLED_SCENARIOS_DB,
     INFILLING_DB_DIR,
 )
 from emissions_harmonization_historical.harmonisation import (
@@ -118,7 +118,9 @@ def main():  # noqa: PLR0915
 
     history = HISTORY_HARMONISATION_DB.load(pix.isin(purpose="global_workflow_emissions"))
 
-    complete = INFILLED_SCENARIOS_DB_EXTENSIONS.load(pix.isin(stage="extended"))
+    # complete = INFILLED_SCENARIOS_DB_EXTENSIONS.load(pix.isin(stage="extended"))
+    # TODO: handle this better than manual hack
+    complete = INFILLED_SCENARIOS_DB.load(pix.isin(stage="complete"))
 
     for (model, scenario), msdf in complete.groupby(["model", "scenario"]):
         relevant_emissions = msdf.index.droplevel(msdf.index.names.difference(["variable", "unit"])).drop_duplicates()
@@ -209,12 +211,15 @@ def main():  # noqa: PLR0915
         harmonisation_time=HARMONISATION_YEAR,
     )
 
-    # Extend into the future.
     extension_years = np.setdiff1d(res.columns, out.columns)
-    out.loc[:, extension_years] = np.nan
-    # Keep biosphere constant, fossil picks up the rest.
-    # Yuck but only used for extending latitudinal gradients etc. so ok
-    out.loc[pix.ismatch(variable="**Biosphere"), extension_years] = out.loc[pix.ismatch(variable="**Biosphere"), 2100]
+    if extension_years.size:
+        # Extend into the future.
+        out.loc[:, extension_years] = np.nan
+        # Keep biosphere constant, fossil picks up the rest.
+        # Yuck but only used for extending latitudinal gradients etc. so ok
+        out.loc[pix.ismatch(variable="**Biosphere"), extension_years] = out.loc[
+            pix.ismatch(variable="**Biosphere"), 2100
+        ]
 
     biosphere_scenarios_helper = out.loc[pix.ismatch(variable="**Biosphere") & ~pix.ismatch(scenario="historical")]
     biosphere_scenarios_helper = biosphere_scenarios_helper.openscm.update_index_levels(
