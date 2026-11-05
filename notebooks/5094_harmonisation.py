@@ -993,7 +993,7 @@ for variable, vdf in diffs.groupby("variable"):
 pdf_global_v_gridding = (
     combo_global_v_gridding.loc[
         :,
-        1990:2100,
+        1750:2500,
     ]
     .openscm.to_long_data()
     .dropna()

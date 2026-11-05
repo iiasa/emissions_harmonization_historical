@@ -345,6 +345,7 @@ PRE_PROCESSING_ID = "0003"
 PRE_PROCESSING_ID = "0004"
 # PRE_PROCESSING_ID = "0005"
 PRE_PROCESSING_ID = "202512021030"
+PRE_PROCESSING_ID = "202611051000"
 
 # Database into which pre-processed scenarios are saved
 PRE_PROCESSED_SCENARIO_DB = OpenSCMDB(
@@ -538,7 +539,7 @@ POST_PROCESSING_DIR = (
             HISTORY_FOR_HARMONISATION_ID,
             HARMONISATION_ID,
             INFILLING_ID,
-            SCM_RUNNING_ID,
+            # SCM_RUNNING_ID,
             POST_PROCESSING_ID,
         ]
     )

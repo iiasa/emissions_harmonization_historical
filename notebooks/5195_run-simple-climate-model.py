@@ -377,7 +377,7 @@ run_scms(
     verbose=True,
     progress=True,
     batch_size_scenarios=15,
-    # force_rerun=True,
+    force_rerun=True,
 )
 
 # %% [markdown]
