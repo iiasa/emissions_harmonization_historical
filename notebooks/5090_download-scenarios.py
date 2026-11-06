@@ -72,7 +72,7 @@ versions_file
 import pandas_openscm.io
 
 model_raw = pandas_openscm.io.load_timeseries_csv(
-    "../data/SSP2-com-CMIP7_regional_emissions/SSP2-COM-CMIP7_CGEM17_regional_sectoral_2015_2500.csv",
+    "../data/SSP2-com-regional-emissions_202611061900/SSP2-COM-CMIP7_CGEM17_regional_sectoral_2015_2500.csv",
     index_columns=["model", "scenario", "region", "variable", "unit"],
     out_columns_name="year",
     out_columns_type=int,
