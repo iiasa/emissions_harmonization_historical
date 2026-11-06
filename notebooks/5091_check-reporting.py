@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -45,6 +45,7 @@ from emissions_harmonization_historical.excel_writing import set_cell
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
 model: str = "REMIND"
+model: str = "CGEM"
 
 # %%
 output_dir_model = DATA_ROOT / "raw" / "scenarios" / DOWNLOAD_SCENARIOS_ID / model
@@ -69,16 +70,14 @@ model_raw = RAW_SCENARIO_DB.load(pix.ismatch(model=f"*{model}*"), progress=True)
 if model_raw.empty:
     raise AssertionError
 
-# model_raw
-
 # %% [markdown]
 # ### Properties
 
 # %%
-properties = pd.concat([pd.read_csv(f) for f in output_dir_model.glob("*properties.csv")]).drop(
-    "metadata", axis="columns"
-)
-# properties
+# properties = pd.concat([pd.read_csv(f) for f in output_dir_model.glob("*properties.csv")]).drop(
+#     "metadata", axis="columns"
+# )
+# # properties
 
 # %% [markdown]
 # ## Check completeness
@@ -250,15 +249,23 @@ with pd.ExcelWriter(out_file, engine="openpyxl", mode="w") as writer:
         ws=workbook.create_sheet(title=sheet_name),
         font=Font(bold=True),
     )
-    properties.to_excel(
-        writer,
-        sheet_name=sheet_name,
-        startrow=2,
-        index=False,
-    )
+    # properties.to_excel(
+    #     writer,
+    #     sheet_name=sheet_name,
+    #     startrow=2,
+    #     index=False,
+    # )
 
 # %%
-with pd.ExcelWriter(out_file, engine="openpyxl", mode="a", if_sheet_exists="overlay") as writer:
+out_file.parent.mkdir(exist_ok=True, parents=True)
+
+# %%
+with pd.ExcelWriter(
+    out_file,
+    engine="openpyxl",
+    mode="a",
+    if_sheet_exists="overlay",
+) as writer:
     workbook = writer.book
     wms = partial(write_missing_sheet, workbook=workbook, writer=writer)
     wms(
@@ -367,3 +374,5 @@ with pd.ExcelWriter(out_file, engine="openpyxl", mode="a", if_sheet_exists="over
         if not missing_model_region_specific_scenarios_regions.empty:
             print("The following timeseries are missing for specifc regions and scenarios")
             display(missing_model_region_specific_scenarios_regions)  # noqa: F821
+
+# %%

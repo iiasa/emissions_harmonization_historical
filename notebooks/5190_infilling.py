@@ -70,7 +70,7 @@ Q = UR.Quantity
 pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "REMIND"
+model: str = "CGEM"
 
 # %% editable=true slideshow={"slide_type": ""}
 output_dir_model = INFILLED_OUT_DIR / model
@@ -323,17 +323,49 @@ complete_wmo
 
 # %%
 # Just checking all scenarios get the same
-pdf = infilled_wmo.openscm.to_long_data()
-sns.relplot(
-    data=pdf,
-    x="time",
-    y="value",
-    hue="scenario",
-    col="variable",
-    col_wrap=7,
-    kind="line",
-    facet_kws=dict(sharey=False),
-)
+if infilled_wmo is not None:
+    pdf = infilled_wmo.openscm.to_long_data()
+    sns.relplot(
+        data=pdf,
+        x="time",
+        y="value",
+        hue="scenario",
+        col="variable",
+        col_wrap=7,
+        kind="line",
+        facet_kws=dict(sharey=False),
+    )
+else:
+    print("Nothing infilled with WMO")
+    pdf = pix.concat(
+        [
+            infilling_db_wmo.openscm.to_long_data(),
+            complete_silicone.loc[pix.isin(variable=infilling_db_wmo.pix.unique("variable"))].openscm.to_long_data(),
+        ]
+    )
+    sns.relplot(
+        data=pdf,
+        x="time",
+        y="value",
+        hue="scenario",
+        style="scenario",
+        col="variable",
+        col_wrap=7,
+        kind="line",
+        facet_kws=dict(sharey=False),
+    )
+    plt.show()
+    try:
+        pd.testing.assert_frame_equal(
+            infilling_db_wmo.reset_index(["model", "scenario"], drop=True),
+            complete_silicone.loc[
+                pix.isin(variable=infilling_db_wmo.pix.unique("variable")), infilling_db_wmo.columns
+            ].reset_index(["model", "scenario"], drop=True),
+            check_like=True,
+        )
+        print("Same data as WMO i.e. team did infilling themselves")
+    except AssertionError:
+        print("Different data from WMO")
 
 # %% [markdown]
 # ### Scale timeseries
@@ -453,25 +485,73 @@ infilled_scaling = infill(complete_wmo, infillers_scaling)
 complete = get_complete(complete_wmo, infilled_scaling)
 
 # %%
-for follower, leader in tqdm.auto.tqdm(scaling_leaders.items()):
-    pdf = complete.loc[pix.isin(variable=[follower, leader])].openscm.to_long_data()
-    fg = sns.relplot(
-        data=pdf,
-        x="time",
-        y="value",
-        hue="scenario",
-        col="variable",
-        col_wrap=2,
-        col_order=[leader, follower],
-        kind="line",
-        facet_kws=dict(sharey=False),
-        height=2.5,
-        aspect=1.25,
-    )
-    for ax in fg.axes.flatten():
-        ax.set_ylim(ymin=0.0)
+if infilled_scaling is not None:
+    for follower, leader in tqdm.auto.tqdm(scaling_leaders.items()):
+        pdf = complete.loc[pix.isin(variable=[follower, leader])].openscm.to_long_data()
+        fg = sns.relplot(
+            data=pdf,
+            x="time",
+            y="value",
+            hue="scenario",
+            col="variable",
+            col_wrap=2,
+            col_order=[leader, follower],
+            kind="line",
+            facet_kws=dict(sharey=False),
+            height=2.5,
+            aspect=1.25,
+        )
+        for ax in fg.axes.flatten():
+            ax.set_ylim(ymin=0.0)
 
-    plt.show()
+        plt.show()
+
+else:
+    print("Nothing infilled with scaling")
+    infilled_scaling_forced = infill(
+        complete_wmo.loc[~pix.isin(variable=list(infillers_scaling.keys()))], infillers_scaling
+    )
+
+    print("Overwriting team supplied emissions")
+    complete_in = complete.copy()
+    complete = pix.concat(
+        [
+            complete.loc[~pix.isin(variable=infilled_scaling_forced.pix.unique("variable"))],
+            infilled_scaling_forced,
+        ]
+    )
+
+    for follower, leader in tqdm.auto.tqdm(scaling_leaders.items()):
+        pdf = pix.concat(
+            [
+                complete_in.loc[pix.isin(variable=[follower, leader])]
+                .pix.assign(source="Supplied by the team")
+                .openscm.to_long_data(),
+                infilled_scaling_forced.loc[pix.isin(variable=[follower, leader])]
+                .pix.assign(source="Scaled infilling")
+                .openscm.to_long_data(),
+                complete.loc[pix.isin(variable=[follower, leader])].pix.assign(source="Output").openscm.to_long_data(),
+            ]
+        )
+        fg = sns.relplot(
+            data=pdf,
+            x="time",
+            y="value",
+            hue="source",
+            style="source",
+            col="variable",
+            col_wrap=2,
+            col_order=[leader, follower],
+            kind="line",
+            facet_kws=dict(sharey=False),
+            height=2.5,
+            aspect=1.25,
+            alpha=0.7,
+        )
+        for ax in fg.axes.flatten():
+            ax.set_ylim(ymin=0.0)
+
+        plt.show()
 
 # %% [markdown]
 # ## Check completeness

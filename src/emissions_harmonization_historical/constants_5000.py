@@ -147,6 +147,8 @@ BB4CMIP7_PROCESSED_DB = OpenSCMDB(
 # the creation of historical emissions dataset for gridding
 # Gcages CDR split
 MOD_HISTORY_FOR_GRIDDING_ID = "202512021030"
+# GCEM
+MOD_HISTORY_FOR_GRIDDING_ID = "202611051220_ssp2-com-cmip7"
 
 # Commit from https://github.com/IAMconsortium/common-definitions
 # COMMON_DEFINITIONS_COMMIT = get_latest_commit_hash(
@@ -324,6 +326,8 @@ HISTORY_HARMONISATION_DB = OpenSCMDB(
 # # ID for the scenario download step
 DOWNLOAD_SCENARIOS_ID = "202603081555"
 DOWNLOAD_SCENARIOS_ID = "202603251220"
+DOWNLOAD_SCENARIOS_ID = "202611051220_ssp2-com-cmip7"
+DOWNLOAD_SCENARIOS_ID = "202611061900_ssp2-com-cmip7"
 
 # Database into which raw scenarios are saved
 RAW_SCENARIO_DB = OpenSCMDB(
@@ -342,6 +346,7 @@ PRE_PROCESSING_ID = "0003"
 PRE_PROCESSING_ID = "0004"
 # PRE_PROCESSING_ID = "0005"
 PRE_PROCESSING_ID = "202512021030"
+PRE_PROCESSING_ID = "202611051000"
 
 # Database into which pre-processed scenarios are saved
 PRE_PROCESSED_SCENARIO_DB = OpenSCMDB(
@@ -390,7 +395,7 @@ INFILLING_DB_DIR = (
     DATA_ROOT
     / "processed"
     / "infilling-db"
-    / f"{DOWNLOAD_SCENARIOS_ID}_{WMO_2022_PROCESSING_ID}_{HARMONISATION_ID}_{INFILLING_DB_CREATION_ID}"
+    / f"{DOWNLOAD_SCENARIOS_ID}_{PRE_PROCESSING_ID}_{WMO_2022_PROCESSING_ID}_{HARMONISATION_ID}_{INFILLING_DB_CREATION_ID}"
 )
 
 # ID of the Zenodo record that contains the infilling database to use
@@ -535,7 +540,7 @@ POST_PROCESSING_DIR = (
             HISTORY_FOR_HARMONISATION_ID,
             HARMONISATION_ID,
             INFILLING_ID,
-            SCM_RUNNING_ID,
+            # SCM_RUNNING_ID,
             POST_PROCESSING_ID,
         ]
     )

@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -15,7 +15,7 @@
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # # Pre-processing
 #
-# Here we post-process each model's data.
+# Here we pre-process each model's data.
 
 # %% [markdown]
 # ## Imports
@@ -42,6 +42,7 @@ pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
 model: str = "REMIND"
+model: str = "CGEM"
 
 # %% [markdown]
 # ## Load data
@@ -54,8 +55,6 @@ model_raw = RAW_SCENARIO_DB.load(pix.ismatch(model=f"*{model}*"), progress=True)
 if model_raw.empty:
     raise AssertionError
 
-# sorted(model_raw.pix.unique("variable"))
-
 # %%
 model_raw.loc[pix.ismatch(variable="**CO2|AFOLU", region="World")].sort_index(axis="columns")
 
@@ -64,10 +63,10 @@ model_raw.loc[pix.ismatch(variable="**CO2|AFOLU", region="World")].sort_index(ax
 #
 # - only reported timesteps
 # - only data from 2015 onwards (we don't care about data before this)
-# - only data up to 2100 (while reporting is still weird for data post 2100)
+# <!-- - only data up to 2100 (while reporting is still weird for data post 2100) --> TODO handle this better
 
 # %%
-model_df = model_raw.loc[:, 2015:2100].dropna(how="all", axis="columns")
+model_df = model_raw.loc[:, 2015:].dropna(how="all", axis="columns")
 if model_df.empty:
     raise AssertionError
 
@@ -212,6 +211,101 @@ model_df = model_df.loc[~pix.ismatch(variable="Emissions|C2F6|**")]
 pre_processing_res = pre_processor(model_df)
 
 # %%
+# # CGEM goes below pre-industrial
+# # when it shouldn't.
+# # Fix this.
+# if model.startswith("CGEM"):
+#     import matplotlib.pyplot as plt
+
+#     from emissions_harmonization_historical.constants_5000 import (
+#         HISTORY_HARMONISATION_DB,
+#     )
+
+#     history_for_gridding_harmonisation = HISTORY_HARMONISATION_DB.load(pix.ismatch(purpose="gridding_emissions"))
+#     history_for_gridding_harmonisation = history_for_gridding_harmonisation.loc[pix.ismatch(region=["CGEM|*", "World"])]
+
+#     res_grid_tmp = pre_processing_res.gridding_workflow_emissions.sort_index().copy()
+
+#     issues_for = []
+#     for idx, row in res_grid_tmp.iterrows():
+#         idx_d = {k: v for k, v in zip(model_df.index.names, idx)}
+#         if not any(v in idx_d["variable"] for v in ("|CO|", "|OC|")):
+#             # Don't touch this
+#             continue
+
+#         locator = {k: v for k, v in idx_d.items() if k not in ["model", "scenario"]}
+
+#         history_compare = history_for_gridding_harmonisation.loc[pix.isin(**locator)]
+#         if history_compare.empty:
+#             raise AssertionError(idx_d)
+
+#         row_min = row.min()
+#         history_min = history_compare.min(axis=1).iloc[0]
+
+#         if row_min < history_min:
+#             issues_for.append(idx_d)
+
+#             raw = res_grid_tmp.loc[[idx]]
+#             scaled = raw.copy()
+#             scaled[scaled < history_min] = history_min
+
+#             # if "CO" not in idx_d["variable"]:
+#             #     continue
+
+#             # row_min_year = row.idxmin()
+#             # first_year_at_min = row.index[np.isclose(row, row_min, rtol=1e-3)].min()
+#             # first_year_below_history = row.index[row < history_min].min()
+
+#             # pre_ind_onwards_year = first_year_below_history
+#             # pre_ind_onwards_year_scale_factor = history_min / raw.loc[:, pre_ind_onwards_year].iloc[0]
+
+#             # scaled.loc[:, pre_ind_onwards_year:] = history_min
+
+#             # if np.isinf(pre_ind_onwards_year_scale_factor):
+#             #     scaled[raw == 0.0] = history_min
+
+#             # else:
+#             #     scale_factor_start_year = max(start_year, pre_ind_onwards_year - scale_years)
+#             #     scaled.loc[:, scale_factor_start_year:pre_ind_onwards_year] *= np.linspace(
+#             #         1.0,
+#             #         pre_ind_onwards_year_scale_factor,
+#             #         pre_ind_onwards_year - scale_factor_start_year + 1,
+#             #     )
+
+#             # scaled.loc[:, (raw > history_min).values.squeeze()] = raw.loc[:, (raw > history_min).values.squeeze()]
+
+#             # # scale_factor_max = history_min / row_min
+#             # # scale_factor_start_year = max(start_year, first_year_at_min - scale_years)
+#             # # scale_factor = pd.Series(np.ones_like(row), index=row.index)
+#             # # scale_factor.loc[first_year_at_min:] = scale_factor_max
+#             # # scale_factor.loc[scale_factor_start_year:first_year_at_min] = np.linspace(
+#             # #     1.0, scale_factor_max, first_year_at_min - scale_factor_start_year + 1
+#             # # )
+#             # # scale_factor = np.max(np.vstack([history_min / row, scale_factor]), axis=0)
+
+#             # # scaled = raw * scale_factor
+#             # # scaled.loc[np.where(np.isinf(scaled))] = history_min
+
+#             if "CHN" in idx_d["region"] or "|CO|" in idx_d["variable"]:
+#                 pdf = pix.concat(
+#                     [
+#                         raw.pix.assign(source="raw"),
+#                         scaled.pix.assign(source="scaled"),
+#                         history_compare.reset_index("purpose", drop=True).pix.assign(source="history"),
+#                     ]
+#                 ).sort_index(axis="columns")
+#                 ax = pdf.pix.project(["variable", "region", "source"]).T.plot()
+#                 ax.legend(loc="center left", bbox_to_anchor=(1.05, 0.5))
+
+#                 plt.show()
+#             # raise AssertionError
+#             # break
+
+#             res_grid_tmp.loc[[idx]] = scaled
+
+#     pre_processing_res.gridding_workflow_emissions = res_grid_tmp
+
+# %%
 # Hard override the global workflow emissions for CO2 AFOLU
 # to use globally reported numbers,
 # even if they're not consistent with region-sector reporting.
@@ -283,3 +377,5 @@ for stage, df in (
 ):
     PRE_PROCESSED_SCENARIO_DB.save(df.pix.assign(stage=stage), allow_overwrite=True)
     print(f"Saved {stage}")
+
+# %%

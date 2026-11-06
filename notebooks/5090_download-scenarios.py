@@ -55,6 +55,7 @@ from emissions_harmonization_historical.constants_5000 import (
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
 model_search: str = "AIM"
+model_search: str = "CGEM"
 markers_only: bool = True
 
 # %%
@@ -66,6 +67,24 @@ output_dir_model
 versions_file = DATA_ROOT / "raw" / "scenarios" / DOWNLOAD_SCENARIOS_ID / "versions.json"
 versions_file.parent.mkdir(exist_ok=True, parents=True)
 versions_file
+
+# %%
+import pandas_openscm.io
+
+model_raw = pandas_openscm.io.load_timeseries_csv(
+    "../data/SSP2-com-regional-emissions_202611061900/SSP2-COM-CMIP7_CGEM17_regional_sectoral_2015_2500.csv",
+    index_columns=["model", "scenario", "region", "variable", "unit"],
+    out_columns_name="year",
+    out_columns_type=int,
+)
+
+model_raw
+
+# %%
+RAW_SCENARIO_DB.save(model_raw, allow_overwrite=True)
+
+# %%
+assert False, "Remove this hack and figure out how to make this reproducible"
 
 # %% [markdown]
 # ## Load data

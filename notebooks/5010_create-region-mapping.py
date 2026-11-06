@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.18.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -67,6 +67,9 @@ create_region_mapping(
     common_definitions_path=COMMON_DEFINITIONS_PATH,
 )
 
+# %%
+REGION_MAPPING_FILE
+
 # %% [markdown]
 # ## Create the region mapping for concordia
 
@@ -92,5 +95,3 @@ for model in models:
     output = data.explode("iso3").reset_index(drop=True)
 
     output.to_csv(REGION_MAPPING_PATH / f"region_definitions_{model}.csv", index=False)
-
-# %%

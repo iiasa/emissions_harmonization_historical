@@ -60,8 +60,9 @@ pandas_openscm.register_pandas_accessor()
 pix.set_openscm_registry_as_default()
 
 # %% editable=true slideshow={"slide_type": ""} tags=["parameters"]
-model: str = "REMIND"
+model: str = "CGEM"
 scm: str = "MAGICCv7.6.0a3"
+# scm: str = "MAGICCv7.5.3"
 output_to_pdf: bool = False
 
 # %%
